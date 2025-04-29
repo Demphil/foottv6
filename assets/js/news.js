@@ -1,9 +1,17 @@
-import { fetchSportsNews } from './news-api.js';
+import { fetchSportsNews, fetchBreakingNews } from './news-api.js';
 
-// عناصر DOM
-const sportsNewsContainer = document.getElementById('sports-news');
-const breakingNewsContainer = document.getElementById('breaking-news');
-const loadingIndicator = document.getElementById('loading');
+// عناصر DOM مع التحقق من وجودها
+const getElement = (id) => {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.error(`Element with ID '${id}' not found`);
+  }
+  return element;
+};
+
+const sportsNewsContainer = getElement('sports-news');
+const breakingNewsContainer = getElement('breaking-news');
+const loadingIndicator = getElement('loading');
 
 /**
  * عرض الأخبار في واجهة المستخدم
@@ -11,7 +19,9 @@ const loadingIndicator = document.getElementById('loading');
  * @param {HTMLElement} container - العنصر الذي سيتم عرض الأخبار فيه
  */
 function displayNews(articles, container) {
-  container.innerHTML = ''; // مسح المحتوى القديم
+  if (!container) return;
+
+  container.innerHTML = '';
 
   if (!articles || articles.length === 0) {
     container.innerHTML = '<p class="no-news">لا توجد أخبار متاحة حالياً</p>';
@@ -30,8 +40,8 @@ function displayNews(articles, container) {
         <h3 class="news-title">${article.title}</h3>
         <p class="news-description">${article.description}</p>
         <div class="news-meta">
-          <span class="news-source">${article.source.name}</span>
-          <span class="news-date">${new Date(article.publishedAt).toLocaleString('ar-SA')}</span>
+          <span class="news-source">${article.source?.name || 'مصدر غير معروف'}</span>
+          <span class="news-date">${article.publishedAt || ''}</span>
         </div>
         <a href="${article.url}" target="_blank" class="read-more">قراءة المزيد</a>
       </div>
@@ -46,22 +56,33 @@ function displayNews(articles, container) {
  */
 async function loadInitialData() {
   try {
-    loadingIndicator.style.display = 'block';
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
     
     // جلب الأخبار الرياضية
-    const sportsNews = await fetchSportsNews('sa', 6);
-    displayNews(sportsNews, sportsNewsContainer);
+    if (sportsNewsContainer) {
+      const sportsNews = await fetchSportsNews('sa', 6);
+      displayNews(sportsNews, sportsNewsContainer);
+    }
     
     // جلب الأخبار العاجلة
-    const breakingNews = await fetchBreakingNews('sa', 3);
-    displayNews(breakingNews, breakingNewsContainer);
+    if (breakingNewsContainer) {
+      const breakingNews = await fetchBreakingNews('sa', 3);
+      displayNews(breakingNews, breakingNewsContainer);
+    }
     
   } catch (error) {
     console.error('حدث خطأ أثناء جلب البيانات:', error);
-    sportsNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار الرياضية</p>';
-    breakingNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار العاجلة</p>';
+    
+    if (sportsNewsContainer) {
+      sportsNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار الرياضية</p>';
+    }
+    
+    if (breakingNewsContainer) {
+      breakingNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار العاجلة</p>';
+    }
+    
   } finally {
-    loadingIndicator.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
   }
 }
 
@@ -69,11 +90,18 @@ async function loadInitialData() {
  * تهيئة التطبيق
  */
 function initApp() {
+  // التحقق من وجود العناصر الأساسية قبل البدء
+  if (!sportsNewsContainer || !breakingNewsContainer) {
+    console.error('One or more required elements are missing in the DOM');
+    return;
+  }
+
   // جلب البيانات الأولية
   loadInitialData();
   
   // يمكنك إضافة المزيد من الوظائف هنا
-  // مثل تحديث الأخبار تلقائياً أو إضافة فلترات
+  // مثل: تحديث الأخبار كل 5 دقائق
+  // setInterval(loadInitialData, 300000);
 }
 
 // بدء التطبيق عند تحميل الصفحة
