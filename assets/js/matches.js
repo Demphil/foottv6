@@ -65,26 +65,37 @@ const renderMatches = (matches) => {
     const today = new Date("2025-04-29");
     const tomorrow = new Date("2025-04-30");
 
-    const filteredMatches = matches.filter(
-        m => allowedLeagues.includes(m.league.id)
-    );
+   const renderMatches = (matches) => {
+    const today = new Date();  // التاريخ الحالي
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
 
-    const todayMatches = filteredMatches.filter(m =>
-        isSameDay(new Date(m.fixture.date), today)
-    );
+    console.log("اليوم:", today, "غدًا:", tomorrow);
 
-    const tomorrowMatches = filteredMatches.filter(m =>
-        isSameDay(new Date(m.fixture.date), tomorrow)
-    );
+    const filteredMatches = matches.filter(m => {
+        const leagueId = m.league?.id;
+        return allowedLeagues.includes(leagueId);
+    });
 
-    todayContainer.innerHTML += todayMatches.length
+    console.log("المباريات المصفاة:", filteredMatches);
+
+    const todayMatches = filteredMatches.filter(m => {
+        const matchDate = new Date(m.fixture?.date);
+        return isSameDay(matchDate, today);
+    });
+
+    const tomorrowMatches = filteredMatches.filter(m => {
+        const matchDate = new Date(m.fixture?.date);
+        return isSameDay(matchDate, tomorrow);
+    });
+
+    todayContainer.innerHTML = todayMatches.length
         ? todayMatches.map(renderMatchCard).join('')
-        : '<p>لا توجد مباريات اليوم.</p>';
+        : '<p class="no-matches">لا توجد مباريات اليوم.</p>';
 
-    tomorrowContainer.innerHTML += tomorrowMatches.length
+    tomorrowContainer.innerHTML = tomorrowMatches.length
         ? tomorrowMatches.map(renderMatchCard).join('')
-        : '<p>لا توجد مباريات غدًا.</p>';
-
+        : '<p class="no-matches">لا توجد مباريات غدًا.</p>';
 };
 
 fetchMatches().then(renderMatches);
