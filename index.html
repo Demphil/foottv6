@@ -3,121 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مباريات مباشرة</title>
+    <title>مباريات مباشرة | Football Matches Tracker</title>
     <link rel="stylesheet" href="assets/css/main.css">
-     <link rel="stylesheet" href="assets/css/matches.css">
-    <link rel="icon" href="assets/images/favicon.ico">
+    <link rel="stylesheet" href="assets/css/matches.css">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <header>
-        <img src="assets/images/logo.png" alt="شعار الموقع" class="logo">
-        <nav id="navMenu">
-            <button id="menuToggle">Toggle Menu</button> 
-            <a href="index.html" class="active">الرئيسية</a>
-            <a href="matches.html">المباريات</a>
-            <a href="news.html">الأخبار</a>
+
+    <!-- الهيدر -->
+    <header class="header">
+        <div class="logo">
+            <img src="assets/images/logo.png" alt="شعار الموقع" />
+            <h1>مباريات اليوم</h1>
+        </div>
+        <nav class="nav">
+            <ul>
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="matches.html" class="active">المباريات</a></li>
+                <li><a href="news.html">الأخبار</a></li>
+            </ul>
         </nav>
     </header>
 
+    <!-- محتوى المباريات -->
     <main>
-        <section class="hero">
-            <h1>مرحباً بك في موقع المباريات المباشرة</h1>
-            <p>تابع أهم الدوريات الأوروبية والعربية لحظة بلحظة!</p>
-            <a href="matches.html" class="btn-primary">عرض المباريات</a>
+        <section class="matches-section">
+            <div id="matches-container" class="matches-container">
+                <!-- المباريات ستظهر هنا -->
+            </div>
         </section>
-        <div id="matches-container"></div>
-        <div id="loader" class="loader"></div>
-
     </main>
 
-    <footer>
-        <p>&copy; 2025 جميع الحقوق محفوظة.</p>
+    <!-- الفوتر -->
+    <footer class="footer">
+        <p>حقوق النشر © 2025 - جميع الحقوق محفوظة</p>
     </footer>
-      <script type="module">
-  // تهيئة البيئة
-  window.ENV = {
-    RAPIDAPI_KEY: '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'
-  };
 
-  // استيراد الوحدات
-  import { fetchMatches, fetchOdds } from './assets/js/api.js';
-  import { MatchRenderer } from './assets/js/matches.js';
-
-  // تحديث سنة حقوق النشر
-  document.getElementById('current-year').textContent = new Date().getFullYear();
-
-
-        // Initialize featured matches
-        async function loadFeaturedMatches() {
-            try {
-                const today = new Date();
-                const response = await FootballAPI.getMatchesByDate(MatchRenderer.formatDate(today));
-                
-                const featuredContainer = document.getElementById('featured-matches-container');
-                if (response.matches && response.matches.length > 0) {
-                    const featuredMatches = response.matches
-                        .filter(match => MatchRenderer.IMPORTANT_LEAGUES.has(match.competition.code))
-                        .slice(0, 4); // عرض 4 مباريات فقط
-                    
-                    featuredContainer.innerHTML = featuredMatches.map(match => `
-                        <div class="match-card">
-                            <div class="match-header">
-                                <span class="league">
-                                    <img src="${match.competition.emblem || 'assets/images/default-league.png'}" 
-                                        alt="${match.competition.name}">
-                                    ${match.competition.name}
-                                </span>
-                            </div>
-                            <div class="teams">
-                                <div class="team home-team">
-                                    <img src="${match.homeTeam.crest || 'assets/images/default-team.png'}" 
-                                        alt="${match.homeTeam.shortName || match.homeTeam.name}">
-                                    <span>${match.homeTeam.shortName || match.homeTeam.name}</span>
-                                </div>
-                                <div class="vs">vs</div>
-                                <div class="team away-team">
-                                    <img src="${match.awayTeam.crest || 'assets/images/default-team.png'}" 
-                                        alt="${match.awayTeam.shortName || match.awayTeam.name}">
-                                    <span>${match.awayTeam.shortName || match.awayTeam.name}</span>
-                                </div>
-                            </div>
-                            <div class="match-time">
-                                <i class="far fa-clock"></i>
-                                ${new Date(match.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </div>
-                            <a href="matches.html?date=${MatchRenderer.formatDate(new Date(match.utcDate))}" class="match-link">تفاصيل المباراة</a>
-                        </div>
-                    `).join('') || MatchRenderer.getNoMatchesHTML();
-                } else {
-                    featuredContainer.innerHTML = MatchRenderer.getNoMatchesHTML();
-                }
-            } catch (error) {
-                console.error('Error loading featured matches:', error);
-                document.getElementById('matches-container').innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>حدث خطأ في تحميل المباريات</p>
-                        <button class="retry-btn" onclick="loadFeaturedMatches()">إعادة المحاولة</button>
-                    </div>
-                `;
-            }
-        }
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                await loadFeaturedMatches();
-                
-                // Mobile menu toggle
-                document.querySelector('.mobile-menu-btn').addEventListener('click', () => {
-                    document.querySelector('.main-nav').classList.toggle('active');
-                });
-            } catch (error) {
-                console.error('Initialization error:', error);
-            }
-        });
-    </script>
-
-
+    <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
