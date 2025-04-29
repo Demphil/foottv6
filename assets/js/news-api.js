@@ -1,56 +1,88 @@
 // assets/js/news-api.js
 
-const PROXY_URL = 'https://newsapi.org/v2/everything?q=tesla&from=2025-03-29&sortBy=publishedAt&apiKey=1930d8747282440aaee1688330c10db2
-'; // استبدل برابط السيرفر الوكيل
-const API_KEY = '1930d8747282440aaee1688330c10db2'; // احتفظ بالمفتاح للاستخدام في السيرفر
+// دالة مساعدة لإنشاء ID فريد
+const generateId = (url) => {
+  return url.split('/').reduce((acc, char) => {
+    return (acc << 5) - acc + char.charCodeAt(0);
+  }, 0);
+};
 
-export const fetchFootballNews = async (page = 1, pageSize = 10) => {
-    try {
-        const response = await fetch(
-            `${PROXY_URL}/everything?q=كرة القدم OR football&language=ar&page=${page}&pageSize=${pageSize}`
-        );
-        
-        if (!response.ok) {
-            throw new Error(`خطأ في السيرفر: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        return data.articles.map(article => ({
-            id: article.url.hashCode(),
-            title: article.title,
-            excerpt: article.description || 'لا يوجد وصف متاح',
-            image: article.urlToImage || 'assets/images/default-news.jpg',
-            date: formatArabicDate(article.publishedAt),
-            source: article.source?.name || 'مصدر غير معروف',
-            url: article.url,
-            author: article.author || 'كاتب غير معروف'
-        }));
-    } catch (error) {
-        console.error('فشل جلب الأخبار:', error);
-        throw new Error('تعذر الاتصال بخدمة الأخبار. يرجى المحاولة لاحقاً.');
+// دالة مساعدة لتنسيق التاريخ
+const formatArabicDate = (dateString) => {
+  const options = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  return new Date(dateString).toLocaleDateString('ar-SA', options);
+};
+
+export const fetchFootballNews = async () => {
+  try {
+    // استبدل هذا الرابط برابط السيرفر الوكيل الخاص بك
+    const proxyUrl = 'https://your-cors-proxy.com/';
+    const apiUrl = `https://newsapi.org/v2/everything?q=football&language=ar&sortBy=publishedAt&pageSize=20`;
+    
+    const response = await fetch(proxyUrl + apiUrl, {
+      headers: {
+        'X-API-KEY': 'your_api_key_here' // استبدل بمفتاح API الفعلي
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`خطأ في الشبكة: ${response.status}`);
     }
+
+    const data = await response.json();
+    
+    if (!data.articles || data.articles.length === 0) {
+      throw new Error('لا توجد أخبار متاحة حالياً');
+    }
+
+    return data.articles.map(article => ({
+      id: generateId(article.url),
+      title: article.title,
+      excerpt: article.description || 'لا يوجد وصف متاح',
+      content: article.content || '',
+      image: article.urlToImage || 'assets/images/default-news.jpg',
+      date: formatArabicDate(article.publishedAt),
+      source: article.source?.name || 'مصدر غير معروف',
+      url: article.url,
+      author: article.author || 'كاتب غير معروف'
+    }));
+  } catch (error) {
+    console.error('فشل جلب الأخبار:', error);
+    throw new Error('تعذر الاتصال بخدمة الأخبار. يرجى المحاولة لاحقاً.');
+  }
 };
 
 export const fetchBreakingNews = async () => {
-    try {
-        const response = await fetch(`${PROXY_URL}/top-headlines?category=sports&country=sa&pageSize=3`);
-        
-        if (!response.ok) {
-            throw new Error(`خطأ في السيرفر: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.articles.slice(0, 3).map(article => ({
-            ...article,
-            id: article.url.hashCode(),
-            date: formatArabicDate(article.publishedAt),
-            image: article.urlToImage || 'assets/images/default-news.jpg'
-        }));
-    } catch (error) {
-        console.error('فشل جلب الأخبار العاجلة:', error);
-        return [];
-    }
-};
+  try {
+    // استبدل هذا الرابط برابط السيرفر الوكيل الخاص بك
+    const proxyUrl = 'https://your-cors-proxy.com/';
+    const apiUrl = `https://newsapi.org/v2/top-headlines?category=sports&country=sa&pageSize=3`;
+    
+    const response = await fetch(proxyUrl + apiUrl, {
+      headers: {
+        'X-API-KEY': 'your_api_key_here' // استبدل بمفتاح API الفعلي
+      }
+    });
 
-// باقي الدوال المساعدة تبقى كما هي
+    const data = await response.json();
+    return data.articles.slice(0, 3).map(article => ({
+      id: generateId(article.url),
+      title: article.title,
+      excerpt: article.description || 'لا يوجد وصف متاح',
+      image: article.urlToImage || 'assets/images/default-news.jpg',
+      date: formatArabicDate(article.publishedAt),
+      source: article.source?.name || 'مصدر غير معروف',
+      url: article.url
+    }));
+  } catch (error) {
+    console.error('فشل جلب الأخبار العاجلة:', error);
+    return [];
+  }
+};
