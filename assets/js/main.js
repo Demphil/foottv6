@@ -56,11 +56,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // assets/js/main.js
 
-document.addEventListener("DOMContentLoaded", function () {
-    const menu = document.getElementById('mobile-menu');
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    const mobileMenu = document.getElementById('mobile-menu');
     const nav = document.querySelector('.nav ul');
 
-    menu.addEventListener('click', function () {
-        nav.classList.toggle('active');
-    });
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    }
+
+    if (mobileMenu && nav) {
+        mobileMenu.addEventListener('click', () => {
+            nav.classList.toggle('active');
+        });
+    }
 });
+
