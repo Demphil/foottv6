@@ -1,26 +1,22 @@
-const API_OPTIONS = {
-    method: 'GET',
-    headers: {
-        'X-RapidAPI-Key': '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556', // استبدل بمفتاحك
-        'X-RapidAPI-Host': 'football-news-aggregator.p.rapidapi.com'
-    }
-};
+// assets/js/news-api.js
+
+const API_KEY = '1930d8747282440aaee1688330c10db2'; // استبدل بمفتاحك من newsapi.org
+const BASE_URL = 'https://newsapi.org/v2';
 
 // دالة مساعدة للتعامل مع الأخطاء
 const handleResponse = async (response) => {
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `خطأ في الخادم: ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.message || `خطأ في الخادم: ${response.status}`);
     }
     return response.json();
 };
 
-// دالة جلب الأخبار العامة
-export const fetchFootballNews = async () => {
+// دالة جلب الأخبار الرياضية
+export const fetchFootballNews = async (page = 1, pageSize = 10) => {
     try {
         const response = await fetch(
-            'https://football-news-aggregator.p.rapidapi.com/news?lang=ar&limit=20',
-            API_OPTIONS
+            `${BASE_URL}/everything?q=كرة القدم OR football&language=ar&page=${page}&pageSize=${pageSize}&sortBy=publishedAt&apiKey=${API_KEY}`
         );
         
         const data = await handleResponse(response);
@@ -29,16 +25,12 @@ export const fetchFootballNews = async () => {
             id: article.url.hashCode(),
             title: article.title,
             excerpt: article.description || 'لا يوجد وصف متاح',
-            image: article.image || 'assets/images/default-news.jpg',
-            date: new Date(article.publishedAt).toLocaleDateString('ar-AR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }),
+            content: article.content || '',
+            image: article.urlToImage || 'assets/images/default-news.jpg',
+            date: formatArabicDate(article.publishedAt),
             source: article.source?.name || 'مصدر غير معروف',
             url: article.url,
-            category: article.category || 'عام'
+            author: article.author || 'كاتب غير معروف'
         }));
     } catch (error) {
         console.error('فشل جلب الأخبار:', error);
@@ -50,16 +42,33 @@ export const fetchFootballNews = async () => {
 export const fetchBreakingNews = async () => {
     try {
         const response = await fetch(
-            'https://football-news-aggregator.p.rapidapi.com/news/breaking?lang=ar&limit=3',
-            API_OPTIONS
+            `${BASE_URL}/top-headlines?category=sports&country=sa&pageSize=3&apiKey=${API_KEY}`
         );
         
         const data = await handleResponse(response);
-        return data.articles.slice(0, 3);
+        return data.articles.slice(0, 3).map(article => ({
+            ...article,
+            id: article.url.hashCode(),
+            date: formatArabicDate(article.publishedAt),
+            image: article.urlToImage || 'assets/images/default-news.jpg'
+        }));
     } catch (error) {
         console.error('فشل جلب الأخبار العاجلة:', error);
         return []; // إرجاع مصفوفة فارغة بدلاً من إظهار خطأ
     }
+};
+
+// تنسيق التاريخ بالعربية
+const formatArabicDate = (dateString) => {
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString('ar-SA', options);
 };
 
 // دالة مساعدة لإنشاء ID فريد
