@@ -56,3 +56,41 @@
     text-align: center;
     margin-top: 2rem;
 }
+/* assets/css/matches.css */
+
+.matches-section {
+    padding: 50px 0;
+    background-color: #111;
+    min-height: 80vh;
+}
+
+.matches-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.match-card {
+    background: #222;
+    padding: 20px;
+    border-radius: 8px;
+    border-bottom: 3px solid red;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.match-card:hover {
+    background: #333;
+    transform: scale(1.02);
+}
+
+.match-card h3 {
+    color: red;
+    margin-bottom: 10px;
+}
+
+.match-card p {
+    color: #ccc;
+}
