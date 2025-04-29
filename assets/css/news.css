@@ -1,44 +1,390 @@
-/* assets/css/news.css */
-@import url('main.css');
-
-.news-section {
-    padding: 20px;
-    text-align: center;
-}
-/* assets/css/news.css */
-
-.news-section {
-    padding: 50px 0;
+/* تنسيقات عامة */
+.news-main {
+    padding: 2rem;
     background-color: #111;
-    min-height: 80vh;
+    color: #fff;
 }
 
-.news-list {
+.section-header {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #b30000;
+    padding-bottom: 0.5rem;
 }
 
-.news-item {
-    background: #222;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 5px solid red;
+.section-title {
+    color: #fff;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.view-all {
+    color: #b30000;
+    text-decoration: none;
+    font-weight: bold;
     transition: all 0.3s ease;
 }
 
-.news-item:hover {
-    background: #333;
-    transform: translateX(-5px);
+.view-all:hover {
+    color: #fff;
+    text-decoration: underline;
 }
 
-.news-item h2 {
-    margin-bottom: 10px;
-    color: red;
-    font-size: 22px;
+/* الأخبار العاجلة */
+.breaking-news-section {
+    margin-bottom: 3rem;
 }
 
-.news-item p {
-    color: #ccc;
+.breaking-news-slider {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: #b30000 #222;
+}
+
+.breaking-news-slider::-webkit-scrollbar {
+    height: 8px;
+}
+
+.breaking-news-slider::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 10px;
+}
+
+.breaking-news-slider::-webkit-scrollbar-thumb {
+    background-color: #b30000;
+    border-radius: 10px;
+}
+
+.breaking-news-card {
+    min-width: 400px;
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.breaking-news-card:hover {
+    transform: translateY(-5px);
+}
+
+.breaking-news-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.breaking-news-content {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.breaking-news-tag {
+    position: absolute;
+    top: -15px;
+    right: 1.5rem;
+    background-color: #b30000;
+    color: #fff;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.breaking-news-title {
+    color: #fff;
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+}
+
+.breaking-news-excerpt {
+    color: #bbb;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.breaking-news-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+/* تصنيف الأخبار */
+.categories-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    background: #222;
+    border: none;
+    color: #bbb;
+    padding: 0.5rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.category-btn.active {
+    background-color: #b30000;
+    color: #fff;
+    font-weight: bold;
+}
+
+.category-btn:hover:not(.active) {
+    background-color: #333;
+    color: #fff;
+}
+
+/* الأخبار الرئيسية */
+.main-news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.news-card {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #333;
+}
+
+.news-card:hover {
+    border-color: #b30000;
+    box-shadow: 0 0 15px rgba(179, 0, 0, 0.3);
+    transform: translateY(-5px);
+}
+
+.news-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.news-content {
+    padding: 1.2rem;
+}
+
+.news-category {
+    color: #b30000;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.news-title {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+}
+
+.news-excerpt {
+    color: #bbb;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+/* قسم الفيديوهات */
+.videos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.video-card {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(179, 0, 0, 0.3);
+}
+
+.video-thumbnail {
+    position: relative;
+}
+
+.video-thumbnail img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    background-color: rgba(179, 0, 0, 0.7);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+.video-content {
+    padding: 1rem;
+}
+
+.video-title {
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.video-views {
+    color: #888;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* المقالات المميزة */
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.featured-article {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    border-left: 4px solid #b30000;
+}
+
+.featured-article:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(179, 0, 0, 0.3);
+}
+
+.article-author {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-name {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.article-date {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.article-title {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+}
+
+.article-excerpt {
+    color: #bbb;
+    font-size: 0.9rem;
     line-height: 1.6;
+    margin-bottom: 1rem;
 }
+
+.read-more {
+    color: #b30000;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.3s ease;
+}
+
+.read-more:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* الفوتر */
+.footer {
+    background-color: #000;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.footer-logo img {
+    height: 50px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a
