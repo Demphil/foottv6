@@ -85,7 +85,6 @@ const renderMatches = (matches) => {
         ? tomorrowMatches.map(renderMatchCard).join('')
         : '<p>لا توجد مباريات غدًا.</p>';
 
-    console.info("جميع المباريات", matches); // للمتابعة
 };
 
 fetchMatches().then(renderMatches);
