@@ -3,7 +3,7 @@ const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556';
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
 const leagueIds = [2, 39, 140, 135, 61, 78, 307, 200]; // CAF CL, EPL, La Liga, Serie A, Ligue 1, Bundesliga, Saudi, Morocco
-const season = 2023;
+const season = 2025;
 const timezone = 'Africa/Casablanca';
 
 export const fetchMatches = async () => {
