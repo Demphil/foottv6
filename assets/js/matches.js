@@ -25,8 +25,10 @@ const MatchRenderer = {
         try {
             this.showLoading();
             const matches = await fetchMatches();
-            const todayMatches = matches.filter(match => this.isToday(match.date));
-            const tomorrowMatches = matches.filter(match => this.isTomorrow(match.date));
+
+            // نستخدم match.utcDate بدلاً من match.date
+            const todayMatches = matches.filter(match => this.isToday(match.utcDate));
+            const tomorrowMatches = matches.filter(match => this.isTomorrow(match.utcDate));
 
             this.renderMatchesByDate(todayMatches, 'today');
             this.renderMatchesByDate(tomorrowMatches, 'tomorrow');
@@ -37,21 +39,23 @@ const MatchRenderer = {
         }
     },
 
-    isToday: function(date) {
+    isToday: function(dateString) {
         const today = new Date();
-        const matchDate = new Date(date);
+        const matchDate = new Date(dateString);
         return today.toDateString() === matchDate.toDateString();
     },
 
-    isTomorrow: function(date) {
+    isTomorrow: function(dateString) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        const matchDate = new Date(date);
+        const matchDate = new Date(dateString);
         return tomorrow.toDateString() === matchDate.toDateString();
     },
 
     renderMatchesByDate: function(matches, type) {
         const container = type === 'today' ? this.elements.todayContainer : this.elements.tomorrowContainer;
+        if (!container) return;
+
         if (matches.length === 0) {
             container.innerHTML = `<p>لا توجد مباريات</p>`;
             return;
@@ -60,7 +64,7 @@ const MatchRenderer = {
         container.innerHTML = matches.map(match => `
             <div class="match-card">
                 <h3>${match.homeTeam.name} ضد ${match.awayTeam.name}</h3>
-                <p>${new Date(match.utcDate).toLocaleTimeString()}</p>
+                <p>${new Date(match.utcDate).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
         `).join('');
     },
@@ -80,7 +84,7 @@ const MatchRenderer = {
     showError: function(error) {
         if (this.elements.errorContainer) {
             this.elements.errorContainer.innerHTML = `
-                <p>حدث خطأ: ${error.message}</p>
+                <p>حدث خطأ أثناء تحميل المباريات: ${error.message}</p>
             `;
         }
     }
