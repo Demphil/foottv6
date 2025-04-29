@@ -2,7 +2,19 @@ const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
 const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556';
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
-const leagueIds = [2, 39, 140, 135, 61, 78, 307, 200]; // CAF CL, EPL, La Liga, Serie A, Ligue 1, Bundesliga, Saudi, Morocco
+// البطولات المطلوبة فقط
+const leagueIds = [
+    2,    // دوري أبطال أوروبا
+    39,   // الدوري الإنجليزي
+    140,  // الدوري الإسباني
+    135,  // الدوري الإيطالي
+    61,   // الدوري الفرنسي
+    78,   // الدوري الألماني
+    307,  // الدوري المغربي
+    308,  // دوري أبطال إفريقيا
+    309   // كأس الاتحاد الإفريقي
+];
+
 const season = 2025;
 const timezone = 'Africa/Casablanca';
 
