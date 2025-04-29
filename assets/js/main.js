@@ -54,3 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         navMenu.classList.toggle('active');
     });
 });
+// assets/js/main.js
+
+document.addEventListener("DOMContentLoaded", function () {
+    const menu = document.getElementById('mobile-menu');
+    const nav = document.querySelector('.nav ul');
+
+    menu.addEventListener('click', function () {
+        nav.classList.toggle('active');
+    });
+});
