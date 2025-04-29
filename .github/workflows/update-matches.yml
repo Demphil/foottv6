@@ -1,4 +1,5 @@
 name: Update Matches Data
+
 on:
   schedule:
     - cron: '0 */6 * * *'  # كل 6 ساعات
@@ -11,7 +12,7 @@ jobs:
   update-matches:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -37,9 +38,9 @@ jobs:
           const axios = require('axios');
           const fs = require('fs');
           const today = new Date().toISOString().split('T')[0];
-          
+
           const IMPORTANT_LEAGUES = new Set([39, 140, 135, 78, 61, 564, 2, 350]);
-          
+
           async function getMatches() {
             try {
               const { data } = await axios.get('https://api-football-v1.p.rapidapi.com/v3/fixtures', {
@@ -49,14 +50,14 @@ jobs:
                   'x-rapidapi-key': process.env.RAPIDAPI_KEY
                 }
               });
-              
+
               const filteredMatches = {
                 ...data,
-                response: data.response?.filter(fixture => 
+                response: data.response?.filter(fixture =>
                   IMPORTANT_LEAGUES.has(fixture.league?.id)
                 ) || []
               };
-              
+
               fs.writeFileSync('./data/matches.json', JSON.stringify(filteredMatches, null, 2));
               console.log('✅ تم حفظ', filteredMatches.response.length, 'مباراة');
             } catch (error) {
@@ -72,14 +73,14 @@ jobs:
               }, null, 2));
             }
           }
+
           getMatches();
           "
 
-      - name: Commit Changes
-        if: success()
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "GitHub Bot"
           git config --global user.email "actions@users.noreply.github.com"
           git add data/matches.json
-          git diff --quiet || git commit -m "تحديث بيانات المباريات [auto]"
-          git push
+          git diff --cached --quiet || git commit -m "🔄 تحديث بيانات المباريات"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
