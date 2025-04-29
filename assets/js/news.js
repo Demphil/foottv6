@@ -74,21 +74,37 @@ const loadInitialData = async () => {
     try {
         setLoading(true);
         
-        // جلب البيانات بالتوازي
-        const [breakingNews, footballNews] = await Promise.all([
+        const [breakingNews, footballNews] = await Promise.allSettled([
             fetchBreakingNews(),
             fetchFootballNews()
         ]);
         
-        state.allNews = footballNews;
-        renderBreakingNews(breakingNews);
-        renderNews();
+        if (breakingNews.status === 'fulfilled') {
+            renderBreakingNews(breakingNews.value);
+        } else {
+            console.error('Failed to load breaking news:', breakingNews.reason);
+            elements.breakingNews.innerHTML = getErrorMessage('الأخبار العاجلة');
+        }
+        
+        if (footballNews.status === 'fulfilled') {
+            state.allNews = footballNews.value;
+            renderNews();
+        } else {
+            throw footballNews.reason;
+        }
         
     } catch (error) {
-        showError(error.message);
+        showError(getUserFriendlyError(error));
     } finally {
         setLoading(false);
     }
+};
+
+const getUserFriendlyError = (error) => {
+    if (error.message.includes('CORS') || error.message.includes('browser')) {
+        return 'الخادم لا يقبل الطلبات مباشرة من المتصفح. جاري العمل على إصلاح المشكلة.';
+    }
+    return error.message || 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.';
 };
 
 const loadMoreNews = async () => {
