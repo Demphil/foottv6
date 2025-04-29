@@ -1,9 +1,9 @@
-# .github/workflows/update-matches.yml
+
 name: Update Matches
 
 on:
   schedule:
-    - cron: '0 * * * *' # كل ساعة (يمكن تغييره إلى كل يوم مثلا)
+    - cron: '0 * * * *' # كل ساعة
   workflow_dispatch:
 
 jobs:
@@ -30,5 +30,4 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add data/matches.json
-          git commit -m "🔄 Update matches data"
-          git push
+          git diff --cached --quiet || (git commit -m "🔄 Update matches data" && git push)
