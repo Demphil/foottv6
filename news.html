@@ -9,73 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
-    <style>
-        /* أنماط إضافية */
-.loader {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #d50000;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 2rem auto;
-  display: none;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.no-news-message {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.no-news-message i {
-  font-size: 2rem;
-  color: #d50000;
-  margin-bottom: 1rem;
-}
-
-.no-image {
-  background: #f5f5f5;
-  height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ddd;
-  font-size: 3rem;
-}
-
-.error-message {
-  background: #fff3f3;
-  border: 1px solid #ffcdd2;
-  color: #d32f2f;
-  padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-  max-width: 600px;
-  margin: 2rem auto;
-}
-
-.retry-btn {
-  background: #d50000;
-  color: white;
-  border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: inherit;
-}
-
-.retry-btn:hover {
-  background: #b71c1c;
-}
-    </style>
+  
 <body>
     <!-- الهيدر -->
     <header class="header">
@@ -99,8 +33,10 @@
     <!-- المحتوى الرئيسي -->
     <main class="news-main">
         <!-- مؤشر التحميل -->
-        <div id="loading-indicator" class="loader"></div>
-        
+<div id="loading" class="loading-indicator" style="display: none;">
+  <div class="loader"></div>
+  <p>جاري تحميل الأخبار...</p>
+</div>        
         <!-- عرض الأخطاء -->
         <div id="error-container"></div>
         
