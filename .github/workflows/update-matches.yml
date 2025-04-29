@@ -1,34 +1,85 @@
-name: Update Matches
-
+name: Update Matches Data
 on:
   schedule:
-    - cron: '0 * * * *' # كل ساعة
+    - cron: '0 */6 * * *'  # كل 6 ساعات
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update-matches:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
+    
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Install Dependencies
-        run: npm install axios
+      - name: Initialize Project
+        run: |
+          mkdir -p data
+          echo '{"private":true}' > package.json
 
-      - name: Run Script
-        run: node scripts/generate-matches.js
+      - name: Install Axios
+        run: npm install axios --no-package-lock --no-save
+
+      - name: Fetch and Process Matches
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        run: |
+          node -e "
+          const axios = require('axios');
+          const fs = require('fs');
+          const today = new Date().toISOString().split('T')[0];
+          
+          const IMPORTANT_LEAGUES = new Set([39, 140, 135, 78, 61, 564, 2, 350]);
+          
+          async function getMatches() {
+            try {
+              const { data } = await axios.get('https://api-football-v1.p.rapidapi.com/v3/fixtures', {
+                params: { date: today, timezone: 'Asia/Riyadh' },
+                headers: {
+                  'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
+                  'x-rapidapi-key': process.env.RAPIDAPI_KEY
+                }
+              });
+              
+              const filteredMatches = {
+                ...data,
+                response: data.response?.filter(fixture => 
+                  IMPORTANT_LEAGUES.has(fixture.league?.id)
+                ) || []
+              };
+              
+              fs.writeFileSync('./data/matches.json', JSON.stringify(filteredMatches, null, 2));
+              console.log('✅ تم حفظ', filteredMatches.response.length, 'مباراة');
+            } catch (error) {
+              console.error('❌ فشل:', error.message);
+              fs.writeFileSync('./data/matches.json', JSON.stringify({
+                response: [
+                  {
+                    league: { id: 564, name: 'الدوري السعودي (بيانات محلية)' },
+                    teams: { home: { name: 'الهلال' }, away: { name: 'النصر' } },
+                    goals: { home: 0, away: 0 }
+                  }
+                ]
+              }, null, 2));
+            }
+          }
+          getMatches();
+          "
 
       - name: Commit Changes
+        if: success()
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config --global user.name "GitHub Bot"
+          git config --global user.email "actions@users.noreply.github.com"
           git add data/matches.json
-          git diff --cached --quiet || (git commit -m "🔄 Update matches data" && git push)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} # استخدام PAT هنا
+          git diff --quiet || git commit -m "تحديث بيانات المباريات [auto]"
+          git push
