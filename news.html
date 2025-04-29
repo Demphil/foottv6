@@ -6,12 +6,62 @@
     <title>أخبار كرة القدم | Football Matches Tracker</title>
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/news.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <style>
+        /* أنماط مؤقتة للتحميل والخطأ */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #b30000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #2a2a2a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 600px;
+            margin: 2rem auto;
+            border-left: 4px solid #b30000;
+        }
+        
+        .error-message i {
+            color: #b30000;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message button {
+            background: #b30000;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .error-message button:hover {
+            background: #ff0000;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
         <div class="logo">
-            <img src="assets/images/logo.png" alt="شعار الموقع" />
+            <img src="assets/images/logo.png" alt="شعار الموقع">
             <h1>أخبار كرة القدم</h1>
         </div>
         <nav class="nav">
@@ -24,6 +74,12 @@
     </header>
 
     <main class="news-main">
+        <!-- مؤشر التحميل -->
+        <div id="loading-indicator" class="loader"></div>
+        
+        <!-- عرض الأخطاء -->
+        <div id="error-container"></div>
+        
         <!-- قسم الأخبار العاجلة -->
         <section class="breaking-news-section">
             <div class="section-header">
@@ -34,28 +90,40 @@
                 <!-- سيتم ملؤه بواسطة JavaScript -->
             </div>
         </section>
-         <div class="search-bar">
-    <input type="text" id="news-search" placeholder="ابحث في الأخبار...">
-    <button id="search-btn"><i class="fas fa-search"></i></button>
-</div>
-        <!-- قسم تصنيف الأخبار -->
-        <section class="news-categories">
+        
+        <!-- شريط البحث والتصنيفات -->
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="news-search" placeholder="ابحث في الأخبار...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
             <div class="categories-tabs">
                 <button class="category-btn active" data-category="all">الكل</button>
                 <button class="category-btn" data-category="transfers">انتقالات</button>
+                <button class="category-btn" data-category="matches">مباريات</button>
                 <button class="category-btn" data-category="injuries">إصابات</button>
-                <button class="category-btn" data-category="analysis">تحليلات</button>
-                <button class="category-btn" data-category="interviews">مقابلات</button>
             </div>
         </section>
-
+        
         <!-- قسم الأخبار الرئيسية -->
         <section class="main-news-section">
+            <div class="section-header">
+                <h2 class="section-title">آخر الأخبار</h2>
+                <div class="sort-options">
+                    <span>ترتيب حسب:</span>
+                    <select id="sort-by">
+                        <option value="newest">الأحدث</option>
+                        <option value="oldest">الأقدم</option>
+                        <option value="popular">الأكثر مشاهدة</option>
+                    </select>
+                </div>
+            </div>
             <div class="main-news-grid" id="main-news">
                 <!-- سيتم ملؤه بواسطة JavaScript -->
             </div>
+            <button id="load-more" class="load-more-btn">تحميل المزيد</button>
         </section>
-
+        
         <!-- قسم الفيديوهات -->
         <section class="videos-section">
             <div class="section-header">
@@ -66,53 +134,57 @@
                 <!-- سيتم ملؤه بواسطة JavaScript -->
             </div>
         </section>
-
-        <!-- قسم المقالات المميزة -->
-        <section class="featured-articles">
-            <div class="section-header">
-                <h2 class="section-title">مقالات مميزة</h2>
-                <a href="#" class="view-all">عرض الكل</a>
-            </div>
-            <div class="articles-grid" id="featured-articles">
-                <!-- سيتم ملؤه بواسطة JavaScript -->
-            </div>
-            <!-- داخل <main class="news-main"> -->
-<div id="loading-indicator" class="loader" style="display: none;"></div>
-<div id="error-container" style="display: none;"></div>
-
-<section class="breaking-news-section">
-  <!-- محتوى الأخبار العاجلة -->
-</section>
-
-<section class="main-news-section">
-  <!-- محتوى الأخبار الرئيسية -->
-</section>
-        </section>
     </main>
 
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-logo">
-                <img src="assets/images/logo.png" alt="شعار الموقع">
+                <img src="assets/images/logo-white.png" alt="شعار الموقع">
+                <p>موقع متخصص في أخبار ومباريات كرة القدم</p>
             </div>
             <div class="footer-links">
-                <a href="#">عن الموقع</a>
-                <a href="#">اتصل بنا</a>
+                <div class="links-column">
+                    <h3>روابط سريعة</h3>
+                    <a href="index.html">الرئيسية</a>
+                    <a href="matches.html">المباريات</a>
+                    <a href="news.html">الأخبار</a>
+                    <a href="about.html">عن الموقع</a>
+                </div>
+                <div class="links-column">
+                    <h3>البطولات</h3>
+                    <a href="#">الدوري الإنجليزي</a>
+                    <a href="#">الدوري الإسباني</a>
+                    <a href="#">دوري الأبطال</a>
+                    <a href="#">كأس العالم</a>
+                </div>
+                <div class="links-column">
+                    <h3>اتصل بنا</h3>
+                    <a href="contact.html">نموذج الاتصال</a>
+                    <a href="#">الشكاوى والمقترحات</a>
+                    <a href="#">الإعلان على الموقع</a>
+                </div>
+            </div>
+            <div class="social-media">
+                <h3>تابعنا على</h3>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>حقوق النشر © 2025 - جميع الحقوق محفوظة لموقع Football Matches Tracker</p>
+            <div class="legal-links">
                 <a href="#">شروط الاستخدام</a>
                 <a href="#">سياسة الخصوصية</a>
             </div>
-            <div class="social-media">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-youtube"></i></a>
-            </div>
         </div>
-        <p class="copyright">حقوق النشر © 2025 - جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- Font Awesome للأيقونات -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+    <script type="module" src="assets/js/news-api.js"></script>
     <script type="module" src="assets/js/news.js"></script>
 </body>
 </html>
