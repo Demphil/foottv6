@@ -94,3 +94,13 @@
 .match-card p {
     color: #ccc;
 }
+.team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.team-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
