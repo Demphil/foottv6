@@ -24,19 +24,25 @@ const isSameDay = (date1, date2) =>
 
 // توليد بطاقة المباراة
 const renderMatchCard = (match) => {
-    const { teams, fixture, league } = match;
+    const { teams, fixture } = match;
     return `
         <div class="match-card">
-            <div class="league">${league.name} (${league.country})</div>
             <div class="teams">
-                <span>${teams.home.name}</span>
+                <div class="team">
+                    <img src="${teams.home.logo}" alt="${teams.home.name}" class="team-logo">
+                    <span>${teams.home.name}</span>
+                </div>
                 <strong>VS</strong>
-                <span>${teams.away.name}</span>
+                <div class="team">
+                    <img src="${teams.away.logo}" alt="${teams.away.name}" class="team-logo">
+                    <span>${teams.away.name}</span>
+                </div>
             </div>
             <div class="time">🕒 ${formatDate(fixture.date)}</div>
         </div>
     `;
 };
+
 
 // تحديد البطولات المطلوبة
 const allowedLeagues = [
