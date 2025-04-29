@@ -1,4 +1,16 @@
-// assets/js/matches.js
+// استيراد دالة fetchMatches من api.js
+import { fetchMatches } from './api.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    // استخدام الدالة بعد التأكد من تحميل DOM
+    fetchMatches(865927)  // رقم الدوري، مثلًا 865927
+        .then(matches => {
+            console.log(matches); // طباعة البيانات
+        })
+        .catch(error => {
+            console.error('حدث خطأ:', error); // التعامل مع الخطأ
+        });
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
     const matchesContainer = document.getElementById('matches-container');
