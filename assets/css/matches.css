@@ -1,1 +1,33 @@
+/* assets/css/matches.css */
+@import url('main.css');
+
+.matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+}
+
+.match-card {
+    background-color: #1a1a1a;
+    border: 1px solid #b30000;
+    padding: 15px;
+    border-radius: 8px;
+}
+#matches-container {
+    padding: 20px;
+}
+
+#matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.match-card {
+    background: #222;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #d32f2f;
+}
 
