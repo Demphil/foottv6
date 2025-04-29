@@ -1,4 +1,4 @@
-import { fetchSportsNews, fetchBreakingNews } from './news-api.js';
+import { fetchSportsNews } from './news-api.js';
 
 // عناصر DOM
 const sportsNewsContainer = document.getElementById('sports-news');
