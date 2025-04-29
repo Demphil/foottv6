@@ -30,3 +30,21 @@ export const fetchFootballNews = async () => {
         throw error;
     }
 };
+// أضف في news-api.js
+const cacheDuration = 30 * 60 * 1000; // 30 دقيقة
+
+export const fetchNews = async () => {
+    const cachedData = localStorage.getItem('newsCache');
+    const cacheTime = localStorage.getItem('newsCacheTime');
+    
+    if (cachedData && cacheTime && Date.now() - cacheTime < cacheDuration) {
+        return JSON.parse(cachedData);
+    }
+    
+    const data = await fetchFromAPI(); // استدعاء API الحقيقي
+    
+    localStorage.setItem('newsCache', JSON.stringify(data));
+    localStorage.setItem('newsCacheTime', Date.now());
+    
+    return data;
+};
