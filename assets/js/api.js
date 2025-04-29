@@ -26,4 +26,5 @@ async function fetchMatches(leagueId) {
 }
 
 // يمكن استدعاء هذه الدالة في ملفات أخرى لاستخدامها
-export { fetchMatches };
+export async function fetchMatches(...) {}
+export async function fetchOdds(...) {}
