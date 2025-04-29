@@ -1,88 +1,53 @@
-// assets/js/news-api.js
+// إعدادات API
+const apiKey = '320e688cfb9682d071750f4212f83753';
+const baseUrl = 'https://gnews.io/api/v4/top-headlines';
 
-// دالة مساعدة لإنشاء ID فريد
-const generateId = (url) => {
-  return url.split('/').reduce((acc, char) => {
-    return (acc << 5) - acc + char.charCodeAt(0);
-  }, 0);
-};
-
-// دالة مساعدة لتنسيق التاريخ
-const formatArabicDate = (dateString) => {
-  const options = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
-  return new Date(dateString).toLocaleDateString('ar-SA', options);
-};
-
-export const fetchFootballNews = async () => {
+/**
+ * جلب الأخبار الرياضية
+ * @param {string} country - رمز الدولة (مثال: 'sa' للسعودية، 'eg' لمصر)
+ * @param {number} maxResults - عدد النتائج المراد جلبها
+ * @returns {Promise} وعد يحتوي على بيانات الأخبار
+ */
+export async function fetchSportsNews(country = 'sa', maxResults = 10) {
   try {
-    // استبدل هذا الرابط برابط السيرفر الوكيل الخاص بك
-    const proxyUrl = 'https://your-cors-proxy.com/';
-    const apiUrl = `https://newsapi.org/v2/everything?q=football&language=ar&sortBy=publishedAt&pageSize=20`;
+    const url = `${baseUrl}?category=sports&lang=ar&country=${country}&max=${maxResults}&apikey=${apiKey}`;
     
-    const response = await fetch(proxyUrl + apiUrl, {
-      headers: {
-        'X-API-KEY': 'your_api_key_here' // استبدل بمفتاح API الفعلي
-      }
-    });
-
+    const response = await fetch(url);
+    
     if (!response.ok) {
       throw new Error(`خطأ في الشبكة: ${response.status}`);
     }
-
-    const data = await response.json();
     
-    if (!data.articles || data.articles.length === 0) {
-      throw new Error('لا توجد أخبار متاحة حالياً');
-    }
-
-    return data.articles.map(article => ({
-      id: generateId(article.url),
-      title: article.title,
-      excerpt: article.description || 'لا يوجد وصف متاح',
-      content: article.content || '',
-      image: article.urlToImage || 'assets/images/default-news.jpg',
-      date: formatArabicDate(article.publishedAt),
-      source: article.source?.name || 'مصدر غير معروف',
-      url: article.url,
-      author: article.author || 'كاتب غير معروف'
-    }));
+    const data = await response.json();
+    return data.articles;
+    
   } catch (error) {
-    console.error('فشل جلب الأخبار:', error);
-    throw new Error('تعذر الاتصال بخدمة الأخبار. يرجى المحاولة لاحقاً.');
+    console.error('فشل جلب الأخبار الرياضية:', error);
+    throw error;
   }
-};
+}
 
-export const fetchBreakingNews = async () => {
+/**
+ * جلب الأخبار العاجلة
+ * @param {string} country - رمز الدولة
+ * @param {number} maxResults - عدد النتائج المراد جلبها
+ * @returns {Promise} وعد يحتوي على بيانات الأخبار العاجلة
+ */
+export async function fetchBreakingNews(country = 'sa', maxResults = 5) {
   try {
-    // استبدل هذا الرابط برابط السيرفر الوكيل الخاص بك
-    const proxyUrl = 'https://your-cors-proxy.com/';
-    const apiUrl = `https://newsapi.org/v2/top-headlines?category=sports&country=sa&pageSize=3`;
+    const url = `${baseUrl}?category=general&lang=ar&country=${country}&max=${maxResults}&apikey=${apiKey}`;
     
-    const response = await fetch(proxyUrl + apiUrl, {
-      headers: {
-        'X-API-KEY': 'your_api_key_here' // استبدل بمفتاح API الفعلي
-      }
-    });
-
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`خطأ في الشبكة: ${response.status}`);
+    }
+    
     const data = await response.json();
-    return data.articles.slice(0, 3).map(article => ({
-      id: generateId(article.url),
-      title: article.title,
-      excerpt: article.description || 'لا يوجد وصف متاح',
-      image: article.urlToImage || 'assets/images/default-news.jpg',
-      date: formatArabicDate(article.publishedAt),
-      source: article.source?.name || 'مصدر غير معروف',
-      url: article.url
-    }));
+    return data.articles;
+    
   } catch (error) {
     console.error('فشل جلب الأخبار العاجلة:', error);
-    return [];
+    throw error;
   }
-};
+}
