@@ -1,50 +1,58 @@
-const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // استبدلها بمفتاحك
-const API_HOST = 'news-api14.p.rapidapi.com'; // يختلف حسب API المختار
+const NEWS_API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // استبدل بمفتاح API الفعلي
+const NEWS_API_URL = 'news-api14.p.rapidapi.com';
 
-export const fetchFootballNews = async () => {
-    try {
-        const response = await fetch('https://news-api14.p.rapidapi.com/top-headlines?category=sports&country=SA&language=ar', {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Key': API_KEY,
-                'X-RapidAPI-Host': API_HOST
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('فشل جلب الأخبار');
-        }
-
-        const data = await response.json();
-        return data.articles.map(article => ({
-            id: article.url.hashCode(),
-            title: article.title,
-            excerpt: article.description || 'لا يوجد وصف',
-            image: article.urlToImage || 'assets/images/default-news.jpg',
-            date: new Date(article.publishedAt).toLocaleDateString('ar-AR'),
-            source: article.source.name,
-            url: article.url
-        }));
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
+// دالة مساعدة لإنشاء ID فريد لكل خبر
+const generateId = (url) => {
+  return url.split('/').reduce((acc, char) => {
+    return (acc << 5) - acc + char.charCodeAt(0);
+  }, 0);
 };
-// أضف في news-api.js
-const cacheDuration = 30 * 60 * 1000; // 30 دقيقة
 
-export const fetchNews = async () => {
-    const cachedData = localStorage.getItem('newsCache');
-    const cacheTime = localStorage.getItem('newsCacheTime');
+// دالة جلب الأخبار الرئيسية
+export const fetchFootballNews = async () => {
+  try {
+    const response = await fetch(`${NEWS_API_URL}&apiKey=${NEWS_API_KEY}`);
     
-    if (cachedData && cacheTime && Date.now() - cacheTime < cacheDuration) {
-        return JSON.parse(cachedData);
+    if (!response.ok) {
+      throw new Error(`خطأ في الشبكة: ${response.status}`);
     }
+
+    const data = await response.json();
     
-    const data = await fetchFromAPI(); // استدعاء API الحقيقي
-    
-    localStorage.setItem('newsCache', JSON.stringify(data));
-    localStorage.setItem('newsCacheTime', Date.now());
-    
-    return data;
+    if (!data.articles || data.articles.length === 0) {
+      throw new Error('لا توجد أخبار متاحة حالياً');
+    }
+
+    return data.articles.map(article => ({
+      id: generateId(article.url),
+      title: article.title,
+      excerpt: article.description || 'لا يوجد وصف متاح',
+      content: article.content || '',
+      image: article.urlToImage || 'assets/images/default-news.jpg',
+      date: new Date(article.publishedAt).toLocaleDateString('ar-AR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      source: article.source.name,
+      url: article.url,
+      author: article.author || 'مصدر مجهول'
+    }));
+  } catch (error) {
+    console.error('فشل جلب الأخبار:', error);
+    throw error;
+  }
+};
+
+// دالة جلب الأخبار العاجلة فقط
+export const fetchBreakingNews = async () => {
+  try {
+    const response = await fetch(`${NEWS_API_URL}&sortBy=publishedAt&pageSize=3&apiKey=${NEWS_API_KEY}`);
+    const data = await response.json();
+    return data.articles.slice(0, 3); // أول 3 أخبار كأخبار عاجلة
+  } catch (error) {
+    console.error('فشل جلب الأخبار العاجلة:', error);
+    return [];
+  }
 };
