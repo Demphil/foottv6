@@ -1,31 +1,35 @@
-// assets/js/matches.js
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const matchesContainer = document.getElementById('matches-list');
-    const matches = await fetchMatches();
+    const matchesContainer = document.getElementById('matches-container');
 
-    if (!matches || matches.length === 0) {
-        matchesContainer.innerHTML = '<p>لا توجد مباريات متاحة حالياً.</p>';
-        return;
+    try {
+        const response = await fetch('data/matches.json');
+        const matches = await response.json();
+
+        if (matches.length === 0) {
+            matchesContainer.innerHTML = '<p class="no-matches">لا توجد مباريات اليوم</p>';
+            return;
+        }
+
+        matches.forEach(match => {
+            const matchCard = document.createElement('div');
+            matchCard.className = 'match-card';
+
+            matchCard.innerHTML = `
+                <div class="league-name">${match.league.name}</div>
+                <div class="teams">
+                    <span class="team">${match.homeTeam.team_name}</span>
+                    <span class="vs">vs</span>
+                    <span class="team">${match.awayTeam.team_name}</span>
+                </div>
+                <div class="match-time">${new Date(match.event_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+
+            matchesContainer.appendChild(matchCard);
+        });
+
+    } catch (error) {
+        matchesContainer.innerHTML = '<p class="error">فشل في تحميل المباريات</p>';
+        console.error('Error loading matches:', error);
     }
-
-    matches.forEach(match => {
-        const matchCard = document.createElement('div');
-        matchCard.classList.add('match-card');
-
-        // تأكد من هيكل البيانات بناءً على استجابة الـ API
-        const homeTeam = match.teams.home.team_name;
-        const awayTeam = match.teams.away.team_name;
-        const matchTime = match.fixture.date;
-        const leagueName = match.league.name;
-
-        matchCard.innerHTML = `
-            <h3>${homeTeam} vs ${awayTeam}</h3>
-            <p>الساعة: ${new Date(matchTime).toLocaleTimeString()}</p>
-            <p>الدوري: ${leagueName}</p>
-        `;
-        matchesContainer.appendChild(matchCard);
-    });
 });
-// assets/js/main.js
-console.log("موقع مباريات مباشرة جاهز!");
