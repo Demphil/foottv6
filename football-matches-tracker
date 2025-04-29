@@ -1,0 +1,10 @@
+{
+  "name": "football-matches-tracker",
+  "version": "1.0.0",
+  "description": "موقع تتبع المباريات مباشر",
+  "main": "scripts/generate-matches.js",
+  "scripts": {},
+  "dependencies": {
+    "axios": "^1.6.5"
+  }
+}
