@@ -1,4 +1,4 @@
-import { fetchSportsNews, fetchBreakingNews } from './news-api.js';
+import { fetchSportsNews, fetchBreakingNews, fetchVideos } from './news-api.js';
 
 // عناصر DOM مع التحقق من وجودها
 const getElement = (id) => {
@@ -13,8 +13,16 @@ const getElement = (id) => {
 const elements = {
   sportsNewsContainer: getElement('sports-news'),
   breakingNewsContainer: getElement('breaking-news'),
+  videosContainer: getElement('news-videos'),
   loadingIndicator: getElement('loading'),
-  errorContainer: getElement('error-container')
+  errorContainer: getElement('error-container'),
+  loadMoreBtn: getElement('load-more')
+};
+
+// حالة التطبيق
+const appState = {
+  currentSportsPage: 1,
+  isLoading: false
 };
 
 /**
@@ -24,6 +32,7 @@ function checkRequiredElements() {
   const requiredElements = [
     'sportsNewsContainer',
     'breakingNewsContainer',
+    'videosContainer',
     'loadingIndicator'
   ];
 
@@ -37,20 +46,38 @@ function checkRequiredElements() {
 }
 
 /**
+ * عرض الهيكل العظمي أثناء التحميل
+ */
+function showSkeletonLoaders(container, count, type = 'news') {
+  if (!container) return;
+  
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const skeleton = document.createElement('div');
+    skeleton.className = `skeleton-loader ${type}-skeleton`;
+    container.appendChild(skeleton);
+  }
+}
+
+/**
  * عرض الأخبار في واجهة المستخدم
  */
-function displayNews(articles, container) {
+function displayNews(articles, container, append = false) {
   if (!container) return;
 
-  container.innerHTML = '';
+  if (!append) {
+    container.innerHTML = '';
+  }
 
   if (!articles || articles.length === 0) {
-    container.innerHTML = `
-      <div class="no-news-message">
-        <i class="fas fa-exclamation-circle"></i>
-        <p>لا توجد أخبار متاحة حالياً</p>
-      </div>
-    `;
+    if (!append) {
+      container.innerHTML = `
+        <div class="no-news-message">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>لا توجد أخبار متاحة حالياً</p>
+        </div>
+      `;
+    }
     return;
   }
 
@@ -80,6 +107,50 @@ function displayNews(articles, container) {
     `;
     
     container.appendChild(newsCard);
+  });
+}
+
+/**
+ * عرض الفيديوهات في واجهة المستخدم
+ */
+function displayVideos(videos, container) {
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (!videos || videos.length === 0) {
+    container.innerHTML = `
+      <div class="no-videos-message">
+        <i class="fas fa-video-slash"></i>
+        <p>لا توجد فيديوهات متاحة حالياً</p>
+      </div>
+    `;
+    return;
+  }
+
+  videos.forEach(video => {
+    const videoCard = document.createElement('div');
+    videoCard.className = 'video-card';
+    
+    videoCard.innerHTML = `
+      <div class="video-thumbnail">
+        ${video.thumbnail ? `<img src="${video.thumbnail}" alt="${video.title}">` : 
+          `<div class="no-image"><i class="fas fa-video"></i></div>`}
+        <div class="play-icon">
+          <i class="fas fa-play"></i>
+        </div>
+        ${video.duration ? `<span class="video-duration">${video.duration}</span>` : ''}
+      </div>
+      <div class="video-info">
+        <h3 class="video-title">${video.title}</h3>
+        <div class="video-meta">
+          <span>${video.views || 0} مشاهدة</span>
+          <span>${formatDate(video.publishedAt)}</span>
+        </div>
+      </div>
+    `;
+    
+    container.appendChild(videoCard);
   });
 }
 
@@ -118,6 +189,38 @@ function showError(message) {
 }
 
 /**
+ * جلب المزيد من الأخبار
+ */
+async function loadMoreNews() {
+  if (appState.isLoading) return;
+  
+  appState.isLoading = true;
+  appState.currentSportsPage++;
+  
+  try {
+    if (elements.loadMoreBtn) {
+      elements.loadMoreBtn.disabled = true;
+      elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
+    }
+    
+    const moreNews = await fetchSportsNews('sa', 6, appState.currentSportsPage);
+    displayNews(moreNews, elements.sportsNewsContainer, true);
+    
+  } catch (error) {
+    console.error('حدث خطأ أثناء جلب المزيد من الأخبار:', error);
+    showError('تعذر تحميل المزيد من الأخبار');
+    appState.currentSportsPage--;
+    
+  } finally {
+    appState.isLoading = false;
+    if (elements.loadMoreBtn) {
+      elements.loadMoreBtn.disabled = false;
+      elements.loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> تحميل المزيد';
+    }
+  }
+}
+
+/**
  * جلب وعرض البيانات الأولية
  */
 async function loadInitialData() {
@@ -130,21 +233,25 @@ async function loadInitialData() {
       elements.errorContainer.innerHTML = '';
     }
 
-    // جلب الأخبار الرياضية
-    if (elements.sportsNewsContainer) {
-      const sportsNews = await fetchSportsNews('sa', 6);
-      displayNews(sportsNews, elements.sportsNewsContainer);
-    }
+    // عرض الهياكل العظمية أثناء التحميل
+    showSkeletonLoaders(elements.sportsNewsContainer, 3, 'news');
+    showSkeletonLoaders(elements.breakingNewsContainer, 3, 'news');
+    showSkeletonLoaders(elements.videosContainer, 3, 'video');
+
+    // جلب وعرض البيانات
+    const [sportsNews, breakingNews, videos] = await Promise.all([
+      fetchSportsNews('sa', 6),
+      fetchBreakingNews('sa', 3),
+      fetchVideos(3)
+    ]);
     
-    // جلب الأخبار العاجلة
-    if (elements.breakingNewsContainer) {
-      const breakingNews = await fetchBreakingNews('sa', 3);
-      displayNews(breakingNews, elements.breakingNewsContainer);
-    }
+    displayNews(sportsNews, elements.sportsNewsContainer);
+    displayNews(breakingNews, elements.breakingNewsContainer);
+    displayVideos(videos, elements.videosContainer);
     
   } catch (error) {
     console.error('حدث خطأ أثناء جلب البيانات:', error);
-    showError('تعذر تحميل الأخبار. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
+    showError('تعذر تحميل المحتوى. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
     
   } finally {
     if (elements.loadingIndicator) {
@@ -165,6 +272,18 @@ function initApp() {
 
   // جلب البيانات الأولية
   loadInitialData();
+
+  // إضافة مستمع حدث لزر تحميل المزيد
+  if (elements.loadMoreBtn) {
+    elements.loadMoreBtn.addEventListener('click', loadMoreNews);
+  }
+
+  // تحميل المزيد عند التمرير (اختياري)
+  window.addEventListener('scroll', () => {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !appState.isLoading) {
+      loadMoreNews();
+    }
+  });
 }
 
 // بدء التطبيق عند تحميل الصفحة
