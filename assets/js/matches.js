@@ -62,6 +62,11 @@ const allowedLeagues = [
 ];
 
 // عرض المباريات
+if (!matches || matches.length === 0) {
+    todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات في الفترة القادمة</p>';
+    tomorrowContainer.innerHTML = '';
+    return;
+}
 const renderMatches = (matches) => {
     const today = new Date();
     const tomorrow = new Date();
