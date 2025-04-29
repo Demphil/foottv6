@@ -31,4 +31,4 @@ jobs:
           git add data/matches.json
           git diff --cached --quiet || (git commit -m "🔄 Update matches data" && git push)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # تمرير الرمز المميز لتوثيق عملية push
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} # استخدام PAT هنا
