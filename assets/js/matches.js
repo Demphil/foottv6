@@ -1,35 +1,31 @@
+// assets/js/matches.js
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const matchesContainer = document.getElementById('matches-container');
 
+    if (!matchesContainer) {
+        console.error('العنصر matches-container غير موجود.');
+        return;
+    }
+
     try {
-        const response = await fetch('data/matches.json');
-        const matches = await response.json();
-
-        if (matches.length === 0) {
-            matchesContainer.innerHTML = '<p class="no-matches">لا توجد مباريات اليوم</p>';
-            return;
-        }
-
+        const matches = await fetchMatches(39); // مثل الدوري الإنجليزي كمثال
         matches.forEach(match => {
             const matchCard = document.createElement('div');
             matchCard.className = 'match-card';
 
             matchCard.innerHTML = `
-                <div class="league-name">${match.league.name}</div>
-                <div class="teams">
-                    <span class="team">${match.homeTeam.team_name}</span>
-                    <span class="vs">vs</span>
-                    <span class="team">${match.awayTeam.team_name}</span>
-                </div>
-                <div class="match-time">${new Date(match.event_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                <h3>${match.teams.home.name} VS ${match.teams.away.name}</h3>
+                <p>التاريخ: ${match.fixture.date.split('T')[0]}</p>
+                <p>الساعة: ${new Date(match.fixture.date).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' })}</p>
+                <p>الملعب: ${match.fixture.venue.name}</p>
             `;
 
             matchesContainer.appendChild(matchCard);
         });
 
     } catch (error) {
-        matchesContainer.innerHTML = '<p class="error">فشل في تحميل المباريات</p>';
+        matchesContainer.innerHTML = '<p class="error">تعذر تحميل المباريات</p>';
         console.error('Error loading matches:', error);
     }
 });
