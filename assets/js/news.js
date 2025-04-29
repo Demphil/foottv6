@@ -18,6 +18,25 @@ const elements = {
 };
 
 /**
+ * التحقق من العناصر الأساسية
+ */
+function checkRequiredElements() {
+  const requiredElements = [
+    'sportsNewsContainer',
+    'breakingNewsContainer',
+    'loadingIndicator'
+  ];
+
+  return requiredElements.every(el => {
+    if (!elements[el]) {
+      console.error(`العنصر المطلوب غير موجود: ${el}`);
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
  * عرض الأخبار في واجهة المستخدم
  */
 function displayNews(articles, container) {
@@ -35,7 +54,12 @@ function displayNews(articles, container) {
     return;
   }
 
-  articles.forEach(article => {
+  // ترتيب المقالات حسب التاريخ (الأحدث أولاً)
+  const sortedArticles = [...articles].sort((a, b) => {
+    return new Date(b.publishedAt) - new Date(a.publishedAt);
+  });
+
+  sortedArticles.forEach(article => {
     const newsCard = document.createElement('div');
     newsCard.className = 'news-card';
     
@@ -99,7 +123,7 @@ function showError(message) {
 async function loadInitialData() {
   try {
     if (elements.loadingIndicator) {
-      elements.loadingIndicator.style.display = 'block';
+      elements.loadingIndicator.style.display = 'flex';
     }
     
     if (elements.errorContainer) {
@@ -134,18 +158,7 @@ async function loadInitialData() {
  */
 function initApp() {
   // التحقق من وجود العناصر الأساسية
-  const requiredElements = [
-    'sportsNewsContainer',
-    'breakingNewsContainer',
-    'loadingIndicator'
-  ];
-
-  const missingElements = requiredElements.filter(
-    el => !elements[el]
-  );
-
-  if (missingElements.length > 0) {
-    console.error('العناصر المفقودة:', missingElements);
+  if (!checkRequiredElements()) {
     showError('حدث خطأ في تحميل واجهة المستخدم');
     return;
   }
