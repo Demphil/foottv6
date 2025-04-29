@@ -6,6 +6,12 @@ import { fetchMatches } from './api.js';
 const todayContainer = document.getElementById('today-matches');
 const tomorrowContainer = document.getElementById('tomorrow-matches');
 
+// عرض مؤشر التحميل
+const showLoading = () => {
+    todayContainer.innerHTML = '<div class="loader"></div>';
+    tomorrowContainer.innerHTML = '';
+};
+
 // تنسيق الوقت
 const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -33,12 +39,12 @@ const renderMatchCard = (match) => {
             <h3 class="league-name">${league.name}</h3>
             <div class="teams">
                 <div class="team">
-                    <img src="${teams.home.logo}" alt="${teams.home.name}" class="team-logo">
+                    <img src="${teams.home.logo}" alt="${teams.home.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
                     <span>${teams.home.name}</span>
                 </div>
                 <span class="vs">vs</span>
                 <div class="team">
-                    <img src="${teams.away.logo}" alt="${teams.away.name}" class="team-logo">
+                    <img src="${teams.away.logo}" alt="${teams.away.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
                     <span>${teams.away.name}</span>
                 </div>
             </div>
@@ -48,7 +54,7 @@ const renderMatchCard = (match) => {
     `;
 };
 
-// تحديد البطولات المطلوبة
+// البطولات المطلوبة
 const allowedLeagues = [
     2,    // دوري أبطال أوروبا
     39,   // الدوري الإنجليزي
@@ -62,12 +68,13 @@ const allowedLeagues = [
 ];
 
 // عرض المباريات
-if (!matches || matches.length === 0) {
-    todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات في الفترة القادمة</p>';
-    tomorrowContainer.innerHTML = '';
-    return;
-}
 const renderMatches = (matches) => {
+    if (!matches || matches.length === 0) {
+        todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات في الفترة القادمة</p>';
+        tomorrowContainer.innerHTML = '';
+        return;
+    }
+
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
@@ -75,17 +82,23 @@ const renderMatches = (matches) => {
     console.log('جميع المباريات:', matches);
     
     const filteredMatches = matches.filter(m => 
-        allowedLeagues.includes(m.league?.id)
+        m.league && allowedLeagues.includes(m.league.id)
     );
     
     console.log('المباريات المصفاة:', filteredMatches);
 
+    if (filteredMatches.length === 0) {
+        todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات في البطولات المتابعة</p>';
+        tomorrowContainer.innerHTML = '';
+        return;
+    }
+
     const todayMatches = filteredMatches.filter(m =>
-        isSameDay(new Date(m.fixture.date), today)
+        m.fixture && m.fixture.date && isSameDay(new Date(m.fixture.date), today)
     );
 
     const tomorrowMatches = filteredMatches.filter(m =>
-        isSameDay(new Date(m.fixture.date), tomorrow)
+        m.fixture && m.fixture.date && isSameDay(new Date(m.fixture.date), tomorrow)
     );
 
     console.log('مباريات اليوم:', todayMatches);
@@ -103,11 +116,17 @@ const renderMatches = (matches) => {
 // معالجة الأخطاء
 const handleError = (error) => {
     console.error('حدث خطأ:', error);
-    todayContainer.innerHTML = '<p class="error">حدث خطأ في جلب البيانات</p>';
+    todayContainer.innerHTML = `
+        <p class="error">
+            حدث خطأ في جلب البيانات
+            <button onclick="window.location.reload()">إعادة المحاولة</button>
+        </p>
+    `;
     tomorrowContainer.innerHTML = '';
 };
 
 // تحميل البيانات
+showLoading();
 fetchMatches()
     .then(renderMatches)
     .catch(handleError);
