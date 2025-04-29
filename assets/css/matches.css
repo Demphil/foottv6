@@ -1,33 +1,58 @@
 /* assets/css/matches.css */
-@import url('main.css');
 
-.matches-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px;
-}
-
-.match-card {
-    background-color: #1a1a1a;
-    border: 1px solid #b30000;
-    padding: 15px;
-    border-radius: 8px;
-}
 #matches-container {
-    padding: 20px;
-}
-
-#matches-list {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
 }
 
 .match-card {
-    background: #222;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #d32f2f;
+    background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+    color: #ff0000;
+    border: 1px solid #ff0000;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 280px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.2);
+    transition: transform 0.3s;
 }
 
+.match-card:hover {
+    transform: scale(1.05);
+}
+
+.league-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.teams {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.team {
+    font-weight: 600;
+}
+
+.vs {
+    margin: 0 0.5rem;
+    color: #ff0000;
+}
+
+.match-time {
+    font-size: 1rem;
+    color: #bbbbbb;
+}
+
+.no-matches, .error {
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 2rem;
+}
