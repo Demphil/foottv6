@@ -1,5 +1,4 @@
-import { FootballAPI } from './api.js';
-
+import { fetchMatches } from './api.js';
 // تعريف الكائن
 const MatchRenderer = {
     elements: {
