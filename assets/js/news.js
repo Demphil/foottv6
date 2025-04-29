@@ -1,195 +1,80 @@
-// assets/js/news.js
-
-import { fetchFootballNews, fetchBreakingNews } from './news-api.js';
-
-// حالة التطبيق
-const state = {
-  currentPage: 1,
-  newsPerPage: 6,
-  allNews: [],
-  isLoading: false
-};
+import { fetchSportsNews, fetchBreakingNews } from './news-api.js';
 
 // عناصر DOM
-const elements = {
-  breakingNews: document.getElementById('breaking-news'),
-  mainNews: document.getElementById('main-news'),
-  loading: document.getElementById('loading-indicator'),
-  error: document.getElementById('error-container'),
-  search: document.getElementById('news-search'),
-  loadMore: document.getElementById('load-more')
-};
+const sportsNewsContainer = document.getElementById('sports-news');
+const breakingNewsContainer = document.getElementById('breaking-news');
+const loadingIndicator = document.getElementById('loading');
 
-// ========== دوال العرض ========== //
+/**
+ * عرض الأخبار في واجهة المستخدم
+ * @param {Array} articles - مصفوفة المقالات
+ * @param {HTMLElement} container - العنصر الذي سيتم عرض الأخبار فيه
+ */
+function displayNews(articles, container) {
+  container.innerHTML = ''; // مسح المحتوى القديم
 
-const createNewsCard = (article) => {
-  return `
-    <div class="news-card" onclick="window.open('${article.url}', '_blank')">
-      <img src="${article.image}" alt="${article.title}" 
-           onerror="this.src='assets/images/default-news.jpg'">
-      <div class="news-content">
-        <h3>${article.title}</h3>
-        <p>${article.excerpt}</p>
-        <div class="news-meta">
-          <span><i class="far fa-calendar-alt"></i> ${article.date}</span>
-          <span><i class="fas fa-source"></i> ${article.source}</span>
-        </div>
-      </div>
-    </div>
-  `;
-};
-
-const createBreakingNewsCard = (article) => {
-  return `
-    <div class="breaking-news-card" onclick="window.open('${article.url}', '_blank')">
-      <img src="${article.image}" alt="${article.title}"
-           onerror="this.src='assets/images/default-news.jpg'">
-      <div class="breaking-content">
-        <span class="breaking-tag">عاجل</span>
-        <h3>${article.title}</h3>
-        <div class="breaking-meta">
-          <span><i class="far fa-clock"></i> ${article.date}</span>
-        </div>
-      </div>
-    </div>
-  `;
-};
-
-// ========== دوال جلب البيانات ========== //
-
-const loadInitialData = async () => {
-  try {
-    setLoading(true);
-    
-    // جلب البيانات بالتوازي
-    const [breakingNews, footballNews] = await Promise.all([
-      fetchBreakingNews(),
-      fetchFootballNews()
-    ]);
-    
-    state.allNews = footballNews;
-    renderBreakingNews(breakingNews);
-    renderNews();
-    
-  } catch (error) {
-    showError(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-const loadMoreNews = async () => {
-  try {
-    setLoading(true);
-    state.currentPage++;
-    renderNews();
-  } catch (error) {
-    showError('فشل تحميل المزيد من الأخبار');
-  } finally {
-    setLoading(false);
-  }
-};
-
-// ========== دوال العرض ========== //
-
-const renderBreakingNews = (articles) => {
   if (!articles || articles.length === 0) {
-    elements.breakingNews.innerHTML = `
-      <div class="no-news">
-        <i class="fas fa-info-circle"></i>
-        <p>لا توجد أخبار عاجلة حالياً</p>
-      </div>
-    `;
+    container.innerHTML = '<p class="no-news">لا توجد أخبار متاحة حالياً</p>';
     return;
   }
-  
-  elements.breakingNews.innerHTML = articles.map(createBreakingNewsCard).join('');
-};
 
-const renderNews = () => {
-  const { currentPage, newsPerPage, allNews } = state;
-  const startIdx = 0;
-  const endIdx = currentPage * newsPerPage;
-  const newsToShow = allNews.slice(startIdx, endIdx);
-  
-  if (newsToShow.length === 0 && currentPage === 1) {
-    elements.mainNews.innerHTML = `
-      <div class="no-news">
-        <i class="far fa-newspaper"></i>
-        <p>لا توجد أخبار متاحة حالياً</p>
+  articles.forEach(article => {
+    const newsCard = document.createElement('div');
+    newsCard.className = 'news-card';
+    
+    newsCard.innerHTML = `
+      <div class="news-image">
+        ${article.image ? `<img src="${article.image}" alt="${article.title}" loading="lazy">` : ''}
+      </div>
+      <div class="news-content">
+        <h3 class="news-title">${article.title}</h3>
+        <p class="news-description">${article.description}</p>
+        <div class="news-meta">
+          <span class="news-source">${article.source.name}</span>
+          <span class="news-date">${new Date(article.publishedAt).toLocaleString('ar-SA')}</span>
+        </div>
+        <a href="${article.url}" target="_blank" class="read-more">قراءة المزيد</a>
       </div>
     `;
-  } else {
-    elements.mainNews.innerHTML = newsToShow.map(createNewsCard).join('');
-  }
-  
-  elements.loadMore.style.display = 
-    allNews.length > endIdx ? 'block' : 'none';
-};
-
-// ========== دوال المساعدة ========== //
-
-const setLoading = (isLoading) => {
-  state.isLoading = isLoading;
-  elements.loading.style.display = isLoading ? 'block' : 'none';
-  if (elements.loadMore) {
-    elements.loadMore.disabled = isLoading;
-  }
-};
-
-const showError = (message) => {
-  elements.error.innerHTML = `
-    <div class="error-message">
-      <i class="fas fa-exclamation-triangle"></i>
-      <p>${message}</p>
-      <button class="retry-btn">إعادة المحاولة</button>
-    </div>
-  `;
-  elements.error.style.display = 'block';
-  
-  document.querySelector('.retry-btn')?.addEventListener('click', loadInitialData);
-};
-
-const filterNewsBySearch = (searchTerm) => {
-  const filtered = state.allNews.filter(news => 
-    news.title.toLowerCase().includes(searchTerm) || 
-    news.excerpt.toLowerCase().includes(searchTerm)
-  );
-  
-  elements.mainNews.innerHTML = filtered.length > 0
-    ? filtered.map(createNewsCard).join('')
-    : `
-      <div class="no-results">
-        <i class="fas fa-search"></i>
-        <p>لا توجد نتائج مطابقة للبحث</p>
-      </div>
-    `;
-};
-
-// ========== إعداد مستمعي الأحداث ========== //
-
-const setupEventListeners = () => {
-  // زر تحميل المزيد
-  elements.loadMore?.addEventListener('click', loadMoreNews);
-  
-  // حقل البحث
-  elements.search?.addEventListener('input', (e) => {
-    const term = e.target.value.trim().toLowerCase();
-    if (term.length > 2) {
-      filterNewsBySearch(term);
-    } else if (term.length === 0) {
-      state.currentPage = 1;
-      renderNews();
-    }
+    
+    container.appendChild(newsCard);
   });
-};
+}
 
-// ========== تهيئة التطبيق ========== //
+/**
+ * جلب وعرض البيانات الأولية
+ */
+async function loadInitialData() {
+  try {
+    loadingIndicator.style.display = 'block';
+    
+    // جلب الأخبار الرياضية
+    const sportsNews = await fetchSportsNews('sa', 6);
+    displayNews(sportsNews, sportsNewsContainer);
+    
+    // جلب الأخبار العاجلة
+    const breakingNews = await fetchBreakingNews('sa', 3);
+    displayNews(breakingNews, breakingNewsContainer);
+    
+  } catch (error) {
+    console.error('حدث خطأ أثناء جلب البيانات:', error);
+    sportsNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار الرياضية</p>';
+    breakingNewsContainer.innerHTML = '<p class="error-msg">حدث خطأ أثناء جلب الأخبار العاجلة</p>';
+  } finally {
+    loadingIndicator.style.display = 'none';
+  }
+}
 
-const initApp = () => {
-  setupEventListeners();
+/**
+ * تهيئة التطبيق
+ */
+function initApp() {
+  // جلب البيانات الأولية
   loadInitialData();
-};
+  
+  // يمكنك إضافة المزيد من الوظائف هنا
+  // مثل تحديث الأخبار تلقائياً أو إضافة فلترات
+}
 
-// بدء التطبيق بعد اكتمال تحميل الصفحة
+// بدء التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', initApp);
