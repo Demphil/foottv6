@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مباريات مباشرة | Football Matches Tracker</title>
+    <title>المباريات | Football Matches Tracker</title>
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/matches.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
@@ -16,15 +16,6 @@
             <img src="assets/images/logo.png" alt="شعار الموقع" />
             <h1>مباريات اليوم</h1>
         </div>
-
-        <!-- زر القائمة للموبايل -->
-        <div class="menu-toggle" id="mobile-menu">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-
-        <!-- قائمة التنقل -->
         <nav class="nav">
             <ul>
                 <li><a href="index.html">الرئيسية</a></li>
@@ -37,8 +28,13 @@
     <!-- محتوى المباريات -->
     <main>
         <section class="matches-section">
-            <div id="matches-container" class="matches-container">
-                <!-- ستظهر المباريات هنا -->
+            <div id="today-matches" class="matches-container">
+                <h2>مباريات اليوم</h2>
+                <!-- المباريات اليوم ستظهر هنا -->
+            </div>
+            <div id="tomorrow-matches" class="matches-container">
+                <h2>مباريات الغد</h2>
+                <!-- المباريات غدًا ستظهر هنا -->
             </div>
         </section>
     </main>
@@ -48,12 +44,6 @@
         <p>حقوق النشر © 2025 - جميع الحقوق محفوظة</p>
     </footer>
 
-    <!-- زر الصعود للأعلى (اختياري، تأكد من وجود العنصر إن كنت تستعمله في JS) -->
-    <button id="scroll-top" style="display: none;">↑</button>
-
-    <!-- سكريبتات الجافاسكربت -->
     <script type="module" src="assets/js/matches.js"></script>
-    <script src="assets/js/main.js"></script>
-
 </body>
 </html>
