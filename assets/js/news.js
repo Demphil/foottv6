@@ -3,38 +3,36 @@
 import { fetchFootballNews, fetchBreakingNews } from './news-api.js';
 
 // عناصر DOM
-const getDOMElement = (id) => {
-    const element = document.getElementById(id);
-    if (!element) console.error(`Element with ID '${id}' not found`);
-    return element;
+const elements = {
+    breakingNews: document.getElementById('breaking-news'),
+    mainNews: document.getElementById('main-news'),
+    loading: document.getElementById('loading-indicator'),
+    error: document.getElementById('error-container'),
+    search: document.getElementById('news-search'),
+    loadMore: document.getElementById('load-more')
 };
-
-const breakingNewsContainer = getDOMElement('breaking-news');
-const mainNewsContainer = getDOMElement('main-news');
-const loadingIndicator = getDOMElement('loading-indicator');
-const errorContainer = getDOMElement('error-container');
-const searchInput = getDOMElement('news-search');
-const loadMoreBtn = getDOMElement('load-more');
 
 // متغيرات حالة
 let currentPage = 1;
 const newsPerPage = 6;
+let allNews = [];
 
 // ========== دوال العرض ========== //
 
 const createNewsCard = (article) => {
     return `
-        <div class="news-card" onclick="window.open('${article.url}', '_blank')">
+        <div class="news-card" data-id="${article.id}">
             <img src="${article.image}" alt="${article.title}" 
                  onerror="this.src='assets/images/default-news.jpg'">
             <div class="news-content">
-                <span class="news-category">${article.category || 'عام'}</span>
+                <span class="news-category">${article.category}</span>
                 <h3>${article.title}</h3>
                 <p>${article.excerpt}</p>
                 <div class="news-meta">
                     <span><i class="far fa-calendar-alt"></i> ${article.date}</span>
-                    <span><i class="far fa-eye"></i> ${article.views || '0'}</span>
+                    <span><i class="fas fa-source"></i> ${article.source}</span>
                 </div>
+                <a href="${article.url}" target="_blank" class="read-more">قراءة المزيد</a>
             </div>
         </div>
     `;
@@ -42,15 +40,18 @@ const createNewsCard = (article) => {
 
 const createBreakingNewsCard = (article) => {
     return `
-        <div class="breaking-news-card" onclick="window.open('${article.url}', '_blank')">
-            <img src="${article.image}" alt="${article.title}"
-                 onerror="this.src='assets/images/default-news.jpg'">
+        <div class="breaking-news-card" data-id="${article.id}">
+            <div class="breaking-image">
+                <img src="${article.image}" alt="${article.title}"
+                     onerror="this.src='assets/images/default-news.jpg'">
+            </div>
             <div class="breaking-content">
                 <span class="breaking-tag">عاجل</span>
                 <h3>${article.title}</h3>
+                <p>${article.excerpt}</p>
                 <div class="breaking-meta">
-                    <span><i class="fas fa-clock"></i> ${article.time || 'الآن'}</span>
-                    <span><i class="fas fa-tag"></i> ${article.category || 'فوري'}</span>
+                    <span><i class="far fa-clock"></i> ${article.date}</span>
+                    <a href="${article.url}" target="_blank" class="read-now">قراءة الآن</a>
                 </div>
             </div>
         </div>
@@ -59,128 +60,87 @@ const createBreakingNewsCard = (article) => {
 
 // ========== دوال جلب البيانات ========== //
 
+const loadNewsData = async () => {
+    try {
+        elements.loading.style.display = 'block';
+        elements.error.style.display = 'none';
+        
+        allNews = await fetchFootballNews();
+        return true;
+    } catch (error) {
+        console.error('Error loading news:', error);
+        showError('تعذر تحميل الأخبار. يرجى التحقق من اتصال الإنترنت والمحاولة لاحقاً.');
+        return false;
+    } finally {
+        elements.loading.style.display = 'none';
+    }
+};
+
+const renderNews = () => {
+    const startIdx = (currentPage - 1) * newsPerPage;
+    const paginatedNews = allNews.slice(startIdx, startIdx + newsPerPage);
+    
+    if (paginatedNews.length > 0) {
+        elements.mainNews.innerHTML += paginatedNews.map(createNewsCard).join('');
+        elements.loadMore.style.display = 
+            allNews.length > (currentPage * newsPerPage) ? 'block' : 'none';
+    } else if (currentPage === 1) {
+        elements.mainNews.innerHTML = '<p class="no-news">لا توجد أخبار متاحة حالياً</p>';
+    }
+};
+
 const renderBreakingNews = async () => {
     try {
         const breakingNews = await fetchBreakingNews();
-        if (breakingNews.length > 0) {
-            breakingNewsContainer.innerHTML = breakingNews.map(createBreakingNewsCard).join('');
-        } else {
-            breakingNewsContainer.innerHTML = '<p class="no-news">لا توجد أخبار عاجلة حالياً</p>';
-        }
+        elements.breakingNews.innerHTML = breakingNews.length > 0
+            ? breakingNews.map(createBreakingNewsCard).join('')
+            : '<p class="no-news">لا توجد أخبار عاجلة حالياً</p>';
     } catch (error) {
         console.error('Error loading breaking news:', error);
-        breakingNewsContainer.innerHTML = '<p class="error-msg">فشل تحميل الأخبار العاجلة</p>';
-    }
-};
-
-const renderMainNews = async (page = 1) => {
-    try {
-        const allNews = await fetchFootballNews();
-        const startIdx = (page - 1) * newsPerPage;
-        const paginatedNews = allNews.slice(startIdx, startIdx + newsPerPage);
-        
-        if (paginatedNews.length > 0) {
-            mainNewsContainer.innerHTML += paginatedNews.map(createNewsCard).join('');
-            loadMoreBtn.style.display = allNews.length > (page * newsPerPage) ? 'block' : 'none';
-        } else if (page === 1) {
-            mainNewsContainer.innerHTML = '<p class="no-news">لا توجد أخبار متاحة حالياً</p>';
-            loadMoreBtn.style.display = 'none';
-        }
-    } catch (error) {
-        console.error('Error loading news:', error);
-        showError('فشل تحميل الأخبار. يرجى المحاولة لاحقاً');
-    }
-};
-
-// ========== دوال المساعدة ========== //
-
-const showLoading = () => {
-    if (loadingIndicator) loadingIndicator.style.display = 'block';
-    if (errorContainer) errorContainer.style.display = 'none';
-};
-
-const hideLoading = () => {
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
-};
-
-const showError = (message) => {
-    if (errorContainer) {
-        errorContainer.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>${message}</p>
-                <button class="retry-btn">إعادة المحاولة</button>
-            </div>
+        elements.breakingNews.innerHTML = `
+            <p class="error-msg">تعذر تحميل الأخبار العاجلة</p>
         `;
-        errorContainer.style.display = 'block';
-        
-        const retryBtn = errorContainer.querySelector('.retry-btn');
-        if (retryBtn) retryBtn.addEventListener('click', initPage);
     }
 };
 
 // ========== إدارة الأحداث ========== //
 
 const setupEventListeners = () => {
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', () => {
-            currentPage++;
-            renderMainNews(currentPage);
-        });
-    }
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.trim();
-            if (searchTerm.length > 2) {
-                filterNews(searchTerm);
-            } else if (searchTerm.length === 0) {
-                currentPage = 1;
-                mainNewsContainer.innerHTML = '';
-                renderMainNews();
-            }
-        });
-    }
-};
+    elements.loadMore?.addEventListener('click', () => {
+        currentPage++;
+        renderNews();
+    });
 
-const filterNews = async (searchTerm) => {
-    try {
-        const allNews = await fetchFootballNews();
-        const filtered = allNews.filter(news => 
-            news.title.includes(searchTerm) || 
-            news.excerpt.includes(searchTerm)
-        );
-        
-        mainNewsContainer.innerHTML = filtered.length > 0 
-            ? filtered.map(createNewsCard).join('')
-            : '<p class="no-results">لا توجد نتائج مطابقة للبحث</p>';
-    } catch (error) {
-        console.error('Error filtering news:', error);
-    }
+    elements.search?.addEventListener('input', (e) => {
+        const term = e.target.value.trim().toLowerCase();
+        if (term.length > 2) {
+            const filtered = allNews.filter(news => 
+                news.title.toLowerCase().includes(term) || 
+                news.excerpt.toLowerCase().includes(term)
+            );
+            elements.mainNews.innerHTML = filtered.length > 0
+                ? filtered.map(createNewsCard).join('')
+                : '<p class="no-results">لا توجد نتائج مطابقة للبحث</p>';
+        } else if (term.length === 0) {
+            currentPage = 1;
+            elements.mainNews.innerHTML = '';
+            renderNews();
+        }
+    });
 };
 
 // ========== تهيئة الصفحة ========== //
 
 const initPage = async () => {
-    showLoading();
-    mainNewsContainer.innerHTML = '';
-    currentPage = 1;
+    await renderBreakingNews();
     
-    try {
-        await Promise.all([
-            renderBreakingNews(),
-            renderMainNews()
-        ]);
+    if (await loadNewsData()) {
+        renderNews();
         setupEventListeners();
-    } catch (error) {
-        console.error('Initialization error:', error);
-        showError('حدث خطأ في تحميل الصفحة');
-    } finally {
-        hideLoading();
     }
 };
 
 // بدء التحميل بعد اكتمال DOM
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initPage, 100);
+    setTimeout(initPage, 500);
 });
