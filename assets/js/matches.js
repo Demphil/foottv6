@@ -2,10 +2,11 @@
 
 import { fetchMatches } from './api.js';
 
-const todayList = document.getElementById('today-list');
-const tomorrowList = document.getElementById('tomorrow-list');
+// عناصر HTML
+const todayContainer = document.getElementById('today-matches');
+const tomorrowContainer = document.getElementById('tomorrow-matches');
 
-// تنسيق العرض حسب توقيت المغرب
+// تنسيق الوقت
 const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleString('ar-MA', {
@@ -15,21 +16,18 @@ const formatDate = (dateStr) => {
     });
 };
 
-// مقارنة اليوم بالتاريخ حسب توقيت المغرب
-const isSameDay = (date1, date2) => {
-    const d1 = new Date(date1.toLocaleString('en-US', { timeZone: 'Africa/Casablanca' }));
-    const d2 = new Date(date2.toLocaleString('en-US', { timeZone: 'Africa/Casablanca' }));
+// مقارنة التواريخ
+const isSameDay = (date1, date2) =>
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate();
 
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
-};
-
-// كرت المباراة
+// توليد بطاقة المباراة
 const renderMatchCard = (match) => {
-    const { teams, fixture } = match;
+    const { teams, fixture, league } = match;
     return `
         <div class="match-card">
+            <div class="league">${league.name} (${league.country})</div>
             <div class="teams">
                 <span>${teams.home.name}</span>
                 <strong>VS</strong>
@@ -40,32 +38,48 @@ const renderMatchCard = (match) => {
     `;
 };
 
-// عرض المباريات في الصفحة
+// تحديد البطولات المطلوبة
+const allowedLeagues = [
+    2,    // دوري أبطال أوروبا
+    39,   // الدوري الإنجليزي
+    61,   // الدوري الفرنسي
+    78,   // الدوري الألماني
+    140,  // الدوري الإسباني
+    135,  // الدوري الإيطالي
+    307,  // الدوري المغربي
+    307,  // (مكرر لتأكيد)
+    307,  // يمكن حذف التكرار
+    307,  // الدوري المغربي
+    308,  // دوري أبطال إفريقيا
+    309   // كأس الاتحاد الإفريقي
+];
+
+// عرض المباريات
 const renderMatches = (matches) => {
-    console.log("جميع المباريات:", matches); // للمراقبة
+    const today = new Date("2025-04-29");
+    const tomorrow = new Date("2025-04-30");
 
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
+    const filteredMatches = matches.filter(
+        m => allowedLeagues.includes(m.league.id)
+    );
 
-    const todayMatches = matches.filter(m =>
+    const todayMatches = filteredMatches.filter(m =>
         isSameDay(new Date(m.fixture.date), today)
     );
 
-    const tomorrowMatches = matches.filter(m =>
+    const tomorrowMatches = filteredMatches.filter(m =>
         isSameDay(new Date(m.fixture.date), tomorrow)
     );
 
-    todayList.innerHTML = todayMatches.length
+    todayContainer.innerHTML += todayMatches.length
         ? todayMatches.map(renderMatchCard).join('')
         : '<p>لا توجد مباريات اليوم.</p>';
 
-    tomorrowList.innerHTML = tomorrowMatches.length
+    tomorrowContainer.innerHTML += tomorrowMatches.length
         ? tomorrowMatches.map(renderMatchCard).join('')
         : '<p>لا توجد مباريات غدًا.</p>';
+
+    console.info("جميع المباريات", matches); // للمتابعة
 };
 
-// جلب البيانات وعرضها
-fetchMatches().then(renderMatches).catch(err => {
-    console.error("فشل في جلب المباريات:", err);
-});
+fetchMatches().then(renderMatches);
