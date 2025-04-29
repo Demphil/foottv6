@@ -1,29 +1,29 @@
-const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures'; // ← رابط حسب الوثائق الرسمية لـ RapidAPI
-const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556';
-const API_HOST = 'api-football-v1.p.rapidapi.com'; // ← تأكد من أنه نفس اسم الـ Host الموجود في وثائق RapidAPI
 
-export const fetchMatches = async () => {
+const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
+const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d1255';
+const API_HOST = 'api-football-v1.p.rapidapi.com';
+
+const leagueIds = [2, 39, 140, 135, 61, 78, 307, 200]; // الدوريات
+const season = 2023;
+const timezone = 'Africa/Casablanca';
+
+export const fetchAllLeaguesMatches = async () => {
     try {
-        const response = await fetch(API_URL, {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Key': API_KEY,
-                'X-RapidAPI-Host': API_HOST,
-            }
-        });
+        const requests = leagueIds.map(id =>
+            fetch(`${API_URL}?league=${id}&season=${season}&timezone=${timezone}`, {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': API_KEY,
+                    'X-RapidAPI-Host': API_HOST,
+                },
+            }).then(res => res.json())
+        );
 
-        if (!response.ok) {
-            throw new Error(`فشل في تحميل البيانات: ${response.status}`);
-        }
+        const results = await Promise.all(requests);
 
-        const data = await response.json();
+        const allMatches = results.flatMap(result => result.response || []);
 
-        // على حسب شكل البيانات — تأكد أن المسار صحيح
-        if (!data.response || !Array.isArray(data.response)) {
-            throw new Error('البيانات غير صالحة أو لا تحتوي على مباريات');
-        }
-
-        return data.response;
+        return allMatches;
     } catch (error) {
         console.error('خطأ أثناء جلب المباريات:', error);
         return [];
