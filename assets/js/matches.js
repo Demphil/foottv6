@@ -1,101 +1,91 @@
-import { fetchMatches } from './api.js';  // تأكد من استيراد دالة fetchMatches
+// matches.js
+import { fetchMatches } from './api.js';
 
 const MatchRenderer = {
     elements: {
         todayContainer: null,
         tomorrowContainer: null,
         loadingIndicator: null,
-        errorContainer: null,
-        dateFilter: null,
-        leagueFilter: null
+        errorContainer: null
     },
 
     init: async function() {
         this.cacheElements();
         await this.loadMatches();
-        this.setupEventListeners();
     },
 
     cacheElements: function() {
-        this.elements = {
-            todayContainer: document.getElementById('today-matches'),
-            tomorrowContainer: document.getElementById('tomorrow-matches'),
-            loadingIndicator: document.getElementById('loading-indicator'),
-            errorContainer: document.getElementById('error-container'),
-            dateFilter: document.getElementById('date-filter'),
-            leagueFilter: document.getElementById('league-filter')
-        };
-    },
-
-    setupEventListeners: function() {
-        if (this.elements.dateFilter) {
-            this.elements.dateFilter.addEventListener('change', (e) => this.handleDateFilter(e));
-        }
-
-        if (this.elements.leagueFilter) {
-            this.elements.leagueFilter.addEventListener('change', (e) => this.handleLeagueFilter(e));
-        }
-    },
-
-    handleDateFilter: async function(e) {
-        const date = e.target.value;
-        await this.renderMatches(date);
-    },
-
-    handleLeagueFilter: async function(e) {
-        const leagueId = e.target.value;
-        await this.renderMatches(null, leagueId);
+        this.elements.todayContainer = document.getElementById('today-matches');
+        this.elements.tomorrowContainer = document.getElementById('tomorrow-matches');
+        this.elements.loadingIndicator = document.getElementById('loading-indicator');
+        this.elements.errorContainer = document.getElementById('error-container');
     },
 
     loadMatches: async function() {
         try {
             this.showLoading();
-
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            // استدعاء دالة fetchMatches هنا
-            const [todayMatches, tomorrowMatches] = await Promise.all([
-                fetchMatches(1), // استبدل 1 بمعرف الدوري المطلوب
-                fetchMatches(1) // استبدل 1 بمعرف الدوري المطلوب
-            ]);
+            const matches = await fetchMatches();
+            const todayMatches = matches.filter(match => this.isToday(match.date));
+            const tomorrowMatches = matches.filter(match => this.isTomorrow(match.date));
 
             this.renderMatchesByDate(todayMatches, 'today');
             this.renderMatchesByDate(tomorrowMatches, 'tomorrow');
-
         } catch (error) {
-            console.error('Failed to load matches:', error);
             this.showError(error);
         } finally {
             this.hideLoading();
         }
     },
 
-    renderMatchesByDate: function(matches, type) {
-        const container = type === 'today'
-            ? this.elements.todayContainer
-            : this.elements.tomorrowContainer;
-
-        if (!container) {
-            console.error(`Container not found for ${type}`);
-            return;
-        }
-
-        if (!matches || matches.length === 0) {
-            container.innerHTML = this.getNoMatchesHTML();
-            return;
-        }
-
-        container.innerHTML = matches.map(match => this.getMatchHTML(match)).join('');
+    isToday: function(date) {
+        const today = new Date();
+        const matchDate = new Date(date);
+        return today.toDateString() === matchDate.toDateString();
     },
 
-    // باقي الكود كما هو...
+    isTomorrow: function(date) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const matchDate = new Date(date);
+        return tomorrow.toDateString() === matchDate.toDateString();
+    },
+
+    renderMatchesByDate: function(matches, type) {
+        const container = type === 'today' ? this.elements.todayContainer : this.elements.tomorrowContainer;
+        if (matches.length === 0) {
+            container.innerHTML = `<p>لا توجد مباريات</p>`;
+            return;
+        }
+
+        container.innerHTML = matches.map(match => `
+            <div class="match-card">
+                <h3>${match.homeTeam.name} ضد ${match.awayTeam.name}</h3>
+                <p>${new Date(match.utcDate).toLocaleTimeString()}</p>
+            </div>
+        `).join('');
+    },
+
+    showLoading: function() {
+        if (this.elements.loadingIndicator) {
+            this.elements.loadingIndicator.style.display = 'block';
+        }
+    },
+
+    hideLoading: function() {
+        if (this.elements.loadingIndicator) {
+            this.elements.loadingIndicator.style.display = 'none';
+        }
+    },
+
+    showError: function(error) {
+        if (this.elements.errorContainer) {
+            this.elements.errorContainer.innerHTML = `
+                <p>حدث خطأ: ${error.message}</p>
+            `;
+        }
+    }
 };
 
-export { MatchRenderer };
-
-// تهيئة الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     MatchRenderer.init();
 });
