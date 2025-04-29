@@ -1,52 +1,52 @@
-<!-- matches.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>مباريات اليوم | Football Tracker</title>
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/matches.css">
-  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مباريات مباشرة | Football Matches Tracker</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/matches.css">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
 
-  <header class="header">
-    <div class="container">
-      <a href="index.html" class="logo">
-        <img src="assets/images/logo.png" alt="Football Tracker">
-      </a>
-      <nav class="nav" id="navMenu">
-        <ul>
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="matches.html" class="active">مباريات</a></li>
-          <li><a href="news.html">أخبار</a></li>
-        </ul>
-      </nav>
-      <div class="menu-toggle" id="menuToggle">&#9776;</div>
-    </div>
-  </header>
-
-  <main class="main-content">
-    <section class="matches-section">
-      <div class="container">
-        <h1>مباريات اليوم</h1>
-        <div id="matches-list" class="matches-list">
-          <!-- سيتم إضافة المباريات هنا بواسطة JavaScript -->
+    <!-- الهيدر -->
+    <header class="header">
+        <div class="logo">
+            <img src="assets/images/logo.png" alt="شعار الموقع" />
+            <h1>مباريات اليوم</h1>
         </div>
-      </div>
-    </section>
-  </main>
+        <nav class="nav">
+            <ul>
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="matches.html" class="active">المباريات</a></li>
+                <li><a href="news.html">الأخبار</a></li>
+            </ul>
+        </nav>
+        <div class="menu-toggle" id="mobile-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
 
-  <footer class="footer">
-    <div class="container">
-      <p>© 2025 Football Tracker - جميع الحقوق محفوظة</p>
-    </div>
-  </footer>
+    <!-- محتوى المباريات -->
+    <main>
+        <section class="matches-section">
+            <div id="matches-container" class="matches-container">
+                <!-- ستظهر المباريات هنا -->
+            </div>
+        </section>
+    </main>
 
-  <script src="assets/js/api.js"></script>
-<script src="assets/js/main.js"></script>
-<script src="assets/js/matches.js"></script>
+    <!-- الفوتر -->
+    <footer class="footer">
+        <p>حقوق النشر © 2025 - جميع الحقوق محفوظة</p>
+    </footer>
 
+    <!-- سكريبتات الجافاسكربت -->
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/matches.js"></script>
 </body>
 </html>
