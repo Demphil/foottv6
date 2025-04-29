@@ -1,0 +1,7 @@
+/* assets/css/news.css */
+@import url('main.css');
+
+.news-section {
+    padding: 20px;
+    text-align: center;
+}
