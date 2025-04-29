@@ -2,8 +2,8 @@
 
 import { fetchMatches } from './api.js';
 
-const todayContainer = document.getElementById('today-matches');
-const tomorrowContainer = document.getElementById('tomorrow-matches');
+const todayList = document.getElementById('today-list');
+const tomorrowList = document.getElementById('tomorrow-list');
 
 // تنسيق العرض
 const formatDate = (dateStr) => {
@@ -48,11 +48,11 @@ const renderMatches = (matches) => {
         isSameDay(new Date(m.fixture.date), tomorrow)
     );
 
-    todayContainer.innerHTML += todayMatches.length
+    todayList.innerHTML = todayMatches.length
         ? todayMatches.map(renderMatchCard).join('')
         : '<p>لا توجد مباريات اليوم.</p>';
 
-    tomorrowContainer.innerHTML += tomorrowMatches.length
+    tomorrowList.innerHTML = tomorrowMatches.length
         ? tomorrowMatches.map(renderMatchCard).join('')
         : '<p>لا توجد مباريات غدًا.</p>';
 };
