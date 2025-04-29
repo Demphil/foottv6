@@ -1,21 +1,17 @@
-// تعريف المتغيرات للرؤوس (Headers) اللازمة للوصول إلى الـ API
 const API_HEADERS = {
     'x-rapidapi-host': 'api-football-v1.p.rapidapi.com',
     'x-rapidapi-key': '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556' // تأكد من أن هذا المفتاح صالح
 };
 
-// دالة لجلب المباريات
 async function fetchMatches(leagueId) {
     const API_URL = `https://api-football-v1.p.rapidapi.com/v2/odds/league/${leagueId}/bookmaker/5?page=2`;
 
     try {
-        // إرسال طلب GET إلى API
         const response = await fetch(API_URL, {
             method: 'GET',
             headers: API_HEADERS
         });
 
-        // التحقق من أن الاستجابة كانت ناجحة
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
