@@ -1,7 +1,7 @@
 import { fetchBreakingNews } from './news-api.js';
 
 // عناصر DOM مع التحقق من وجودها
-const importantNewsContainer = document.getElementById('important-news');
+const importantNewsContainer = document.getElementById('important-news-section');
 
 if (!importantNewsContainer) {
     console.error('العنصر "important-news" غير موجود في الصفحة');
