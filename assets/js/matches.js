@@ -161,12 +161,17 @@ const renderMatches = (matches) => {
 // جلب الأخبار العاجلة
 const fetchBreakingNews = async () => {
     try {
-        const response = await fetch('https://your-api-endpoint/news/breaking');
+        const response = await fetch('https://gnews.io/api/v4/top-headlines?category=general&apikey=320e688cfb9682d071750f4212f83753');
+        
+        if (!response.ok) {
+            throw new Error(`خطأ في الشبكة: ${response.status}`);
+        }
+        
         const data = await response.json();
-        return data.slice(0, 3); // عرض 3 أخبار فقط
+        return data.slice(0, 3);
     } catch (error) {
-        console.error('Error fetching news:', error);
-        return [];
+        console.error('فشل جلب الأخبار:', error);
+        return []; // إرجاع مصفوفة فارغة بدلاً من undefined
     }
 };
 
