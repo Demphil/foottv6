@@ -33,10 +33,11 @@
     <!-- المحتوى الرئيسي -->
     <main class="news-main">
         <!-- مؤشر التحميل -->
-<div id="loading" class="loading-indicator" style="display: none;">
-  <div class="loader"></div>
-  <p>جاري تحميل الأخبار...</p>
-</div>        
+        <div id="loading" class="loading-indicator" style="display: none;">
+            <div class="loader"></div>
+            <p>جاري تحميل الأخبار...</p>
+        </div>
+        
         <!-- عرض الأخطاء -->
         <div id="error-container"></div>
         
@@ -80,32 +81,22 @@
             </div>
         </section>
         
-        <!-- قسم الأخبار الرئيسية -->
+        <!-- قسم الأخبار الرياضية -->
         <section class="sports-news-section">
-    <div class="section-header">
-        <h2 class="section-title">
-            <i class="fas fa-futbol"></i> أخبار الرياضة
-        </h2>
-        <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
-    </div>
-    <div class="sports-news-container" id="sports-news">
-        <!-- سيتم ملؤه بواسطة JavaScript -->
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
-    </div>
-</section>
-                </div>
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-futbol"></i> أخبار الرياضة
+                </h2>
+                <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
             </div>
-            <div class="main-news-grid" id="main-news">
+            <div class="sports-news-container" id="sports-news">
                 <!-- سيتم ملؤه بواسطة JavaScript -->
-                <div class="skeleton-loader news-skeleton"></div>
-                <div class="skeleton-loader news-skeleton"></div>
-                <div class="skeleton-loader news-skeleton"></div>
-                <div class="skeleton-loader news-skeleton"></div>
-                <div class="skeleton-loader news-skeleton"></div>
-                <div class="skeleton-loader news-skeleton"></div>
+                <div class="skeleton-loader sports-skeleton"></div>
+                <div class="skeleton-loader sports-skeleton"></div>
+                <div class="skeleton-loader sports-skeleton"></div>
             </div>
+            
+            <!-- زر تحميل المزيد -->
             <button id="load-more" class="load-more-btn">
                 <i class="fas fa-plus"></i> تحميل المزيد
             </button>
@@ -187,6 +178,26 @@
         // زر القائمة المتنقلة
         document.querySelector('.menu-toggle').addEventListener('click', () => {
             document.querySelector('.nav').classList.toggle('active');
+        });
+
+        // البحث عن الأخبار
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const searchTerm = document.getElementById('news-search').value.trim();
+            if (searchTerm) {
+                console.log('بحث عن:', searchTerm);
+                // سيتم تنفيذ البحث في news.js
+            }
+        });
+
+        // تصنيفات الأخبار
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.category-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                const category = btn.dataset.category;
+                console.log('تصفية حسب:', category);
+                // سيتم تنفيذ التصفية في news.js
+            });
         });
     </script>
 </body>
