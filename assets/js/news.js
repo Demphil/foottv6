@@ -1,96 +1,75 @@
-// news.js
-const apiKey = '320e688cfb9682d071750f4212f83753';
-const baseUrl = 'https://gnews.io/api/v4';
-const language = 'ar';
-const country = 'ma';
-const maxResults = 10;
+// ===== news.js =====
+const API_KEY = "YOUR_API_KEY_HERE"; // استبدل بمفتاح GNews الخاص بك
+const BASE_URL = "https://gnews.io/api/v4/search";
 
-let currentPage = 1;
-let currentCategory = 'sports';
+const breakingKeywords = ["عاجل", "انفجار", "زلزال", "حادث", "وفاة", "أزمة"];
+const moroccanAfricanKeywords = ["المغرب", "الرجاء", "الوداد", "المنتخب المغربي", "الجيش الملكي", "دوري أبطال أفريقيا"];
+const globalKeywords = ["ريال مدريد", "برشلونة", "مانشستر سيتي", "بايرن ميونخ", "ليفربول", "دوري أبطال أوروبا"];
 
-// DOM elements
-const sportsNewsContainer = document.getElementById('sports-news');
-const loadingIndicator = document.getElementById('loading');
-const errorContainer = document.getElementById('error-container');
-const loadMoreBtn = document.getElementById('load-more');
-const searchInput = document.getElementById('news-search');
+let page = 1;
+const pageSize = 10;
 
-// Show loader
-function showLoading() {
-  loadingIndicator.style.display = 'block';
+function buildQuery(keywords) {
+  return `${BASE_URL}?q=${keywords.join(" OR ")}&lang=ar&max=${pageSize}&page=${page}&apikey=${API_KEY}`;
 }
 
-// Hide loader
-function hideLoading() {
-  loadingIndicator.style.display = 'none';
+function createCard(article) {
+  return `
+    <div class="news-card">
+      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="news image">
+      <div class="news-content">
+        <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+        <p>${article.description || ''}</p>
+        <span class="date">${new Date(article.publishedAt).toLocaleDateString('ar-MA')}</span>
+      </div>
+    </div>
+  `;
 }
 
-// Show error
-function showError(message) {
-  errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+function displayNews(containerId, articles) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML += articles.map(createCard).join("");
 }
 
-// Fetch news
-async function fetchNews(endpoint, query = '') {
-  const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${currentPage}`;
+async function fetchNews(keywords, containerId) {
+  const url = buildQuery(keywords);
   try {
-    showLoading();
     const response = await fetch(url);
     const data = await response.json();
-    hideLoading();
-
-    if (!data.articles || data.articles.length === 0) {
-      showError('لم يتم العثور على أخبار.');
-      return [];
+    if (data.articles) {
+      displayNews(containerId, data.articles);
+    } else {
+      showError("حدث خطأ في تحميل الأخبار.");
     }
-
-    return data.articles;
   } catch (err) {
-    hideLoading();
-    showError('حدث خطأ أثناء جلب الأخبار.');
-    console.error(err);
-    return [];
+    showError("فشل الاتصال بالخادم.");
   }
 }
 
-// Display sports news
-function displayNews(articles, append = false) {
-  if (!append) sportsNewsContainer.innerHTML = '';
-  articles.forEach(article => {
-    const card = document.createElement('div');
-    card.className = 'news-card';
-    card.innerHTML = `
-      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
-      <div class="news-content">
-        <h3>${article.title}</h3>
-        <p>${article.description || ''}</p>
-        <a href="${article.url}" target="_blank">قراءة المزيد</a>
-      </div>
-    `;
-    sportsNewsContainer.appendChild(card);
-  });
+function showError(message) {
+  const errorContainer = document.getElementById("error-container");
+  errorContainer.innerText = message;
+  errorContainer.style.display = "block";
 }
 
-// Initial load
-async function loadInitialNews() {
-  const articles = await fetchNews('search', 'كرة القدم');
-  displayNews(articles);
+function loadInitialNews() {
+  fetchNews(breakingKeywords, "breaking-news");
+  fetchNews([...globalKeywords, ...moroccanAfricanKeywords], "sports-news");
 }
 
-loadInitialNews();
-
-// Load more
-loadMoreBtn.addEventListener('click', async () => {
-  currentPage++;
-  const articles = await fetchNews('search', 'كرة القدم');
-  displayNews(articles, true);
+document.getElementById("load-more").addEventListener("click", () => {
+  page++;
+  fetchNews([...globalKeywords, ...moroccanAfricanKeywords], "sports-news");
 });
 
-// Search button
-document.getElementById('search-btn').addEventListener('click', async () => {
-  const query = searchInput.value.trim();
-  if (!query) return;
-  currentPage = 1;
-  const articles = await fetchNews('search', query);
-  displayNews(articles);
+document.getElementById("search-btn").addEventListener("click", () => {
+  const query = document.getElementById("news-search").value.trim();
+  if (query) {
+    page = 1;
+    document.getElementById("sports-news").innerHTML = "";
+    fetchNews([query], "sports-news");
+  }
 });
+
+window.addEventListener("DOMContentLoaded", loadInitialNews);
