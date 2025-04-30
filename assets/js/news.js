@@ -115,45 +115,57 @@ function displayNews(articles, container, append = false) {
 /**
  * عرض الفيديوهات في واجهة المستخدم
  */
-function displayVideos(videos, container) {
-  if (!container) return;
+// في news-api.js - تعديل دالة fetchVideos
 
-  container.innerHTML = '';
-
-  if (!videos || videos.length === 0) {
-    container.innerHTML = `
-      <div class="no-videos-message">
-        <i class="fas fa-video-slash"></i>
-        <p>لا توجد فيديوهات متاحة حالياً</p>
-      </div>
-    `;
-    return;
+export async function fetchVideos(count = 3) {
+  try {
+    // استبدل هذا برابط API الفعلي للفيديوهات
+    const response = await fetch('https://api.example.com/videos?count=' + count);
+    
+    if (!response.ok) {
+      throw new Error(`خطأ في الشبكة: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // تنسيق البيانات لتتناسب مع هيكل التطبيق
+    return data.videos.map(video => ({
+      thumbnail: video.thumbnail_url || 'assets/images/default-video-thumbnail.jpg',
+      title: video.title,
+      duration: formatDuration(video.duration_seconds),
+      views: video.view_count,
+      publishedAt: formatApiDate(video.publish_date),
+      url: video.video_url || '#'
+    }));
+    
+  } catch (error) {
+    console.error('فشل جلب الفيديوهات:', error);
+    // إرجاع فيديوهات افتراضية في حالة الخطأ
+    return getFallbackVideos(count);
   }
+}
 
-  videos.forEach(video => {
-    const videoCard = document.createElement('div');
-    videoCard.className = 'video-card';
-    
-    videoCard.innerHTML = `
-      <div class="video-thumbnail">
-        ${video.thumbnail ? `<img src="${video.thumbnail}" alt="${video.title}">` : 
-          `<div class="no-image"><i class="fas fa-video"></i></div>`}
-        <div class="play-icon">
-          <i class="fas fa-play"></i>
-        </div>
-        ${video.duration ? `<span class="video-duration">${video.duration}</span>` : ''}
-      </div>
-      <div class="video-info">
-        <h3 class="video-title">${video.title}</h3>
-        <div class="video-meta">
-          <span>${video.views || 0} مشاهدة</span>
-          <span>${video.publishedAt || 'تاريخ غير معروف'}</span>
-        </div>
-      </div>
-    `;
-    
-    container.appendChild(videoCard);
-  });
+// دالة مساعدة لتنسيق المدة
+function formatDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+// فيديوهات افتراضية عند فشل الاتصال
+function getFallbackVideos(count) {
+  const defaultVideos = [
+    {
+      thumbnail: 'assets/images/video1-thumb.jpg',
+      title: 'أهداف المباراة الأخيرة',
+      duration: '02:45',
+      views: 12500,
+      publishedAt: '2025/04/30',
+      url: 'videos/video1.mp4'
+    },
+    // يمكن إضافة المزيد من الفيديوهات الافتراضية
+  ];
+  return defaultVideos.slice(0, count);
 }
 
 /**
