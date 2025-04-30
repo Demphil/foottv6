@@ -1,5 +1,5 @@
 // ===== news.js =====
-const API_KEY = "YOUR_API_KEY_HERE"; // استبدل بمفتاح GNews الخاص بك
+const API_KEY = "320e688cfb9682d071750f4212f83753"; // استبدل بمفتاح GNews الخاص بك
 const BASE_URL = "https://gnews.io/api/v4/top-headlines?sports=general&apikey=320e688cfb9682d071750f4212f83753";
 
 const breakingKeywords = ["عاجل", "انفجار", "زلزال", "حادث", "وفاة", "أزمة"];
