@@ -495,3 +495,20 @@ body {
     height: 150px;
   }
 }
+.video-thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  border-radius: var(--border-radius);
+}
+
+.video-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.video-card:hover .video-thumbnail img {
+  transform: scale(1.05);
+}
