@@ -301,3 +301,34 @@
         grid-template-columns: 1fr;
     }
 }
+/* أنماط قسم الأخبار المهمة */
+.important-news-section {
+    margin: 3rem 0;
+    padding: 1rem;
+}
+
+.important-news-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.important-news-card {
+    background: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.important-news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .important-news-container {
+        grid-template-columns: 1fr;
+    }
+}
