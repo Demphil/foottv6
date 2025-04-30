@@ -1,7 +1,11 @@
 import { fetchBreakingNews } from './news-api.js';
 
-// عناصر DOM
+// عناصر DOM مع التحقق من وجودها
 const importantNewsContainer = document.getElementById('important-news');
+
+if (!importantNewsContainer) {
+    console.error('العنصر "important-news" غير موجود في الصفحة');
+}
 
 // عدد الأخبار المطلوبة
 const IMPORTANT_NEWS_COUNT = 4;
@@ -47,8 +51,10 @@ function displayImportantNews(articles) {
     importantNewsContainer.innerHTML = articles.map(article => `
         <div class="important-news-card">
             <div class="news-image">
-                ${article.image ? `<img src="${article.image}" alt="${article.title}" loading="lazy">` : 
-                  `<div class="no-image"><i class="fas fa-image"></i></div>`}
+                ${article.image ? 
+                    `<img src="${article.image}" alt="${article.title}" loading="lazy">` : 
+                    `<div class="no-image"><i class="fas fa-image"></i></div>`
+                }
             </div>
             <div class="news-content">
                 <h3 class="news-title">${article.title}</h3>
