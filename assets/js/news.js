@@ -1,3 +1,5 @@
+// news.js
+
 import { fetchSportsNews, fetchBreakingNews, fetchVideos } from './news-api.js';
 
 // عناصر DOM مع التحقق من وجودها
@@ -100,7 +102,7 @@ function displayNews(articles, container, append = false) {
         <p class="news-description">${article.description || 'لا يوجد وصف متاح'}</p>
         <div class="news-meta">
           <span class="news-source">${article.source?.name || 'مصدر غير معروف'}</span>
-          <span class="news-date">${formatDate(article.publishedAt)}</span>
+          <span class="news-date">${article.publishedAt || 'تاريخ غير معروف'}</span>
         </div>
         <a href="${article.url}" target="_blank" class="read-more">قراءة المزيد</a>
       </div>
@@ -145,28 +147,13 @@ function displayVideos(videos, container) {
         <h3 class="video-title">${video.title}</h3>
         <div class="video-meta">
           <span>${video.views || 0} مشاهدة</span>
-          <span>${formatDate(video.publishedAt)}</span>
+          <span>${video.publishedAt || 'تاريخ غير معروف'}</span>
         </div>
       </div>
     `;
     
     container.appendChild(videoCard);
   });
-}
-
-/**
- * تنسيق التاريخ
- */
-function formatDate(dateString) {
-  if (!dateString) return 'تاريخ غير معروف';
-  const options = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
-  return new Date(dateString).toLocaleDateString('ar-SA', options);
 }
 
 /**
@@ -277,13 +264,6 @@ function initApp() {
   if (elements.loadMoreBtn) {
     elements.loadMoreBtn.addEventListener('click', loadMoreNews);
   }
-
-  // تحميل المزيد عند التمرير (اختياري)
-  window.addEventListener('scroll', () => {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500 && !appState.isLoading) {
-      loadMoreNews();
-    }
-  });
 }
 
 // بدء التطبيق عند تحميل الصفحة
