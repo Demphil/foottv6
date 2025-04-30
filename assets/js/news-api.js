@@ -1,100 +1,18 @@
-const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // استبدل بمفتاحك
-const API_HOST = 'sport-highlights-api.p.rapidapi.com';
-const BASE_URL = 'https://sport-highlights-api.p.rapidapi.com/football/highlights';  // تعديل الرابط
+// news-api.js
 
-// معرفات البطولات المطلوبة
-const leagues = [
-  { id: 2, name: 'دوري أبطال أوروبا' },       // UEFA Champions League
-  { id: 140, name: 'الدوري الإسباني' },        // La Liga
-  { id: 135, name: 'الدوري الإيطالي' },        // Serie A
-  { id: 61, name: 'الدوري الفرنسي' },          // Ligue 1
-  { id: 78, name: 'الدوري الألماني' },         // Bundesliga
-  { id: 307, name: 'الدوري السعودي' }          // Saudi Pro League
-];
+const apikey = '320e688cfb9682d071750f4212f83753';
+const category = 'general'; // يمكنك تغيير الفئة حسب الحاجة
+const url = `https://gnews.io/api/v4/top-headlines?category=${category}&lang=en&country=us&max=10&apikey=${apikey}`;
 
-/**
- * تحويل التاريخ إلى تنسيق YYYY-MM-DD
- */
-function formatDate(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * جلب فيديوهات الملخصات لعدة بطولات
- * @returns {Promise<Array>} مصفوفة من الفيديوهات
- */
-export async function fetchBreakingNews(countryCode, count) {
-  const date = formatDate(); // تاريخ اليوم
-  const headers = {
-    'x-rapidapi-key': API_KEY,
-    'x-rapidapi-host': API_HOST,
-  };
-
+async function fetchNews() {
   try {
-    const requests = leagues.map(async (league) => {
-      const url = new URL(BASE_URL);
-      url.searchParams.append('leagueId', league.id);  // استخدام معرف الدوري هنا
-      url.searchParams.append('date', date);
-      url.searchParams.append('limit', 10);
-      url.searchParams.append('timezone', 'Etc/UTC');
-
-      const res = await fetch(url.toString(), { headers });
-
-      if (!res.ok) {
-        console.warn(`فشل في جلب الفيديوهات من ${league.name}: ${res.status}`);
-        return [];
-      }
-
-      const data = await res.json();
-      return (data.response || []).map(item => ({
-        title: item.title,
-        thumbnail: item.thumbnail || '',
-        videoUrl: item.video,
-        publishedAt: formatApiDate(item.date),
-        league: league.name
-      }));
-    });
-
-    const allResults = await Promise.all(requests);
-    return allResults.flat();
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.articles;
   } catch (error) {
-    console.error('فشل جلب فيديوهات الملخصات:', error);
-    throw error;
+    console.error('Error fetching news:', error);
+    return [];
   }
 }
 
-/**
- * تنسيق تاريخ API إلى YYYY/MM/DD
- */
-function formatApiDate(dateString) {
-  if (!dateString) return '';
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return '';
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}/${month}/${day}`;
-  } catch (err) {
-    return '';
-  }
-}
-
-/**
- * جلب الفيديوهات للرياضة (إضافية إذا كانت هناك حاجة لدالة منفصلة)
- */
-export async function fetchSportsNews(countryCode, count) {
-  // منطق الدالة لجلب أخبار الرياضة يمكن أن يكون مشابهًا للـ fetchBreakingNews
-  return fetchBreakingNews(countryCode, count); // يمكن تعديل الكود إذا لزم الأمر
-}
-
-/**
- * جلب الفيديوهات
- */
-export async function fetchVideo(countryCode, count) {
-  // منطق الدالة لجلب الفيديوهات يمكن أن يكون مشابهًا للـ fetchBreakingNews
-  return fetchBreakingNews(countryCode, count); // يمكن تعديل الكود إذا لزم الأمر
-}
+export default fetchNews;
