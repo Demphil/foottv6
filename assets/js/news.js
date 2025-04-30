@@ -1,6 +1,4 @@
-// news.js
-
-import { fetchSportsNews, fetchBreakingNews, fetchVideos } from './news-api.js';
+import { fetchSportsNews, fetchBreakingNews, fetchVideo } from './news-api.js';
 
 // عناصر DOM مع التحقق من وجودها
 const getElement = (id) => {
@@ -190,7 +188,7 @@ async function loadMoreNews() {
       elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
     }
     
-    const moreNews = await fetchSportsNews('sa', 6, appState.currentSportsPage);
+    const moreNews = await fetchSportsNews('sa', 6);
     displayNews(moreNews, elements.sportsNewsContainer, true);
     
   } catch (error) {
@@ -229,7 +227,7 @@ async function loadInitialData() {
     const [sportsNews, breakingNews, videos] = await Promise.all([
       fetchSportsNews('sa', 6),
       fetchBreakingNews('sa', 3),
-      fetchVideos(3)
+      fetchVideo('sa', 3)
     ]);
     
     displayNews(sportsNews, elements.sportsNewsContainer);
