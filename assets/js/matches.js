@@ -207,6 +207,117 @@ const initPage = async () => {
         todayContainer.innerHTML = '<p class="error">حدث خطأ في جلب البيانات. الرجاء المحاولة لاحقاً.</p>';
     }
 };
+import { fetchBreakingNews } from './news-api.js';
+
+// تهيئة العناصر
+const initElements = () => {
+  return {
+    importantNewsContainer: document.getElementById('important-news'),
+    loadingIndicator: document.getElementById('loading-news'),
+    errorContainer: document.getElementById('news-error-container')
+  };
+};
+
+// عرض حالة التحميل
+const showLoading = (container) => {
+  if (container) {
+    container.innerHTML = `
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>جاري تحميل الأخبار...</p>
+      </div>
+    `;
+  }
+};
+
+// عرض الأخطاء
+const showError = (container, message) => {
+  if (container) {
+    container.innerHTML = `
+      <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>${message}</p>
+        <button class="retry-btn" id="retry-news-btn">إعادة المحاولة</button>
+      </div>
+    `;
+    
+    document.getElementById('retry-news-btn')?.addEventListener('click', initPage);
+  }
+};
+
+// جلب الأخبار العاجلة
+const fetchBreakingNewsSafe = async () => {
+  try {
+    // استبدل هذا الرابط برابط API الفعلي
+    const apiUrl = 'https://your-real-api-endpoint.com/news/breaking';
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`خطأ في الشبكة: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    throw error;
+  }
+};
+
+// عرض الأخبار
+const displayNews = (articles, container) => {
+  if (!container) return;
+
+  if (!articles || articles.length === 0) {
+    container.innerHTML = `
+      <div class="no-news">
+        <i class="fas fa-newspaper"></i>
+        <p>لا توجد أخبار متاحة حالياً</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = articles.map(article => `
+    <div class="news-card">
+      <div class="news-image">
+        ${article.image ? `<img src="${article.image}" alt="${article.title}" loading="lazy">` : 
+          '<div class="no-image"><i class="fas fa-image"></i></div>'}
+      </div>
+      <div class="news-content">
+        <h3>${article.title}</h3>
+        <p class="news-date" dir="ltr">${new Date(article.publishedAt).toLocaleDateString('ar-SA')}</p>
+        <a href="${article.url}" class="read-more">قراءة الخبر</a>
+      </div>
+    </div>
+  `).join('');
+};
+
+// تهيئة الصفحة
+const initPage = async () => {
+  const elements = initElements();
+  
+  if (!elements.importantNewsContainer) {
+    console.error('عنصر عرض الأخبار غير موجود في DOM');
+    return;
+  }
+
+  try {
+    showLoading(elements.importantNewsContainer);
+    
+    const news = await fetchBreakingNewsSafe();
+    displayNews(news, elements.importantNewsContainer);
+    
+  } catch (error) {
+    console.error('Initialization error:', error);
+    showError(
+      elements.errorContainer || elements.importantNewsContainer,
+      'تعذر تحميل الأخبار. يرجى التحقق من اتصال الإنترنت.'
+    );
+  }
+};
+
+// بدء التحميل عند جاهزية الصفحة
+document.addEventListener('DOMContentLoaded', initPage);
 
 // بدء التحميل
 initPage();
