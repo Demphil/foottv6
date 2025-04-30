@@ -116,30 +116,8 @@ function displayNews(articles, container, append = false) {
  * عرض الفيديوهات في واجهة المستخدم
  */
 
-  videos.forEach(video => {
-    const videoCard = document.createElement('div');
-    videoCard.className = 'video-card';
-    videoCard.innerHTML = `
-      <a href="${video.url}" class="video-link">
-        <div class="video-thumbnail">
-          <img src="${video.thumbnail}" alt="${video.title}" onerror="this.src='assets/images/default-video-thumbnail.jpg'">
-          <div class="play-icon">
-            <i class="fas fa-play"></i>
-          </div>
-          <span class="video-duration">${video.duration}</span>
-        </div>
-        <div class="video-info">
-          <h3 class="video-title">${video.title}</h3>
-          <div class="video-meta">
-            <span><i class="fas fa-eye"></i> ${video.views.toLocaleString()} مشاهدة</span>
-            <span dir="ltr"><i class="far fa-calendar-alt"></i> ${video.publishedAt}</span>
-          </div>
-        </div>
-      </a>
-    `;
-    container.appendChild(videoCard);
-  });
-}
+// في news-api.js - تعديل دالة fetchVideos
+
 export async function fetchVideos(count = 3) {
   try {
     // استبدل هذا برابط API الفعلي للفيديوهات
@@ -148,6 +126,48 @@ export async function fetchVideos(count = 3) {
     if (!response.ok) {
       throw new Error(`خطأ في الشبكة: ${response.status}`);
     }
+    
+    const data = await response.json();
+    
+    // تنسيق البيانات لتتناسب مع هيكل التطبيق
+    return data.videos.map(video => ({
+      thumbnail: video.thumbnail_url || 'assets/images/default-video-thumbnail.jpg',
+      title: video.title,
+      duration: formatDuration(video.duration_seconds),
+      views: video.view_count,
+      publishedAt: formatApiDate(video.publish_date),
+      url: video.video_url || '#'
+    }));
+    
+  } catch (error) {
+    console.error('فشل جلب الفيديوهات:', error);
+    // إرجاع فيديوهات افتراضية في حالة الخطأ
+    return getFallbackVideos(count);
+  }
+}
+
+// دالة مساعدة لتنسيق المدة
+function formatDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+// فيديوهات افتراضية عند فشل الاتصال
+function getFallbackVideos(count) {
+  const defaultVideos = [
+    {
+      thumbnail: 'assets/images/video1-thumb.jpg',
+      title: 'أهداف المباراة الأخيرة',
+      duration: '02:45',
+      views: 12500,
+      publishedAt: '2025/04/30',
+      url: 'videos/video1.mp4'
+    },
+    // يمكن إضافة المزيد من الفيديوهات الافتراضية
+  ];
+  return defaultVideos.slice(0, count);
+}
     
     const data = await response.json();
     
