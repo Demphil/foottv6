@@ -2,57 +2,53 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>أخبار رياضية</title>
   <link rel="stylesheet" href="assets/css/news.css">
-  <link rel="icon" href="assets/images/icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="assets/images/logo.png">
 </head>
 <body>
-  <header>
-    <div class="container header-container">
-      <div class="logo">مباريات اليوم</div>
-      <nav>
-        <ul>
-          <li><a href="index.html">الرئيسية</a></li>
-          <li><a href="matches.html">المباريات</a></li>
-          <li><a href="news.html" class="active">الأخبار</a></li>
-        </ul>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="container header-content">
+      <h1 class="logo">FootLive</h1>
+      <nav class="nav-links">
+        <a href="index.html">الرئيسية</a>
+        <a href="matches.html">المباريات</a>
+        <a href="news.html" class="active">الأخبار</a>
       </nav>
       <div class="search-box">
-        <input type="text" id="news-search" placeholder="ابحث عن خبر...">
+        <input type="text" id="news-search" placeholder="ابحث عن خبر">
         <button id="search-btn">🔍</button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <section id="breaking-news-section">
-      <h2>الأخبار العاجلة</h2>
+
+    <!-- Breaking News Section -->
+    <section class="breaking-section">
+      <h2>📢 الأخبار العاجلة</h2>
       <div id="breaking-news" class="news-grid"></div>
     </section>
 
-    <section>
-      <h2>أخبار رياضية عالمية</h2>
-      <div id="sports-news-global" class="news-grid"></div>
-    </section>
-
-    <section>
-      <h2>أخبار الرياضة المغربية</h2>
-      <div id="sports-news-morocco" class="news-grid"></div>
-    </section>
-
-    <section>
-      <h2>أخبار الرياضة الأفريقية</h2>
-      <div id="sports-news-africa" class="news-grid"></div>
-    </section>
-
-    <div class="center">
+    <!-- Sports News Section -->
+    <section class="sports-section">
+      <h2>🏆 أخبار رياضية</h2>
+      <div id="sports-news" class="news-grid"></div>
+      <div id="loading" class="loading">جاري التحميل...</div>
+      <div id="error-container"></div>
       <button id="load-more">تحميل المزيد</button>
-    </div>
+    </section>
 
-    <div id="loading" class="loading">جاري التحميل...</div>
-    <div id="error-container"></div>
   </main>
+
+  <footer class="footer">
+    <p>جميع الحقوق محفوظة &copy; 2025</p>
+  </footer>
 
   <script src="assets/js/news.js"></script>
 </body>
