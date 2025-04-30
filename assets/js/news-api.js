@@ -26,7 +26,7 @@ function formatDate(date = new Date()) {
  * جلب فيديوهات الملخصات لعدة بطولات
  * @returns {Promise<Array>} مصفوفة من الفيديوهات
  */
-export async function fetchSportsNews, fetchBreakingNews, fetchVideo, (countryCode, count) {
+export async function fetchBreakingNews(countryCode, count) {
   const date = formatDate(); // تاريخ اليوم
   const headers = {
     'x-rapidapi-key': API_KEY,
@@ -81,4 +81,20 @@ function formatApiDate(dateString) {
   } catch (err) {
     return '';
   }
+}
+
+/**
+ * جلب الفيديوهات للرياضة (إضافية إذا كانت هناك حاجة لدالة منفصلة)
+ */
+export async function fetchSportsNews(countryCode, count) {
+  // منطق الدالة لجلب أخبار الرياضة يمكن أن يكون مشابهًا للـ fetchBreakingNews
+  return fetchBreakingNews(countryCode, count); // يمكن تعديل الكود إذا لزم الأمر
+}
+
+/**
+ * جلب الفيديوهات
+ */
+export async function fetchVideo(countryCode, count) {
+  // منطق الدالة لجلب الفيديوهات يمكن أن يكون مشابهًا للـ fetchBreakingNews
+  return fetchBreakingNews(countryCode, count); // يمكن تعديل الكود إذا لزم الأمر
 }
