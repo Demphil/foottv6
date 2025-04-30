@@ -1,19 +1,19 @@
 // news.js
 const apiKey = '320e688cfb9682d071750f4212f83753';
-const baseUrl = 'https://gnews.io/api/v4/top-headlines?sports=general&apikey=320e688cfb9682d071750f4212f83753';
+const baseUrl = 'https://gnews.io/api/v4';
 const language = 'ar';
-const country = 'eg';
+const country = 'ma';
 const maxResults = 10;
 
 let currentPage = 1;
-let currentCategory = 'general';
+let currentCategory = 'sports';
 
 // DOM elements
-const breakingNewsContainer = document.getElementById('breaking-news');
 const sportsNewsContainer = document.getElementById('sports-news');
 const loadingIndicator = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
 const loadMoreBtn = document.getElementById('load-more');
+const searchInput = document.getElementById('news-search');
 
 // Show loader
 function showLoading() {
@@ -30,9 +30,9 @@ function showError(message) {
   errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
 }
 
-// Fetch news from GNews API
-async function fetchNews(category, page = 1) {
-  const url = `${baseUrl}?category=${category}&lang=${language}&country=${country}&max=${maxResults}&page=${page}&apikey=${apiKey}`;
+// Fetch news
+async function fetchNews(endpoint, query = '') {
+  const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${currentPage}`;
   try {
     showLoading();
     const response = await fetch(url);
@@ -53,25 +53,8 @@ async function fetchNews(category, page = 1) {
   }
 }
 
-// Display breaking news (first 3)
-function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
-  const breaking = articles.slice(0, 3);
-  breaking.forEach(article => {
-    const div = document.createElement('div');
-    div.className = 'breaking-news-item';
-    div.innerHTML = `
-      <a href="${article.url}" target="_blank" class="breaking-link">
-        <h3>${article.title}</h3>
-        <p>${article.description || ''}</p>
-      </a>
-    `;
-    breakingNewsContainer.appendChild(div);
-  });
-}
-
 // Display sports news
-function displaySportsNews(articles, append = false) {
+function displayNews(articles, append = false) {
   if (!append) sportsNewsContainer.innerHTML = '';
   articles.forEach(article => {
     const card = document.createElement('div');
@@ -88,54 +71,26 @@ function displaySportsNews(articles, append = false) {
   });
 }
 
-// تحميل الأخبار عند بداية الصفحة
+// Initial load
 async function loadInitialNews() {
-  const articles = await fetchNews(currentCategory);
-  displayBreakingNews(articles);
-  displaySportsNews(articles);
+  const articles = await fetchNews('search', 'كرة القدم');
+  displayNews(articles);
 }
 
 loadInitialNews();
 
-// تحميل المزيد عند الضغط على الزر
+// Load more
 loadMoreBtn.addEventListener('click', async () => {
   currentPage++;
-  const articles = await fetchNews(currentCategory, currentPage);
-  displaySportsNews(articles, true);
+  const articles = await fetchNews('search', 'كرة القدم');
+  displayNews(articles, true);
 });
 
-// تصفية الأخبار حسب التصنيفات (dummy logic — GNews API لا يدعم تصنيفات مخصصة)
-document.querySelectorAll('.category-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    currentPage = 1;
-    const selected = btn.dataset.category;
-    currentCategory = selected === 'all' ? 'general' : 'sports'; // GNews doesn't support custom categories
-    const articles = await fetchNews(currentCategory);
-    displayBreakingNews(articles);
-    displaySportsNews(articles);
-  });
-});
-
-// البحث في الأخبار (من input)
+// Search button
 document.getElementById('search-btn').addEventListener('click', async () => {
-  const query = document.getElementById('news-search').value.trim();
+  const query = searchInput.value.trim();
   if (!query) return;
-
-  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}`;
-  try {
-    showLoading();
-    const response = await fetch(url);
-    const data = await response.json();
-    hideLoading();
-    if (!data.articles || data.articles.length === 0) {
-      showError('لم يتم العثور على نتائج للبحث.');
-      return;
-    }
-    displayBreakingNews(data.articles);
-    displaySportsNews(data.articles);
-  } catch (err) {
-    hideLoading();
-    showError('فشل البحث.');
-    console.error(err);
-  }
+  currentPage = 1;
+  const articles = await fetchNews('search', query);
+  displayNews(articles);
 });
