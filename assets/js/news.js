@@ -1,4 +1,4 @@
-import { fetchSportsNews, fetchBreakingNews, fetchVideo } from './news-api.js';
+import fetchNews from './news-api.js';
 
 // عناصر DOM مع التحقق من وجودها
 const getElement = (id) => {
