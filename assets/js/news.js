@@ -1,8 +1,8 @@
 // news.js
 const apiKey = '320e688cfb9682d071750f4212f83753';
-const baseUrl = 'https://gnews.io/api/v4/top-headlines';
-const language = 'en';
-const country = 'us';
+const baseUrl = 'https://gnews.io/api/v4/top-headlines?sports=general&apikey=320e688cfb9682d071750f4212f83753';
+const language = 'ar';
+const country = 'eg';
 const maxResults = 10;
 
 let currentPage = 1;
