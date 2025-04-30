@@ -1,8 +1,7 @@
 const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
-const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // يجب استبداله بمفتاحك الخاص
+const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // ⚠️ استخدم .env في بيئة الإنتاج
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
-// البطولات المطلوبة مع أسمائها للتحقق
 const leagues = [
     { id: 2, name: 'دوري أبطال أوروبا' },
     { id: 39, name: 'الدوري الإنجليزي' },
@@ -15,27 +14,25 @@ const leagues = [
     { id: 309, name: 'كأس الاتحاد الإفريقي' }
 ];
 
-// الحد الأقصى لعدد المحاولات عند الفشل
 const MAX_RETRIES = 2;
-// زمن الانتظار بين المحاولات (ملي ثانية)
 const RETRY_DELAY = 1000;
 
 export const fetchMatches = async () => {
     try {
         const today = new Date();
         const season = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
-        const nextWeek = new Date();
+        const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
-        
+
         const from = today.toISOString().split('T')[0];
         const to = nextWeek.toISOString().split('T')[0];
 
-        console.log(`جلب المباريات من ${from} إلى ${to} لموسم ${season}`);
+        console.log(`📅 جلب المباريات من ${from} إلى ${to} لموسم ${season}`);
 
         const requests = leagues.map(async (league) => {
             let retries = 0;
             let lastError = null;
-            
+
             while (retries < MAX_RETRIES) {
                 try {
                     const response = await fetch(
@@ -50,42 +47,41 @@ export const fetchMatches = async () => {
                     );
 
                     if (!response.ok) {
-                        throw new Error(`خطأ في الشبكة: ${response.status} لبطولة ${league.name}`);
+                        throw new Error(`❌ خطأ في الشبكة: ${response.status} لبطولة ${league.name}`);
                     }
 
                     const data = await response.json();
-                    
-                    if (!data.response) {
-                        console.warn(`لا توجد مباريات لبطولة ${league.name}`);
+
+                    if (!Array.isArray(data.response) || data.response.length === 0) {
+                        console.warn(`⚠️ لا توجد مباريات لبطولة ${league.name}`);
                         return [];
                     }
 
-                    // إضافة معلومات البطولة لكل مباراة
                     return data.response.map(match => ({
                         ...match,
-                        leagueInfo: {
-                            id: league.id,
-                            name: league.name
+                        league: {
+                            ...match.league,
+                            name_ar: league.name // 🔁 فقط نضيف الاسم العربي هنا
                         }
                     }));
                 } catch (error) {
                     lastError = error;
                     retries++;
-                    console.warn(`محاولة ${retries} فشلت لبطولة ${league.name}:`, error.message);
+                    console.warn(`🔁 محاولة ${retries} فشلت لبطولة ${league.name}:`, error.message);
                     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                 }
             }
-            
+
             throw lastError;
         });
 
         const results = await Promise.all(requests);
         const allMatches = results.flat();
-        
-        console.log(`تم جلب ${allMatches.length} مباراة بنجاح`);
+
+        console.log(`✅ تم جلب ${allMatches.length} مباراة بنجاح`);
         return allMatches;
     } catch (error) {
-        console.error('فشل جلب المباريات:', error);
+        console.error('🚨 فشل جلب المباريات:', error);
         throw new Error('تعذر جلب بيانات المباريات. الرجاء المحاولة لاحقاً.');
     }
 };
