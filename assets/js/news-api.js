@@ -26,7 +26,7 @@ function formatDate(date = new Date()) {
  * جلب فيديوهات الملخصات لعدة بطولات
  * @returns {Promise<Array>} مصفوفة من الفيديوهات
  */
-export async function fetchBreakingNews(countryCode, count) {
+export async function fetchSportsNews, fetchBreakingNews, fetchVideo, (countryCode, count) {
   const date = formatDate(); // تاريخ اليوم
   const headers = {
     'x-rapidapi-key': API_KEY,
