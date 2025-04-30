@@ -115,8 +115,45 @@ function displayNews(articles, container, append = false) {
 /**
  * عرض الفيديوهات في واجهة المستخدم
  */
-// في news-api.js - تعديل دالة fetchVideos
+function displayVideos(videos, container) {
+  if (!container) return;
 
+  container.innerHTML = '';
+
+  if (!videos || videos.length === 0) {
+    container.innerHTML = `
+      <div class="no-videos-message">
+        <i class="fas fa-video-slash"></i>
+        <p>لا توجد فيديوهات متاحة حالياً</p>
+      </div>
+    `;
+    return;
+  }
+
+  videos.forEach(video => {
+    const videoCard = document.createElement('div');
+    videoCard.className = 'video-card';
+    videoCard.innerHTML = `
+      <a href="${video.url}" class="video-link">
+        <div class="video-thumbnail">
+          <img src="${video.thumbnail}" alt="${video.title}" onerror="this.src='assets/images/default-video-thumbnail.jpg'">
+          <div class="play-icon">
+            <i class="fas fa-play"></i>
+          </div>
+          <span class="video-duration">${video.duration}</span>
+        </div>
+        <div class="video-info">
+          <h3 class="video-title">${video.title}</h3>
+          <div class="video-meta">
+            <span><i class="fas fa-eye"></i> ${video.views.toLocaleString()} مشاهدة</span>
+            <span dir="ltr"><i class="far fa-calendar-alt"></i> ${video.publishedAt}</span>
+          </div>
+        </div>
+      </a>
+    `;
+    container.appendChild(videoCard);
+  });
+}
 export async function fetchVideos(count = 3) {
   try {
     // استبدل هذا برابط API الفعلي للفيديوهات
