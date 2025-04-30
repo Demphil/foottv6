@@ -2,7 +2,7 @@
 
 const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // استبدل بمفتاحك
 const API_HOST = 'sport-highlights-api.p.rapidapi.com';
-const BASE_URL = 'https://sport-highlights-api.p.rapidapi.com/football/highlights';
+const BASE_URL = 'https://sport-highlights-api.p.rapidapi.com/football/highlights/%7Bid%7D';
 
 // معرفات البطولات المطلوبة
 const leagues = [
