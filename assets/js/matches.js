@@ -161,7 +161,7 @@ const renderMatches = (matches) => {
 // جلب الأخبار العاجلة
 const fetchBreakingNews = async () => {
     try {
-        const response = await fetch('https://your-api-endpoint/news/breaking');
+        const response = await fetch('320e688cfb9682d071750f4212f83753');
         const data = await response.json();
         return data.slice(0, 3); // عرض 3 أخبار فقط
     } catch (error) {
