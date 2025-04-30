@@ -115,20 +115,6 @@ function displayNews(articles, container, append = false) {
 /**
  * عرض الفيديوهات في واجهة المستخدم
  */
-function displayVideos(videos, container) {
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  if (!videos || videos.length === 0) {
-    container.innerHTML = `
-      <div class="no-videos-message">
-        <i class="fas fa-video-slash"></i>
-        <p>لا توجد فيديوهات متاحة حالياً</p>
-      </div>
-    `;
-    return;
-  }
 
   videos.forEach(video => {
     const videoCard = document.createElement('div');
