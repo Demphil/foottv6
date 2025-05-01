@@ -1,14 +1,14 @@
 //=================== الإعدادات ===================
-const apiKey        = 'c3043545e8b02be6502326236791500f';
-const baseUrl       = 'https://gnews.io/api/v4';
-const language      = 'ar';
-const country       = 'eg';
-const maxResults    = 10;
-const breakingMax   = 4; // تغيير إلى 4 لعرض 4 مقالات فقط
+const apiKey = 'c3043545e8b02be6502326236791500f';
+const baseUrl = 'https://gnews.io/api/v4';
+const language = 'ar';
+const country = 'eg';
+const maxResults = 10;
+const breakingMax = 4; // تغيير إلى 4 مقالات فقط
 const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 ساعات
 
 // الحالة
-let currentPage     = 1;
+let currentPage = 1;
 let currentCategory = 'all';
 let breakingNewsInterval;
 
@@ -18,20 +18,31 @@ const breakingKeywords = [
 ];
 
 //=================== عناصر DOM ===================
-const sportsNewsContainer   = document.getElementById('sports-news');
+const sportsNewsContainer = document.getElementById('sports-news');
 const breakingNewsContainer = document.getElementById('breaking-news');
-const loadingIndicator      = document.getElementById('loading');
-const errorContainer        = document.getElementById('error-container');
-const loadMoreBtn           = document.getElementById('load-more');
-const searchInput           = document.getElementById('news-search');
-const searchBtn             = document.getElementById('search-btn');
-const categoryButtons       = document.querySelectorAll('.category-btn');
+const loadingIndicator = document.getElementById('loading');
+const errorContainer = document.getElementById('error-container');
+const loadMoreBtn = document.getElementById('load-more');
+const searchInput = document.getElementById('news-search');
+const searchBtn = document.getElementById('search-btn');
+const categoryButtons = document.querySelectorAll('.category-btn');
 
 //=================== وظائف مساعدة ===================
-function showLoading()    { loadingIndicator.style.display = 'block'; }
-function hideLoading()    { loadingIndicator.style.display = 'none'; }
-function showError(msg)   { errorContainer.innerHTML = `<div class="error-message">${msg}</div>`; }
-function clearError()     { errorContainer.innerHTML = ''; }
+function showLoading() {
+  loadingIndicator.style.display = 'flex';
+}
+
+function hideLoading() {
+  loadingIndicator.style.display = 'none';
+}
+
+function showError(msg) {
+  errorContainer.innerHTML = `<div class="error-message">${msg}</div>`;
+}
+
+function clearError() {
+  errorContainer.innerHTML = '';
+}
 
 function saveToLocalStorage(key, data) {
   localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
@@ -89,15 +100,24 @@ async function fetchBreakingNews() {
 //=================== عرض الأخبار ===================
 function displayNews(articles, append = false) {
   if (!append) sportsNewsContainer.innerHTML = '';
-  articles.forEach(a => {
+  
+  if (articles.length === 0) {
+    sportsNewsContainer.innerHTML = '<p class="no-news">لا توجد أخبار متاحة حالياً.</p>';
+    return;
+  }
+
+  articles.forEach(article => {
     const card = document.createElement('div');
     card.className = 'news-card';
     card.innerHTML = `
-      <img src="${a.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
+      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
       <div class="news-content">
-        <h3>${a.title}</h3>
-        <p>${a.description || ''}</p>
-        <a href="${a.url}" target="_blank">قراءة المزيد</a>
+        <h3>${article.title}</h3>
+        <p>${article.description || 'لا يوجد وصف متاح'}</p>
+        <div class="news-meta">
+          <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+          <a href="${article.url}" target="_blank">قراءة المزيد</a>
+        </div>
       </div>
     `;
     sportsNewsContainer.appendChild(card);
@@ -106,60 +126,46 @@ function displayNews(articles, append = false) {
 
 function displayBreakingNews(articles) {
   if (!articles || articles.length === 0) {
-    breakingNewsContainer.innerHTML = '<p>لا توجد أخبار عاجلة حالياً.</p>';
+    breakingNewsContainer.innerHTML = '<p class="no-news">لا توجد أخبار عاجلة حالياً.</p>';
     return;
   }
 
   // تقسيم الأخبار إلى مجموعات كل 4 مقالات
   const newsGroups = [];
-  for (let i = 0; i < articles.length; i += 4) {
-    newsGroups.push(articles.slice(i, i + 4));
+  for (let i = 0; i < articles.length; i += breakingMax) {
+    newsGroups.push(articles.slice(i, i + breakingMax));
   }
 
-  renderBreakingNewsGroup(newsGroups[0]);
-
-  // إنشاء نقاط التحكم
-  const controls = document.createElement('div');
-  controls.className = 'breaking-news-controls';
-  newsGroups.forEach((_, index) => {
-    const dot = document.createElement('div');
-    dot.className = `breaking-news-dot ${index === 0 ? 'active' : ''}`;
-    dot.dataset.index = index;
-    controls.appendChild(dot);
-  });
-  breakingNewsContainer.appendChild(controls);
+  // إنشاء عناصر العرض
+  breakingNewsContainer.innerHTML = `
+    <div class="breaking-news-items">
+      ${newsGroups.map((group, groupIndex) => `
+        <div class="breaking-news-group" data-index="${groupIndex}">
+          ${group.map(article => `
+            <div class="breaking-news-card">
+              <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}">
+              <div class="news-content">
+                <h3>${article.title}</h3>
+                <p>${article.description || 'لا يوجد وصف متاح'}</p>
+                <div class="news-meta">
+                  <i class="fas fa-clock"></i>
+                  <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+    <div class="breaking-news-controls">
+      ${newsGroups.map((_, index) => `
+        <div class="breaking-news-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>
+      `).join('')}
+    </div>
+  `;
 
   // بدء التبديل التلقائي
   startAutoRefresh(newsGroups);
-}
-
-function renderBreakingNewsGroup(articles) {
-  const newsGroup = document.createElement('div');
-  newsGroup.className = 'breaking-news-group';
-  
-  articles.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'breaking-news-card';
-    card.innerHTML = `
-      <img src="${a.image || 'assets/images/placeholder.jpg'}" class="news-image" alt="${a.title}">
-      <div class="news-content">
-        <h3>${a.title}</h3>
-        <p>${a.description || ''}</p>
-        <div class="news-meta">
-          <i class="fas fa-clock"></i>
-          <span>${new Date(a.publishedAt).toLocaleDateString()}</span>
-        </div>
-      </div>
-    `;
-    newsGroup.appendChild(card);
-  });
-
-  const existingGroup = breakingNewsContainer.querySelector('.breaking-news-group');
-  if (existingGroup) {
-    breakingNewsContainer.replaceChild(newsGroup, existingGroup);
-  } else {
-    breakingNewsContainer.insertBefore(newsGroup, breakingNewsContainer.querySelector('.breaking-news-controls'));
-  }
 }
 
 function startAutoRefresh(newsGroups) {
@@ -167,35 +173,35 @@ function startAutoRefresh(newsGroups) {
 
   clearInterval(breakingNewsInterval);
   let currentIndex = 0;
+  const newsItems = breakingNewsContainer.querySelector('.breaking-news-items');
+  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
+
+  function updateSlider(index) {
+    newsItems.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
 
   breakingNewsInterval = setInterval(() => {
     currentIndex = (currentIndex + 1) % newsGroups.length;
-    renderBreakingNewsGroup(newsGroups[currentIndex]);
-    updateActiveDot(currentIndex);
+    updateSlider(currentIndex);
   }, 20000);
 
   // إضافة أحداث النقر على النقاط
-  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
   dots.forEach(dot => {
     dot.addEventListener('click', () => {
       const index = parseInt(dot.dataset.index);
-      renderBreakingNewsGroup(newsGroups[index]);
-      updateActiveDot(index);
+      currentIndex = index;
+      updateSlider(index);
+      
       // إعادة تعيين المؤقت
       clearInterval(breakingNewsInterval);
       breakingNewsInterval = setInterval(() => {
         currentIndex = (currentIndex + 1) % newsGroups.length;
-        renderBreakingNewsGroup(newsGroups[currentIndex]);
-        updateActiveDot(currentIndex);
+        updateSlider(currentIndex);
       }, 20000);
     });
-  });
-}
-
-function updateActiveDot(index) {
-  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('active', i === index);
   });
 }
 
@@ -205,7 +211,7 @@ async function loadInitial() {
   let articles = loadFromLocalStorage(cacheKey);
 
   if (!articles) {
-    const query = categoryQueries[currentCategory];
+    const query = currentCategory === 'all' ? 'كرة القدم' : currentCategory;
     articles = await fetchNews(query, currentPage);
     saveToLocalStorage(cacheKey, articles);
   }
@@ -231,7 +237,7 @@ loadMoreBtn.addEventListener('click', async () => {
   let articles = loadFromLocalStorage(cacheKey);
 
   if (!articles) {
-    const query = categoryQueries[currentCategory];
+    const query = currentCategory === 'all' ? 'كرة القدم' : currentCategory;
     articles = await fetchNews(query, currentPage);
     saveToLocalStorage(cacheKey, articles);
   }
@@ -268,7 +274,7 @@ categoryButtons.forEach(btn => {
     let articles = loadFromLocalStorage(cacheKey);
 
     if (!articles) {
-      const query = categoryQueries[currentCategory] || 'كرة القدم';
+      const query = currentCategory === 'all' ? 'كرة القدم' : currentCategory;
       articles = await fetchNews(query, currentPage);
       saveToLocalStorage(cacheKey, articles);
     }
@@ -277,5 +283,12 @@ categoryButtons.forEach(btn => {
   });
 });
 
+// البحث عند الضغط على Enter
+searchInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    searchBtn.click();
+  }
+});
+
 // التحميل الأولي
-loadInitial();
+document.addEventListener('DOMContentLoaded', loadInitial);
