@@ -4,12 +4,13 @@ const baseUrl       = 'https://gnews.io/api/v4';
 const language      = 'ar';
 const country       = 'eg';
 const maxResults    = 10;
-const breakingMax   = 10;
+const breakingMax   = 4; // تغيير إلى 4 لعرض 4 مقالات فقط
 const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 ساعات
 
 // الحالة
 let currentPage     = 1;
 let currentCategory = 'all';
+let breakingNewsInterval;
 
 // الكلمات المفتاحية حسب التصنيفات
 const breakingKeywords = [
@@ -71,17 +72,17 @@ async function fetchNews(query, page = 1) {
 
 async function fetchBreakingNews() {
   const query = breakingKeywords.join(' OR ');
-  const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${breakingMax}&apikey=${apiKey}`;
+  const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${breakingMax * 2}&apikey=${apiKey}`;
   try {
     const res = await fetch(url);
     const data = await res.json();
     if (data.articles) {
-      displayBreakingNews(data.articles.slice(0, breakingMax));
-    } else {
-      displayBreakingNews([]);
+      return data.articles;
     }
+    return [];
   } catch (err) {
     console.warn('فشل في جلب الأخبار العاجلة', err);
+    return [];
   }
 }
 
@@ -104,22 +105,97 @@ function displayNews(articles, append = false) {
 }
 
 function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
-  if (articles.length === 0) {
+  if (!articles || articles.length === 0) {
     breakingNewsContainer.innerHTML = '<p>لا توجد أخبار عاجلة حالياً.</p>';
     return;
   }
+
+  // تقسيم الأخبار إلى مجموعات كل 4 مقالات
+  const newsGroups = [];
+  for (let i = 0; i < articles.length; i += 4) {
+    newsGroups.push(articles.slice(i, i + 4));
+  }
+
+  renderBreakingNewsGroup(newsGroups[0]);
+
+  // إنشاء نقاط التحكم
+  const controls = document.createElement('div');
+  controls.className = 'breaking-news-controls';
+  newsGroups.forEach((_, index) => {
+    const dot = document.createElement('div');
+    dot.className = `breaking-news-dot ${index === 0 ? 'active' : ''}`;
+    dot.dataset.index = index;
+    controls.appendChild(dot);
+  });
+  breakingNewsContainer.appendChild(controls);
+
+  // بدء التبديل التلقائي
+  startAutoRefresh(newsGroups);
+}
+
+function renderBreakingNewsGroup(articles) {
+  const newsGroup = document.createElement('div');
+  newsGroup.className = 'breaking-news-group';
+  
   articles.forEach(a => {
-    const div = document.createElement('div');
-    div.className = 'breaking-news-item';
-    div.innerHTML = ` 
-      <img src="${a.image || 'assets/images/placeholder.jpg'}" alt="${a.title}">
-      <div class="content">
+    const card = document.createElement('div');
+    card.className = 'breaking-news-card';
+    card.innerHTML = `
+      <img src="${a.image || 'assets/images/placeholder.jpg'}" class="news-image" alt="${a.title}">
+      <div class="news-content">
         <h3>${a.title}</h3>
         <p>${a.description || ''}</p>
+        <div class="news-meta">
+          <i class="fas fa-clock"></i>
+          <span>${new Date(a.publishedAt).toLocaleDateString()}</span>
+        </div>
       </div>
     `;
-    breakingNewsContainer.appendChild(div);
+    newsGroup.appendChild(card);
+  });
+
+  const existingGroup = breakingNewsContainer.querySelector('.breaking-news-group');
+  if (existingGroup) {
+    breakingNewsContainer.replaceChild(newsGroup, existingGroup);
+  } else {
+    breakingNewsContainer.insertBefore(newsGroup, breakingNewsContainer.querySelector('.breaking-news-controls'));
+  }
+}
+
+function startAutoRefresh(newsGroups) {
+  if (newsGroups.length <= 1) return;
+
+  clearInterval(breakingNewsInterval);
+  let currentIndex = 0;
+
+  breakingNewsInterval = setInterval(() => {
+    currentIndex = (currentIndex + 1) % newsGroups.length;
+    renderBreakingNewsGroup(newsGroups[currentIndex]);
+    updateActiveDot(currentIndex);
+  }, 20000);
+
+  // إضافة أحداث النقر على النقاط
+  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const index = parseInt(dot.dataset.index);
+      renderBreakingNewsGroup(newsGroups[index]);
+      updateActiveDot(index);
+      // إعادة تعيين المؤقت
+      clearInterval(breakingNewsInterval);
+      breakingNewsInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % newsGroups.length;
+        renderBreakingNewsGroup(newsGroups[currentIndex]);
+        updateActiveDot(currentIndex);
+      }, 20000);
+    });
+  });
+}
+
+function updateActiveDot(index) {
+  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
   });
 }
 
@@ -135,9 +211,17 @@ async function loadInitial() {
   }
 
   displayNews(articles);
-  await fetchBreakingNews();
+  
+  const breakingCacheKey = 'breaking-news';
+  let breakingArticles = loadFromLocalStorage(breakingCacheKey);
+  
+  if (!breakingArticles) {
+    breakingArticles = await fetchBreakingNews();
+    saveToLocalStorage(breakingCacheKey, breakingArticles);
+  }
+  
+  displayBreakingNews(breakingArticles);
 }
-loadInitial();
 
 //=================== الأحداث ===================
 // تحميل المزيد
@@ -192,3 +276,6 @@ categoryButtons.forEach(btn => {
     displayNews(articles);
   });
 });
+
+// التحميل الأولي
+loadInitial();
