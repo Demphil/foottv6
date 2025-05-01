@@ -1,6 +1,5 @@
 //=================== الإعدادات ===================
 const apiKey   ='c3043545e8b02be6502326236791500f';
-category = 'general';
 url = 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;
 
 fetch(url)
