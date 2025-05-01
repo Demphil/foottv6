@@ -12,16 +12,12 @@ let currentPage     = 1;
 let currentCategory = 'all';
 
 // الكلمات المفتاحية حسب التصنيفات
-const categoryQueries = {
-  all:       'كرة القدم',
-  transfers: 'انتقالات',
-  matches:   'مباريات',
-  injuries:  'إصابات'
-};
-
 const breakingKeywords = [
-  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء",
-  "الدوري السعودي", "الدوري المصري", "الدوري الإسباني",
+  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء"
+];
+
+const breakingKeywords = [كرة القدم", "رياضة", "المنتخب المغربء",
+  "الدوري السعودي", "الدوري المغربي", "الدوري الإسباني",
   "Champions League", "كأس العالم"
 ];
 
@@ -79,19 +75,19 @@ async function fetchNews(query, page = 1) {
 }
 
 async function fetchBreakingNews() {
-  let all = [];
-  for (const kw of breakingKeywords) {
-    try {
-      const url = `${baseUrl}/search?q=${encodeURIComponent(kw)}&lang=${language}&country=${country}&max=2&apikey=${apiKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.articles) all = all.concat(data.articles);
-    } catch (err) {
-      console.warn(`فشل جلب عاجل لـ: ${kw}`, err);
+  const query = breakingKeywords.join(' OR ');
+  const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${breakingMax}&apikey=${apiKey}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.articles) {
+      displayBreakingNews(data.articles.slice(0, breakingMax));
+    } else {
+      displayBreakingNews([]);
     }
-    if (all.length >= breakingMax) break;
+  } catch (err) {
+    console.warn('فشل في جلب الأخبار العاجلة', err);
   }
-  displayBreakingNews(all.slice(0, breakingMax));
 }
 
 //=================== عرض الأخبار ===================
