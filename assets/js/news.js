@@ -11,7 +11,7 @@ const pageSize = 6;
 const cacheKey = "cachedNewsData";
 const cacheTimeKey = "cacheTimestamp";
 const cacheTTL = 6 * 60 * 60 * 1000; // 6 ساعات
-const apiKey = "320e688..."; // ضع مفتاح GNews API هنا
+const apiKey = "320e688cfb9682d071750f4212f83753"; // ضع مفتاح GNews API هنا
 const keywords = [
   "كرة القدم الأوروبية",
   "الدوري الإنجليزي",
