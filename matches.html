@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/matches.css">
     <link rel="stylesheet" href="assets/css/footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -25,13 +26,28 @@
     </header>
 
     <main class="matches-main">
-        <!-- قسم المباريات المميزة -->
-        <section class="featured-matches">
-            <h2 class="section-title">مبارياتنا المميزة</h2>
-            <div class="matches-slider" id="featured-matches">
-                <!-- سيتم ملؤه بواسطة JavaScript -->
-            </div>
-        </section>
+        <div class="matches-layout">
+            <!-- القسم الأيسر - المباريات المميزة -->
+            <section class="featured-section">
+                <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
+                <div class="featured-slider" id="featured-matches">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
+                </div>
+                <div class="slider-controls">
+                    <button class="slider-prev"><i class="fas fa-chevron-right"></i></button>
+                    <div class="slider-dots"></div>
+                    <button class="slider-next"><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+
+            <!-- القسم الأيمن - المباريات المنقولة -->
+            <section class="broadcast-section">
+                <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
+                <div class="broadcast-list" id="broadcast-matches">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
+                </div>
+            </section>
+        </div>
 
         <!-- قسم جميع المباريات -->
         <section class="all-matches">
@@ -53,13 +69,12 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <footer class="footer">
-        <p>حقوق النشر © 2025 - جميع الحقوق محفوظة</p>
+        <p>حقوق النشر © <span id="current-year"></span> - جميع الحقوق محفوظة</p>
     </footer>
-<script type="module" src="assets/js/matches-news.js"></script>
+
     <script type="module" src="assets/js/matches.js"></script>
 </body>
 </html>
