@@ -1,3 +1,4 @@
+// إعداد متغيرات عامة
 const API_KEY = '320e688cfb9682d071750f4212f83753';
 const BASE_URL = 'https://gnews.io/api/v4/search';
 const breakingNewsContainer = document.getElementById('breaking-news');
@@ -7,7 +8,7 @@ const loading = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
 const CACHE_KEY = 'cachedBreakingNews';
 const CACHE_TIME_KEY = 'breakingNewsCacheTime';
-const CACHE_DURATION_HOURS = 6;
+const CACHE_DURATION_HOURS = 6; // مدة التخزين المؤقت (6 ساعات)
 
 const KEYWORDS = [
   'المنتخب المغربي',
@@ -18,6 +19,7 @@ const KEYWORDS = [
   'المغرب'
 ];
 
+// دالة للتحقق من صحة التخزين المؤقت
 function isCacheValid() {
   const lastTime = localStorage.getItem(CACHE_TIME_KEY);
   if (!lastTime) return false;
@@ -26,11 +28,13 @@ function isCacheValid() {
   return diff < CACHE_DURATION_HOURS;
 }
 
+// دالة لحفظ البيانات في التخزين المؤقت
 function saveCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify(data));
   localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
 }
 
+// دالة لتحميل الأخبار من التخزين المؤقت
 function loadFromCache() {
   const data = localStorage.getItem(CACHE_KEY);
   if (data) {
@@ -43,6 +47,7 @@ function loadFromCache() {
   }
 }
 
+// دالة لجلب الأخبار من API
 async function fetchBreakingNews(query) {
   loading.style.display = 'block';
   errorContainer.textContent = '';
@@ -61,6 +66,7 @@ async function fetchBreakingNews(query) {
   }
 }
 
+// دالة لعرض الأخبار في الصفحة
 function displayBreakingNews(articles) {
   breakingNewsContainer.innerHTML = '';
   if (!articles || articles.length === 0) {
@@ -83,6 +89,7 @@ function displayBreakingNews(articles) {
   });
 }
 
+// دالة لتحميل الأخبار الأولية
 function loadInitial() {
   const query = KEYWORDS[Math.floor(Math.random() * KEYWORDS.length)];
 
@@ -93,6 +100,7 @@ function loadInitial() {
   }
 }
 
+// دالة للبحث باستخدام المدخلات من المستخدم
 searchButton.addEventListener('click', () => {
   const query = searchInput.value.trim();
   if (query) {
@@ -100,4 +108,5 @@ searchButton.addEventListener('click', () => {
   }
 });
 
+// تحميل الأخبار الأولية عند تحميل الصفحة
 window.addEventListener('DOMContentLoaded', loadInitial);
