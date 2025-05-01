@@ -1,5 +1,3 @@
-const API_KEY = '320e688cfb9682d071750f4212f83753'; // ← أدخل مفتاح GNews الخاص بك هنا
-const BASE_URL = 'https://gnews.io/api/v4/search';
 // إعداد متغيرات عامة
 const breakingNewsContainer = document.getElementById("breaking-news");
 const loadMoreButton = document.getElementById("load-more");
@@ -123,5 +121,8 @@ function loadMoreNews() {
   }
 }
 
-loadMoreButton.addEventListener("click", loadMoreNews);
+if (loadMoreButton) {
+  loadMoreButton.addEventListener("click", loadMoreNews);
+}
+
 window.addEventListener("DOMContentLoaded", loadInitial);
