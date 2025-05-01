@@ -133,6 +133,50 @@
       document.querySelector('.nav').classList.toggle('active');
     });
   </script>
+  // التحكم في الأخبار العاجلة
+document.addEventListener('DOMContentLoaded', function() {
+  const newsItems = document.getElementById('breakingNewsItems');
+  const dots = document.querySelectorAll('.breaking-news-dot');
+  const groupCount = document.querySelectorAll('.breaking-news-group').length;
+  let currentIndex = 0;
+  
+  function updateTicker() {
+    newsItems.style.transform = `translateX(-${currentIndex * 100}%)`;
+    
+    dots.forEach((dot, index) => {
+      if (index === currentIndex) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
+  }
+  
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % groupCount;
+    updateTicker();
+  }
+  
+  // التبديل التلقائي كل 20 ثانية
+  const interval = setInterval(nextSlide, 20000);
+  
+  // التحكم بالنقاط
+  dots.forEach(dot => {
+    dot.addEventListener('click', function() {
+      clearInterval(interval);
+      currentIndex = parseInt(this.getAttribute('data-index'));
+      updateTicker();
+    });
+  });
+  
+  // إعادة تشغيل التبديل التلقائي بعد النقر
+  dots.forEach(dot => {
+    dot.addEventListener('click', function() {
+      clearInterval(interval);
+      interval = setInterval(nextSlide, 20000);
+    });
+  });
+});
   <script type="module" src="assets/js/news.js"></script>
 </body>
 </html>
