@@ -6,6 +6,9 @@ const country      = 'eg';
 const maxResults   = 10;
 const breakingMax  = 10;  // عدد مقالات الأخبار العاجلة
 
+// مدة حفظ البيانات (6 ساعات = 21600000 ميلي ثانية)
+const CACHE_DURATION = 6 * 60 * 60 * 1000;
+
 // حفظ الصفحة والتصنيف الحالي
 let currentPage     = 1;
 let currentCategory = 'all';
@@ -71,41 +74,22 @@ async function fetchNews(query, page = 1) {
   }
 }
 
-// دالة جلب الأخبار العاجلة مع فاصل زمني بين الطلبات
+// دالة جلب الأخبار العاجلة بكلمات مفتاحية متعددة
 async function fetchBreakingNews() {
-  const cachedData = localStorage.getItem('breakingNews');
-  const lastFetchTime = localStorage.getItem('breakingNewsTime');
-  const currentTime = Date.now();
-
-  // إذا كانت البيانات قديمة (مثلاً، مرت ساعة)
-  if (cachedData && lastFetchTime && currentTime - lastFetchTime < 3600000) {
-    // استخدم البيانات المخزنة
-    displayBreakingNews(JSON.parse(cachedData));
-    return;
-  }
-
   let all = [];
   for (const kw of breakingKeywords) {
     try {
-      const url = `${baseUrl}/search?q=${encodeURIComponent(kw)}` +
-        `&lang=${language}&country=${country}` +
-        `&max=2&apikey=${apiKey}`;
-      const res = await fetch(url);
+      const url  = `${baseUrl}/search?q=${encodeURIComponent(kw)}` +
+                   `&lang=${language}&country=${country}` +
+                   `&max=2&apikey=${apiKey}`;
+      const res  = await fetch(url);
       const data = await res.json();
       if (data.articles) all = all.concat(data.articles);
-
-      // إضافة فاصل زمني
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1000 ميلي ثانية (1 ثانية)
     } catch (err) {
       console.warn(`فشل جلب عاجل لـ: ${kw}`, err);
     }
     if (all.length >= breakingMax) break;
   }
-
-  // حفظ البيانات في الذاكرة المحلية
-  localStorage.setItem('breakingNews', JSON.stringify(all.slice(0, breakingMax)));
-  localStorage.setItem('breakingNewsTime', currentTime.toString());
-
   displayBreakingNews(all.slice(0, breakingMax));
 }
 
@@ -119,7 +103,7 @@ function displayBreakingNews(articles) {
   articles.forEach(a => {
     const div = document.createElement('div');
     div.className = 'breaking-news-item';
-    div.innerHTML = `
+    div.innerHTML = ` 
       <img src="${a.image || 'assets/images/placeholder.jpg'}" alt="${a.title}">
       <div class="content">
         <h3>${a.title}</h3>
@@ -148,12 +132,33 @@ function displayNews(articles, append = false) {
   });
 }
 
+// دالة لحفظ الأخبار في localStorage
+function saveToLocalStorage(key, data) {
+  localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+}
+
+// دالة لتحميل الأخبار من localStorage
+function loadFromLocalStorage(key) {
+  const savedData = JSON.parse(localStorage.getItem(key));
+  if (savedData && (Date.now() - savedData.timestamp < CACHE_DURATION)) {
+    return savedData.data;
+  }
+  return null;
+}
+
 //=================== الأحداث ===================
 // تحميل أولي
 async function loadInitial() {
-  const q = categoryQueries[currentCategory];
-  const arts = await fetchNews(q, currentPage);
-  displayNews(arts);
+  const cacheKey = `news-${currentCategory}`;
+  let articles = loadFromLocalStorage(cacheKey);
+  
+  if (!articles) {
+    const q = categoryQueries[currentCategory];
+    articles = await fetchNews(q, currentPage);
+    saveToLocalStorage(cacheKey, articles);
+  }
+
+  displayNews(articles);
   await fetchBreakingNews();
 }
 loadInitial();
@@ -161,9 +166,16 @@ loadInitial();
 // زر “تحميل المزيد”
 loadMoreBtn.addEventListener('click', async () => {
   currentPage++;
-  const q = categoryQueries[currentCategory];
-  const arts = await fetchNews(q, currentPage);
-  displayNews(arts, true);
+  const cacheKey = `news-${currentCategory}`;
+  let articles = loadFromLocalStorage(cacheKey);
+  
+  if (!articles) {
+    const q = categoryQueries[currentCategory];
+    articles = await fetchNews(q, currentPage);
+    saveToLocalStorage(cacheKey, articles);
+  }
+  
+  displayNews(articles, true);
 });
 
 // زر البحث
@@ -172,8 +184,15 @@ searchBtn.addEventListener('click', async () => {
   if (!term) return;
   currentCategory = 'search';
   currentPage = 1;
-  const arts = await fetchNews(term, currentPage);
-  displayNews(arts);
+  const cacheKey = `news-${term}`;
+  let articles = loadFromLocalStorage(cacheKey);
+  
+  if (!articles) {
+    articles = await fetchNews(term, currentPage);
+    saveToLocalStorage(cacheKey, articles);
+  }
+
+  displayNews(articles);
 });
 
 // أزرار التصنيفات
@@ -184,9 +203,16 @@ categoryButtons.forEach(btn => {
 
     currentCategory = btn.dataset.category;
     currentPage = 1;
+    
+    const cacheKey = `news-${currentCategory}`;
+    let articles = loadFromLocalStorage(cacheKey);
+    
+    if (!articles) {
+      const q = categoryQueries[currentCategory] || 'كرة القدم';
+      articles = await fetchNews(q, currentPage);
+      saveToLocalStorage(cacheKey, articles);
+    }
 
-    const q = categoryQueries[currentCategory] || 'كرة القدم';
-    const arts = await fetchNews(q, currentPage);
-    displayNews(arts);
+    displayNews(articles);
   });
 });
