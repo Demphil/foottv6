@@ -3,10 +3,11 @@ body {
   background: linear-gradient(135deg, #ff4e50, #f9d423); /* أحمر - برتقالي */
   min-height: 100vh;
   margin: 0;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Tajawal', sans-serif;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
 }
 
 /* قالب الزجاج */
@@ -23,29 +24,29 @@ body {
   transition: all 0.3s ease;
 }
 
-/* تغيير لون العنوان إلى الأسود */
-#breaking-news h3 {
-  margin: 0.5rem 0;
-  color: black;
-  text-align: center; /* وضع النص في منتصف القالب */
-}
-
-/* تغيير القالب عند الـ hover */
+/* تأثير hover على القالب الزجاجي */
 .glass-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
   background: rgba(255, 255, 255, 0.15); /* يجعل القالب يظهر وكأنه مشع */
 }
 
+/* تغيير لون العنوان إلى الأسود */
+#breaking-news h3, #transfers h3, #general-football-news h3 {
+  margin: 0.5rem 0;
+  color: black;
+  text-align: center; /* وضع النص في منتصف القالب */
+}
+
 /* تحسين مظهر الصورة في القالب */
-#breaking-news img {
+#breaking-news img, #transfers img, #general-football-news img {
   width: 100%;
   border-radius: 8px;
   margin-bottom: 0.5rem;
 }
 
 /* رابط الخبر */
-#breaking-news a {
+#breaking-news a, #transfers a, #general-football-news a {
   display: inline-block;
   margin-top: 0.5rem;
   color: #fff;
@@ -57,11 +58,11 @@ body {
 }
 
 /* تأثير hover على الرابط */
-#breaking-news a:hover {
+#breaking-news a:hover, #transfers a:hover, #general-football-news a:hover {
   background-color: #e04040;
 }
 
-/* تغيير لون شريط الهيدر */
+/* شريط الهيدر */
 header {
   background-color: #f8c64d; /* أصفر مائل للبرتقالي */
   color: white;
@@ -71,6 +72,30 @@ header {
   font-size: 1.2rem;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+/* شريط التنقل في الهيدر */
+header nav ul {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+header nav ul li {
+  list-style-type: none;
+}
+
+header nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: color 0.3s;
+}
+
+header nav ul li a:hover {
+  color: #e04040;
 }
 
 /* شريط البحث */
@@ -101,16 +126,62 @@ header {
   background-color: #e04040;
 }
 
+/* عرض الأخبار */
+.news-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+#breaking-news, #transfers, #general-football-news {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+#breaking-news h2, #transfers h2, #general-football-news h2 {
+  font-size: 1.5rem;
+  color: #ff4e50;
+  margin-bottom: 1.5rem;
+}
+
 /* تأثير التحميل */
-.loading {
+#loading {
   text-align: center;
   font-size: 1.2rem;
   margin-bottom: 1rem;
+  color: #fff;
 }
 
 /* تأثير الخطأ */
-.error {
+#error-container {
   color: yellow;
   text-align: center;
   margin-bottom: 1rem;
+}
+
+/* الفوتر */
+footer {
+  background-color: #333;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  width: 100%;
+  margin-top: 2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+/* تأثير التفاعل مع القالب */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 800px;
+  color: white;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
