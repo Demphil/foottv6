@@ -4,7 +4,7 @@ const baseUrl = 'https://gnews.io/api/v4';
 const language = 'ar';
 const country = 'eg';
 const maxResults = 10;
-const breakingMax = 4; // تغيير إلى 4 مقالات فقط
+const breakingMax = 4;
 const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 ساعات
 
 // الحالة
@@ -14,7 +14,7 @@ let breakingNewsInterval;
 
 // الكلمات المفتاحية حسب التصنيفات
 const breakingKeywords = [
-  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء"
+  "كرة القدم", "رياضة", "المنتخب المغربي", "برشلونة", "باري سان جيرمان"
 ];
 
 //=================== عناصر DOM ===================
@@ -136,77 +136,89 @@ function displayBreakingNews(articles) {
     newsGroups.push(articles.slice(i, i + breakingMax));
   }
 
-  // إنشاء عناصر العرض
   breakingNewsContainer.innerHTML = `
-    <div class="breaking-news-items">
+    <div class="breaking-news-slides">
       ${newsGroups.map((group, groupIndex) => `
-        <div class="breaking-news-group" data-index="${groupIndex}">
+        <div class="breaking-group" data-index="${groupIndex}">
           ${group.map(article => `
-            <div class="breaking-news-card">
-              <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}">
-              <div class="news-content">
+            <div class="breaking-slide">
+              <img src="${article.image || 'assets/images/placeholder.jpg'}" 
+                   alt="${article.title}" 
+                   class="breaking-image">
+              <div class="breaking-content">
                 <h3>${article.title}</h3>
                 <p>${article.description || 'لا يوجد وصف متاح'}</p>
-                <div class="news-meta">
-                  <i class="fas fa-clock"></i>
-                  <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
-                </div>
               </div>
             </div>
           `).join('')}
         </div>
       `).join('')}
     </div>
-    <div class="breaking-news-controls">
+    <div class="breaking-controls">
       ${newsGroups.map((_, index) => `
-        <div class="breaking-news-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>
+        <div class="breaking-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>
       `).join('')}
     </div>
   `;
 
-  // بدء التبديل التلقائي
-  startAutoRefresh(newsGroups);
+  startBreakingNewsSlider(newsGroups);
 }
 
-function startAutoRefresh(newsGroups) {
-  if (newsGroups.length <= 1) return;
+function startBreakingNewsSlider(groups) {
+  if (groups.length <= 1) return;
 
-  clearInterval(breakingNewsInterval);
+  const slidesContainer = breakingNewsContainer.querySelector('.breaking-news-slides');
+  const dots = breakingNewsContainer.querySelectorAll('.breaking-dot');
   let currentIndex = 0;
-  const newsItems = breakingNewsContainer.querySelector('.breaking-news-items');
-  const dots = breakingNewsContainer.querySelectorAll('.breaking-news-dot');
+  let interval;
 
-  function updateSlider(index) {
-    newsItems.style.transform = `translateX(-${index * 100}%)`;
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('active', i === index);
-    });
+  function goToSlide(index) {
+    currentIndex = index;
+    slidesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
   }
 
-  breakingNewsInterval = setInterval(() => {
-    currentIndex = (currentIndex + 1) % newsGroups.length;
-    updateSlider(currentIndex);
-  }, 20000);
+  function nextSlide() {
+    currentIndex = (currentIndex + 1) % groups.length;
+    goToSlide(currentIndex);
+  }
 
-  // إضافة أحداث النقر على النقاط
+  // بدء التبديل التلقائي
+  interval = setInterval(nextSlide, 20000);
+
+  // أحداث النقر على النقاط
   dots.forEach(dot => {
     dot.addEventListener('click', () => {
       const index = parseInt(dot.dataset.index);
-      currentIndex = index;
-      updateSlider(index);
-      
-      // إعادة تعيين المؤقت
-      clearInterval(breakingNewsInterval);
-      breakingNewsInterval = setInterval(() => {
-        currentIndex = (currentIndex + 1) % newsGroups.length;
-        updateSlider(currentIndex);
-      }, 20000);
+      goToSlide(index);
+      clearInterval(interval);
+      interval = setInterval(nextSlide, 20000);
     });
   });
 }
 
 //=================== التحميل الأولي ===================
 async function loadInitial() {
+  // تعيين سنة حقوق النشر
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+  
+  // حدث القائمة المتنقلة
+  document.querySelector('.menu-toggle').addEventListener('click', () => {
+    document.querySelector('.nav').classList.toggle('active');
+  });
+
+  // جلب وعرض الأخبار العاجلة
+  const breakingCacheKey = 'breaking-news';
+  let breakingArticles = loadFromLocalStorage(breakingCacheKey);
+  
+  if (!breakingArticles) {
+    breakingArticles = await fetchBreakingNews();
+    saveToLocalStorage(breakingCacheKey, breakingArticles);
+  }
+  
+  displayBreakingNews(breakingArticles);
+
+  // جلب وعرض الأخبار الرياضية
   const cacheKey = `news-${currentCategory}`;
   let articles = loadFromLocalStorage(cacheKey);
 
@@ -217,16 +229,6 @@ async function loadInitial() {
   }
 
   displayNews(articles);
-  
-  const breakingCacheKey = 'breaking-news';
-  let breakingArticles = loadFromLocalStorage(breakingCacheKey);
-  
-  if (!breakingArticles) {
-    breakingArticles = await fetchBreakingNews();
-    saveToLocalStorage(breakingCacheKey, breakingArticles);
-  }
-  
-  displayBreakingNews(breakingArticles);
 }
 
 //=================== الأحداث ===================
@@ -262,6 +264,13 @@ searchBtn.addEventListener('click', async () => {
   displayNews(articles);
 });
 
+// البحث عند الضغط على Enter
+searchInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    searchBtn.click();
+  }
+});
+
 // أزرار التصنيفات
 categoryButtons.forEach(btn => {
   btn.addEventListener('click', async () => {
@@ -283,12 +292,5 @@ categoryButtons.forEach(btn => {
   });
 });
 
-// البحث عند الضغط على Enter
-searchInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    searchBtn.click();
-  }
-});
-
-// التحميل الأولي
+// التحميل الأولي عند اكتمال تحميل الصفحة
 document.addEventListener('DOMContentLoaded', loadInitial);
