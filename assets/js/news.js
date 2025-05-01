@@ -11,18 +11,22 @@ const CACHE_DURATION_HOURS = 6;
 
 const KEYWORDS = [
   'المنتخب المغربي',
-  'ريال مدريد',
+  'الوداد',
   'الرجاء',
   'دوري أبطال أفريقيا',
   'كرة القدم',
-  'دوري ابطال اوروبا'
+  'المغرب'
+  'chompions leauges europa'
+'premier league'
+'laleagua'
+'cup du monde 2025'
 ];
 
 function isCacheValid() {
   const lastTime = localStorage.getItem(CACHE_TIME_KEY);
   if (!lastTime) return false;
 
-  const diff = (Date.now() - parseInt(lastTime, 10)) / (1000 * 60 * 60); // فرق بالساعات
+  const diff = (Date.now() - parseInt(lastTime, 10)) / (1000 * 60 * 60);
   return diff < CACHE_DURATION_HOURS;
 }
 
@@ -70,7 +74,7 @@ function displayBreakingNews(articles) {
 
   articles.forEach(article => {
     const item = document.createElement('div');
-    item.className = 'glass-card';
+    item.className = 'news-item';
 
     item.innerHTML = `
       <img src="${article.image || 'https://via.placeholder.com/600x300'}" alt="صورة الخبر">
