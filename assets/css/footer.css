@@ -8,7 +8,9 @@
   height: auto;
   min-height: 120px; /* ارتفاع أصغر */
 }
-
+.html {
+  scroll-behavior: smooth;
+}
 .footer-content {
   display: flex;
   justify-content: space-between;
