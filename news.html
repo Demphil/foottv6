@@ -10,22 +10,45 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="glass-card">
-    <header class="header">
-      <h1>📢 آخر أخبار الرياضة</h1>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="ابحث عن فريق أو بطولة...">
-        <button id="search-button">🔍 بحث</button>
-      </div>
-    </header>
-<div id="loading" style="display: none; text-align: center; padding: 1rem; color: white;">
-  جارٍ تحميل الأخبار...
-</div>
-<button id="load-more" class="load-more-btn">تحميل المزيد</button>
-    <div id="error-container" class="error"></div>
+  <header>
+    <div class="logo-container">
+      <img src="logo.png" alt="شعار الموقع" id="logo">
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#">الصفحة الرئيسية</a></li>
+        <li><a href="#">مباريات اليوم</a></li>
+        <li><a href="#">القنوات الرياضية</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <section id="breaking-news"></section>
-  </div>
+  <main>
+    <section id="breaking-news">
+      <h2>أخبار عاجلة</h2>
+      <div class="news-container">
+        <!-- سيتم عرض الأخبار هنا -->
+      </div>
+    </section>
+
+    <section id="transfers">
+      <h2>أخبار الانتقالات</h2>
+      <div class="news-container">
+        <!-- سيتم عرض أخبار الانتقالات هنا -->
+      </div>
+    </section>
+
+    <section id="general-football-news">
+      <h2>أخبار كرة القدم العامة</h2>
+      <div class="news-container">
+        <!-- سيتم عرض الأخبار العامة هنا -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>حقوق النشر © 2025</p>
+  </footer>
 
 
     <script type="module" src="assets/js/news.js"></script>
