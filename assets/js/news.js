@@ -1,54 +1,20 @@
 // إعداد متغيرات عامة
 const API_KEY = '320e688cfb9682d071750f4212f83753';
 const BASE_URL = 'https://gnews.io/api/v4/search';
-const breakingNewsContainer = document.getElementById('breaking-news');
-const searchInput = document.getElementById('search-input');
-const searchButton = document.getElementById('search-button');
+const breakingNewsContainer = document.getElementById('breaking-news').querySelector('.news-container');
+const transfersContainer = document.getElementById('transfers').querySelector('.news-container');
+const generalFootballNewsContainer = document.getElementById('general-football-news').querySelector('.news-container');
 const loading = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
-const CACHE_KEY = 'cachedBreakingNews';
-const CACHE_TIME_KEY = 'breakingNewsCacheTime';
-const CACHE_DURATION_HOURS = 6; // مدة التخزين المؤقت (6 ساعات)
 
-const KEYWORDS = [
-  'المنتخب المغربي',
-  'الوداد',
-  'الرجاء',
-  'دوري أبطال أفريقيا',
-  'كرة القدم',
-  'المغرب'
-];
-
-// دالة للتحقق من صحة التخزين المؤقت
-function isCacheValid() {
-  const lastTime = localStorage.getItem(CACHE_TIME_KEY);
-  if (!lastTime) return false;
-
-  const diff = (Date.now() - parseInt(lastTime, 10)) / (1000 * 60 * 60);
-  return diff < CACHE_DURATION_HOURS;
-}
-
-// دالة لحفظ البيانات في التخزين المؤقت
-function saveCache(data) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-}
-
-// دالة لتحميل الأخبار من التخزين المؤقت
-function loadFromCache() {
-  const data = localStorage.getItem(CACHE_KEY);
-  if (data) {
-    try {
-      const articles = JSON.parse(data);
-      displayBreakingNews(articles);
-    } catch {
-      localStorage.removeItem(CACHE_KEY);
-    }
-  }
-}
+const KEYWORDS = {
+  breakingNews: 'أخبار عاجلة',
+  transfers: 'أخبار الانتقالات',
+  generalFootballNews: 'كرة القدم العالمية'
+};
 
 // دالة لجلب الأخبار من API
-async function fetchBreakingNews(query) {
+async function fetchNews(query, container) {
   loading.style.display = 'block';
   errorContainer.textContent = '';
   try {
@@ -56,8 +22,7 @@ async function fetchBreakingNews(query) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`API Error: ${res.status}`);
     const data = await res.json();
-    saveCache(data.articles);
-    displayBreakingNews(data.articles);
+    displayNews(data.articles, container);
   } catch (err) {
     errorContainer.textContent = 'حدث خطأ أثناء تحميل الأخبار.';
     console.error(err);
@@ -67,46 +32,29 @@ async function fetchBreakingNews(query) {
 }
 
 // دالة لعرض الأخبار في الصفحة
-function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
+function displayNews(articles, container) {
+  container.innerHTML = '';
   if (!articles || articles.length === 0) {
-    breakingNewsContainer.innerHTML = '<p>لا توجد أخبار حالياً.</p>';
+    container.innerHTML = '<p>لا توجد أخبار حالياً.</p>';
     return;
   }
 
   articles.forEach(article => {
     const item = document.createElement('div');
     item.className = 'news-item';
-
     item.innerHTML = `
       <img src="${article.image || 'https://via.placeholder.com/600x300'}" alt="صورة الخبر">
       <h3>${article.title}</h3>
       <p>${article.description || ''}</p>
       <a href="${article.url}" target="_blank">قراءة المزيد</a>
     `;
-
-    breakingNewsContainer.appendChild(item);
+    container.appendChild(item);
   });
 }
 
-// دالة لتحميل الأخبار الأولية
-function loadInitial() {
-  const query = KEYWORDS[Math.floor(Math.random() * KEYWORDS.length)];
-
-  if (isCacheValid()) {
-    loadFromCache();
-  } else {
-    fetchBreakingNews(query);
-  }
-}
-
-// دالة للبحث باستخدام المدخلات من المستخدم
-searchButton.addEventListener('click', () => {
-  const query = searchInput.value.trim();
-  if (query) {
-    fetchBreakingNews(query);
-  }
+// تحميل الأخبار عند فتح الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+  fetchNews(KEYWORDS.breakingNews, breakingNewsContainer);
+  fetchNews(KEYWORDS.transfers, transfersContainer);
+  fetchNews(KEYWORDS.generalFootballNews, generalFootballNewsContainer);
 });
-
-// تحميل الأخبار الأولية عند تحميل الصفحة
-window.addEventListener('DOMContentLoaded', loadInitial);
