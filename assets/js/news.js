@@ -1,41 +1,17 @@
 //=================== الإعدادات ===================
-const apiKey   ='c3043545e8b02be6502326236791500f';
-url = 'https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=en&country=us&max=10&apikey=' + apikey;
+const apiKey        = 'c3043545e8b02be6502326236791500f';
+const baseUrl       = 'https://gnews.io/api/v4';
+const language      = 'ar';
+const country       = 'eg';
+const maxResults    = 10;
+const breakingMax   = 10;
+const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 ساعات
 
-fetch(url)
-  .then(function (response) {
-    return response.json();
-  })
-  .then(function (data) {
-    articles = data.articles;
-
-    for (i = 0; i < articles.length; i++) {
-      // articles[i].title
-      console.log("Title: " + articles[i]['title']);
-      // articles[i].description
-      console.log("Description: " + articles[i]['description']);
-      // You can replace {property} below with any of the article properties returned by the API.
-      // articles[i].{property}
-      // console.log(articles[i]['{property}']);
-
-      // Delete this line to display all the articles returned by the request. Currently only the first article is displayed.
-      break;
-    }
-  });;
-const baseUrl      = 'https://gnews.io/api/v4';
-const language     = 'ar';
-const country      = 'eg';
-const maxResults   = 10;
-const breakingMax  = 10;  // عدد مقالات الأخبار العاجلة
-
-// مدة حفظ البيانات (6 ساعات = 21600000 ميلي ثانية)
-const CACHE_DURATION = 6 * 60 * 60 * 1000;
-
-// حفظ الصفحة والتصنيف الحالي
+// الحالة
 let currentPage     = 1;
 let currentCategory = 'all';
 
-// ربط قيم data-category بعبارات البحث بالعربية
+// الكلمات المفتاحية حسب التصنيفات
 const categoryQueries = {
   all:       'كرة القدم',
   transfers: 'انتقالات',
@@ -43,7 +19,6 @@ const categoryQueries = {
   injuries:  'إصابات'
 };
 
-// كلمات مفتاحية للأخبار العاجلة (ستُستخدم بالحلقة)
 const breakingKeywords = [
   "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء",
   "الدوري السعودي", "الدوري المصري", "الدوري الإسباني",
@@ -60,29 +35,36 @@ const searchInput           = document.getElementById('news-search');
 const searchBtn             = document.getElementById('search-btn');
 const categoryButtons       = document.querySelectorAll('.category-btn');
 
-//=================== دوال مساندة ===================
+//=================== وظائف مساعدة ===================
 function showLoading()    { loadingIndicator.style.display = 'block'; }
 function hideLoading()    { loadingIndicator.style.display = 'none'; }
 function showError(msg)   { errorContainer.innerHTML = `<div class="error-message">${msg}</div>`; }
 function clearError()     { errorContainer.innerHTML = ''; }
 
-// دالة جلب الأخبار العامّة
-async function fetchNews(query, page = 1) {
-  const url = `${baseUrl}/search` +
-              `?q=${encodeURIComponent(query)}` +
-              `&lang=${language}` +
-              `&country=${country}` +
-              `&max=${maxResults}` +
-              `&page=${page}` +
-              `&apikey=${apiKey}`;
+function saveToLocalStorage(key, data) {
+  localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
+}
 
+function loadFromLocalStorage(key) {
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (Date.now() - parsed.timestamp < CACHE_DURATION) {
+      return parsed.data;
+    }
+  }
+  return null;
+}
+
+//=================== جلب الأخبار ===================
+async function fetchNews(query, page = 1) {
+  const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&page=${page}&apikey=${apiKey}`;
   try {
     showLoading();
     clearError();
-    const res  = await fetch(url);
+    const res = await fetch(url);
     const data = await res.json();
     hideLoading();
-
     if (!data.articles || data.articles.length === 0) {
       showError('لم يتم العثور على أخبار.');
       return [];
@@ -96,15 +78,12 @@ async function fetchNews(query, page = 1) {
   }
 }
 
-// دالة جلب الأخبار العاجلة بكلمات مفتاحية متعددة
 async function fetchBreakingNews() {
   let all = [];
   for (const kw of breakingKeywords) {
     try {
-      const url  = `${baseUrl}/search?q=${encodeURIComponent(kw)}` +
-                   `&lang=${language}&country=${country}` +
-                   `&max=2&apikey=${apiKey}`;
-      const res  = await fetch(url);
+      const url = `${baseUrl}/search?q=${encodeURIComponent(kw)}&lang=${language}&country=${country}&max=2&apikey=${apiKey}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.articles) all = all.concat(data.articles);
     } catch (err) {
@@ -115,7 +94,24 @@ async function fetchBreakingNews() {
   displayBreakingNews(all.slice(0, breakingMax));
 }
 
-// عرض الأخبار العاجلة
+//=================== عرض الأخبار ===================
+function displayNews(articles, append = false) {
+  if (!append) sportsNewsContainer.innerHTML = '';
+  articles.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    card.innerHTML = `
+      <img src="${a.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
+      <div class="news-content">
+        <h3>${a.title}</h3>
+        <p>${a.description || ''}</p>
+        <a href="${a.url}" target="_blank">قراءة المزيد</a>
+      </div>
+    `;
+    sportsNewsContainer.appendChild(card);
+  });
+}
+
 function displayBreakingNews(articles) {
   breakingNewsContainer.innerHTML = '';
   if (articles.length === 0) {
@@ -136,47 +132,14 @@ function displayBreakingNews(articles) {
   });
 }
 
-// عرض الأخبار العادية
-function displayNews(articles, append = false) {
-  if (!append) sportsNewsContainer.innerHTML = '';
-  articles.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'news-card';
-    card.innerHTML = `
-      <img src="${a.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
-      <div class="news-content">
-        <h3>${a.title}</h3>
-        <p>${a.description || ''}</p>
-        <a href="${a.url}" target="_blank">قراءة المزيد</a>
-      </div>
-    `;
-    sportsNewsContainer.appendChild(card);
-  });
-}
-
-// دالة لحفظ الأخبار في localStorage
-function saveToLocalStorage(key, data) {
-  localStorage.setItem(key, JSON.stringify({ data, timestamp: Date.now() }));
-}
-
-// دالة لتحميل الأخبار من localStorage
-function loadFromLocalStorage(key) {
-  const savedData = JSON.parse(localStorage.getItem(key));
-  if (savedData && (Date.now() - savedData.timestamp < CACHE_DURATION)) {
-    return savedData.data;
-  }
-  return null;
-}
-
-//=================== الأحداث ===================
-// تحميل أولي
+//=================== التحميل الأولي ===================
 async function loadInitial() {
   const cacheKey = `news-${currentCategory}`;
   let articles = loadFromLocalStorage(cacheKey);
-  
+
   if (!articles) {
-    const q = categoryQueries[currentCategory];
-    articles = await fetchNews(q, currentPage);
+    const query = categoryQueries[currentCategory];
+    articles = await fetchNews(query, currentPage);
     saveToLocalStorage(cacheKey, articles);
   }
 
@@ -185,22 +148,23 @@ async function loadInitial() {
 }
 loadInitial();
 
-// زر “تحميل المزيد”
+//=================== الأحداث ===================
+// تحميل المزيد
 loadMoreBtn.addEventListener('click', async () => {
   currentPage++;
   const cacheKey = `news-${currentCategory}`;
   let articles = loadFromLocalStorage(cacheKey);
-  
+
   if (!articles) {
-    const q = categoryQueries[currentCategory];
-    articles = await fetchNews(q, currentPage);
+    const query = categoryQueries[currentCategory];
+    articles = await fetchNews(query, currentPage);
     saveToLocalStorage(cacheKey, articles);
   }
-  
+
   displayNews(articles, true);
 });
 
-// زر البحث
+// البحث
 searchBtn.addEventListener('click', async () => {
   const term = searchInput.value.trim();
   if (!term) return;
@@ -208,7 +172,7 @@ searchBtn.addEventListener('click', async () => {
   currentPage = 1;
   const cacheKey = `news-${term}`;
   let articles = loadFromLocalStorage(cacheKey);
-  
+
   if (!articles) {
     articles = await fetchNews(term, currentPage);
     saveToLocalStorage(cacheKey, articles);
@@ -225,13 +189,12 @@ categoryButtons.forEach(btn => {
 
     currentCategory = btn.dataset.category;
     currentPage = 1;
-    
     const cacheKey = `news-${currentCategory}`;
     let articles = loadFromLocalStorage(cacheKey);
-    
+
     if (!articles) {
-      const q = categoryQueries[currentCategory] || 'كرة القدم';
-      articles = await fetchNews(q, currentPage);
+      const query = categoryQueries[currentCategory] || 'كرة القدم';
+      articles = await fetchNews(query, currentPage);
       saveToLocalStorage(cacheKey, articles);
     }
 
