@@ -192,15 +192,7 @@ function setupLoadMore() {
     renderSportsNews(results, true);
   });
 }
-// جعل الحركة سلسة عند النقر على اللوغو
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.querySelector(this.getAttribute('href')).scrollIntoView({
-      behavior: 'smooth'
-    });
-  });
-});
+
 
 // بدء التطبيق
 document.addEventListener('DOMContentLoaded', init);
