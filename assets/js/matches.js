@@ -1,191 +1,225 @@
 import { fetchMatches } from './api.js';
 
 // عناصر DOM
-const featuredContainer = document.getElementById('featured-matches');
-const todayContainer = document.getElementById('today-matches');
-const tomorrowContainer = document.getElementById('tomorrow-matches');
-const upcomingContainer = document.getElementById('upcoming-matches');
-const breakingNewsContainer = document.getElementById('breaking-news');
-const tabButtons = document.querySelectorAll('.tab-btn');
-
-// تعريف البطولات المميزة
-const featuredLeagues = [2, 39, 140, 135]; // دوري الأبطال، الإنجليزي، الإسباني، الإيطالي
-
-// تنسيق التاريخ حسب توقيت المغرب
-const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleString('ar-MA', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-        timeZone: 'Africa/Casablanca'
-    });
+const elements = {
+    featuredContainer: document.getElementById('featured-matches'),
+    broadcastContainer: document.getElementById('broadcast-matches'),
+    todayContainer: document.getElementById('today-matches'),
+    tomorrowContainer: document.getElementById('tomorrow-matches'),
+    upcomingContainer: document.getElementById('upcoming-matches'),
+    tabButtons: document.querySelectorAll('.tab-btn'),
+    sliderDots: document.querySelector('.slider-dots'),
+    prevBtn: document.querySelector('.slider-prev'),
+    nextBtn: document.querySelector('.slider-next')
 };
 
-// بطاقة مباراة مميزة
-const createFeaturedMatchCard = ({ teams, fixture, league }) => `
-    <div class="featured-match-card">
-        <div class="league-name">
-            <img src="${league.logo}" alt="${league.name}" class="league-logo" onerror="this.style.display='none'">
-            ${league.name}
-        </div>
-        <div class="teams">
-            <div class="team">
-                <img src="${teams.home.logo}" alt="${teams.home.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
-                <span>${teams.home.name}</span>
-            </div>
-            <div class="vs">VS</div>
-            <div class="team">
-                <img src="${teams.away.logo}" alt="${teams.away.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
-                <span>${teams.away.name}</span>
-            </div>
-        </div>
-        <div class="match-info">
-            <span>⏰ ${formatDate(fixture.date)}</span>
-            <span>🏟️ ${fixture.venue?.name || 'غير محدد'}</span>
-        </div>
-    </div>
-`;
+// تعريف البطولات المميزة والمنقولة
+const featuredLeagues = [2, 39, 140, 135]; // دوري الأبطال، الإنجليزي، الإسباني، الإيطالي
+const broadcastMatchesIds = []; // سيتم تعبئتها من API أو قاعدة بياناتك
 
-// بطاقة مباراة عادية
-const createMatchCard = ({ teams, fixture, league }) => `
-    <div class="match-card">
-        <div class="league-name">
-            <img src="${league.logo}" alt="${league.name}" class="league-logo" onerror="this.style.display='none'">
-            ${league.name}
-        </div>
-        <div class="teams">
-            <div class="team">
-                <img src="${teams.home.logo}" alt="${teams.home.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
-                <span>${teams.home.name}</span>
-            </div>
-            <div class="vs">VS</div>
-            <div class="team">
-                <img src="${teams.away.logo}" alt="${teams.away.name}" class="team-logo" onerror="this.src='assets/images/default-team.png'">
-                <span>${teams.away.name}</span>
-            </div>
-        </div>
-        <div class="match-time">⏰ ${formatDate(fixture.date)}</div>
-        <div class="match-venue">🏟️ ${fixture.venue?.name || 'غير محدد'}</div>
-    </div>
-`;
+// تهيئة الصفحة
+document.addEventListener('DOMContentLoaded', async () => {
+    // تعيين سنة حقوق النشر
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+    
+    try {
+        // جلب وعرض المباريات
+        const matches = await fetchMatches();
+        const categorized = categorizeMatches(matches);
+        
+        renderFeaturedMatches(categorized.featured);
+        renderBroadcastMatches(categorized.featured); // يمكن استبدالها بمباريات منقولة محددة
+        renderAllMatches(categorized);
+        
+        // إعداد التبويبات
+        setupTabs();
+        
+        // إعداد السلايدر
+        setupSlider();
+        
+    } catch (error) {
+        console.error('Initialization error:', error);
+        showError('حدث خطأ في جلب البيانات. الرجاء المحاولة لاحقاً.');
+    }
+});
 
-// بطاقة خبر
-const createNewsCard = (news) => `
-    <div class="news-card" onclick="window.location.href='news.html?id=${news.id}'">
-        <img src="${news.image}" alt="${news.title}" onerror="this.src='assets/images/default-news.jpg'">
-        <div class="news-content">
-            <h3 class="news-title">${news.title}</h3>
-            <p class="news-excerpt">${news.excerpt}</p>
-            <div class="news-meta">
-                <span>📅 ${news.date}</span>
-                <span>👁️ ${news.views} مشاهدة</span>
-            </div>
-        </div>
-    </div>
-`;
-
-// تصنيف المباريات حسب التاريخ
-const categorizeMatches = (matches) => {
-    const now = new Date();
-    const today = new Date(now.setHours(0, 0, 0, 0));
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const afterTomorrow = new Date(tomorrow);
-    afterTomorrow.setDate(tomorrow.getDate() + 1);
-
+// تصنيف المباريات
+function categorizeMatches(matches) {
+    const today = new Date().toDateString();
+    const tomorrow = new Date(Date.now() + 86400000).toDateString();
+    
     return {
-        today: matches.filter(match => new Date(match.fixture.date).toDateString() === today.toDateString()),
-        tomorrow: matches.filter(match => new Date(match.fixture.date).toDateString() === tomorrow.toDateString()),
-        upcoming: matches.filter(match => {
-            const matchDate = new Date(match.fixture.date);
-            return matchDate > tomorrow && matchDate < afterTomorrow;
-        }),
+        today: matches.filter(match => new Date(match.fixture.date).toDateString() === today),
+        tomorrow: matches.filter(match => new Date(match.fixture.date).toDateString() === tomorrow),
+        upcoming: matches.filter(match => new Date(match.fixture.date) > new Date(tomorrow)),
         featured: matches.filter(match => featuredLeagues.includes(match.league.id))
     };
-};
+}
 
-// عرض المباريات
-const renderMatches = (matches) => {
+// عرض المباريات المميزة (4 مباريات مع تغيير كل 20 ثانية)
+function renderFeaturedMatches(matches) {
     if (!matches || matches.length === 0) {
-        todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات في الفترة القادمة</p>';
+        elements.featuredContainer.innerHTML = '<p>لا توجد مباريات مميزة اليوم</p>';
         return;
     }
 
-    const { featured, today, tomorrow, upcoming } = categorizeMatches(matches);
+    // تقسيم المباريات إلى مجموعات كل 4 مباريات
+    const groupedMatches = [];
+    for (let i = 0; i < matches.length; i += 4) {
+        groupedMatches.push(matches.slice(i, i + 4));
+    }
 
-    featuredContainer.innerHTML = featured.length
-        ? featured.map(createFeaturedMatchCard).join('')
-        : '<p>لا توجد مباريات مميزة اليوم</p>';
+    // عرض المجموعة الأولى
+    elements.featuredContainer.innerHTML = groupedMatches[0].map(createFeaturedCard).join('');
+    
+    // إنشاء نقاط التحكم
+    elements.sliderDots.innerHTML = groupedMatches.map((_, i) => 
+        `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
+    ).join('');
 
-    todayContainer.innerHTML = today.length
+    // التبديل التلقائي
+    let currentIndex = 0;
+    const interval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % groupedMatches.length;
+        showSlide(currentIndex);
+    }, 20000);
+
+    // أحداث التحكم
+    elements.prevBtn.addEventListener('click', () => {
+        clearInterval(interval);
+        currentIndex = (currentIndex - 1 + groupedMatches.length) % groupedMatches.length;
+        showSlide(currentIndex);
+    });
+
+    elements.nextBtn.addEventListener('click', () => {
+        clearInterval(interval);
+        currentIndex = (currentIndex + 1) % groupedMatches.length;
+        showSlide(currentIndex);
+    });
+
+    function showSlide(index) {
+        elements.featuredContainer.innerHTML = groupedMatches[index].map(createFeaturedCard).join('');
+        document.querySelectorAll('.dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+        currentIndex = index;
+    }
+}
+
+// عرض المباريات المنقولة (5 مباريات محددة)
+function renderBroadcastMatches(matches) {
+    // يمكنك تحديد 5 مباريات معينة هنا أو جلبها من API
+    const broadcastMatches = matches.slice(0, 5); // مثال: أول 5 مباريات
+    
+    elements.broadcastContainer.innerHTML = broadcastMatches.length
+        ? broadcastMatches.map(createBroadcastCard).join('')
+        : '<p>لا توجد مباريات منقولة اليوم</p>';
+}
+
+// عرض جميع المباريات
+function renderAllMatches({ today, tomorrow, upcoming }) {
+    elements.todayContainer.innerHTML = today.length
         ? today.map(createMatchCard).join('')
         : '<p class="no-matches">لا توجد مباريات اليوم</p>';
 
-    tomorrowContainer.innerHTML = tomorrow.length
+    elements.tomorrowContainer.innerHTML = tomorrow.length
         ? tomorrow.map(createMatchCard).join('')
         : '<p class="no-matches">لا توجد مباريات غدًا</p>';
 
-    upcomingContainer.innerHTML = upcoming.length
+    elements.upcomingContainer.innerHTML = upcoming.length
         ? upcoming.map(createMatchCard).join('')
         : '<p class="no-matches">لا توجد مباريات قادمة</p>';
-};
+}
 
-// جلب الأخبار العاجلة
-const fetchBreakingNews = async () => {
-    try {
-        const response = await fetch('https://gnews.io/api/v4/top-headlines?category=general&lang=ar&country=ma&apikey=320e688cfb9682d071750f4212f83753');
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-        
-        const result = await response.json();
-        return result.articles.slice(0, 3).map((article, index) => ({
-            id: index,
-            title: article.title,
-            excerpt: article.description || '',
-            image: article.image || 'assets/images/default-news.jpg',
-            date: new Date(article.publishedAt).toLocaleDateString('ar-MA'),
-            views: Math.floor(Math.random() * 5000 + 1000), // رقم وهمي للعرض
-        }));
-    } catch (error) {
-        console.error('فشل جلب الأخبار:', error);
-        return [];
-    }
-};
+// إنشاء بطاقات المباريات
+function createFeaturedCard(match) {
+    return `
+        <div class="featured-card" data-id="${match.fixture.id}">
+            <div class="league-info">
+                <img src="${match.league.logo}" alt="${match.league.name}">
+                <span>${match.league.name}</span>
+            </div>
+            <div class="teams">
+                <div class="team">
+                    <img src="${match.teams.home.logo}" alt="${match.teams.home.name}">
+                    <span>${match.teams.home.name}</span>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team">
+                    <img src="${match.teams.away.logo}" alt="${match.teams.away.name}">
+                    <span>${match.teams.away.name}</span>
+                </div>
+            </div>
+            <div class="match-info">
+                <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
+                <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير محدد'}</span>
+            </div>
+        </div>
+    `;
+}
 
-// التبويبات
-tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
+function createBroadcastCard(match) {
+    return `
+        <div class="broadcast-card" data-id="${match.fixture.id}">
+            <div class="teams">
+                <span>${match.teams.home.name}</span>
+                <span class="vs">VS</span>
+                <span>${match.teams.away.name}</span>
+            </div>
+            <div class="match-time">
+                <i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}
+            </div>
+            <button class="watch-btn" onclick="watchMatch(${match.fixture.id})">
+                <i class="fas fa-play"></i> مشاهدة
+            </button>
+        </div>
+    `;
+}
 
-        const tabId = button.getAttribute('data-tab');
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
+// وظائف مساعدة
+function formatDate(dateStr) {
+    const options = { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZone: 'Africa/Casablanca'
+    };
+    return new Date(dateStr).toLocaleString('ar-MA', options);
+}
+
+function setupTabs() {
+    elements.tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            elements.tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const tabId = btn.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-matches`).classList.add('active');
         });
-        document.getElementById(`${tabId}-matches`).classList.add('active');
     });
-});
+}
 
-// تهيئة الصفحة
-const initPage = async () => {
-    try {
-        featuredContainer.innerHTML = todayContainer.innerHTML = '<div class="loader"></div>';
+function setupSlider() {
+    // تم التعامل مع السلايدر في renderFeaturedMatches
+}
 
-        const matches = await fetchMatches();
-        renderMatches(matches);
+function showError(message) {
+    const errorEl = document.createElement('div');
+    errorEl.className = 'error-message';
+    errorEl.textContent = message;
+    document.querySelector('main').prepend(errorEl);
+}
 
-        const news = await fetchBreakingNews();
-        breakingNewsContainer.innerHTML = news.length
-            ? news.map(createNewsCard).join('')
-            : '<p>لا توجد أخبار عاجلة حالياً</p>';
-    } catch (error) {
-        console.error('Initialization error:', error);
-        todayContainer.innerHTML = '<p class="error">حدث خطأ في جلب البيانات. الرجاء المحاولة لاحقاً.</p>';
-    }
+// الانتقال لمشاهدة المباراة
+window.watchMatch = function(matchId) {
+    // يمكنك توجيه المستخدم لصفحة المشاهدة
+    window.location.href = `watch.html?match=${matchId}`;
+    
+    // أو فتح الصفحة في نافذة جديدة
+    // window.open(`watch.html?match=${matchId}`, '_blank');
 };
-
-// بدء التحميل
-initPage();
