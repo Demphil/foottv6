@@ -10,6 +10,14 @@
 .html {
   scroll-behavior: smooth;
 }
+#top-of-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+}
 /* التنسيق العام */
 body {
   font-family: 'Tajawal', sans-serif;
