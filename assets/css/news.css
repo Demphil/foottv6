@@ -1,98 +1,334 @@
-body {
-  background: linear-gradient(135deg, #ff4e50, #f9d423); /* أحمر - برتقالي */
-  min-height: 100vh;
+/* ===================== قواعد عامة ===================== */
+* {
   margin: 0;
-  font-family: 'Cairo', sans-serif;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style-type: none;
+}
+
+h1, h2 {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* ===================== الهيدر ===================== */
+.header {
+  background-color: #343a40;
+  padding: 15px 20px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .logo {
+  display: flex;
   align-items: center;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 800px;
-  color: white;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.header .logo img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 1.5rem;
+.header .logo h1 {
+  font-size: 20px;
 }
 
-.search-bar {
+.nav ul {
   display: flex;
-  margin-bottom: 1.5rem;
+  gap: 15px;
 }
 
-#search-input {
-  flex: 1;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 8px 0 0 8px;
-  font-size: 1rem;
-}
-
-#search-button {
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 0 8px 8px 0;
-  background-color: #ff4e50;
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-#search-button:hover {
-  background-color: #e04040;
-}
-
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: yellow;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-#breaking-news .glass-card {
-  background-color: rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-#breaking-news img {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-}
-
-#breaking-news h3 {
-  margin: 0.5rem 0;
-}
-
-#breaking-news a {
-  display: inline-block;
-  margin-top: 0.5rem;
+.nav ul li a {
   color: #fff;
-  background-color: #ff4e50;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: 0.3s;
+  font-size: 16px;
+  transition: color 0.3s;
 }
 
-#breaking-news a:hover {
-  background-color: #e04040;
+.nav ul li a:hover, .nav ul li a.active {
+  color: #f39c12;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+/* ===================== الأخبار العاجلة ===================== */
+.breaking-news-section {
+  background-color: #fff;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.breaking-news-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.breaking-news-section .section-title {
+  font-size: 18px;
+  color: #e74c3c;
+}
+
+.breaking-news-section .view-all {
+  font-size: 14px;
+  color: #007bff;
+}
+
+.breaking-news-section .breaking-news-slider {
+  display: flex;
+  overflow-x: scroll;
+  gap: 10px;
+}
+
+.breaking-news-item {
+  background-color: #f9f9f9;
+  width: 250px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.breaking-news-item img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.breaking-news-item .content {
+  padding-top: 10px;
+}
+
+.breaking-news-item h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.breaking-news-item p {
+  font-size: 14px;
+  color: #555;
+}
+
+/* ===================== البحث والتصنيفات ===================== */
+.search-section {
+  background-color: #fff;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-section .search-container {
+  display: flex;
+  gap: 10px;
+}
+
+.search-section input {
+  width: 70%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.search-section button {
+  background-color: #f39c12;
+  border: none;
+  padding: 10px 15px;
+  color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-section button:hover {
+  background-color: #e67e22;
+}
+
+.search-section .categories-tabs {
+  margin-top: 20px;
+  display: flex;
+  gap: 15px;
+}
+
+.search-section .category-btn {
+  background-color: #f1f1f1;
+  padding: 10px 20px;
+  border-radius: 5px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-section .category-btn.active {
+  background-color: #f39c12;
+  color: #fff;
+}
+
+.search-section .category-btn:hover {
+  background-color: #ddd;
+}
+
+/* ===================== الأخبار الرياضية ===================== */
+.sports-news-section {
+  background-color: #fff;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sports-news-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.sports-news-section .section-title {
+  font-size: 18px;
+  color: #3498db;
+}
+
+.sports-news-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.sports-news-container .news-card {
+  background-color: #f9f9f9;
+  width: 250px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sports-news-container .news-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.sports-news-container .news-card .news-content {
+  padding: 10px;
+}
+
+.sports-news-container .news-card h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.sports-news-container .news-card p {
+  font-size: 14px;
+  color: #555;
+}
+
+.sports-news-container .news-card a {
+  font-size: 14px;
+  color: #3498db;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.sports-news-container .news-card a:hover {
+  color: #e67e22;
+}
+
+/* ===================== تحميل المزيد ===================== */
+.load-more-btn {
+  display: block;
+  width: 100%;
+  background-color: #3498db;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.load-more-btn:hover {
+  background-color: #2980b9;
+}
+
+/* ===================== السكيلتون لودر ===================== */
+.skeleton-loader {
+  background-color: #ddd;
+  height: 150px;
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  animation: skeleton-loading 1.5s infinite linear;
+}
+
+.sports-skeleton {
+  width: 250px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-color: #ddd;
+  }
+  50% {
+    background-color: #bbb;
+  }
+  100% {
+    background-color: #ddd;
+  }
+}
+
+/* ===================== الفوتر ===================== */
+.footer {
+  background-color: #343a40;
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.footer .footer-content {
+  margin-bottom: 20px;
+}
+
+.footer .copyright p {
+  font-size: 14px;
+}
+
+.footer .legal-links a {
+  font-size: 14px;
+  color: #f39c12;
+  margin-left: 10px;
+}
+
+.footer .legal-links a:hover {
+  color: #fff;
 }
