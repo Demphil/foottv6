@@ -41,6 +41,22 @@ function hideLoading()    { loadingIndicator.style.display = 'none'; }
 function showError(msg)   { errorContainer.innerHTML = `<div class="error-message">${msg}</div>`; }
 function clearError()     { errorContainer.innerHTML = ''; }
 
+const fetchNews = async () => {
+  const keywords = "كرة القدم OR المنتخب المغربي OR الوداد OR الرجاء OR الدوري السعودي OR دوري أبطال أوروبا";
+  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(keywords)}&lang=ar&max=10&apikey=320e688cfb9682d071750f4212f83753`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error("تم تجاوز عدد الطلبات المسموح بها");
+    }
+    const data = await res.json();
+    displayNews(data.articles);
+  } catch (error) {
+    document.getElementById("sports-news").innerHTML = "<p style='color:red;'>حدث خطأ في تحميل الأخبار.</p>";
+    console.error(error);
+  }
+};
 // دالة جلب الأخبار العامّة
 async function fetchNews(query, page = 1) {
   const url = `${baseUrl}/search` +
