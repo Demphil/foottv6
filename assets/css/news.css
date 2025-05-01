@@ -5,65 +5,113 @@ body {
   font-family: 'Cairo', sans-serif;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding: 20px;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 800px;
+header {
+  width: 100%;
+  background-color: #222;
   color: white;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-h1 {
+  padding: 10px 0;
   text-align: center;
-  margin-bottom: 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
 
-.search-bar {
-  display: flex;
-  margin-bottom: 1.5rem;
+header nav ul {
+  list-style: none;
+  padding: 0;
 }
 
-#search-input {
-  flex: 1;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 8px 0 0 8px;
-  font-size: 1rem;
+header nav ul li {
+  display: inline-block;
+  margin: 0 15px;
 }
 
-#search-button {
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 0 8px 8px 0;
-  background-color: #ff4e50;
+header nav ul li a {
   color: white;
-  cursor: pointer;
-  font-weight: bold;
+  text-decoration: none;
+  font-size: 18px;
 }
 
-#search-button:hover {
+header .logo-container {
+  margin-bottom: 10px;
+}
+
+header #logo {
+  width: 100px;
+  height: auto;
+}
+
+main {
+  margin-top: 100px; /* لضمان أن لا تغطي المحتوى */
+  width: 100%;
+  padding: 20px 0;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #ff4e50;
+}
+
+.news-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.news-item {
+  background-color: rgba(255, 255, 255, 0.1);
+  width: calc(33.333% - 20px); /* 3 أعمدة */
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.news-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.news-item h3 {
+  margin: 0.5rem 0;
+  color: #ff4e50;
+}
+
+.news-item p {
+  font-size: 14px;
+  color: white;
+  margin: 0 0 10px;
+}
+
+.news-item a {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #fff;
+  background-color: #ff4e50;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.news-item a:hover {
   background-color: #e04040;
 }
 
-.loading {
-  text-align: center;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: yellow;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
+/* الشريط العلوي */
 #breaking-news .glass-card {
   background-color: rgba(255, 255, 255, 0.1);
   margin-top: 1rem;
@@ -95,4 +143,30 @@ h1 {
 
 #breaking-news a:hover {
   background-color: #e04040;
+}
+
+/* تحسين التنقل بين الأقسام */
+#breaking-news, #transfers, #general-football-news {
+  margin-bottom: 40px;
+}
+
+/* استجابة للموبايل */
+@media (max-width: 768px) {
+  .news-item {
+    width: calc(50% - 20px); /* عمودين */
+  }
+}
+
+@media (max-width: 480px) {
+  .news-item {
+    width: 100%; /* عمود واحد */
+  }
+}
+
+footer {
+  background-color: #222;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  margin-top: 20px;
 }
