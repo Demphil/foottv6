@@ -1,107 +1,127 @@
 const API_KEY = '320e688cfb9682d071750f4212f83753'; // ← أدخل مفتاح GNews الخاص بك هنا
 const BASE_URL = 'https://gnews.io/api/v4/search';
-const breakingNewsContainer = document.getElementById('breaking-news');
-const searchInput = document.getElementById('search-input');
-const searchButton = document.getElementById('search-button');
-const loading = document.getElementById('loading');
-const errorContainer = document.getElementById('error-container');
-const CACHE_KEY = 'cachedBreakingNews';
-const CACHE_TIME_KEY = 'breakingNewsCacheTime';
-const CACHE_DURATION_HOURS = 6;
+// إعداد متغيرات عامة
+const breakingNewsContainer = document.getElementById("breaking-news");
+const loadMoreButton = document.getElementById("load-more");
+const loadingIndicator = document.getElementById("loading");
+const errorContainer = document.getElementById("error-container");
 
-const KEYWORDS = [
-  'المنتخب المغربي',
-  'الوداد',
-  'الرجاء',
-  'دوري أبطال أفريقيا',
-  'كرة القدم',
-  'المغرب'
-  'chompions leauges europa'
-'premier league'
-'laleagua'
-'cup du monde 2025'
+let currentPage = 1;
+const pageSize = 6;
+const cacheKey = "cachedNewsData";
+const cacheTimeKey = "cacheTimestamp";
+const cacheTTL = 6 * 60 * 60 * 1000; // 6 ساعات
+const apiKey = "320e688..."; // ضع مفتاح GNews API هنا
+const keywords = [
+  "كرة القدم الأوروبية",
+  "الدوري الإنجليزي",
+  "دوري أبطال أوروبا",
+  "الدوري الإسباني",
+  "الدوري الإيطالي",
+  "الدوري الفرنسي",
+  "الدوري الألماني",
+  "الدوري المغربي",
+  "الوداد",
+  "الرجاء",
+  "المنتخب المغربي",
+  "دوري أبطال أفريقيا"
 ];
 
-function isCacheValid() {
-  const lastTime = localStorage.getItem(CACHE_TIME_KEY);
-  if (!lastTime) return false;
+function fetchNewsFromAPI() {
+  const query = encodeURIComponent(keywords.join(" OR "));
+  const url = `https://gnews.io/api/v4/search?q=${query}&lang=ar&country=ma&max=30&apikey=${apiKey}`;
 
-  const diff = (Date.now() - parseInt(lastTime, 10)) / (1000 * 60 * 60);
-  return diff < CACHE_DURATION_HOURS;
+  return fetch(url)
+    .then(res => {
+      if (!res.ok) throw new Error("API error");
+      return res.json();
+    })
+    .then(data => {
+      localStorage.setItem(cacheKey, JSON.stringify(data.articles));
+      localStorage.setItem(cacheTimeKey, Date.now());
+      return data.articles;
+    });
 }
 
-function saveCache(data) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+function getCachedNews() {
+  const cached = localStorage.getItem(cacheKey);
+  const timestamp = localStorage.getItem(cacheTimeKey);
+  if (!cached || !timestamp) return null;
+
+  if (Date.now() - parseInt(timestamp) > cacheTTL) return null;
+
+  return JSON.parse(cached);
 }
 
-function loadFromCache() {
-  const data = localStorage.getItem(CACHE_KEY);
-  if (data) {
-    try {
-      const articles = JSON.parse(data);
-      displayBreakingNews(articles);
-    } catch {
-      localStorage.removeItem(CACHE_KEY);
-    }
-  }
-}
+function displayArticles(articles, fromIndex, toIndex) {
+  const slice = articles.slice(fromIndex, toIndex);
+  slice.forEach(article => {
+    const card = document.createElement("div");
+    card.className = "news-card";
 
-async function fetchBreakingNews(query) {
-  loading.style.display = 'block';
-  errorContainer.textContent = '';
-  try {
-    const url = `${BASE_URL}?q=${encodeURIComponent(query)}&lang=ar&max=10&apikey=${API_KEY}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    const data = await res.json();
-    saveCache(data.articles);
-    displayBreakingNews(data.articles);
-  } catch (err) {
-    errorContainer.textContent = 'حدث خطأ أثناء تحميل الأخبار.';
-    console.error(err);
-  } finally {
-    loading.style.display = 'none';
-  }
-}
-
-function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
-  if (!articles || articles.length === 0) {
-    breakingNewsContainer.innerHTML = '<p>لا توجد أخبار حالياً.</p>';
-    return;
-  }
-
-  articles.forEach(article => {
-    const item = document.createElement('div');
-    item.className = 'news-item';
-
-    item.innerHTML = `
-      <img src="${article.image || 'https://via.placeholder.com/600x300'}" alt="صورة الخبر">
-      <h3>${article.title}</h3>
-      <p>${article.description || ''}</p>
-      <a href="${article.url}" target="_blank">قراءة المزيد</a>
+    card.innerHTML = `
+      <img src="${article.image || 'https://via.placeholder.com/400x200'}" alt="صورة الخبر">
+      <div class="news-content">
+        <h3>${article.title}</h3>
+        <p>${article.description || ''}</p>
+        <a href="${article.url}" target="_blank">قراءة المزيد</a>
+      </div>
     `;
 
-    breakingNewsContainer.appendChild(item);
+    breakingNewsContainer.appendChild(card);
   });
 }
 
-function loadInitial() {
-  const query = KEYWORDS[Math.floor(Math.random() * KEYWORDS.length)];
+function showError(message) {
+  errorContainer.textContent = message;
+  errorContainer.style.display = "block";
+}
 
-  if (isCacheValid()) {
-    loadFromCache();
+function hideError() {
+  errorContainer.style.display = "none";
+}
+
+function showLoading() {
+  loadingIndicator.style.display = "block";
+}
+
+function hideLoading() {
+  loadingIndicator.style.display = "none";
+}
+
+function loadInitial() {
+  showLoading();
+  hideError();
+  const cached = getCachedNews();
+  if (cached) {
+    hideLoading();
+    displayArticles(cached, 0, pageSize);
   } else {
-    fetchBreakingNews(query);
+    fetchNewsFromAPI()
+      .then(articles => {
+        hideLoading();
+        displayArticles(articles, 0, pageSize);
+      })
+      .catch(err => {
+        hideLoading();
+        showError("حدث خطأ أثناء تحميل الأخبار. حاول لاحقًا.");
+      });
   }
 }
 
-searchButton.addEventListener('click', () => {
-  const query = searchInput.value.trim();
-  if (query) {
-    fetchBreakingNews(query);
-  }
-});
+function loadMoreNews() {
+  const allArticles = getCachedNews();
+  if (!allArticles) return;
 
-window.addEventListener('DOMContentLoaded', loadInitial);
+  const from = currentPage * pageSize;
+  const to = from + pageSize;
+  displayArticles(allArticles, from, to);
+  currentPage++;
+
+  if (to >= allArticles.length) {
+    loadMoreButton.style.display = "none";
+  }
+}
+
+loadMoreButton.addEventListener("click", loadMoreNews);
+window.addEventListener("DOMContentLoaded", loadInitial);
