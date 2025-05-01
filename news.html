@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>أخبار كرة القدم | Football News</title>
-  
+
   <link rel="stylesheet" href="assets/css/news.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
@@ -48,8 +48,8 @@
         </h2>
         <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
       </div>
-      <div id="breaking-news" class="breaking-news-slider">
-        <!-- تُملأ أوتوماتيكياً من JavaScript -->
+      <div id="breaking-news" class="breaking-news-container">
+        <!-- سيتم تعبئتها بواسطة JavaScript -->
       </div>
     </section>
 
@@ -85,99 +85,36 @@
         </h2>
         <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
       </div>
-      <div id="sports-news" class="sports-news-container">
-        <!-- تُملأ أوتوماتيكياً من JavaScript -->
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
+      <div id="sports-news" class="sports-news-grid">
+        <!-- سيتم تعبئتها بواسطة JavaScript -->
       </div>
       <button id="load-more" class="load-more-btn">
         <i class="fas fa-plus"></i> تحميل المزيد
       </button>
     </section>
-
-    <!-- قسم الفيديوهات (مكان للمستقبل) -->
-    <section class="videos-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-play-circle"></i> آخر الفيديوهات
-        </h2>
-      </div>
-      <div class="videos-grid" id="news-videos">
-        <!-- يمكن تعبئتها لاحقاً -->
-      </div>
-    </section>
   </main>
 
   <!-- الفوتر -->
   <footer class="footer">
-    <!-- محتوى الفوتر كما كان سابقاً -->
     <div class="footer-content">
-      <!-- ... -->
+      <div class="footer-section">
+        <h3>عن الموقع</h3>
+        <p>أول موقع متخصص في أخبار كرة القدم العربية والعالمية</p>
+      </div>
+      <div class="footer-section">
+        <h3>روابط سريعة</h3>
+        <ul>
+          <li><a href="index.html">الرئيسية</a></li>
+          <li><a href="matches.html">المباريات</a></li>
+          <li><a href="news.html">الأخبار</a></li>
+        </ul>
+      </div>
     </div>
     <div class="copyright">
       <p>حقوق النشر © <span id="current-year"></span> - جميع الحقوق محفوظة</p>
-      <div class="legal-links">
-        <!-- ... -->
-      </div>
     </div>
   </footer>
 
-  <!-- السكريبتات -->
-  <script>
-    // سنة حقوق النشر التلقائية
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    // زر القائمة المتنقلة
-    document.querySelector('.menu-toggle').addEventListener('click', () => {
-      document.querySelector('.nav').classList.toggle('active');
-    });
-  </script>
-  <script>
-  // التحكم في الأخبار العاجلة
-document.addEventListener('DOMContentLoaded', function() {
-  const newsItems = document.getElementById('breakingNewsItems');
-  const dots = document.querySelectorAll('.breaking-news-dot');
-  const groupCount = document.querySelectorAll('.breaking-news-group').length;
-  let currentIndex = 0;
-  
-  function updateTicker() {
-    newsItems.style.transform = `translateX(-${currentIndex * 100}%)`;
-    
-    dots.forEach((dot, index) => {
-      if (index === currentIndex) {
-        dot.classList.add('active');
-      } else {
-        dot.classList.remove('active');
-      }
-    });
-  }
-  
-  function nextSlide() {
-    currentIndex = (currentIndex + 1) % groupCount;
-    updateTicker();
-  }
-  
-  // التبديل التلقائي كل 20 ثانية
-  const interval = setInterval(nextSlide, 20000);
-  
-  // التحكم بالنقاط
-  dots.forEach(dot => {
-    dot.addEventListener('click', function() {
-      clearInterval(interval);
-      currentIndex = parseInt(this.getAttribute('data-index'));
-      updateTicker();
-    });
-  });
-  
-  // إعادة تشغيل التبديل التلقائي بعد النقر
-  dots.forEach(dot => {
-    dot.addEventListener('click', function() {
-      clearInterval(interval);
-      interval = setInterval(nextSlide, 20000);
-    });
-  });
-});
-</script>
-  <script type="module" src="assets/js/news.js"></script>
+  <script src="assets/js/news.js"></script>
 </body>
 </html>
