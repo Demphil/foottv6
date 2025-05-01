@@ -18,20 +18,32 @@
   padding: 0 20px;
 }
 
-.footer-logo {
+.footer-logo .logo-text {
   font-family: 'Tajawal', sans-serif;
   font-weight: 900;
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   color: var(--text-white);
   text-shadow: 
     0 0 10px rgba(255, 255, 255, 0.5),
     2px 2px 0px rgba(0, 0, 0, 0.2);
   letter-spacing: -1px;
   position: relative;
-  padding-right: 10px;
+  display: inline-block;
+  text-decoration: none; /* إزالة التسطير الافتراضي */
+  cursor: pointer; /* تغيير شكل المؤشر */
+  transition: all 0.3s ease;
 }
 
-.footer-logo::after {
+/* تأثيرات الـ hover */
+.footer-logo .logo-text:hover {
+  transform: scale(1.05);
+  text-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.7),
+    3px 3px 0px rgba(0, 0, 0, 0.2);
+}
+
+/* الخط المتحرك تحت اللوغو */
+.footer-logo .logo-text::after {
   content: '';
   position: absolute;
   right: 0;
@@ -42,6 +54,10 @@
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.3s ease;
+}
+
+.footer-logo .logo-text:hover::after {
+  transform: scaleX(1);
 }
 
 .footer-logo:hover::after {
