@@ -10,48 +10,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>أخبار الرياضة</h1>
-    <nav class="nav-links">
-      <a href="#">الرئيسية</a>
-      <a href="#">كرة القدم</a>
-      <a href="#">كرة السلة</a>
-      <a href="#">التنس</a>
-    </nav>
-    <div class="search-container">
-      <input type="text" id="news-search" placeholder="ابحث عن أخبار..." />
-      <button id="search-btn">بحث</button>
+  <div class="glass-card">
+    <h1>📰 أبرز الأخبار الرياضية</h1>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="ابحث عن فريق أو دوري">
+      <button id="search-button">بحث</button>
     </div>
-  </header>
-
-  <main>
-    <section id="breaking-news-section">
-      <h2>أخبار عاجلة</h2>
-      <div id="breaking-news"></div>
-    </section>
-
-    <section class="categories">
-      <button class="category-btn active" data-category="all">الكل</button>
-      <button class="category-btn" data-category="كرة القدم">كرة القدم</button>
-      <button class="category-btn" data-category="الدوري الإسباني">الدوري الإسباني</button>
-      <button class="category-btn" data-category="الدوري السعودي">الدوري السعودي</button>
-      <button class="category-btn" data-category="الدوري المصري">الدوري المصري</button>
-    </section>
-
-    <section id="sports-news-section">
-      <h2>أحدث الأخبار</h2>
-      <div id="sports-news"></div>
-    </section>
-
-    <div id="loading" style="display: none;">جاري التحميل...</div>
-    <div id="error-container"></div>
-    <button id="load-more">تحميل المزيد</button>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 موقع أخبار الرياضة. جميع الحقوق محفوظة.</p>
-  </footer>
-
+    <div id="loading" class="loading">جاري التحميل...</div>
+    <div id="error-container" class="error"></div>
+    <div id="breaking-news"></div>
+  </div>
     <script type="module" src="assets/js/news.js"></script>
 </body>
 </html>
