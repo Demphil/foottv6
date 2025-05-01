@@ -7,13 +7,18 @@ const maxResults = 10;
 let currentPage = 1;
 let currentCategory = 'كرة القدم';
 
-// عناصر DOM
 const sportsNewsContainer = document.getElementById('sports-news');
 const breakingNewsContainer = document.getElementById('breaking-news');
 const loadingIndicator = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
 const loadMoreBtn = document.getElementById('load-more');
 const searchInput = document.getElementById('news-search');
+
+// الكلمات المفتاحية للأخبار العاجلة
+const keywords = [
+  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء",
+  "الدوري السعودي", "الدوري المصري", "الدوري الإسباني", "Cristiano Ronaldo", "Messi", "Champions League"
+];
 
 // عرض التحميل
 function showLoading() {
@@ -23,7 +28,7 @@ function hideLoading() {
   loadingIndicator.style.display = 'none';
 }
 
-// عرض خطأ
+// عرض رسالة خطأ
 function showError(message) {
   errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
 }
@@ -51,44 +56,7 @@ async function fetchNews(query = '', page = 1) {
   }
 }
 
-// كلمات مفتاحية للرياضة العالمية والعربية
-const keywords = [
-  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء",
-  "الدوري السعودي", "الدوري المصري", "الدوري الإسباني", "Cristiano Ronaldo", "Messi", "Champions League"
-];
-
-// جلب الأخبار العاجلة
-async function fetchBreakingNews() {
-  try {
-    const response = await fetch(`${baseUrl}/search?q=${keywords.join(" OR ")}&lang=ar&country=ma&max=10&apikey=${apiKey}`);
-    const data = await response.json();
-
-    displayBreakingNews(data.articles);
-  } catch (error) {
-    breakingNewsContainer.innerHTML = `<p style="color: red;">فشل تحميل الأخبار العاجلة.</p>`;
-    console.error("حدث خطأ:", error);
-  }
-}
-
-// عرض الأخبار العاجلة
-function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
-
-  articles.forEach(article => {
-    const item = document.createElement('div');
-    item.className = 'breaking-news-item';
-    item.innerHTML = `
-      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}">
-      <div class="content">
-        <h3>${article.title}</h3>
-        <p>${article.description || ''}</p>
-      </div>
-    `;
-    breakingNewsContainer.appendChild(item);
-  });
-}
-
-// عرض الأخبار العادية
+// عرض الأخبار
 function displayNews(articles, append = false) {
   if (!append) sportsNewsContainer.innerHTML = '';
   articles.forEach(article => {
@@ -106,9 +74,38 @@ function displayNews(articles, append = false) {
   });
 }
 
-// تحميل مبدئي
+// جلب الأخبار العاجلة
+async function fetchBreakingNews() {
+  try {
+    const response = await fetch(`${baseUrl}/search?q=${keywords.join(" OR ")}&lang=ar&country=ma&max=10&apikey=${apiKey}`);
+    const data = await response.json();
+    displayBreakingNews(data.articles);
+  } catch (error) {
+    breakingNewsContainer.innerHTML = `<p style="color: red;">فشل تحميل الأخبار العاجلة.</p>`;
+    console.error("حدث خطأ:", error);
+  }
+}
+
+// عرض الأخبار العاجلة
+function displayBreakingNews(articles) {
+  breakingNewsContainer.innerHTML = '';
+  articles.forEach(article => {
+    const item = document.createElement('div');
+    item.className = 'breaking-news-item';
+    item.innerHTML = `
+      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}">
+      <div class="content">
+        <h3>${article.title}</h3>
+        <p>${article.description || ''}</p>
+      </div>
+    `;
+    breakingNewsContainer.appendChild(item);
+  });
+}
+
+// تحميل أولي
 async function loadInitialNews() {
-  const articles = await fetchNews('كرة القدم', currentPage);
+  const articles = await fetchNews(currentCategory, currentPage);
   displayNews(articles);
   await fetchBreakingNews();
 }
