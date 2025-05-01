@@ -52,17 +52,50 @@ async function fetchNews(query = '', page = 1) {
 }
 
 // عرض أخبار رئيسية (أخبار عاجلة)
+const breakingNewsContainer = document.getElementById('breaking-news');
+
+// كلمات مفتاحية للرياضة العالمية والعربية
+const keywords = [
+  "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء",
+  "الدوري السعودي", "الدوري المصري", "الدوري الإسباني", "Cristiano Ronaldo", "Messi", "Champions League"
+];
+
+// استدعاء الأخبار من GNews API
+async function fetchBreakingNews() {
+  try {
+    const response = await fetch(`https://gnews.io/api/v4/search?q=${keywords.join(" OR ")}&lang=ar&country=ma&max=10&apikey=320e688cfb9682d071750f4212f83753`);
+    const data = await response.json();
+
+    displayBreakingNews(data.articles);
+  } catch (error) {
+    breakingNewsContainer.innerHTML = `<p style="color: red;">فشل تحميل الأخبار العاجلة.</p>`;
+    console.error("حدث خطأ:", error);
+  }
+}
+
+// عرض الأخبار العاجلة بصور وسكرول أفقي
 function displayBreakingNews(articles) {
-  breakingNewsContainer.innerHTML = '';
-  articles.slice(0, 5).forEach(article => {
+  breakingNewsContainer.innerHTML = ''; // إفراغ الحاوية
+
+  articles.forEach(article => {
     const item = document.createElement('div');
     item.className = 'breaking-news-item';
+
     item.innerHTML = `
-      <a href="${article.url}" target="_blank">${article.title}</a>
+      <img src="${article.image || 'fallback.jpg'}" alt="${article.title}">
+      <div class="content">
+        <h3>${article.title}</h3>
+        <p>${article.description || ''}</p>
+      </div>
     `;
+
     breakingNewsContainer.appendChild(item);
   });
 }
+
+// بدء التحميل
+fetchBreakingNews();
+
 
 // عرض أخبار رياضية
 function displayNews(articles, append = false) {
