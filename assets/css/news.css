@@ -7,7 +7,7 @@
   --text-black: #1d3557;
   --header-height: 70px;
 }
-html {
+.html {
   scroll-behavior: smooth;
 }
 /* التنسيق العام */
