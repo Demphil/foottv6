@@ -141,14 +141,15 @@ body {
   font-size: 0.9rem;
 }
 
-.breaking-news-container {
+/* التصميم العمودي للأخبار العاجلة */
+.breaking-news-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
-  position: relative;
+  margin-bottom: 30px;
 }
 
-.breaking-slide {
+.breaking-news-card {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   overflow: hidden;
@@ -156,51 +157,79 @@ body {
   transition: transform 0.3s ease;
 }
 
-.breaking-slide:hover {
+.breaking-news-card:hover {
   transform: translateY(-5px);
 }
 
-.breaking-image {
+.breaking-news-image {
   width: 100%;
-  height: 150px;
+  height: 120px;
   object-fit: cover;
 }
 
-.breaking-content {
+.breaking-news-content {
   padding: 10px;
 }
 
-.breaking-content h3 {
+.breaking-news-content h3 {
   color: var(--primary-red);
   font-size: 1rem;
   margin: 0 0 5px 0;
 }
 
-.breaking-content p {
+.breaking-news-content p {
   color: var(--text-black);
   font-size: 0.8rem;
   line-height: 1.4;
   margin: 0;
 }
 
-.breaking-controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
+/* تصميم أخبار الرياضة */
+.sports-news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
-.breaking-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: all 0.3s ease;
+.sports-news-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.breaking-dot.active {
-  background: var(--text-white);
+.sports-news-image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.sports-news-content {
+  padding: 15px;
+}
+
+.sports-news-content h3 {
+  color: var(--primary-red);
+  font-size: 1.1rem;
+  margin: 0 0 10px 0;
+}
+
+.sports-news-content p {
+  color: var(--text-black);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+/* التكيف مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .breaking-news-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sports-news-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* بقية الأقسام */
