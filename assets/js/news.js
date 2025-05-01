@@ -1,289 +1,96 @@
-import fetchNews from './news-api.js';
-const CACHE_KEY = 'cached_news_data';
-const CACHE_TIME_KEY = 'cached_news_time';
-const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 ساعات بالمللي ثانية
+// news.js
+const apiKey = '320e688cfb9682d071750f4212f83753';
+const baseUrl = 'https://gnews.io/api/v4';
+const language = 'ar';
+const country = 'eg';
+const maxResults = 10;
 
+let currentPage = 1;
+let currentCategory = 'sports';
 
-// عناصر DOM مع التحقق من وجودها
-const getElement = (id) => {
-  const element = document.getElementById(id);
-  if (!element) {
-    console.error(`Element with ID '${id}' not found`);
-  }
-  return element;
-};
+// DOM elements
+const sportsNewsContainer = document.getElementById('sports-news-container');
+const loadingIndicator = document.getElementById('loading');
+const errorContainer = document.getElementById('error-container');
+const loadMoreBtn = document.getElementById('load-more');
+const searchInput = document.getElementById('search-container');
 
-// العناصر المطلوبة
-const elements = {
-  sportsNewsContainer: getElement('sports-news'),
-  breakingNewsContainer: getElement('breaking-news'),
-  videosContainer: getElement('news-videos'),
-  loadingIndicator: getElement('loading'),
-  errorContainer: getElement('error-container'),
-  loadMoreBtn: getElement('load-more')
-};
-
-// حالة التطبيق
-const appState = {
-  currentSportsPage: 1,
-  isLoading: false
-};
-
-/**
- * التحقق من العناصر الأساسية
- */
-function checkRequiredElements() {
-  const requiredElements = [
-    'sportsNewsContainer',
-    'breakingNewsContainer',
-    'videosContainer',
-    'loadingIndicator'
-  ];
-
-  return requiredElements.every(el => {
-    if (!elements[el]) {
-      console.error(`العنصر المطلوب غير موجود: ${el}`);
-      return false;
-    }
-    return true;
-  });
+// Show loader
+function showLoading() {
+  loadingIndicator.style.display = 'block';
 }
 
-/**
- * عرض الهيكل العظمي أثناء التحميل
- */
-function showSkeletonLoaders(container, count, type = 'news') {
-  if (!container) return;
-  
-  container.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const skeleton = document.createElement('div');
-    skeleton.className = `skeleton-loader ${type}-skeleton`;
-    container.appendChild(skeleton);
-  }
+// Hide loader
+function hideLoading() {
+  loadingIndicator.style.display = 'none';
 }
 
-/**
- * عرض الأخبار في واجهة المستخدم
- */
-function displayNews(articles, container, append = false) {
-  if (!container) return;
-
-  if (!append) {
-    container.innerHTML = '';
-  }
-
-  if (!articles || articles.length === 0) {
-    if (!append) {
-      container.innerHTML = `
-        <div class="no-news-message">
-          <i class="fas fa-exclamation-circle"></i>
-          <p>لا توجد أخبار متاحة حالياً</p>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  // ترتيب المقالات حسب التاريخ (الأحدث أولاً)
-  const sortedArticles = [...articles].sort((a, b) => {
-    return new Date(b.publishedAt) - new Date(a.publishedAt);
-  });
-
-  sortedArticles.forEach(article => {
-    const newsCard = document.createElement('div');
-    newsCard.className = 'news-card';
-    
-    newsCard.innerHTML = `
-      <div class="news-image">
-        ${article.image ? `<img src="${article.image}" alt="${article.title}" loading="lazy">` : 
-          `<div class="no-image"><i class="fas fa-image"></i></div>`}
-      </div>
-      <div class="news-content">
-        <h3 class="news-title">${article.title}</h3>
-        <p class="news-description">${article.description || 'لا يوجد وصف متاح'}</p>
-        <div class="news-meta">
-          <span class="news-source">${article.source?.name || 'مصدر غير معروف'}</span>
-          <span class="news-date">${article.publishedAt || 'تاريخ غير معروف'}</span>
-        </div>
-        <a href="${article.url}" target="_blank" class="read-more">قراءة المزيد</a>
-      </div>
-    `;
-    
-    container.appendChild(newsCard);
-  });
-}
-
-/**
- * عرض الفيديوهات في واجهة المستخدم
- */
-function displayVideos(videos, container) {
-  if (!container) return;
-
-  container.innerHTML = '';
-
-  if (!videos || videos.length === 0) {
-    container.innerHTML = `
-      <div class="no-videos-message">
-        <i class="fas fa-video-slash"></i>
-        <p>لا توجد فيديوهات متاحة حالياً</p>
-      </div>
-    `;
-    return;
-  }
-
-  videos.forEach(video => {
-    const videoCard = document.createElement('div');
-    videoCard.className = 'video-card';
-    
-    videoCard.innerHTML = `
-      <div class="video-thumbnail">
-        ${video.thumbnail ? `<img src="${video.thumbnail}" alt="${video.title}">` : 
-          `<div class="no-image"><i class="fas fa-video"></i></div>`}
-        <div class="play-icon">
-          <i class="fas fa-play"></i>
-        </div>
-        ${video.duration ? `<span class="video-duration">${video.duration}</span>` : ''}
-      </div>
-      <div class="video-info">
-        <h3 class="video-title">${video.title}</h3>
-        <div class="video-meta">
-          <span>${video.views || 0} مشاهدة</span>
-          <span>${video.publishedAt || 'تاريخ غير معروف'}</span>
-        </div>
-      </div>
-    `;
-    
-    container.appendChild(videoCard);
-  });
-}
-
-/**
- * عرض رسالة خطأ
- */
+// Show error
 function showError(message) {
-  if (!elements.errorContainer) return;
-  
-  elements.errorContainer.innerHTML = `
-    <div class="error-message">
-      <i class="fas fa-exclamation-triangle"></i>
-      <p>${message}</p>
-      <button class="retry-btn" id="retry-btn">
-        <i class="fas fa-sync-alt"></i> إعادة المحاولة
-      </button>
-    </div>
-  `;
-
-  document.getElementById('retry-btn')?.addEventListener('click', loadInitialData);
+  errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
 }
 
-/**
- * جلب المزيد من الأخبار
- */
-async function loadMoreNews() {
-  if (appState.isLoading) return;
-  
-  appState.isLoading = true;
-  appState.currentSportsPage++;
-  
+// Fetch news
+async function fetchNews(endpoint, query = '') {
+  const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${currentPage}`;
   try {
-    if (elements.loadMoreBtn) {
-      elements.loadMoreBtn.disabled = true;
-      elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
+    showLoading();
+    const response = await fetch(url);
+    const data = await response.json();
+    hideLoading();
+
+    if (!data.articles || data.articles.length === 0) {
+      showError('لم يتم العثور على أخبار.');
+      return [];
     }
-    
-    const moreNews = await fetchSportsNews('sa', 6);
-    displayNews(moreNews, elements.sportsNewsContainer, true);
-    
-  } catch (error) {
-    console.error('حدث خطأ أثناء جلب المزيد من الأخبار:', error);
-    showError('تعذر تحميل المزيد من الأخبار');
-    appState.currentSportsPage--;
-    
-  } finally {
-    appState.isLoading = false;
-    if (elements.loadMoreBtn) {
-      elements.loadMoreBtn.disabled = false;
-      elements.loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> تحميل المزيد';
-    }
+
+    return data.articles;
+  } catch (err) {
+    hideLoading();
+    showError('حدث خطأ أثناء جلب الأخبار.');
+    console.error(err);
+    return [];
   }
 }
 
-/**
- * جلب وعرض البيانات الأولية
- */
+// Display sports news
+function displayNews(articles, append = false) {
+  if (!append) sportsNewsContainer.innerHTML = '';
+  articles.forEach(article => {
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    card.innerHTML = `
+      <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="صورة الخبر">
+      <div class="news-content">
+        <h3>${article.title}</h3>
+        <p>${article.description || ''}</p>
+        <a href="${article.url}" target="_blank">قراءة المزيد</a>
+      </div>
+    `;
+    sportsNewsContainer.appendChild(card);
+  });
+}
+
+// Initial load
 async function loadInitialNews() {
-  const now = Date.now();
-  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-  const cachedData = localStorage.getItem(CACHE_KEY);
-
-  if (cachedTime && cachedData && now - cachedTime < CACHE_DURATION) {
-    const articles = JSON.parse(cachedData);
-    displayBreakingNews(articles);
-    displaySportsNews(articles);
-    console.log('تم تحميل الأخبار من الكاش المحلي.');
-  } else {
-    const articles = await fetchNews(currentCategory);
-    if (articles.length > 0) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(articles));
-      localStorage.setItem(CACHE_TIME_KEY, now);
-    }
-    displayBreakingNews(articles);
-    displaySportsNews(articles);
-    console.log('تم تحميل الأخبار من API.');
-  }
+  const articles = await fetchNews('search', 'كرة القدم');
+  displayNews(articles);
 }
 
-    
-    if (elements.errorContainer) {
-      elements.errorContainer.innerHTML = '';
-    }
+loadInitialNews();
 
-    // عرض الهياكل العظمية أثناء التحميل
-    showSkeletonLoaders(elements.sportsNewsContainer, 3, 'news');
-    showSkeletonLoaders(elements.breakingNewsContainer, 3, 'news');
-    showSkeletonLoaders(elements.videosContainer, 3, 'video');
+// Load more
+loadMoreBtn.addEventListener('click', async () => {
+  currentPage++;
+  const articles = await fetchNews('search', 'كرة القدم');
+  displayNews(articles, true);
+});
 
-    // جلب وعرض البيانات
-    const [sportsNews, breakingNews, videos] = await Promise.all([
-      fetchSportsNews('sa', 6),
-      fetchBreakingNews('sa', 3),
-      fetchVideo('sa', 3)
-    ]);
-    
-    displayNews(sportsNews, elements.sportsNewsContainer);
-    displayNews(breakingNews, elements.breakingNewsContainer);
-    displayVideos(videos, elements.videosContainer);
-    
-  } catch (error) {
-    console.error('حدث خطأ أثناء جلب البيانات:', error);
-    showError('تعذر تحميل المحتوى. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
-    
-  } finally {
-    if (elements.loadingIndicator) {
-      elements.loadingIndicator.style.display = 'none';
-    }
-  }
-}
-
-/**
- * تهيئة التطبيق
- */
-function initApp() {
-  // التحقق من وجود العناصر الأساسية
-  if (!checkRequiredElements()) {
-    showError('حدث خطأ في تحميل واجهة المستخدم');
-    return;
-  }
-
-  // جلب البيانات الأولية
-  loadInitialData();
-
-  // إضافة مستمع حدث لزر تحميل المزيد
-  if (elements.loadMoreBtn) {
-    elements.loadMoreBtn.addEventListener('click', loadMoreNews);
-  }
-}
-
-// بدء التطبيق عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', initApp);
+// Search button
+document.getElementById('search-btn').addEventListener('click', async () => {
+  const query = searchInput.value.trim();
+  if (!query) return;
+  currentPage = 1;
+  const articles = await fetchNews('search', query);
+  displayNews(articles);
+});
