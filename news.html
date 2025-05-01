@@ -1,138 +1,55 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>أخبار كرة القدم | Football News</title>
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/news.css">
-  <link rel="stylesheet" href="assets/css/footer.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>أخبار الرياضة</title>
+  <link rel="stylesheet" href="news.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- الهيدر -->
-  <header class="header">
-    <div class="logo">
-      <img src="assets/images/logo.png" alt="شعار الموقع">
-      <h1>أخبار كرة القدم</h1>
-    </div>
-    <nav class="nav">
-      <ul>
-        <li><a href="index.html">الرئيسية</a></li>
-        <li><a href="matches.html">المباريات</a></li>
-        <li><a href="news.html" class="active">الأخبار</a></li>
-        <li><a href="videos.html">الفيديوهات</a></li>
-      </ul>
+  <header>
+    <h1>أخبار الرياضة</h1>
+    <nav class="nav-links">
+      <a href="#">الرئيسية</a>
+      <a href="#">كرة القدم</a>
+      <a href="#">كرة السلة</a>
+      <a href="#">التنس</a>
     </nav>
-    <div class="menu-toggle">
-      <i class="fas fa-bars"></i>
+    <div class="search-container">
+      <input type="text" id="news-search" placeholder="ابحث عن أخبار..." />
+      <button id="search-btn">بحث</button>
     </div>
   </header>
 
-  <!-- المحتوى الرئيسي -->
-  <main class="news-main">
-    <!-- مؤشر التحميل -->
-    <div id="loading" class="loading-indicator" style="display: none;">
-      <div class="loader"></div>
-      <p>جاري تحميل الأخبار...</p>
-    </div>
+  <main>
+    <section id="breaking-news-section">
+      <h2>أخبار عاجلة</h2>
+      <div id="breaking-news"></div>
+    </section>
 
-    <!-- عرض الأخطاء -->
+    <section class="categories">
+      <button class="category-btn active" data-category="all">الكل</button>
+      <button class="category-btn" data-category="كرة القدم">كرة القدم</button>
+      <button class="category-btn" data-category="الدوري الإسباني">الدوري الإسباني</button>
+      <button class="category-btn" data-category="الدوري السعودي">الدوري السعودي</button>
+      <button class="category-btn" data-category="الدوري المصري">الدوري المصري</button>
+    </section>
+
+    <section id="sports-news-section">
+      <h2>أحدث الأخبار</h2>
+      <div id="sports-news"></div>
+    </section>
+
+    <div id="loading" style="display: none;">جاري التحميل...</div>
     <div id="error-container"></div>
-
-    <!-- قسم الأخبار العاجلة -->
-    <section class="breaking-news-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-bolt"></i> أخبار عاجلة
-        </h2>
-        <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
-      </div>
-      <div id="breaking-news" class="breaking-news-slider">
-        <!-- تُملأ أوتوماتيكياً من JavaScript -->
-      </div>
-    </section>
-
-    <!-- شريط البحث والتصنيفات -->
-    <section class="search-section">
-      <div class="search-container">
-        <input type="text" id="news-search" placeholder="ابحث في الأخبار...">
-        <button id="search-btn" aria-label="بحث">
-          <i class="fas fa-search"></i>
-        </button>
-      </div>
-      <div class="categories-tabs">
-        <button class="category-btn active" data-category="all">
-          <i class="fas fa-newspaper"></i> الكل
-        </button>
-        <button class="category-btn" data-category="transfers">
-          <i class="fas fa-exchange-alt"></i> انتقالات
-        </button>
-        <button class="category-btn" data-category="matches">
-          <i class="fas fa-futbol"></i> مباريات
-        </button>
-        <button class="category-btn" data-category="injuries">
-          <i class="fas fa-user-injured"></i> إصابات
-        </button>
-      </div>
-    </section>
-
-    <!-- قسم الأخبار الرياضية -->
-    <section class="sports-news-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-futbol"></i> أخبار الرياضة
-        </h2>
-        <a href="#" class="view-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
-      </div>
-      <div id="sports-news" class="sports-news-container">
-        <!-- تُملأ أوتوماتيكياً من JavaScript -->
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
-        <div class="skeleton-loader sports-skeleton"></div>
-      </div>
-      <button id="load-more" class="load-more-btn">
-        <i class="fas fa-plus"></i> تحميل المزيد
-      </button>
-    </section>
-
-    <!-- قسم الفيديوهات (مكان للمستقبل) -->
-    <section class="videos-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="fas fa-play-circle"></i> آخر الفيديوهات
-        </h2>
-      </div>
-      <div class="videos-grid" id="news-videos">
-        <!-- يمكن تعبئتها لاحقاً -->
-      </div>
-    </section>
+    <button id="load-more">تحميل المزيد</button>
   </main>
 
-  <!-- الفوتر -->
-  <footer class="footer">
-    <!-- محتوى الفوتر كما كان سابقاً -->
-    <div class="footer-content">
-      <!-- ... -->
-    </div>
-    <div class="copyright">
-      <p>حقوق النشر © <span id="current-year"></span> - جميع الحقوق محفوظة</p>
-      <div class="legal-links">
-        <!-- ... -->
-      </div>
-    </div>
+  <footer>
+    <p>&copy; 2025 موقع أخبار الرياضة. جميع الحقوق محفوظة.</p>
   </footer>
 
-  <!-- السكريبتات -->
-  <script>
-    // سنة حقوق النشر التلقائية
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    // زر القائمة المتنقلة
-    document.querySelector('.menu-toggle').addEventListener('click', () => {
-      document.querySelector('.nav').classList.toggle('active');
-    });
-  </script>
-  <script type="module" src="assets/js/news.js"></script>
+  <script src="news.js"></script>
 </body>
 </html>
