@@ -1,5 +1,9 @@
 import { fetchMatches } from './api.js';
 
+// إعدادات التخزين المؤقت
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 ساعة
+const CACHE_KEY = 'football-matches-cache';
+
 // عناصر DOM
 const elements = {
     featuredContainer: document.getElementById('featured-matches'),
@@ -10,38 +14,75 @@ const elements = {
     tabButtons: document.querySelectorAll('.tab-btn'),
     sliderDots: document.querySelector('.slider-dots'),
     prevBtn: document.querySelector('.slider-prev'),
-    nextBtn: document.querySelector('.slider-next')
+    nextBtn: document.querySelector('.slider-next'),
+    loadingIndicator: document.querySelector('.loader-container')
 };
 
-// تعريف البطولات المميزة والمنقولة
-const featuredLeagues = [2, 39, 140, 135]; // دوري الأبطال، الإنجليزي، الإسباني، الإيطالي
-const broadcastMatchesIds = []; // سيتم تعبئتها من API أو قاعدة بياناتك
+// البطولات المميزة (دوري الأبطال، الإنجليزي، الإسباني، الإيطالي)
+const featuredLeagues = [2, 39, 140, 135];
+
+// المباريات المنقولة المحددة (يمكن تغييرها حسب الحاجة)
+const broadcastMatchesIds = [/* أضف IDs المباريات المنقولة هنا */];
 
 // تهيئة الصفحة
 document.addEventListener('DOMContentLoaded', async () => {
-    // تعيين سنة حقوق النشر
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    
     try {
-        // جلب وعرض المباريات
-        const matches = await fetchMatches();
-        const categorized = categorizeMatches(matches);
+        showLoading();
+        
+        // جلب البيانات مع التخزين المؤقت
+        const matchesData = await getCachedMatches();
+        const categorized = categorizeMatches(matchesData);
         
         renderFeaturedMatches(categorized.featured);
-        renderBroadcastMatches(categorized.featured); // يمكن استبدالها بمباريات منقولة محددة
+        renderBroadcastMatches(categorized.all.filter(m => broadcastMatchesIds.includes(m.fixture.id)));
         renderAllMatches(categorized);
         
-        // إعداد التبويبات
         setupTabs();
-        
-        // إعداد السلايدر
         setupSlider();
         
     } catch (error) {
         console.error('Initialization error:', error);
-        showError('حدث خطأ في جلب البيانات. الرجاء المحاولة لاحقاً.');
+        showError('حدث خطأ في جلب البيانات. جارٍ عرض آخر بيانات متاحة...');
+        tryFallbackCache();
+    } finally {
+        hideLoading();
     }
 });
+
+// نظام التخزين المؤقت
+async function getCachedMatches() {
+    // محاولة جلب البيانات من الكاش
+    const cachedData = getValidCache();
+    if (cachedData) return cachedData;
+    
+    // جلب بيانات جديدة من API
+    const freshData = await fetchMatches();
+    
+    // تخزين البيانات الجديدة
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+        data: freshData,
+        timestamp: Date.now()
+    }));
+    
+    return freshData;
+}
+
+function getValidCache() {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+    
+    const { data, timestamp } = JSON.parse(cached);
+    return (Date.now() - timestamp < CACHE_DURATION) ? data : null;
+}
+
+function tryFallbackCache() {
+    const cachedData = getValidCache();
+    if (cachedData) {
+        const categorized = categorizeMatches(cachedData);
+        renderFeaturedMatches(categorized.featured);
+        renderAllMatches(categorized);
+    }
+}
 
 // تصنيف المباريات
 function categorizeMatches(matches) {
@@ -49,104 +90,121 @@ function categorizeMatches(matches) {
     const tomorrow = new Date(Date.now() + 86400000).toDateString();
     
     return {
-        today: matches.filter(match => new Date(match.fixture.date).toDateString() === today),
-        tomorrow: matches.filter(match => new Date(match.fixture.date).toDateString() === tomorrow),
-        upcoming: matches.filter(match => new Date(match.fixture.date) > new Date(tomorrow)),
-        featured: matches.filter(match => featuredLeagues.includes(match.league.id))
+        today: filterByDate(matches, today),
+        tomorrow: filterByDate(matches, tomorrow),
+        upcoming: matches.filter(m => new Date(m.fixture.date) > new Date(tomorrow)),
+        featured: matches.filter(m => featuredLeagues.includes(m.league.id)),
+        all: matches
     };
 }
 
-// عرض المباريات المميزة (4 مباريات مع تغيير كل 20 ثانية)
+function filterByDate(matches, dateString) {
+    return matches.filter(m => 
+        new Date(m.fixture.date).toDateString() === dateString
+    );
+}
+
+// عرض المباريات
 function renderFeaturedMatches(matches) {
-    if (!matches || matches.length === 0) {
+    if (!matches?.length) {
         elements.featuredContainer.innerHTML = '<p>لا توجد مباريات مميزة اليوم</p>';
         return;
     }
 
-    // تقسيم المباريات إلى مجموعات كل 4 مباريات
+    // تقسيم إلى مجموعات كل 4 مباريات
     const groupedMatches = [];
     for (let i = 0; i < matches.length; i += 4) {
         groupedMatches.push(matches.slice(i, i + 4));
     }
 
-    // عرض المجموعة الأولى
-    elements.featuredContainer.innerHTML = groupedMatches[0].map(createFeaturedCard).join('');
-    
-    // إنشاء نقاط التحكم
-    elements.sliderDots.innerHTML = groupedMatches.map((_, i) => 
-        `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
-    ).join('');
+    renderSlider(groupedMatches);
+}
 
-    // التبديل التلقائي
+function renderSlider(groups) {
     let currentIndex = 0;
-    const interval = setInterval(() => {
-        currentIndex = (currentIndex + 1) % groupedMatches.length;
-        showSlide(currentIndex);
-    }, 20000);
+    
+    function showGroup(index) {
+        elements.featuredContainer.innerHTML = groups[index].map(createFeaturedCard).join('');
+        updateDots(index);
+        currentIndex = index;
+    }
 
-    // أحداث التحكم
-    elements.prevBtn.addEventListener('click', () => {
-        clearInterval(interval);
-        currentIndex = (currentIndex - 1 + groupedMatches.length) % groupedMatches.length;
-        showSlide(currentIndex);
-    });
-
-    elements.nextBtn.addEventListener('click', () => {
-        clearInterval(interval);
-        currentIndex = (currentIndex + 1) % groupedMatches.length;
-        showSlide(currentIndex);
-    });
-
-    function showSlide(index) {
-        elements.featuredContainer.innerHTML = groupedMatches[index].map(createFeaturedCard).join('');
+    function updateDots(index) {
         document.querySelectorAll('.dot').forEach((dot, i) => {
             dot.classList.toggle('active', i === index);
         });
-        currentIndex = index;
     }
+
+    // إنشاء نقاط التوجيه
+    elements.sliderDots.innerHTML = groups.map((_, i) => 
+        `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
+    ).join('');
+
+    // الأحداث
+    elements.prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + groups.length) % groups.length;
+        showGroup(currentIndex);
+    });
+
+    elements.nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % groups.length;
+        showGroup(currentIndex);
+    });
+
+    // التبديل التلقائي كل 20 ثانية
+    let interval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % groups.length;
+        showGroup(currentIndex);
+    }, 20000);
+
+    // إيقاف المؤقت عند التفاعل
+    elements.sliderDots.addEventListener('click', (e) => {
+        if (e.target.classList.contains('dot')) {
+            clearInterval(interval);
+            showGroup(parseInt(e.target.dataset.index));
+            interval = setInterval(/*...*/); // إعادة التشغيل
+        }
+    });
+
+    // عرض المجموعة الأولى
+    showGroup(0);
 }
 
-// عرض المباريات المنقولة (5 مباريات محددة)
 function renderBroadcastMatches(matches) {
-    // يمكنك تحديد 5 مباريات معينة هنا أو جلبها من API
-    const broadcastMatches = matches.slice(0, 5); // مثال: أول 5 مباريات
-    
-    elements.broadcastContainer.innerHTML = broadcastMatches.length
-        ? broadcastMatches.map(createBroadcastCard).join('')
+    const toShow = matches.slice(0, 5); // عرض أول 5 مباريات فقط
+    elements.broadcastContainer.innerHTML = toShow.length
+        ? toShow.map(createBroadcastCard).join('')
         : '<p>لا توجد مباريات منقولة اليوم</p>';
 }
 
-// عرض جميع المباريات
 function renderAllMatches({ today, tomorrow, upcoming }) {
-    elements.todayContainer.innerHTML = today.length
-        ? today.map(createMatchCard).join('')
-        : '<p class="no-matches">لا توجد مباريات اليوم</p>';
-
-    elements.tomorrowContainer.innerHTML = tomorrow.length
-        ? tomorrow.map(createMatchCard).join('')
-        : '<p class="no-matches">لا توجد مباريات غدًا</p>';
-
-    elements.upcomingContainer.innerHTML = upcoming.length
-        ? upcoming.map(createMatchCard).join('')
-        : '<p class="no-matches">لا توجد مباريات قادمة</p>';
+    elements.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
+    elements.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
+    elements.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
 }
 
-// إنشاء بطاقات المباريات
+function renderMatchList(matches, title) {
+    return matches?.length
+        ? `<h3>مباريات ${title}</h3>` + matches.map(createMatchCard).join('')
+        : `<p class="no-matches">لا توجد مباريات ${title}</p>`;
+}
+
+// إنشاء البطاقات
 function createFeaturedCard(match) {
     return `
         <div class="featured-card" data-id="${match.fixture.id}">
             <div class="league-info">
-                <img src="${match.league.logo}" alt="${match.league.name}">
+                <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
                 <span>${match.league.name}</span>
             </div>
             <div class="teams">
                 <div class="team">
-                    <img src="${match.teams.home.logo}" alt="${match.teams.home.name}">
+                    <img src="${match.teams.home.logo}" alt="${match.teams.home.name}" onerror="this.src='assets/images/default-team.png'">
                     <span>${match.teams.home.name}</span>
                 </div>
                 <div class="vs">VS</div>
                 <div class="team">
-                    <img src="${match.teams.away.logo}" alt="${match.teams.away.name}">
+                    <img src="${match.teams.away.logo}" alt="${match.teams.away.name}" onerror="this.src='assets/images/default-team.png'">
                     <span>${match.teams.away.name}</span>
                 </div>
             </div>
@@ -166,17 +224,44 @@ function createBroadcastCard(match) {
                 <span class="vs">VS</span>
                 <span>${match.teams.away.name}</span>
             </div>
-            <div class="match-time">
-                <i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}
+            <div class="match-details">
+                <span><i class="fas fa-trophy"></i> ${match.league.name}</span>
+                <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
             </div>
-            <button class="watch-btn" onclick="watchMatch(${match.fixture.id})">
-                <i class="fas fa-play"></i> مشاهدة
+            <button class="watch-btn" onclick="navigateToWatchPage(${match.fixture.id})">
+                <i class="fas fa-play"></i> مشاهدة البث المباشر
             </button>
         </div>
     `;
 }
 
-// وظائف مساعدة
+function createMatchCard(match) {
+    return `
+        <div class="match-card" data-id="${match.fixture.id}">
+            <div class="league-info">
+                <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
+                <span>${match.league.name}</span>
+            </div>
+            <div class="teams">
+                <div class="team">
+                    <img src="${match.teams.home.logo}" alt="${match.teams.home.name}" onerror="this.src='assets/images/default-team.png'">
+                    <span>${match.teams.home.name}</span>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team">
+                    <img src="${match.teams.away.logo}" alt="${match.teams.away.name}" onerror="this.src='assets/images/default-team.png'">
+                    <span>${match.teams.away.name}</span>
+                </div>
+            </div>
+            <div class="match-info">
+                <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
+                <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير محدد'}</span>
+            </div>
+        </div>
+    `;
+}
+
+// أدوات مساعدة
 function formatDate(dateStr) {
     const options = { 
         weekday: 'long', 
@@ -192,34 +277,53 @@ function formatDate(dateStr) {
 function setupTabs() {
     elements.tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
+            // إزالة التنشيط من جميع الأزرار
             elements.tabButtons.forEach(b => b.classList.remove('active'));
+            
+            // تنشيط الزر الحالي
             btn.classList.add('active');
             
-            const tabId = btn.dataset.tab;
+            // إخفاء جميع المحتويات
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            document.getElementById(`${tabId}-matches`).classList.add('active');
+            
+            // إظهار المحتوى المحدد
+            document.getElementById(`${btn.dataset.tab}-matches`).classList.add('active');
         });
     });
 }
 
-function setupSlider() {
-    // تم التعامل مع السلايدر في renderFeaturedMatches
+// التحكم في الواجهة
+function showLoading() {
+    elements.loadingIndicator.style.display = 'flex';
+}
+
+function hideLoading() {
+    elements.loadingIndicator.style.display = 'none';
 }
 
 function showError(message) {
     const errorEl = document.createElement('div');
     errorEl.className = 'error-message';
-    errorEl.textContent = message;
+    errorEl.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <span>${message}</span>
+    `;
     document.querySelector('main').prepend(errorEl);
 }
 
-// الانتقال لمشاهدة المباراة
-window.watchMatch = function(matchId) {
-    // يمكنك توجيه المستخدم لصفحة المشاهدة
-    window.location.href = `watch.html?match=${matchId}`;
+// الانتقال لصفحة المشاهدة
+window.navigateToWatchPage = function(matchId) {
+    // يمكنك تغيير هذا حسب نظام التوجيه في تطبيقك
+    window.location.href = `watch.html?matchId=${matchId}`;
     
-    // أو فتح الصفحة في نافذة جديدة
-    // window.open(`watch.html?match=${matchId}`, '_blank');
+    // أو فتح في نافذة جديدة:
+    // window.open(`watch.html?matchId=${matchId}`, '_blank');
+};
+
+// مسح الكاش يدوياً إذا لزم الأمر
+window.clearMatchesCache = function() {
+    localStorage.removeItem(CACHE_KEY);
+    location.reload();
 };
