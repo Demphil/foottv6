@@ -11,15 +11,21 @@
 </head>
 <body>
   <div class="glass-card">
-    <h1>📰 أبرز الأخبار الرياضية</h1>
-    <div class="search-bar">
-      <input type="text" id="search-input" placeholder="ابحث عن فريق أو دوري">
-      <button id="search-button">بحث</button>
-    </div>
-    <div id="loading" class="loading">جاري التحميل...</div>
+    <header class="header">
+      <h1>📢 آخر أخبار الرياضة</h1>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="ابحث عن فريق أو بطولة...">
+        <button id="search-button">🔍 بحث</button>
+      </div>
+    </header>
+
+    <div id="loading" class="loading" style="display: none;">جاري التحميل...</div>
     <div id="error-container" class="error"></div>
-    <div id="breaking-news"></div>
+
+    <section id="breaking-news"></section>
   </div>
+
+
     <script type="module" src="assets/js/news.js"></script>
 </body>
 </html>
