@@ -2,279 +2,101 @@
 :root {
   --primary-red: #e63946;
   --primary-yellow: #ffd166;
+  --glass-bg: rgba(230, 57, 70, 0.15);
   --text-white: #f1faee;
   --text-black: #1d3557;
-  --transparent-bg: rgba(230, 57, 70, 0.7);
 }
 
-/* تنسيق الهيدر */
+/* === تصميم الهيدر === */
 .header {
   background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
-  padding: 1rem 0;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.header .logo h1 {
-  color: var(--text-white);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-
-.nav ul li a {
-  color: var(--text-white);
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-}
-
-.nav ul li a:hover,
-.nav ul li a.active {
-  color: var(--text-white);
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-}
-
-.menu-toggle i {
-  color: var(--text-white);
-}
-
-/* قسم الأخبار العاجلة */
+/* === قسم الأخبار العاجلة === */
 .breaking-news-section {
-  margin: 2rem auto;
   max-width: 1200px;
-  padding: 0 1rem;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section-title {
-  color: var(--text-white);
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-title i {
-  color: var(--text-white);
-  opacity: 0.8;
-}
-
-.view-all {
-  color: var(--text-white);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.view-all:hover {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-}
-
-.breaking-news-slider {
-  position: relative;
-  height: 300px;
-  background: var(--transparent-bg);
-  border-radius: 10px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(5px);
-  overflow: hidden;
-}
-
-.breaking-news-items {
-  display: flex;
-  transition: transform 0.5s ease;
-  height: 100%;
-}
-
-.breaking-news-group {
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 100%;
+  margin: 2rem auto;
   padding: 1rem;
-  box-sizing: border-box;
-  height: 100%;
+}
+
+#breaking-news {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(15px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .breaking-news-card {
-  flex: 1 1 calc(25% - 2rem);
-  margin: 1rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
-  min-width: 250px;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
 }
 
 .breaking-news-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.breaking-news-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 100%;
-  background: var(--primary-yellow);
+.news-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
 }
 
-.breaking-news-card h3 {
+.news-content {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.news-content h3 {
   color: var(--primary-red);
-  font-size: 1.2rem;
-  margin-top: 0;
-  margin-bottom: 0.8rem;
-  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
 }
 
-.breaking-news-card p {
+.news-content p {
   color: var(--text-black);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-.breaking-news-card .news-meta {
+/* === الأيقونات والهوفر === */
+.news-meta {
   display: flex;
   align-items: center;
-  color: #666;
-  font-size: 0.8rem;
-  margin-top: auto;
-}
-
-.breaking-news-card .news-meta i {
-  margin-left: 0.5rem;
-  color: var(--primary-red);
-}
-
-.breaking-news-controls {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  z-index: 10;
-}
-
-.breaking-news-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  margin: 0 5px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.breaking-news-dot.active {
-  background: var(--text-white);
-}
-
-/* بقية الأقسام */
-.sports-news-section {
-  margin: 3rem auto;
-  max-width: 1200px;
-  padding: 0 1rem;
-}
-
-.search-section {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.search-container {
-  display: flex;
-  margin-bottom: 1.5rem;
-}
-
-.search-container input {
-  flex: 1;
-  padding: 0.8rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.search-container input:focus {
-  outline: none;
-  border-color: var(--primary-red);
-  box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.2);
-}
-
-.search-container button {
-  padding: 0 1.5rem;
-  background: var(--primary-red);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  margin-right: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.search-container button:hover {
-  background: #c1121f;
-}
-
-.categories-tabs {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
+  padding: 0.5rem;
 }
 
-.category-btn {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
+.news-meta i {
   color: var(--text-white);
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  border-radius: 50%;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.category-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.news-meta i:hover {
+  background: rgba(0, 0, 0, 0.7);
 }
 
-.category-btn.active {
-  background: var(--text-white);
-  color: var(--primary-red);
-}
-
-/* التكيف مع الشاشات الصغيرة */
+/* === التكيف مع الشاشات الصغيرة === */
 @media (max-width: 1024px) {
-  .breaking-news-card {
-    flex: 1 1 calc(50% - 2rem);
+  #breaking-news {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .breaking-news-card {
-    flex: 1 1 100%;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
+  #breaking-news {
+    grid-template-columns: 1fr;
   }
 }
