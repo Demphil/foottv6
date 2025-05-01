@@ -1,4 +1,8 @@
 import fetchNews from './news-api.js';
+const CACHE_KEY = 'cached_news_data';
+const CACHE_TIME_KEY = 'cached_news_time';
+const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 ساعات بالمللي ثانية
+
 
 // عناصر DOM مع التحقق من وجودها
 const getElement = (id) => {
@@ -208,11 +212,28 @@ async function loadMoreNews() {
 /**
  * جلب وعرض البيانات الأولية
  */
-async function loadInitialData() {
-  try {
-    if (elements.loadingIndicator) {
-      elements.loadingIndicator.style.display = 'flex';
+async function loadInitialNews() {
+  const now = Date.now();
+  const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+  const cachedData = localStorage.getItem(CACHE_KEY);
+
+  if (cachedTime && cachedData && now - cachedTime < CACHE_DURATION) {
+    const articles = JSON.parse(cachedData);
+    displayBreakingNews(articles);
+    displaySportsNews(articles);
+    console.log('تم تحميل الأخبار من الكاش المحلي.');
+  } else {
+    const articles = await fetchNews(currentCategory);
+    if (articles.length > 0) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(articles));
+      localStorage.setItem(CACHE_TIME_KEY, now);
     }
+    displayBreakingNews(articles);
+    displaySportsNews(articles);
+    console.log('تم تحميل الأخبار من API.');
+  }
+}
+
     
     if (elements.errorContainer) {
       elements.errorContainer.innerHTML = '';
