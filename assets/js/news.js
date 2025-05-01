@@ -7,31 +7,30 @@ const maxResults = 10;
 let currentPage = 1;
 let currentCategory = 'كرة القدم';
 
-// DOM Elements
+// عناصر DOM
 const sportsNewsContainer = document.getElementById('sports-news');
+const breakingNewsContainer = document.getElementById('breaking-news');
 const loadingIndicator = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
 const loadMoreBtn = document.getElementById('load-more');
 const searchInput = document.getElementById('news-search');
 
-// Show loader
+// عرض التحميل
 function showLoading() {
   loadingIndicator.style.display = 'block';
 }
-
-// Hide loader
 function hideLoading() {
   loadingIndicator.style.display = 'none';
 }
 
-// Show error message
+// عرض خطأ
 function showError(message) {
   errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
 }
 
-// Fetch news from GNews
-async function fetchNews(endpoint, query = '') {
-  const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${currentPage}`;
+// جلب الأخبار
+async function fetchNews(query = '', page = 1) {
+  const url = `${baseUrl}/search?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${page}`;
   try {
     showLoading();
     const response = await fetch(url);
@@ -44,15 +43,28 @@ async function fetchNews(endpoint, query = '') {
     }
 
     return data.articles;
-  } catch (error) {
+  } catch (err) {
     hideLoading();
     showError('حدث خطأ أثناء جلب الأخبار.');
-    console.error(error);
+    console.error(err);
     return [];
   }
 }
 
-// Display news cards
+// عرض أخبار رئيسية (أخبار عاجلة)
+function displayBreakingNews(articles) {
+  breakingNewsContainer.innerHTML = '';
+  articles.slice(0, 5).forEach(article => {
+    const item = document.createElement('div');
+    item.className = 'breaking-news-item';
+    item.innerHTML = `
+      <a href="${article.url}" target="_blank">${article.title}</a>
+    `;
+    breakingNewsContainer.appendChild(item);
+  });
+}
+
+// عرض أخبار رياضية
 function displayNews(articles, append = false) {
   if (!append) sportsNewsContainer.innerHTML = '';
   articles.forEach(article => {
@@ -70,40 +82,42 @@ function displayNews(articles, append = false) {
   });
 }
 
-// Initial load
+// تحميل مبدئي
 async function loadInitialNews() {
-  const articles = await fetchNews('search', currentCategory);
+  const articles = await fetchNews('كرة القدم', currentPage);
   displayNews(articles);
+  const breakingArticles = await fetchNews('أخبار عاجلة');
+  displayBreakingNews(breakingArticles);
 }
 
-// Load more news
+loadInitialNews();
+
+// تحميل المزيد
 loadMoreBtn.addEventListener('click', async () => {
   currentPage++;
-  const articles = await fetchNews('search', currentCategory);
+  const articles = await fetchNews(currentCategory, currentPage);
   displayNews(articles, true);
 });
 
-// Search news
+// البحث
 document.getElementById('search-btn').addEventListener('click', async () => {
   const query = searchInput.value.trim();
   if (!query) return;
   currentPage = 1;
   currentCategory = query;
-  const articles = await fetchNews('search', query);
+  const articles = await fetchNews(query);
   displayNews(articles);
 });
 
-// Category filter
+// تصنيف الأخبار
 document.querySelectorAll('.category-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     document.querySelector('.category-btn.active').classList.remove('active');
     btn.classList.add('active');
-    currentCategory = btn.dataset.category === 'all' ? 'كرة القدم' : btn.dataset.category;
+    const category = btn.dataset.category;
+    currentCategory = category === 'all' ? 'كرة القدم' : category;
     currentPage = 1;
-    const articles = await fetchNews('search', currentCategory);
+    const articles = await fetchNews(currentCategory);
     displayNews(articles);
   });
 });
-
-// Run on page load
-loadInitialNews();
