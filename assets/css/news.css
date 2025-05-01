@@ -351,45 +351,7 @@ body {
   margin: 0 auto;
 }
 
-/* الفوتر */
-.footer {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
-  color: var(--text-white);
-  padding: 20px;
-  text-align: center;
-  backdrop-filter: blur(10px);
-}
 
-.footer-content {
-  display: flex;
-  justify-content: space-around;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 0;
-}
-
-.footer-section {
-  flex: 1;
-  padding: 0 20px;
-}
-
-.footer-section h3 {
-  margin-top: 0;
-}
-
-.footer-section ul {
-  list-style: none;
-  padding: 0;
-}
-
-.footer-section ul li {
-  margin-bottom: 8px;
-}
-
-.footer-section ul li a {
-  color: var(--text-white);
-  text-decoration: none;
-}
 
 /* التكيف مع الشاشات الصغيرة */
 @media (max-width: 1024px) {
