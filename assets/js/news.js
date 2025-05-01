@@ -1,4 +1,3 @@
-// news.js
 const apiKey = '320e688cfb9682d071750f4212f83753';
 const baseUrl = 'https://gnews.io/api/v4';
 const language = 'ar';
@@ -6,14 +5,14 @@ const country = 'eg';
 const maxResults = 10;
 
 let currentPage = 1;
-let currentCategory = 'sports';
+let currentCategory = 'كرة القدم';
 
-// DOM elements
-const sportsNewsContainer = document.getElementById('sports-news-container');
+// DOM Elements
+const sportsNewsContainer = document.getElementById('sports-news');
 const loadingIndicator = document.getElementById('loading');
 const errorContainer = document.getElementById('error-container');
 const loadMoreBtn = document.getElementById('load-more');
-const searchInput = document.getElementById('search-container');
+const searchInput = document.getElementById('news-search');
 
 // Show loader
 function showLoading() {
@@ -25,12 +24,12 @@ function hideLoading() {
   loadingIndicator.style.display = 'none';
 }
 
-// Show error
+// Show error message
 function showError(message) {
   errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
 }
 
-// Fetch news
+// Fetch news from GNews
 async function fetchNews(endpoint, query = '') {
   const url = `${baseUrl}/${endpoint}?q=${encodeURIComponent(query)}&lang=${language}&country=${country}&max=${maxResults}&apikey=${apiKey}&page=${currentPage}`;
   try {
@@ -45,15 +44,15 @@ async function fetchNews(endpoint, query = '') {
     }
 
     return data.articles;
-  } catch (err) {
+  } catch (error) {
     hideLoading();
     showError('حدث خطأ أثناء جلب الأخبار.');
-    console.error(err);
+    console.error(error);
     return [];
   }
 }
 
-// Display sports news
+// Display news cards
 function displayNews(articles, append = false) {
   if (!append) sportsNewsContainer.innerHTML = '';
   articles.forEach(article => {
@@ -73,24 +72,38 @@ function displayNews(articles, append = false) {
 
 // Initial load
 async function loadInitialNews() {
-  const articles = await fetchNews('search', 'كرة القدم');
+  const articles = await fetchNews('search', currentCategory);
   displayNews(articles);
 }
 
-loadInitialNews();
-
-// Load more
+// Load more news
 loadMoreBtn.addEventListener('click', async () => {
   currentPage++;
-  const articles = await fetchNews('search', 'كرة القدم');
+  const articles = await fetchNews('search', currentCategory);
   displayNews(articles, true);
 });
 
-// Search button
+// Search news
 document.getElementById('search-btn').addEventListener('click', async () => {
   const query = searchInput.value.trim();
   if (!query) return;
   currentPage = 1;
+  currentCategory = query;
   const articles = await fetchNews('search', query);
   displayNews(articles);
 });
+
+// Category filter
+document.querySelectorAll('.category-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelector('.category-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    currentCategory = btn.dataset.category === 'all' ? 'كرة القدم' : btn.dataset.category;
+    currentPage = 1;
+    const articles = await fetchNews('search', currentCategory);
+    displayNews(articles);
+  });
+});
+
+// Run on page load
+loadInitialNews();
