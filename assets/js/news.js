@@ -16,11 +16,6 @@ const breakingKeywords = [
   "كرة القدم", "رياضة", "المنتخب المغربي", "الوداد", "الرجاء"
 ];
 
-const breakingKeywords = [كرة القدم", "رياضة", "المنتخب المغربء",
-  "الدوري السعودي", "الدوري المغربي", "الدوري الإسباني",
-  "Champions League", "كأس العالم"
-];
-
 //=================== عناصر DOM ===================
 const sportsNewsContainer   = document.getElementById('sports-news');
 const breakingNewsContainer = document.getElementById('breaking-news');
