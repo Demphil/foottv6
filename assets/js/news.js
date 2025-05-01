@@ -1,3 +1,4 @@
+//=================== الإعدادات ===================
 const apiKey       = '320e688cfb9682d071750f4212f83753';
 const baseUrl      = 'https://gnews.io/api/v4';
 const language     = 'ar';
@@ -70,22 +71,41 @@ async function fetchNews(query, page = 1) {
   }
 }
 
-// دالة جلب الأخبار العاجلة بكلمات مفتاحية متعددة
+// دالة جلب الأخبار العاجلة مع فاصل زمني بين الطلبات
 async function fetchBreakingNews() {
+  const cachedData = localStorage.getItem('breakingNews');
+  const lastFetchTime = localStorage.getItem('breakingNewsTime');
+  const currentTime = Date.now();
+
+  // إذا كانت البيانات قديمة (مثلاً، مرت ساعة)
+  if (cachedData && lastFetchTime && currentTime - lastFetchTime < 3600000) {
+    // استخدم البيانات المخزنة
+    displayBreakingNews(JSON.parse(cachedData));
+    return;
+  }
+
   let all = [];
   for (const kw of breakingKeywords) {
     try {
-      const url  = `${baseUrl}/search?q=${encodeURIComponent(kw)}` +
-                   `&lang=${language}&country=${country}` +
-                   `&max=2&apikey=${apiKey}`;
-      const res  = await fetch(url);
+      const url = `${baseUrl}/search?q=${encodeURIComponent(kw)}` +
+        `&lang=${language}&country=${country}` +
+        `&max=2&apikey=${apiKey}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.articles) all = all.concat(data.articles);
+
+      // إضافة فاصل زمني
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1000 ميلي ثانية (1 ثانية)
     } catch (err) {
       console.warn(`فشل جلب عاجل لـ: ${kw}`, err);
     }
     if (all.length >= breakingMax) break;
   }
+
+  // حفظ البيانات في الذاكرة المحلية
+  localStorage.setItem('breakingNews', JSON.stringify(all.slice(0, breakingMax)));
+  localStorage.setItem('breakingNewsTime', currentTime.toString());
+
   displayBreakingNews(all.slice(0, breakingMax));
 }
 
