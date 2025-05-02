@@ -87,7 +87,8 @@ body {
 }
 
 .header .logo img {
-  height: 70px;
+  height: 80px;
+  width: 50px
 }
 .header .logo h1 {
   color: var(--text-white);
