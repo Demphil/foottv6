@@ -7,7 +7,7 @@
   --text-black: #1d3557;
   --header-height: 70px;
 }
-.html {
+html {
   scroll-behavior: smooth;
 }
 #top-of-page {
@@ -53,7 +53,7 @@ body {
 }
 
 .header .logo img {
-  height: 55px;
+  height: 70px;
 }
 
 .header .logo h1 {
