@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     handleLoadingError(error);
   } finally {
     hideLoading();
-    // إظهار المحتوى بعد التحميل
     if (DOM.contentContainer) {
       DOM.contentContainer.style.display = 'block';
     }
@@ -203,12 +202,10 @@ function initSlider(groups) {
     });
   }
 
-  // إنشاء نقاط التوجيه
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
     `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
-  // أحداث التحكم
   DOM.prevBtn.addEventListener('click', () => navigateSlider(-1));
   DOM.nextBtn.addEventListener('click', () => navigateSlider(1));
   DOM.sliderDots.addEventListener('click', handleDotClick);
@@ -238,6 +235,7 @@ function initSlider(groups) {
   startSliderInterval();
 }
 
+// 9. تعديلات رئيسية على عرض المباريات البث المباشر
 function renderBroadcastMatches(matches) {
   if (!matches?.length) {
     DOM.broadcastContainer.innerHTML = `
@@ -251,7 +249,7 @@ function renderBroadcastMatches(matches) {
 
   DOM.broadcastContainer.innerHTML = matches.map(match => {
     const broadcastStatus = getBroadcastStatus(match.tv_channels || []);
-    const firstChannel = broadcastStatus.allChannels[0] || '';
+    const firstChannel = broadcastStatus.available ? broadcastStatus.allChannels[0] : null;
     
     return `
       <div class="broadcast-card" data-id="${match.fixture.id}">
@@ -293,7 +291,7 @@ function renderBroadcastMatches(matches) {
         </div>
         <button class="watch-btn" 
                 data-match-id="${match.fixture.id}"
-                data-channel="${firstChannel}"
+                data-channel="${firstChannel || ''}"
                 ${broadcastStatus.available ? '' : 'disabled'}
                 aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
@@ -301,8 +299,12 @@ function renderBroadcastMatches(matches) {
       </div>
     `;
   }).join('');
+
+  // إضافة لمسة نهائية للتأكد من عمل الأزرار
+  setupWatchButtons();
 }
 
+// 10. تحسينات على نظام البث والقنوات
 function getBroadcastStatus(channels) {
   const arabicChannels = getArabicBroadcasters(channels);
   const hasChannels = channels?.length > 0;
@@ -318,41 +320,57 @@ function getBroadcastStatus(channels) {
   };
 }
 
-function renderBroadcastInfo(status) {
-  if (status.noData) {
-    return `
-      <div class="broadcast-info no-data">
-        <i class="fas fa-info-circle"></i>
-        <span>لا توجد بيانات بث</span>
-      </div>
-    `;
-  }
-  
-  if (status.available) {
-    return `
-      <div class="broadcast-info available">
-        <i class="fas fa-satellite-dish"></i>
-        <span>${status.allChannels.join(' - ')}</span>
-      </div>
-    `;
-  }
-  
-  return `
-    <div class="broadcast-info not-available">
-      <i class="fas fa-exclamation-triangle"></i>
-      <span>غير متاح على القنوات العربية</span>
-    </div>
-  `;
-}
-
 function getArabicBroadcasters(channels) {
-  if (!channels?.length) return [];
+  if (!Array.isArray(channels)) return [];
   
   return channels
     .filter(ch => ch && typeof ch === 'string')
     .filter(ch => Object.values(CONFIG.ARABIC_CHANNELS).includes(ch));
 }
 
+// 11. نظام المشاهدة المحسن
+function setupWatchButtons() {
+  document.querySelectorAll('.watch-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const matchId = this.dataset.matchId;
+      const channelName = this.dataset.channel;
+      
+      if (!matchId) {
+        showToast('معرّف المباراة غير موجود', 'error');
+        return;
+      }
+      
+      if (!channelName || channelName === 'undefined') {
+        showToast('لا توجد قناة متاحة للبث المباشر', 'error');
+        return;
+      }
+      
+      redirectToWatchPage(matchId, channelName);
+    });
+  });
+}
+
+function redirectToWatchPage(matchId, channelName) {
+  if (!matchId || !channelName) {
+    console.error('Missing parameters for watch page:', { matchId, channelName });
+    return;
+  }
+
+  const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
+  if (!channelKey) {
+    console.error('No channel key found for:', channelName);
+    showToast('هذه القناة غير مدعومة حالياً', 'error');
+    return;
+  }
+
+  console.log('Redirecting to watch page:', { matchId, channelKey });
+  window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
+}
+
+// 12. بقية الدوال الأساسية (بدون تغييرات)
 function renderAllMatches({ today, tomorrow, upcoming }) {
   DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
   DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
@@ -365,7 +383,6 @@ function renderMatchList(matches, title) {
     : `<p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>`;
 }
 
-// 9. قوالب البطاقات
 function createFeaturedCard(match) {
   return `
     <div class="featured-card" data-id="${match.fixture.id}">
@@ -436,7 +453,6 @@ function createMatchCard(match) {
   `;
 }
 
-// 10. أدوات مساعدة
 function formatDate(dateStr) {
   const options = { 
     weekday: 'long', 
@@ -458,9 +474,7 @@ function formatKickoffTime(dateString) {
   return new Date(dateString).toLocaleTimeString('ar-MA', options);
 }
 
-// 11. إعداد واجهة المستخدم
 function setupEventListeners() {
-  // التنقل بين الألسنة
   DOM.tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       DOM.tabButtons.forEach(b => b.classList.remove('active'));
@@ -474,27 +488,7 @@ function setupEventListeners() {
     });
   });
   
-  // إعداد معالجة الأحداث
-  setupMatchCards();
-}
-
-function setupMatchCards() {
-  // معالجة النقر على زر المشاهدة
   document.addEventListener('click', (e) => {
-    const watchBtn = e.target.closest('.watch-btn');
-    if (watchBtn && !watchBtn.disabled) {
-      e.preventDefault();
-      const matchId = watchBtn.dataset.matchId;
-      const channelName = watchBtn.dataset.channel;
-      
-      if (channelName && channelName !== 'undefined') {
-        redirectToWatchPage(matchId, channelName);
-      } else {
-        showToast('لا توجد قناة متاحة للبث المباشر', 'error');
-      }
-    }
-    
-    // معالجة النقر على بطاقة المباراة
     const matchCard = e.target.closest('.match-card, .featured-card');
     if (matchCard && !e.target.closest('.watch-btn')) {
       const matchId = matchCard.dataset.id;
@@ -503,32 +497,10 @@ function setupMatchCards() {
   });
 }
 
-function redirectToWatchPage(matchId, channelName) {
-  const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
-  if (channelKey) {
-    logMatchView(matchId, channelName);
-    window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
-  } else {
-    showToast('هذه القناة غير مدعومة حالياً', 'error');
-  }
-}
-
-function logMatchView(matchId, channel) {
-  const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
-  history.unshift({
-    matchId,
-    channel,
-    timestamp: new Date().toISOString()
-  });
-  localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50))); // حفظ آخر 50 مشاهدة فقط
-}
-
 function showMatchDetails(matchId) {
-  // يمكنك تطوير هذه الدالة لعرض تفاصيل إضافية
   console.log('عرض تفاصيل المباراة:', matchId);
 }
 
-// 12. معالجة الأخطاء
 function handleLoadingError(error) {
   console.error('Error:', error);
   showError('حدث خطأ أثناء تحميل البيانات. جارٍ عرض البيانات المحفوظة...');
@@ -569,7 +541,6 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
-// 13. تحسينات الأداء
 function lazyLoadImages() {
   const lazyImages = [].slice.call(document.querySelectorAll('img[loading="lazy"]'));
   
@@ -589,7 +560,6 @@ function lazyLoadImages() {
       lazyImageObserver.observe(lazyImage);
     });
   } else {
-    // Fallback for browsers without IntersectionObserver
     lazyImages.forEach(img => {
       img.src = img.dataset.src;
     });
@@ -610,7 +580,6 @@ async function preloadWatchPages() {
   }
 }
 
-// 14. الوظائف العامة
 window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
   showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
