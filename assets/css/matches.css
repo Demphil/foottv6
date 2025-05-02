@@ -18,6 +18,31 @@ body {
   color: var(--text-black);
   will-change: transform;
 }
+   /* أنماط الهيكل العظمي المضمنة لمنع CLS */
+        .skeleton-slider, .skeleton-broadcast {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .skeleton-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            height: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* إخفاء المحتوى الديناميكي حتى يكتمل التحميل */
+        [data-dynamic-content] {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        /* تحسينات للخطوط */
+        body {
+            font-display: swap;
+        }
 
 .matches-main {
   padding: 20px;
