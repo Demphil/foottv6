@@ -3,7 +3,7 @@ import { fetchMatches } from './api.js';
 // 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v6',
+  CACHE_KEY: 'football-matches-cache-v7',
   FEATURED_LEAGUES: [2, 39, 140, 135], // دوري الأبطال، الدوري الإنجليزي، الليغا، السيريا أ
   SLIDER_INTERVAL: 20000, // 20 ثانية
   MAX_BROADCAST_MATCHES: 5,
@@ -17,7 +17,7 @@ const CONFIG = {
     'al-kass': 'Alkass'
   },
   TIMEZONE: 'Africa/Casablanca',
-  CHANNEL_URL_MAP: { // خرائط القنوات لصفحة المشاهدة
+  CHANNEL_URL_MAP: {
     'bein SPORTS HD1': 'bein-sports-hd1',
     'bein SPORTS HD2': 'bein-sports-hd2',
     'bein SPORTS HD3': 'bein-sports-hd3',
@@ -41,7 +41,8 @@ const DOM = {
   tabButtons: document.querySelectorAll('.tab-btn'),
   sliderDots: document.querySelector('.slider-dots'),
   prevBtn: document.querySelector('.slider-prev'),
-  nextBtn: document.querySelector('.slider-next')
+  nextBtn: document.querySelector('.slider-next'),
+  contentContainer: document.getElementById('content-container')
 };
 
 // 3. حالة التطبيق
@@ -55,12 +56,18 @@ let appState = {
 // 4. تهيئة الصفحة
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    showSkeletonUI();
+    showLoading();
     await loadDataAndRender();
     setupEventListeners();
   } catch (error) {
     console.error('Initialization error:', error);
     handleLoadingError(error);
+  } finally {
+    hideLoading();
+    // إظهار المحتوى بعد التحميل
+    if (DOM.contentContainer) {
+      DOM.contentContainer.style.display = 'block';
+    }
   }
 });
 
@@ -72,22 +79,19 @@ async function loadDataAndRender() {
     
     renderCriticalContent(categorized);
     await renderSecondaryContent(categorized);
-  } finally {
-    hideLoading();
+  } catch (error) {
+    console.error('Error loading data:', error);
+    throw error;
   }
 }
 
 // 6. نظام التخزين المؤقت
 async function getMatchesData() {
-  // جلب البيانات من التخزين المؤقت أولاً
   const cachedData = getValidCache();
   if (cachedData) {
-    // جلب بيانات جديدة في الخلفية لتحديث التخزين المؤقت
     fetchFreshDataInBackground();
     return cachedData;
   }
-  
-  // جلب البيانات الجديدة إذا لم توجد في التخزين المؤقت
   return await fetchFreshData();
 }
 
@@ -145,21 +149,12 @@ function filterByDate(matches, date) {
 }
 
 // 8. التقديم المرئي
-function showSkeletonUI() {
-  DOM.loading.style.display = 'flex';
-  
-  // هيكل عظمي للمحتوى
-  DOM.featuredContainer.innerHTML = `
-    <div class="skeleton-slider">
-      ${Array(4).fill('<div class="skeleton-card"></div>').join('')}
-    </div>
-  `;
-  
-  DOM.broadcastContainer.innerHTML = `
-    <div class="skeleton-broadcast">
-      ${Array(3).fill('<div class="skeleton-card"></div>').join('')}
-    </div>
-  `;
+function showLoading() {
+  if (DOM.loading) DOM.loading.style.display = 'flex';
+}
+
+function hideLoading() {
+  if (DOM.loading) DOM.loading.style.display = 'none';
 }
 
 function renderCriticalContent(categorized) {
@@ -239,7 +234,6 @@ function initSlider(groups) {
     }, CONFIG.SLIDER_INTERVAL);
   }
 
-  // البدء بعرض الشريحة الأولى
   showSlide(0);
   startSliderInterval();
 }
@@ -257,6 +251,7 @@ function renderBroadcastMatches(matches) {
 
   DOM.broadcastContainer.innerHTML = matches.map(match => {
     const broadcastStatus = getBroadcastStatus(match.tv_channels || []);
+    const firstChannel = broadcastStatus.allChannels[0] || '';
     
     return `
       <div class="broadcast-card" data-id="${match.fixture.id}">
@@ -298,7 +293,7 @@ function renderBroadcastMatches(matches) {
         </div>
         <button class="watch-btn" 
                 data-match-id="${match.fixture.id}"
-                data-channel="${broadcastStatus.channel || ''}"
+                data-channel="${firstChannel}"
                 ${broadcastStatus.available ? '' : 'disabled'}
                 aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
@@ -479,7 +474,7 @@ function setupEventListeners() {
     });
   });
   
-  // إعداد بطاقات المباريات
+  // إعداد معالجة الأحداث
   setupMatchCards();
 }
 
@@ -487,13 +482,19 @@ function setupMatchCards() {
   // معالجة النقر على زر المشاهدة
   document.addEventListener('click', (e) => {
     const watchBtn = e.target.closest('.watch-btn');
-    if (watchBtn) {
+    if (watchBtn && !watchBtn.disabled) {
       e.preventDefault();
       const matchId = watchBtn.dataset.matchId;
-      const channel = watchBtn.dataset.channel;
-      watchMatch(matchId, channel);
+      const channelName = watchBtn.dataset.channel;
+      
+      if (channelName && channelName !== 'undefined') {
+        redirectToWatchPage(matchId, channelName);
+      } else {
+        showToast('لا توجد قناة متاحة للبث المباشر', 'error');
+      }
     }
     
+    // معالجة النقر على بطاقة المباراة
     const matchCard = e.target.closest('.match-card, .featured-card');
     if (matchCard && !e.target.closest('.watch-btn')) {
       const matchId = matchCard.dataset.id;
@@ -502,22 +503,28 @@ function setupMatchCards() {
   });
 }
 
-function watchMatch(matchId, channelName) {
-  if (!channelName) {
-    showToast('لا توجد قناة عربية متاحة لهذه المباراة', 'error');
-    return;
-  }
-  
+function redirectToWatchPage(matchId, channelName) {
   const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
   if (channelKey) {
+    logMatchView(matchId, channelName);
     window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
   } else {
-    showToast('هذه القناة غير مدعومة حالياً', 'info');
+    showToast('هذه القناة غير مدعومة حالياً', 'error');
   }
 }
 
+function logMatchView(matchId, channel) {
+  const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
+  history.unshift({
+    matchId,
+    channel,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50))); // حفظ آخر 50 مشاهدة فقط
+}
+
 function showMatchDetails(matchId) {
-  // يمكنك إضافة عرض تفاصيل المباراة هنا
+  // يمكنك تطوير هذه الدالة لعرض تفاصيل إضافية
   console.log('عرض تفاصيل المباراة:', matchId);
 }
 
@@ -526,7 +533,6 @@ function handleLoadingError(error) {
   console.error('Error:', error);
   showError('حدث خطأ أثناء تحميل البيانات. جارٍ عرض البيانات المحفوظة...');
   tryFallbackCache();
-  hideLoading();
 }
 
 function tryFallbackCache() {
@@ -547,6 +553,7 @@ function showError(message) {
         <span>${message}</span>
       </div>
     `;
+    DOM.errorContainer.style.display = 'block';
   }
 }
 
@@ -556,7 +563,10 @@ function showToast(message, type = 'info') {
   toast.innerHTML = `<span>${message}</span>`;
   document.body.appendChild(toast);
   
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 // 13. تحسينات الأداء
@@ -578,27 +588,25 @@ function lazyLoadImages() {
     lazyImages.forEach(lazyImage => {
       lazyImageObserver.observe(lazyImage);
     });
+  } else {
+    // Fallback for browsers without IntersectionObserver
+    lazyImages.forEach(img => {
+      img.src = img.dataset.src;
+    });
   }
 }
 
 async function preloadWatchPages() {
   if ('serviceWorker' in navigator) {
-    const urls = Object.values(CONFIG.CHANNEL_URL_MAP).map(
-      channel => `watch.html?channel=${channel}`
-    );
-    
     try {
       const reg = await navigator.serviceWorker.ready;
+      const urls = Object.values(CONFIG.CHANNEL_URL_MAP).map(
+        channel => `watch.html?channel=${channel}`
+      );
       await reg.preload(urls);
     } catch (e) {
       console.log('Preload failed:', e);
     }
-  }
-}
-
-function hideLoading() {
-  if (DOM.loading) {
-    DOM.loading.style.display = 'none';
   }
 }
 
