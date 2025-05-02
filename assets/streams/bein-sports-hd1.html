@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BeIN Sports HD1 Stream</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        iframe { width: 100%; height: 100vh; border: none; }
+    </style>
+</head>
+<body>
+    <!-- البث المباشر من المصدر الرسمي -->
+    <iframe src="https://demphil.github.io/beinsports1/" 
+            allowfullscreen 
+            allow="autoplay; encrypted-media">
+    </iframe>
+    
+    <script>
+        // كود لتحديث البث تلقائيًا إذا انقطع
+        setInterval(() => {
+            if (!document.hasFocus()) {
+                location.reload();
+            }
+        }, 60000);
+    </script>
+</body>
+</html>
