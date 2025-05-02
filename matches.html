@@ -4,25 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المباريات | Football Matches Tracker</title>
-    <!-- تحسينات تحميل CSS -->
-    <link rel="preload" href="assets/css/matches.css" as="style">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
     <link rel="stylesheet" href="assets/css/matches.css">
     <link rel="stylesheet" href="assets/css/footer.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
-    
-    <!-- تحسينات لتحميل الصور المهمة -->
     <link rel="preload" href="assets/images/logo.png" as="image">
     <link rel="preload" href="assets/images/default-team.png" as="image">
     <link rel="preload" href="assets/images/default-league.png" as="image">
-    
-   
 </head>
 <body>
     <header class="header">
         <div class="logo">
-            <img src="assets/images/logo.png" alt="شعار الموقع" width="70" height="70" loading="eager" />
+            <img src="assets/images/logo.png" alt="شعار الموقع" />
             <h1>مباريات كرة القدم</h1>
         </div>
         <nav class="nav">
@@ -35,117 +28,74 @@
     </header>
 
     <main class="matches-main">
-        <!-- شاشة التحميل المعدلة -->
-        <div class="loader-container" id="loading">
-            <div class="loader"></div>
-            <p>جاري تحميل البيانات...</p>
-        </div>
-        
-        <!-- رسائل الخطأ -->
-        <div id="error-container" class="error-container" style="display: none;"></div>
-        
-        <!-- الهيكل العظمي أثناء التحميل -->
-        <div id="skeleton-container">
-            <div class="matches-layout">
-                <section class="featured-section">
-                    <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
-                    <div class="skeleton-slider">
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                    </div>
-                </section>
-                
-                <section class="broadcast-section">
-                    <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
-                    <div class="skeleton-broadcast">
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                        <div class="skeleton-card"></div>
-                    </div>
-                </section>
-            </div>
-        </div>
-        
-        <!-- المحتوى الفعلي (سيتم عرضه بعد التحميل) -->
-        <div id="content-container" style="display: none;" data-dynamic-content>
-            <div class="matches-layout">
-                <!-- القسم الأيسر - المباريات المميزة -->
-                <section class="featured-section">
-                    <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
-                    <div class="featured-slider" id="featured-matches">
-                        <!-- سيتم ملؤه بواسطة JavaScript -->
-                    </div>
-                    <div class="slider-controls">
-                        <button class="slider-prev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
-                        <div class="slider-dots"></div>
-                        <button class="slider-next" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
-                    </div>
-                </section>
-
-                <!-- القسم الأيمن - المباريات المنقولة -->
-                <section class="broadcast-section">
-                    <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
-                    <div class="broadcast-list" id="broadcast-matches">
-                        <!-- سيتم ملؤه بواسطة JavaScript -->
-                    </div>
-                </section>
-            </div>
-
-            <!-- قسم جميع المباريات -->
-            <section class="all-matches">
-                <div class="matches-tabs">
-                    <button class="tab-btn active" data-tab="today">مباريات اليوم</button>
-                    <button class="tab-btn" data-tab="tomorrow">مباريات الغد</button>
-                    <button class="tab-btn" data-tab="upcoming">القادمة</button>
+        <div class="loader-container" id="loading" style="display: none;">
+    <div class="loader"></div>
+    <p>جاري تحميل البيانات...</p>
+</div>
+        <div class="matches-layout">
+            <!-- القسم الأيسر - المباريات المميزة -->
+            <section class="featured-section">
+                <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
+                <div class="featured-slider" id="featured-matches">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
                 </div>
-                
-                <div class="matches-grid">
-                    <div class="tab-content active" id="today-matches">
-                        <!-- مباريات اليوم -->
-                    </div>
-                    <div class="tab-content" id="tomorrow-matches">
-                        <!-- مباريات الغد -->
-                    </div>
-                    <div class="tab-content" id="upcoming-matches">
-                        <!-- المباريات القادمة -->
-                    </div>
+                <div class="slider-controls">
+                    <button class="slider-prev"><i class="fas fa-chevron-right"></i></button>
+                    <div class="slider-dots"></div>
+                    <button class="slider-next"><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+
+            <!-- القسم الأيمن - المباريات المنقولة -->
+            <section class="broadcast-section">
+                <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
+                <div class="broadcast-list" id="broadcast-matches">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
                 </div>
             </section>
         </div>
+
+        <!-- قسم جميع المباريات -->
+        <section class="all-matches">
+            <div class="matches-tabs">
+                <button class="tab-btn active" data-tab="today">مباريات اليوم</button>
+                <button class="tab-btn" data-tab="tomorrow">مباريات الغد</button>
+                <button class="tab-btn" data-tab="upcoming">القادمة</button>
+            </div>
+            
+            <div class="matches-grid">
+                <div class="tab-content active" id="today-matches">
+                    <!-- مباريات اليوم -->
+                </div>
+                <div class="tab-content" id="tomorrow-matches">
+                    <!-- مباريات الغد -->
+                </div>
+                <div class="tab-content" id="upcoming-matches">
+                    <!-- المباريات القادمة -->
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- الفوتر المعدل -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-logo">
-                <a href="#top-of-page" class="logo-text">Foot TV</a>
-            </div>
-            <div class="footer-links">
-                <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a>
-                <a href="news.html"><i class="fas fa-newspaper"></i> الأخبار</a>
-                <a href="matches.html"><i class="fas fa-futbol"></i> المباريات</a>
-                <a href="videos.html"><i class="fas fa-video"></i> الفيديوهات</a>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>حقوق النشر © <span id="current-year"></span> Foot TV - جميع الحقوق محفوظة</p>
-        </div>
-    </footer>
+     <!-- الفوتر -->
+ <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">
+        <a href="#top-of-page" class="logo-text">Foot TV</a>
+      
+    </div>
+    <div class="footer-links">
+      <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a>
+      <a href="news.html"><i class="fas fa-newspaper"></i> الأخبار</a>
+      <a href="matches.html"><i class="fas fa-futbol"></i> المباريات</a>
+      <a href="videos.html"><i class="fas fa-video"></i> الفيديوهات</a>
+    </div>
+  </div>
+  <div class="copyright">
+    <p>حقوق النشر © <span id="current-year"></span> Foot TV - جميع الحقوق محفوظة</p>
+  </div>
+</footer>
 
-    <!-- تحسينات تحميل JavaScript -->
-    <script>
-        // تحديث سنة حقوق النشر
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-        
-        // تحميل الملفات الديناميكية بعد تحميل الصفحة
-        window.addEventListener('load', function() {
-            const script = document.createElement('script');
-            script.src = 'assets/js/matches.js';
-            script.type = 'module';
-            document.body.appendChild(script);
-        });
-    </script>
+    <script type="module" src="assets/js/matches.js"></script>
 </body>
 </html>
