@@ -91,7 +91,7 @@ const CHANNELS_CONFIG = {
     'bein-sports-hd1': {
         name: 'bein SPORTS HD1',
         logo: 'assets/images/channels/bein1.png',
-        streamUrl: 'https://streaming.example.com/bein1'
+        streamUrl: 'https://demphil.github.io/beinsports1/'
     },
     'bein-sports-hd2': {
         name: 'bein SPORTS HD2',
