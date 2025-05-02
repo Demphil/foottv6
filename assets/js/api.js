@@ -36,14 +36,24 @@ function getDefaultChannels(leagueId) {
 export const fetchMatches = async () => {
     try {
         const today = new Date();
+        const dayKey = today.toISOString().split('T')[0]; // مثل: "2025-05-01"
+        const cachedData = localStorage.getItem('matches');
+        const cachedDate = localStorage.getItem('matchesDate');
+
+        // ✅ إذا كانت البيانات مخزنة لنفس اليوم، نعيدها مباشرة بدون أي طلب جديد
+        if (cachedData && cachedDate === dayKey) {
+            console.log('📦 تم تحميل المباريات من التخزين المحلي');
+            return JSON.parse(cachedData);
+        }
+
         const season = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
-        const from = today.toISOString().split('T')[0];
+        const from = dayKey;
         const to = nextWeek.toISOString().split('T')[0];
 
-        console.log(`📅 جلب المباريات من ${from} إلى ${to} لموسم ${season}`);
+        console.log(`📅 جلب المباريات من API من ${from} إلى ${to} لموسم ${season}`);
 
         const requests = leagues.map(async (league) => {
             let retries = 0;
@@ -73,7 +83,6 @@ export const fetchMatches = async () => {
                         return [];
                     }
 
-                    // إضافة القنوات الافتراضية لكل مباراة
                     return data.response.map(match => ({
                         ...match,
                         league: {
@@ -98,8 +107,14 @@ export const fetchMatches = async () => {
         const results = await Promise.all(requests);
         const allMatches = results.flat();
 
-        console.log(`✅ تم جلب ${allMatches.length} مباراة بنجاح`);
+        console.log(`✅ تم جلب ${allMatches.length} مباراة بنجاح من API`);
+
+        // ✅ تخزين النتائج في localStorage
+        localStorage.setItem('matches', JSON.stringify(allMatches));
+        localStorage.setItem('matchesDate', dayKey);
+
         return allMatches;
+
     } catch (error) {
         console.error('🚨 فشل جلب المباريات:', error);
         throw new Error('تعذر جلب بيانات المباريات. الرجاء المحاولة لاحقاً.');
