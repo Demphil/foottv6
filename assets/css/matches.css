@@ -29,6 +29,9 @@ body {
     align-items: center;
     z-index: 1000;
 }
+.logo {
+    height: 65px;
+}
 
 .loader {
     border: 5px solid #f3f3f3;
