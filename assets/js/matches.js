@@ -193,33 +193,160 @@ function initSlider(groups) {
 }
 
 function renderBroadcastMatches(matches) {
+  const { broadcastContainer } = DOM;
+  
   if (!matches?.length) {
-    DOM.broadcastContainer.innerHTML = '<p class="no-matches">لا توجد مباريات منقولة اليوم</p>';
+    broadcastContainer.innerHTML = `
+      <div class="no-matches">
+        <i class="fas fa-tv"></i>
+        <p>لا توجد مباريات منقولة حالياً</p>
+      </div>
+    `;
     return;
   }
 
-  DOM.broadcastContainer.innerHTML = matches.map(match => `
-    <div class="broadcast-card" data-id="${match.fixture.id}">
-      <div class="teams">
-        <div class="team">
-          <img src="${match.teams.home.logo}" alt="${match.teams.home.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.home.name}</span>
+  broadcastContainer.innerHTML = matches.map(match => {
+    const { fixture, teams, league, broadcast } = match;
+    const homeTeam = teams.home;
+    const awayTeam = teams.away;
+    
+    // تحديد القنوات العربية الناقلة
+    const arabicBroadcasters = getArabicBroadcasters(broadcast);
+    const broadcastersHTML = arabicBroadcasters.length > 0
+      ? `<div class="broadcasters">
+           <i class="fas fa-satellite-dish"></i>
+           ${arabicBroadcasters.join(' - ')}
+         </div>`
+      : '<div class="no-broadcasters">غير متاح على القنوات العربية</div>';
+    
+    return `
+      <div class="broadcast-card" data-id="${fixture.id}" tabindex="0">
+        <div class="teams">
+          <div class="team">
+            <img src="${homeTeam.logo}" 
+                 alt="${homeTeam.name}" 
+                 onerror="this.src='assets/images/default-team.png'"
+                 loading="lazy">
+            <span class="team-name">${homeTeam.name}</span>
+          </div>
+          <div class="match-time">
+            <span class="vs">VS</span>
+            <time datetime="${fixture.date}">${formatKickoffTime(fixture.date)}</time>
+          </div>
+          <div class="team">
+            <img src="${awayTeam.logo}" 
+                 alt="${awayTeam.name}" 
+                 onerror="this.src='assets/images/default-team.png'"
+                 loading="lazy">
+            <span class="team-name">${awayTeam.name}</span>
+          </div>
         </div>
-        <div class="vs">VS</div>
-        <div class="team">
-          <img src="${match.teams.away.logo}" alt="${match.teams.away.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.away.name}</span>
+        
+        ${broadcastersHTML}
+        
+        <div class="match-info">
+          <span class="league-info">
+            <img src="${league.logo || 'assets/images/default-league.png'}" 
+                 alt="${league.name}"
+                 onerror="this.src='assets/images/default-league.png'">
+            ${league.name}
+          </span>
+          <span class="match-venue">
+            <i class="fas fa-map-marker-alt"></i>
+            ${fixture.venue?.name || 'ملعب غير معروف'}
+          </span>
         </div>
+        <button class="watch-btn" 
+                onclick="watchMatch(${fixture.id}, '${arabicBroadcasters[0] || ''}')"
+                aria-label="مشاهدة مباراة ${homeTeam.name} ضد ${awayTeam.name}">
+          <i class="fas fa-play"></i> مشاهدة البث
+        </button>
       </div>
-      <div class="match-info">
-        <span><i class="fas fa-trophy"></i> ${match.league.name}</span>
-        <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-      </div>
-      <button class="watch-btn" onclick="watchMatch(${match.fixture.id})">
-        <i class="fas fa-play"></i> مشاهدة البث
-      </button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  // إضافة مستمعي الأحداث للبطاقات
+  addCardEventListeners();
+}
+
+// دالة مساعدة لتحديد القنوات العربية
+function getArabicBroadcasters(broadcastData) {
+  const arabicChannels = {
+    'bein-sports-hd1': 'بي إن سبورت HD1',
+    'bein-sports-hd2': 'بي إن سبورت HD2',
+    'bein-sports-hd3': 'بي إن سبورت HD3',
+    'ssc-1': 'SSC 1',
+    'ssc-2': 'SSC 2',
+    'on-time-sports': 'أون تايم سبورت',
+    'al-kass': 'الكأس'
+  };
+  
+  if (!broadcastData?.length) return [];
+  
+  return broadcastData
+    .filter(b => arabicChannels[b.name])
+    .map(b => arabicChannels[b.name]);
+}
+
+// دالة مساعدة لتنسيق وقت المباراة
+function formatKickoffTime(dateString) {
+  const options = { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    timeZone: 'Africa/Cairo'
+  };
+  return new Date(dateString).toLocaleTimeString('ar-EG', options);
+}
+
+// دالة مشاهدة المباراة المحدثة
+function watchMatch(matchId, broadcaster) {
+  if (!broadcaster) {
+    alert('لا تتوفر قناة عربية ناقلة لهذه المباراة');
+    return;
+  }
+  
+  // تحديد ملف البث بناءً على القناة
+  const channelMap = {
+    'بي إن سبورت HD1': 'bein-sports-hd1',
+    'بي إن سبورت HD2': 'bein-sports-hd2',
+    'SSC 1': 'ssc-1',
+    'أون تايم سبورت': 'on-time-sports'
+  };
+  
+  const channelFile = channelMap[broadcaster];
+  
+  if (channelFile) {
+    window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
+  } else {
+    alert('جاري العمل على إضافة دعم لهذه القناة قريباً');
+  }
+}
+
+// إضافة مستمعي الأحداث للبطاقات
+function addCardEventListeners() {
+  document.querySelectorAll('.broadcast-card').forEach(card => {
+    card.addEventListener('click', handleCardClick);
+    card.addEventListener('keydown', handleCardKeyPress);
+  });
+}
+
+// التعامل مع النقر على البطاقة
+function handleCardClick(event) {
+  const card = event.currentTarget;
+  if (!event.target.closest('.watch-btn')) {
+    const matchId = card.dataset.id;
+    showMatchDetails(matchId);
+  }
+}
+
+// التعامل مع الضغط على المفتاح في البطاقة
+function handleCardKeyPress(event) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    const card = event.currentTarget;
+    const matchId = card.dataset.id;
+    showMatchDetails(matchId);
+  }
 }
 
 function renderAllMatches({ today, tomorrow, upcoming }) {
