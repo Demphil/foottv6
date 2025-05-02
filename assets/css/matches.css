@@ -1,4 +1,3 @@
-/* matches.css - متوافق مع التحديثات الجديدة */
 :root {
   --primary-red: #e63946;
   --primary-yellow: #ffd166;
@@ -6,238 +5,253 @@
   --text-white: #f1faee;
   --text-black: #1d3557;
   --header-height: 70px;
-  --transition-speed: 0.3s;
 }
 
-/* التنسيق العام - محسن للأداء */
+/* التنسيق العام */
 body {
   font-family: 'Tajawal', sans-serif;
   background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
   margin: 0;
   padding-top: var(--header-height);
   color: var(--text-black);
-  will-change: transform;
 }
-   /* أنماط الهيكل العظمي المضمنة لمنع CLS */
-        .skeleton-slider, .skeleton-broadcast {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .skeleton-card {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            height: 150px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* إخفاء المحتوى الديناميكي حتى يكتمل التحميل */
-        [data-dynamic-content] {
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        
-        /* تحسينات للخطوط */
-        body {
-            font-display: swap;
-        }
 
 .matches-main {
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
-  contain: layout paint;
 }
 
-/* الهيكل العظمي أثناء التحميل - جديد */
-.skeleton-slider,
-.skeleton-broadcast {
-  display: grid;
-  gap: 15px;
-  margin-bottom: 20px;
-  contain: layout;
-}
-
-.skeleton-card {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  height: 150px;
-  position: relative;
-  overflow: hidden;
-}
-
-.skeleton-card::after {
-  content: '';
-  position: absolute;
+/* تنسيق الهيدر (مطابق لـ news.html) */
+.header {
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  backdrop-filter: blur(10px);
+  height: var(--header-height);
+  padding: 0 20px;
+  position: fixed;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  animation: loading 1.5s infinite;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-@keyframes loading {
-  100% { left: 100%; }
+.header .logo img {
+  height: 70px;
 }
 
-/* تنسيق المباريات المميزة - محسن */
+
+
+.header .logo h1 {
+  color: var(--text-white);
+  margin: 0;
+  font-size: 1.3rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.nav ul {
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav ul li a {
+  color: var(--text-white);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.nav ul li a:hover,
+.nav ul li a.active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* تنسيق المباريات المميزة */
+.matches-layout {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
 .featured-section {
   background: var(--glass-bg);
   backdrop-filter: blur(5px);
   border-radius: 10px;
   padding: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  contain: content;
+}
+
+.section-title {
+  color: var(--text-white);
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .featured-slider {
   position: relative;
-  min-height: 400px;
+  height: 400px;
   overflow: hidden;
 }
 
 .featured-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-  will-change: transform;
+  transition: all 0.3s ease;
 }
 
 .featured-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* تنسيق المباريات المنقولة - محسن مع زر المشاهدة */
+.league-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.league-info img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.team img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.vs {
+  font-weight: bold;
+  color: var(--primary-red);
+  font-size: 1.2rem;
+}
+
+.match-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.match-info i {
+  margin-left: 5px;
+  color: var(--primary-red);
+}
+
+/* تنسيق المباريات المنقولة */
 .broadcast-section {
   background: var(--glass-bg);
   backdrop-filter: blur(5px);
   border-radius: 10px;
   padding: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  contain: content;
 }
 
 .broadcast-list {
   display: grid;
   gap: 15px;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .broadcast-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   padding: 15px;
-  transition: all var(--transition-speed) ease;
-  will-change: transform;
-  contain: content;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
 }
 
 .broadcast-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* تحسينات زر المشاهدة - جديد */
+.broadcast-card .teams {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.match-time {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #555;
+}
+
 .watch-btn {
   background: var(--primary-red);
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 6px;
+  padding: 8px 15px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 15px;
-  width: 100%;
-  font-weight: bold;
-  will-change: transform;
+  margin-top: 10px;
 }
 
 .watch-btn:hover {
   background: #c1121f;
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
 }
 
-.watch-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  transform: none !important;
+/* تنسيق جميع المباريات */
+.all-matches {
+  background: var(--glass-bg);
+  backdrop-filter: blur(5px);
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.watch-btn i {
-  transition: transform var(--transition-speed) ease;
-}
-
-.watch-btn:hover i {
-  transform: scale(1.2);
-}
-
-/* معلومات البث - محسن */
-.broadcast-info {
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin: 10px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-}
-
-.broadcast-info.available {
-  background: rgba(40, 167, 69, 0.15);
-  color: #28a745;
-}
-
-.broadcast-info.not-available {
-  background: rgba(220, 53, 69, 0.15);
-  color: #dc3545;
-}
-
-.broadcast-info.no-data {
-  background: rgba(108, 117, 125, 0.15);
-  color: #6c757d;
-}
-
-/* تحسينات الصور - جديد */
-img[loading="lazy"] {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-img[loading="lazy"].loaded {
-  opacity: 1;
-}
-
-.team img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  transition: transform var(--transition-speed) ease;
-}
-
-.team:hover img {
-  transform: scale(1.1);
-}
-
-/* تنسيق علامات التبويب - محسن */
 .matches-tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
-  overflow-x: auto;
-  padding-bottom: 5px;
-  contain: paint;
 }
 
 .tab-btn {
@@ -245,53 +259,136 @@ img[loading="lazy"].loaded {
   color: var(--text-white);
   border: none;
   padding: 8px 15px;
-  border-radius: 20px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
-  white-space: nowrap;
-  will-change: transform;
+  transition: all 0.3s ease;
 }
 
 .tab-btn.active {
   background: var(--text-white);
   color: var(--primary-red);
-  transform: scale(1.05);
 }
 
-/* تحسينات الأداء العامة */
+.matches-grid {
+  display: grid;
+  gap: 15px;
+}
+
 .tab-content {
   display: none;
-  contain: content;
 }
 
 .tab-content.active {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 15px;
-  animation: fadeIn 0.5s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.match-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-/* التجاوب مع الشاشات الصغيرة - محسن */
+.match-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* عناصر التحكم بالسلايدر */
+.slider-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.slider-prev,
+.slider-next {
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--text-white);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-prev:hover,
+.slider-next:hover {
+  background: var(--text-white);
+  color: var(--primary-red);
+}
+
+.slider-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: var(--text-white);
+}
+
+/* رسائل الخطأ والتحميل */
+.error-message {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-red);
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.no-matches {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+}
+
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary-red);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* التجاوب مع الشاشات الصغيرة */
 @media (max-width: 992px) {
   .matches-layout {
     grid-template-columns: 1fr;
   }
   
-  .broadcast-list {
-    grid-template-columns: 1fr;
-  }
-  
   .featured-slider {
-    min-height: 350px;
+    height: auto;
   }
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 0 15px;
+  }
+  
   .tab-content.active {
     grid-template-columns: 1fr;
   }
@@ -299,58 +396,13 @@ img[loading="lazy"].loaded {
   .section-title {
     font-size: 1.3rem;
   }
-  
-  .featured-card,
-  .broadcast-card {
-    padding: 12px;
-  }
 }
 
 @media (max-width: 576px) {
   .matches-tabs {
-    flex-wrap: nowrap;
-    scroll-snap-type: x mandatory;
+    flex-direction: column;
   }
   
   .tab-btn {
-    scroll-snap-align: start;
+    width: 100%;
   }
-  
-  .watch-btn {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-  }
-}
-
-/* تحسينات الوصول والتفاعل */
-[tabindex]:focus-visible,
-button:focus-visible {
-  outline: 3px solid var(--primary-yellow);
-  outline-offset: 2px;
-}
-
-/* تحسينات لرسائل الخطأ والتحميل */
-.error-message {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--primary-red);
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  margin: 15px 0;
-  animation: shake 0.5s ease;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-5px); }
-  40% { transform: translateX(5px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
-}
-
-.no-matches {
-  text-align: center;
-  padding: 20px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1.1rem;
-}
