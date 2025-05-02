@@ -12,15 +12,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // تحميل بيانات المباراة
-        const matchData = await loadMatchData(matchId);
+        // تحميل بيانات المباراة من API
+        const matchData = await fetchMatchData(matchId);
         if (!matchData) {
             showError('بيانات غير متوفرة', 'تعذر تحميل بيانات المباراة');
             return;
         }
 
-        // تحميل بيانات القناة
-        const channelData = getChannelData(channelKey);
+        // تحميل بيانات القنوات من API
+        const channelsData = await fetchChannelsData();
+        if (!channelsData) {
+            showError('بيانات غير متوفرة', 'تعذر تحميل بيانات القنوات');
+            return;
+        }
+
+        // العثور على بيانات القناة المحددة
+        const channelData = channelsData.find(ch => ch.key === channelKey);
         if (!channelData) {
             showError('قناة غير متوفرة', 'تعذر العثور على بيانات القناة');
             return;
@@ -29,10 +36,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // عرض البيانات
         renderMatchInfo(matchData);
         renderChannelInfo(channelData);
-        loadStream(channelKey);
+        loadStream(channelData);
 
         // تحميل القنوات البديلة
-        renderAlternativeChannels(matchData, channelKey);
+        renderAlternativeChannels(matchData, channelKey, channelsData);
 
         // تسجيل المشاهدة
         logView(matchId, channelData.name);
@@ -43,101 +50,143 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// 2. تحميل بيانات المباراة
-async function loadMatchData(matchId) {
+// 2. دالة لجلب بيانات المباراة من API
+async function fetchMatchData(matchId) {
     try {
-        // التحقق من الذاكرة المؤقتة أولاً
-        const cachedData = getCachedMatchData(matchId);
-        if (cachedData) return cachedData;
-
-        // إذا لم توجد في الذاكرة، جلبها من API
         const response = await fetch(`https://api.example.com/matches/${matchId}`);
         if (!response.ok) throw new Error('Failed to fetch match data');
-        
-        const data = await response.json();
-        cacheMatchData(matchId, data);
-        return data;
-
+        return await response.json();
     } catch (error) {
-        console.error('Error loading match data:', error);
+        console.error('Error fetching match data:', error);
         return null;
     }
 }
 
-function getCachedMatchData(matchId) {
-    const cacheKey = `match-${matchId}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (!cached) return null;
-
+// 3. دالة لجلب بيانات القنوات من API
+async function fetchChannelsData() {
     try {
-        const { data, timestamp } = JSON.parse(cached);
-        // صلاحية البيانات لمدة ساعتين
-        return (Date.now() - timestamp < 7200000) ? data : null;
-    } catch {
+        const response = await fetch('https://api.example.com/channels');
+        if (!response.ok) throw new Error('Failed to fetch channels data');
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching channels data:', error);
         return null;
     }
 }
 
-function cacheMatchData(matchId, data) {
-    const cacheKey = `match-${matchId}`;
-    localStorage.setItem(cacheKey, JSON.stringify({
-        data,
-        timestamp: Date.now()
-    }));
-}
-
-// 3. بيانات القنوات
-const CHANNELS_CONFIG = {
-    'bein-sports-hd1': {
-        name: 'bein SPORTS HD1',
-        logo: 'assets/images/channels/bein1.png',
-        streamUrl: 'https://demphil.github.io/beinsports1/'
-    },
-    'bein-sports-hd2': {
-        name: 'bein SPORTS HD2',
-        logo: 'assets/images/channels/bein2.png',
-        streamUrl: 'https://streaming.example.com/bein2'
-    },
-    'ssc-1': {
-        name: 'SSC 1',
-        logo: 'assets/images/channels/ssc1.png',
-        streamUrl: 'https://streaming.example.com/ssc1'
-    },
-    // بقية القنوات...
-};
-
-function getChannelData(channelKey) {
-    return CHANNELS_CONFIG[channelKey] || null;
-}
-
-// 4. عرض البيانات
+// 4. عرض بيانات المباراة
 function renderMatchInfo(match) {
     // عنوان الصفحة
     document.title = `${match.teams.home.name} vs ${match.teams.away.name} - كورة لايف`;
-    document.getElementById('match-title').textContent = 
-        `${match.teams.home.name} vs ${match.teams.away.name}`;
+    
+    // تحديث عناصر واجهة المستخدم
+    const elements = {
+        'match-title': `${match.teams.home.name} vs ${match.teams.away.name}`,
+        'home-name': match.teams.home.name,
+        'away-name': match.teams.away.name,
+        'home-logo': match.teams.home.logo,
+        'away-logo': match.teams.away.logo,
+        'league-name': match.league.name,
+        'league-logo': match.league.logo,
+        'match-venue': match.fixture.venue?.name || 'غير معروف',
+        'match-date': formatMatchDate(match.fixture.date),
+        'match-status': getMatchStatus(match.fixture.status)
+    };
 
-    // معلومات الفريقين
-    document.getElementById('home-name').textContent = match.teams.home.name;
-    document.getElementById('away-name').textContent = match.teams.away.name;
-    document.getElementById('home-logo').src = match.teams.home.logo;
-    document.getElementById('away-logo').src = match.teams.away.logo;
-
-    // معلومات الدوري
-    document.getElementById('league-name').textContent = match.league.name;
-    document.getElementById('league-logo').src = match.league.logo;
-
-    // معلومات إضافية
-    document.getElementById('match-venue').textContent = match.fixture.venue?.name || 'غير معروف';
-    document.getElementById('match-date').textContent = formatMatchDate(match.fixture.date);
-    document.getElementById('match-status').textContent = getMatchStatus(match.fixture.status);
+    Object.entries(elements).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id.includes('-logo')) {
+                element.src = value || 'assets/images/default-team.png';
+                element.onerror = () => {
+                    element.src = 'assets/images/default-team.png';
+                };
+            } else {
+                element.textContent = value;
+            }
+        }
+    });
 }
 
+// 5. عرض معلومات القناة
 function renderChannelInfo(channel) {
-    document.getElementById('channel-name').textContent = channel.name;
-    document.getElementById('channel-logo').src = channel.logo;
+    const channelNameElement = document.getElementById('channel-name');
+    const channelLogoElement = document.getElementById('channel-logo');
+    
+    if (channelNameElement) channelNameElement.textContent = channel.name;
+    if (channelLogoElement) {
+        channelLogoElement.src = channel.logo || 'assets/images/default-channel.png';
+        channelLogoElement.onerror = () => {
+            channelLogoElement.src = 'assets/images/default-channel.png';
+        };
+    }
 }
 
+// 6. تحميل البث المباشر
+function loadStream(channelData) {
+    const iframe = document.getElementById('stream-iframe');
+    const loader = document.querySelector('.video-container .loader');
+    const errorContainer = document.querySelector('.stream-error');
+
+    // إخفاء العناصر غير الضرورية
+    if (iframe) iframe.style.display = 'none';
+    if (errorContainer) errorContainer.style.display = 'none';
+    if (loader) loader.style.display = 'flex';
+
+    // تأخير لمحاكاة التحميل (يمكن إزالته في الإنتاج)
+    setTimeout(() => {
+        if (channelData && channelData.streamUrl) {
+            if (iframe) {
+                iframe.src = channelData.streamUrl;
+                iframe.style.display = 'block';
+                iframe.onerror = () => showStreamError();
+            }
+            if (loader) loader.style.display = 'none';
+        } else {
+            showStreamError();
+        }
+    }, 1000);
+}
+
+// 7. عرض القنوات البديلة
+function renderAlternativeChannels(match, currentChannelKey, channelsData) {
+    const channelsList = document.getElementById('channels-list');
+    if (!channelsList) return;
+    
+    // تصفية القنوات المتاحة لهذه المباراة
+    const availableChannels = match.tv_channels || [];
+    const alternativeChannels = channelsData.filter(ch => 
+        availableChannels.includes(ch.name) && ch.key !== currentChannelKey
+    );
+
+    if (alternativeChannels.length === 0) {
+        const container = document.querySelector('.alternative-channels');
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    // بناء واجهة القنوات البديلة
+    channelsList.innerHTML = alternativeChannels.map(channel => `
+        <div class="channel-item" data-channel="${channel.key}">
+            <img src="${channel.logo}" alt="${channel.name}" 
+                 onerror="this.src='assets/images/default-channel.png'">
+            <span>${channel.name}</span>
+            <button class="switch-btn">تبديل</button>
+        </div>
+    `).join('');
+
+    // إضافة مستمعات الأحداث
+    document.querySelectorAll('.channel-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('switch-btn')) {
+                const channelKey = item.dataset.channel;
+                switchChannel(channelKey);
+            }
+        });
+    });
+}
+
+// 8. وظائف مساعدة
 function formatMatchDate(dateString) {
     const options = { 
         weekday: 'long', 
@@ -163,164 +212,84 @@ function getMatchStatus(status) {
     return statusMap[status] || 'غير معروف';
 }
 
-// 5. تحميل البث المباشر
-function loadStream(channelKey) {
-    const iframe = document.getElementById('stream-iframe');
-    const loader = document.querySelector('.video-container .loader');
-    const errorContainer = document.querySelector('.stream-error');
-
-    // إخفاء العناصر غير الضرورية
-    iframe.style.display = 'none';
-    errorContainer.style.display = 'none';
-    loader.style.display = 'flex';
-
-    // محاكاة تحميل البث (في الواقع سيكون لديك URL حقيقي)
-    setTimeout(() => {
-        const channel = getChannelData(channelKey);
-        if (channel) {
-            iframe.src = channel.streamUrl;
-            iframe.style.display = 'block';
-            loader.style.display = 'none';
-            
-            // إضافة مستمع للأخطاء
-            iframe.onload = () => {
-                // يمكنك هنا التحقق من أن البث يعمل بشكل صحيح
-                console.log('تم تحميل البث بنجاح');
-            };
-            
-            iframe.onerror = () => {
-                showStreamError();
-            };
-        } else {
-            showStreamError();
-        }
-    }, 1500);
-}
-
 function showStreamError() {
     const iframe = document.getElementById('stream-iframe');
     const loader = document.querySelector('.video-container .loader');
     const errorContainer = document.querySelector('.stream-error');
 
-    iframe.style.display = 'none';
-    loader.style.display = 'none';
-    errorContainer.style.display = 'flex';
-
-    // إعادة المحاولة
-    document.querySelector('.retry-btn').addEventListener('click', () => {
-        const params = new URLSearchParams(window.location.search);
-        const channelKey = params.get('channel');
-        loadStream(channelKey);
-    });
-}
-
-// 6. القنوات البديلة
-function renderAlternativeChannels(match, currentChannelKey) {
-    const channelsList = document.getElementById('channels-list');
-    
-    // الحصول على جميع القنوات المتاحة لهذه المباراة
-    const availableChannels = match.tv_channels || [];
-    const arabicChannels = availableChannels.filter(ch => 
-        Object.keys(CHANNELS_CONFIG).includes(getChannelKeyFromName(ch))
-    );
-
-    // إذا لم توجد قنوات بديلة
-    if (arabicChannels.length <= 1) {
-        document.querySelector('.alternative-channels').style.display = 'none';
-        return;
-    }
-
-    // عرض القنوات البديلة
-    channelsList.innerHTML = arabicChannels
-        .filter(ch => {
-            const key = getChannelKeyFromName(ch);
-            return key && key !== currentChannelKey;
-        })
-        .map(ch => {
-            const key = getChannelKeyFromName(ch);
-            const channel = CHANNELS_CONFIG[key];
-            return `
-                <div class="channel-item" data-channel="${key}">
-                    <img src="${channel.logo}" alt="${channel.name}">
-                    <span>${channel.name}</span>
-                    <button class="switch-btn">تبديل</button>
-                </div>
-            `;
-        })
-        .join('');
-
-    // إضافة مستمع للأحداث
-    document.querySelectorAll('.channel-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (e.target.classList.contains('switch-btn')) {
-                const channelKey = item.dataset.channel;
-                switchChannel(channelKey);
+    if (iframe) iframe.style.display = 'none';
+    if (loader) loader.style.display = 'none';
+    if (errorContainer) {
+        errorContainer.style.display = 'flex';
+        errorContainer.querySelector('.retry-btn')?.addEventListener('click', () => {
+            const params = new URLSearchParams(window.location.search);
+            const channelKey = params.get('channel');
+            if (channelKey) {
+                fetchChannelsData().then(channels => {
+                    const channel = channels.find(ch => ch.key === channelKey);
+                    if (channel) loadStream(channel);
+                });
             }
         });
-    });
-}
-
-function getChannelKeyFromName(channelName) {
-    for (const [key, value] of Object.entries(CHANNELS_CONFIG)) {
-        if (value.name === channelName) return key;
     }
-    return null;
 }
 
 function switchChannel(channelKey) {
     const params = new URLSearchParams(window.location.search);
     const matchId = params.get('id');
     
-    // تحديث URL بدون إعادة تحميل الصفحة
-    window.history.replaceState({}, '', `watch.html?id=${matchId}&channel=${channelKey}`);
-    
-    // تحميل القناة الجديدة
-    const channelData = getChannelData(channelKey);
-    if (channelData) {
-        renderChannelInfo(channelData);
-        loadStream(channelKey);
-        showToast(`تم التبديل إلى ${channelData.name}`);
+    if (matchId && channelKey) {
+        window.history.replaceState({}, '', `watch.html?id=${matchId}&channel=${channelKey}`);
+        fetchChannelsData().then(channels => {
+            const channel = channels.find(ch => ch.key === channelKey);
+            if (channel) {
+                renderChannelInfo(channel);
+                loadStream(channel);
+                showToast(`تم التبديل إلى ${channel.name}`);
+            }
+        });
     }
 }
 
-// 7. تسجيل المشاهدة
 function logView(matchId, channelName) {
-    const history = JSON.parse(localStorage.getItem('viewingHistory') || [];
-    
-    // إضافة المشاهدة الجديدة
-    history.unshift({
-        matchId,
-        channel: channelName,
-        timestamp: new Date().toISOString()
-    });
-
-    // حفظ آخر 50 مشاهدة فقط
-    localStorage.setItem('viewingHistory', JSON.stringify(history.slice(0, 50)));
+    try {
+        const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
+        const newHistory = [{ matchId, channel: channelName, timestamp: new Date().toISOString() }, ...history.slice(0, 49)];
+        localStorage.setItem('viewingHistory', JSON.stringify(newHistory));
+    } catch (error) {
+        console.error('Error saving view history:', error);
+    }
 }
 
-// 8. إدارة الأخطاء والرسائل
 function showError(title, message) {
     const header = document.querySelector('.watch-header h1');
-    header.textContent = title;
-    
     const videoContainer = document.querySelector('.video-container');
-    videoContainer.innerHTML = `
-        <div class="error-message">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>${message}</p>
-            <button onclick="window.location.href='matches.html'">
-                العودة إلى المباريات
-            </button>
-        </div>
-    `;
+    
+    if (header) header.textContent = title;
+    if (videoContainer) {
+        videoContainer.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>${message}</p>
+                <button onclick="window.location.href='matches.html'">
+                    العودة إلى المباريات
+                </button>
+            </div>
+        `;
+    }
 }
 
 function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.classList.add('show');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span>${message}</span>`;
+    document.body.appendChild(toast);
     
     setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }, 100);
 }
