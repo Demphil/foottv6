@@ -3,10 +3,24 @@ import { fetchMatches } from './api.js';
 // 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v2',
+  CACHE_KEY: 'football-matches-cache-v3',
   FEATURED_LEAGUES: [2, 39, 140, 135], // دوري الأبطال، الإنجليزي، الإسباني، الإيطالي
   SLIDER_INTERVAL: 20000, // 20 ثانية
-  MAX_BROADCAST_MATCHES: 5
+  MAX_BROADCAST_MATCHES: 5,
+  ARABIC_CHANNELS: {
+    'bein-sports-hd1': 'بي إن سبورت HD1',
+    'bein-sports-hd2': 'بي إن سبورت HD2',
+    'bein-sports-hd3': 'بي إن سبورت HD3',
+    'ssc-1': 'SSC 1',
+    'ssc-2': 'SSC 2',
+    'on-time-sports': 'أون تايم سبورت',
+    'al-kass': 'الكأس',
+    'beinsports1': 'بي إن سبورت HD1',
+    'beIN_1': 'بي إن سبورت HD1',
+    'beIN Sports HD1': 'بي إن سبورت HD1',
+    'beIN-MENA-1': 'بي إن سبورت HD1',
+    'beIN-SPORTS-1': 'بي إن سبورت HD1'
+  }
 };
 
 // 2. عناصر DOM
@@ -21,14 +35,16 @@ const DOM = {
   tabButtons: document.querySelectorAll('.tab-btn'),
   sliderDots: document.querySelector('.slider-dots'),
   prevBtn: document.querySelector('.slider-prev'),
-  nextBtn: document.querySelector('.slider-next')
+  nextBtn: document.querySelector('.slider-next'),
+  toastContainer: document.getElementById('toast-container')
 };
 
 // 3. حالة التطبيق
 let appState = {
   currentTab: 'today',
   sliderInterval: null,
-  currentSlide: 0
+  currentSlide: 0,
+  matchesData: null
 };
 
 // 4. تهيئة الصفحة
@@ -37,14 +53,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     showLoading();
     
     // جلب البيانات مع التخزين المؤقت
-    const matches = await getMatchesData();
-    const categorized = categorizeMatches(matches);
+    appState.matchesData = await getMatchesData();
+    const categorized = categorizeMatches(appState.matchesData);
     
     renderFeaturedMatches(categorized.featured);
     renderBroadcastMatches(categorized.today.slice(0, CONFIG.MAX_BROADCAST_MATCHES));
     renderAllMatches(categorized);
     
     setupEventListeners();
+    setupMatchCards();
     
   } catch (error) {
     console.error('Initialization error:', error);
@@ -92,6 +109,7 @@ function setCache(data) {
 function tryFallbackCache() {
   const cachedData = getValidCache();
   if (cachedData) {
+    appState.matchesData = cachedData;
     const categorized = categorizeMatches(cachedData);
     renderFeaturedMatches(categorized.featured);
     renderAllMatches(categorized);
@@ -206,148 +224,124 @@ function renderBroadcastMatches(matches) {
   }
 
   broadcastContainer.innerHTML = matches.map(match => {
-    const { fixture, teams, league, broadcast = [] } = match; // القيمة الافتراضية لـ broadcast
+    const { fixture, teams, league, broadcast } = match;
     const homeTeam = teams.home;
     const awayTeam = teams.away;
     
-    // تحسين دالة كشف القنوات
-    const arabicBroadcasters = getArabicBroadcasters(broadcast);
-    const hasBroadcastInfo = broadcast?.length > 0;
-    
-    const broadcastersHTML = arabicBroadcasters.length > 0
-      ? `<div class="broadcasters">
-           <i class="fas fa-satellite-dish"></i>
-           ${arabicBroadcasters.join(' - ')}
-         </div>`
-      : `<div class="no-broadcasters">
-           <i class="fas fa-info-circle"></i>
-           ${hasBroadcastInfo ? 'غير متاح على القنوات العربية' : 'لا توجد بيانات بث'}
-         </div>`;
+    // تحديد حالة البث
+    const broadcastStatus = getBroadcastStatus(broadcast);
     
     return `
-      <div class="broadcast-card" data-id="${fixture.id}">
-        <!-- باقي الكود -->
-        ${broadcastersHTML}
-        <!-- باقي الكود -->
+      <div class="broadcast-card" data-id="${fixture.id}" tabindex="0">
+        <div class="teams">
+          <div class="team">
+            <img src="${homeTeam.logo}" 
+                 alt="${homeTeam.name}" 
+                 onerror="this.src='assets/images/default-team.png'"
+                 loading="lazy">
+            <span class="team-name">${homeTeam.name}</span>
+          </div>
+          <div class="match-time">
+            <span class="vs">VS</span>
+            <time datetime="${fixture.date}">${formatKickoffTime(fixture.date)}</time>
+          </div>
+          <div class="team">
+            <img src="${awayTeam.logo}" 
+                 alt="${awayTeam.name}" 
+                 onerror="this.src='assets/images/default-team.png'"
+                 loading="lazy">
+            <span class="team-name">${awayTeam.name}</span>
+          </div>
+        </div>
+        
+        ${renderBroadcastInfo(broadcastStatus)}
+        
+        <div class="match-info">
+          <span class="league-info">
+            <img src="${league.logo || 'assets/images/default-league.png'}" 
+                 alt="${league.name}"
+                 onerror="this.src='assets/images/default-league.png'">
+            ${league.name}
+          </span>
+          <span class="match-venue">
+            <i class="fas fa-map-marker-alt"></i>
+            ${fixture.venue?.name || 'ملعب غير معروف'}
+          </span>
+        </div>
+        <button class="watch-btn" 
+                data-match-id="${fixture.id}"
+                data-channel="${broadcastStatus.channel || ''}"
+                ${broadcastStatus.available ? '' : 'disabled'}
+                aria-label="مشاهدة مباراة ${homeTeam.name} ضد ${awayTeam.name}">
+          <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
+        </button>
       </div>
     `;
   }).join('');
 }
 
-// الإصدار المحسن من دالة كشف القنوات
-function getArabicBroadcasters(broadcastData) {
-  const arabicChannels = {
-    // القنوات الرسمية
-    'bein-sports-hd1': 'بي إن سبورت HD1',
-    'bein-sports-hd2': 'بي إن سبورت HD2',
-    'ssc-1': 'SSC 1',
-    'on-time-sports': 'أون تايم سبورت',
-    
-    // تسميات بديلة قد ترد من API
-    'beinsports1': 'بي إن سبورت HD1',
-    'beIN_1': 'بي إن سبورت HD1',
-    'beIN Sports HD1': 'بي إن سبورت HD1'
+function getBroadcastStatus(broadcast) {
+  const arabicBroadcasters = getArabicBroadcasters(broadcast || []);
+  const hasBroadcastData = broadcast?.length > 0;
+  const hasArabicBroadcast = arabicBroadcasters.length > 0;
+  
+  return {
+    available: hasArabicBroadcast,
+    channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
+    allChannels: arabicBroadcasters,
+    noData: !hasBroadcastData,
+    buttonText: hasArabicBroadcast ? 'مشاهدة البث' : 
+               hasBroadcastData ? 'غير متاح عربي' : 'لا يوجد بث'
   };
+}
 
+function renderBroadcastInfo(status) {
+  if (status.noData) {
+    return `
+      <div class="broadcast-info no-data">
+        <i class="fas fa-info-circle"></i>
+        <span>لا توجد بيانات بث</span>
+      </div>
+    `;
+  }
+  
+  if (status.available) {
+    return `
+      <div class="broadcast-info available">
+        <i class="fas fa-satellite-dish"></i>
+        <span>${status.allChannels.join(' - ')}</span>
+      </div>
+    `;
+  }
+  
+  return `
+    <div class="broadcast-info not-available">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>غير متاح على القنوات العربية</span>
+    </div>
+  `;
+}
+
+function getArabicBroadcasters(broadcastData) {
   if (!broadcastData?.length) return [];
   
   return broadcastData
-    .filter(b => b.name) // تأكد من وجود اسم القناة
+    .filter(b => b && b.name)
     .map(b => {
-      // تنظيف تسمية القناة من API
       const cleanName = b.name
         .toLowerCase()
         .replace(/\s+/g, '-')
-        .replace(/_/g, '-');
+        .replace(/_/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
       
-      // البحث عن تطابق
-      const matchedKey = Object.keys(arabicChannels).find(key => 
-        key.toLowerCase() === cleanName
+      const matchedKey = Object.keys(CONFIG.ARABIC_CHANNELS).find(key => 
+        cleanName.includes(key.toLowerCase())
       );
       
-      return matchedKey ? arabicChannels[matchedKey] : null;
+      return matchedKey ? CONFIG.ARABIC_CHANNELS[matchedKey] : null;
     })
-    .filter(Boolean); // إزالة القيم الفارغة
-}
-
-// دالة مساعدة لتحديد القنوات العربية
-function getArabicBroadcasters(broadcastData) {
-  const arabicChannels = {
-    'bein-sports-hd1': 'بي إن سبورت HD1',
-    'bein-sports-hd2': 'بي إن سبورت HD2',
-    'bein-sports-hd3': 'بي إن سبورت HD3',
-    'ssc-1': 'SSC 1',
-    'ssc-2': 'SSC 2',
-    'on-time-sports': 'أون تايم سبورت',
-    'al-kass': 'الكأس'
-  };
-  
-  if (!broadcastData?.length) return [];
-  
-  return broadcastData
-    .filter(b => arabicChannels[b.name])
-    .map(b => arabicChannels[b.name]);
-}
-
-// دالة مساعدة لتنسيق وقت المباراة
-function formatKickoffTime(dateString) {
-  const options = { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    timeZone: 'Africa/Cairo'
-  };
-  return new Date(dateString).toLocaleTimeString('ar-EG', options);
-}
-
-// دالة مشاهدة المباراة المحدثة
-function watchMatch(matchId, broadcaster) {
-  if (!broadcaster) {
-    alert('لا تتوفر قناة عربية ناقلة لهذه المباراة');
-    return;
-  }
-  
-  // تحديد ملف البث بناءً على القناة
-  const channelMap = {
-    'بي إن سبورت HD1': 'bein-sports-hd1',
-    'بي إن سبورت HD2': 'bein-sports-hd2',
-    'SSC 1': 'ssc-1',
-    'أون تايم سبورت': 'on-time-sports'
-  };
-  
-  const channelFile = channelMap[broadcaster];
-  
-  if (channelFile) {
-    window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
-  } else {
-    alert('جاري العمل على إضافة دعم لهذه القناة قريباً');
-  }
-}
-
-// إضافة مستمعي الأحداث للبطاقات
-function addCardEventListeners() {
-  document.querySelectorAll('.broadcast-card').forEach(card => {
-    card.addEventListener('click', handleCardClick);
-    card.addEventListener('keydown', handleCardKeyPress);
-  });
-}
-
-// التعامل مع النقر على البطاقة
-function handleCardClick(event) {
-  const card = event.currentTarget;
-  if (!event.target.closest('.watch-btn')) {
-    const matchId = card.dataset.id;
-    showMatchDetails(matchId);
-  }
-}
-
-// التعامل مع الضغط على المفتاح في البطاقة
-function handleCardKeyPress(event) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    const card = event.currentTarget;
-    const matchId = card.dataset.id;
-    showMatchDetails(matchId);
-  }
+    .filter(Boolean)
+    .filter((value, index, self) => self.indexOf(value) === index);
 }
 
 function renderAllMatches({ today, tomorrow, upcoming }) {
@@ -428,6 +422,15 @@ function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString('ar-MA', options);
 }
 
+function formatKickoffTime(dateString) {
+  const options = { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    timeZone: 'Africa/Cairo'
+  };
+  return new Date(dateString).toLocaleTimeString('ar-EG', options);
+}
+
 function setupEventListeners() {
   // التبويبات
   DOM.tabButtons.forEach(btn => {
@@ -442,6 +445,53 @@ function setupEventListeners() {
       document.getElementById(`${appState.currentTab}-matches`).classList.add('active');
     });
   });
+}
+
+function setupMatchCards() {
+  // إضافة مستمعي الأحداث لأزرار المشاهدة
+  document.querySelectorAll('.watch-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const matchId = btn.dataset.matchId;
+      const channel = btn.dataset.channel;
+      watchMatch(matchId, channel);
+    });
+  });
+
+  // إضافة مستمعي الأحداث للبطاقات
+  document.querySelectorAll('.broadcast-card').forEach(card => {
+    card.addEventListener('click', handleCardClick);
+    card.addEventListener('keydown', handleCardKeyPress);
+  });
+}
+
+function handleCardClick(event) {
+  const card = event.currentTarget;
+  if (!event.target.closest('.watch-btn')) {
+    const matchId = card.dataset.id;
+    showMatchDetails(matchId);
+  }
+}
+
+function handleCardKeyPress(event) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    const card = event.currentTarget;
+    const matchId = card.dataset.id;
+    showMatchDetails(matchId);
+  }
+}
+
+function showMatchDetails(matchId) {
+  const match = findMatchById(matchId);
+  if (match) {
+    // يمكنك تنفيذ عرض تفاصيل المباراة في modal أو صفحة منفصلة
+    console.log('عرض تفاصيل المباراة:', match);
+  }
+}
+
+function findMatchById(matchId) {
+  return appState.matchesData?.find(m => m.fixture.id == matchId);
 }
 
 // 10. التحكم في الواجهة
@@ -464,41 +514,56 @@ function showError(message) {
   }
 }
 
+function showToast(message, type = 'info') {
+  if (!DOM.toastContainer) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+  DOM.toastContainer.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
+}
+
 // 11. الوظائف العامة
-window.watchMatch = function(matchId) {
-  window.location.href = `watch.html?matchId=${matchId}`;
+window.watchMatch = function(matchId, channelName) {
+  if (!channelName) {
+    showToast('لا تتوفر قناة عربية ناقلة لهذه المباراة', 'error');
+    return;
+  }
+  
+  const channelMap = {
+    'بي إن سبورت HD1': 'bein-sports-hd1',
+    'بي إن سبورت HD2': 'bein-sports-hd2',
+    'بي إن سبورت HD3': 'bein-sports-hd3',
+    'SSC 1': 'ssc-1',
+    'SSC 2': 'ssc-2',
+    'أون تايم سبورت': 'on-time-sports',
+    'الكأس': 'al-kass'
+  };
+  
+  const channelFile = channelMap[channelName];
+  
+  if (channelFile) {
+    logMatchView(matchId, channelName);
+    window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
+  } else {
+    showToast('جاري العمل على إضافة دعم لهذه القناة', 'info');
+  }
 };
+
+function logMatchView(matchId, channel) {
+  const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
+  history.push({
+    matchId,
+    channel,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem('matchViews', JSON.stringify(history));
+}
 
 window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
-  location.reload();
-};
-// js/matches.js
-window.matchesData = {
-    last_updated: "2023-11-20T15:00:00Z",
-    matches: [
-        {
-            id: "m1",
-            home_team: { name: "النصر", logo: "/images/teams/alnassr.png" },
-            away_team: { name: "الهلال", logo: "/images/teams/alhilal.png" },
-            home_score: 2,
-            away_score: 1,
-            time: "76:00",
-            league: "الدوري السعودي",
-            date: "2023-11-20T20:00:00",
-            stadium: "ملعب الملك فهد",
-            referee: "علي القحطاني",
-            stream_url: "https://example.com/stream/m1",
-            stats: {
-                shots_on_target: { home: 5, away: 3 },
-                possession: { home: 48, away: 52 },
-                corners: { home: 6, away: 4 }
-            },
-            events: [
-                { time: "23", type: "goal", description: "هدف", player: "كريستيانو رونالدو" },
-                { time: "45", type: "yellow_card", description: "بطاقة صفراء", player: "سالم الدوسري" }
-            ]
-        },
-        // ... المزيد من المباريات
-    ]
+  showToast('تم مسح ذاكرة التخزين المؤقت', 'success');
+  setTimeout(() => location.reload(), 1000);
 };
