@@ -168,7 +168,7 @@ function initSlider(groups) {
 
   // Create dots
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
-    <span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+    `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
   // Event listeners
@@ -210,12 +210,12 @@ function renderBroadcastMatches(matches) {
   const { broadcastContainer } = DOM;
   
   if (!matches?.length) {
-    broadcastContainer.innerHTML = 
+    broadcastContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-tv"></i>
         <p>No broadcast matches available</p>
       </div>
-    ;
+    `;
     return;
   }
 
@@ -226,7 +226,7 @@ function renderBroadcastMatches(matches) {
     
     const broadcastStatus = getBroadcastStatus(broadcast);
     
-    return 
+    return `
       <div class="broadcast-card" data-id="${fixture.id}" tabindex="0">
         <div class="teams">
           <div class="team">
@@ -271,7 +271,7 @@ function renderBroadcastMatches(matches) {
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
         </button>
       </div>
-    ;
+    `;
   }).join('');
 }
 
@@ -292,29 +292,29 @@ function getBroadcastStatus(broadcast) {
 
 function renderBroadcastInfo(status) {
   if (status.noData) {
-    return 
+    return `
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
         <span>No broadcast data</span>
       </div>
-    ;
+    `;
   }
   
   if (status.available) {
-    return 
+    return `
       <div class="broadcast-info available">
         <i class="fas fa-satellite-dish"></i>
         <span>${status.allChannels.join(' - ')}</span>
       </div>
-    ;
+    `;
   }
   
-  return 
+  return `
     <div class="broadcast-info not-available">
       <i class="fas fa-exclamation-triangle"></i>
       <span>Not available on Arabic channels</span>
     </div>
-  ;
+  `;
 }
 
 function getArabicBroadcasters(broadcastData) {
@@ -348,12 +348,12 @@ function renderAllMatches({ today, tomorrow, upcoming }) {
 function renderMatchList(matches, title) {
   return matches?.length
     ? matches.map(createMatchCard).join('')
-    : <p class="no-matches">No ${title.toLowerCase()} matches</p>;
+    : `<p class="no-matches">No ${title.toLowerCase()} matches</p>`;
 }
 
 // 8. Card Templates
 function createFeaturedCard(match) {
-  return 
+  return `
     <div class="featured-card" data-id="${match.fixture.id}">
       <div class="league-info">
         <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
@@ -375,11 +375,11 @@ function createFeaturedCard(match) {
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
     </div>
-  ;
+  `;
 }
 
 function createMatchCard(match) {
-  return 
+  return `
     <div class="match-card" data-id="${match.fixture.id}">
       <div class="league-info">
         <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
@@ -401,7 +401,7 @@ function createMatchCard(match) {
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
     </div>
-  ;
+  `;
 }
 
 // 9. Helper Functions
@@ -443,7 +443,7 @@ function setupEventListeners() {
       document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
       });
-      document.getElementById(${appState.currentTab}-matches).classList.add('active');
+      document.getElementById(`${appState.currentTab}-matches`).classList.add('active');
     });
   });
 }
@@ -505,12 +505,12 @@ function hideLoading() {
 
 function showError(message) {
   if (DOM.errorContainer) {
-    DOM.errorContainer.innerHTML = 
+    DOM.errorContainer.innerHTML = `
       <div class="error-message">
         <i class="fas fa-exclamation-circle"></i>
         <span>${message}</span>
       </div>
-    ;
+    `;
   }
 }
 
@@ -518,8 +518,8 @@ function showToast(message, type = 'info') {
   if (!DOM.toastContainer) return;
   
   const toast = document.createElement('div');
-  toast.className = toast ${type};
-  toast.innerHTML = <span>${message}</span>;
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
   DOM.toastContainer.appendChild(toast);
   
   setTimeout(() => toast.remove(), 3000);
@@ -546,7 +546,7 @@ window.watchMatch = function(matchId, channelName) {
   
   if (channelFile) {
     logMatchView(matchId, channelName);
-    window.location.href = watch.html?id=${matchId}&channel=${channelFile};
+    window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
   } else {
     showToast('This channel support is coming soon', 'info');
   }
