@@ -39,12 +39,17 @@ body {
   z-index: 1000;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
 .header .logo {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
+.header .logo img {
+  height: 70px;
+}
+
+
 
 .header .logo h1 {
   color: var(--text-white);
