@@ -1,29 +1,25 @@
 import { fetchMatches } from './api.js';
 
-// 1. إعدادات التطبيق
+// 1. App Settings
 const CONFIG = {
-  CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v3',
-  FEATURED_LEAGUES: [2, 39, 140, 135], // دوري الأبطال، الإنجليزي، الإسباني، الإيطالي
-  SLIDER_INTERVAL: 20000, // 20 ثانية
+  CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 hours
+  CACHE_KEY: 'football-matches-cache-v5',
+  FEATURED_LEAGUES: [2, 39, 140, 135], // Champions League, Premier League, La Liga, Serie A
+  SLIDER_INTERVAL: 20000, // 20 seconds
   MAX_BROADCAST_MATCHES: 5,
   ARABIC_CHANNELS: {
-    'bein-sports-hd1': 'بي إن سبورت HD1',
-    'bein-sports-hd2': 'بي إن سبورت HD2',
-    'bein-sports-hd3': 'بي إن سبورت HD3',
+    'bein-sports-hd1': 'bein SPORTS HD1',
+    'bein-sports-hd2': 'bein SPORTS HD2',
+    'bein-sports-hd3': 'bein SPORTS HD3',
     'ssc-1': 'SSC 1',
     'ssc-2': 'SSC 2',
-    'on-time-sports': 'أون تايم سبورت',
-    'al-kass': 'الكأس',
-    'beinsports1': 'بي إن سبورت HD1',
-    'beIN_1': 'بي إن سبورت HD1',
-    'beIN Sports HD1': 'بي إن سبورت HD1',
-    'beIN-MENA-1': 'بي إن سبورت HD1',
-    'beIN-SPORTS-1': 'بي إن سبورت HD1'
-  }
+    'on-time-sports': 'On Time Sports',
+    'al-kass': 'Alkass'
+  },
+  TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
 
-// 2. عناصر DOM
+// 2. DOM Elements
 const DOM = {
   loading: document.getElementById('loading'),
   errorContainer: document.getElementById('error-container'),
@@ -39,7 +35,7 @@ const DOM = {
   toastContainer: document.getElementById('toast-container')
 };
 
-// 3. حالة التطبيق
+// 3. App State
 let appState = {
   currentTab: 'today',
   sliderInterval: null,
@@ -47,12 +43,12 @@ let appState = {
   matchesData: null
 };
 
-// 4. تهيئة الصفحة
+// 4. Initialize Page
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoading();
     
-    // جلب البيانات مع التخزين المؤقت
+    // Get data with caching
     appState.matchesData = await getMatchesData();
     const categorized = categorizeMatches(appState.matchesData);
     
@@ -65,23 +61,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     
   } catch (error) {
     console.error('Initialization error:', error);
-    showError('حدث خطأ في جلب البيانات. جارٍ عرض آخر بيانات متاحة...');
+    showError('Error loading data. Showing last available data...');
     tryFallbackCache();
   } finally {
     hideLoading();
   }
 });
 
-// 5. نظام التخزين المؤقت
+// 5. Cache System
 async function getMatchesData() {
-  // محاولة جلب البيانات من الكاش
+  // Try cache first
   const cachedData = getValidCache();
   if (cachedData) return cachedData;
   
-  // جلب بيانات جديدة من API
+  // Fetch fresh data from API
   const freshData = await fetchMatches();
   
-  // تخزين البيانات الجديدة
+  // Cache new data
   setCache(freshData);
   
   return freshData;
@@ -116,7 +112,7 @@ function tryFallbackCache() {
   }
 }
 
-// 6. معالجة البيانات
+// 6. Data Processing
 function categorizeMatches(matches) {
   const today = new Date();
   const tomorrow = new Date(today);
@@ -138,14 +134,14 @@ function filterByDate(matches, date) {
   );
 }
 
-// 7. عرض البيانات
+// 7. Rendering Functions
 function renderFeaturedMatches(matches) {
   if (!matches?.length) {
-    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
+    DOM.featuredContainer.innerHTML = '<p class="no-matches">No featured matches today</p>';
     return;
   }
 
-  // تقسيم إلى مجموعات كل 4 مباريات
+  // Group into sets of 4 matches
   const groupedMatches = [];
   for (let i = 0; i < matches.length; i += 4) {
     groupedMatches.push(matches.slice(i, i + 4));
@@ -170,12 +166,12 @@ function initSlider(groups) {
     });
   }
 
-  // إنشاء نقاط التوجيه
+  // Create dots
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
     `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
-  // الأحداث
+  // Event listeners
   DOM.prevBtn.addEventListener('click', () => {
     clearInterval(appState.sliderInterval);
     currentIndex = (currentIndex - 1 + groups.length) % groups.length;
@@ -205,7 +201,7 @@ function initSlider(groups) {
     }, CONFIG.SLIDER_INTERVAL);
   }
 
-  // البدء
+  // Initial display
   showSlide(0);
   startSliderInterval();
 }
@@ -217,7 +213,7 @@ function renderBroadcastMatches(matches) {
     broadcastContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-tv"></i>
-        <p>لا توجد مباريات منقولة حالياً</p>
+        <p>No broadcast matches available</p>
       </div>
     `;
     return;
@@ -228,7 +224,6 @@ function renderBroadcastMatches(matches) {
     const homeTeam = teams.home;
     const awayTeam = teams.away;
     
-    // تحديد حالة البث
     const broadcastStatus = getBroadcastStatus(broadcast);
     
     return `
@@ -265,14 +260,14 @@ function renderBroadcastMatches(matches) {
           </span>
           <span class="match-venue">
             <i class="fas fa-map-marker-alt"></i>
-            ${fixture.venue?.name || 'ملعب غير معروف'}
+            ${fixture.venue?.name || 'Unknown venue'}
           </span>
         </div>
         <button class="watch-btn" 
                 data-match-id="${fixture.id}"
                 data-channel="${broadcastStatus.channel || ''}"
                 ${broadcastStatus.available ? '' : 'disabled'}
-                aria-label="مشاهدة مباراة ${homeTeam.name} ضد ${awayTeam.name}">
+                aria-label="Watch match ${homeTeam.name} vs ${awayTeam.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
         </button>
       </div>
@@ -290,8 +285,8 @@ function getBroadcastStatus(broadcast) {
     channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
     allChannels: arabicBroadcasters,
     noData: !hasBroadcastData,
-    buttonText: hasArabicBroadcast ? 'مشاهدة البث' : 
-               hasBroadcastData ? 'غير متاح عربي' : 'لا يوجد بث'
+    buttonText: hasArabicBroadcast ? 'Watch' : 
+               hasBroadcastData ? 'Not available' : 'No broadcast'
   };
 }
 
@@ -300,7 +295,7 @@ function renderBroadcastInfo(status) {
     return `
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
-        <span>لا توجد بيانات بث</span>
+        <span>No broadcast data</span>
       </div>
     `;
   }
@@ -317,7 +312,7 @@ function renderBroadcastInfo(status) {
   return `
     <div class="broadcast-info not-available">
       <i class="fas fa-exclamation-triangle"></i>
-      <span>غير متاح على القنوات العربية</span>
+      <span>Not available on Arabic channels</span>
     </div>
   `;
 }
@@ -345,18 +340,18 @@ function getArabicBroadcasters(broadcastData) {
 }
 
 function renderAllMatches({ today, tomorrow, upcoming }) {
-  DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
-  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
-  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
+  DOM.todayContainer.innerHTML = renderMatchList(today, 'Today');
+  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'Tomorrow');
+  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'Upcoming');
 }
 
 function renderMatchList(matches, title) {
   return matches?.length
     ? matches.map(createMatchCard).join('')
-    : `<p class="no-matches">لا توجد مباريات ${title}</p>`;
+    : `<p class="no-matches">No ${title.toLowerCase()} matches</p>`;
 }
 
-// 8. إنشاء البطاقات
+// 8. Card Templates
 function createFeaturedCard(match) {
   return `
     <div class="featured-card" data-id="${match.fixture.id}">
@@ -377,7 +372,7 @@ function createFeaturedCard(match) {
       </div>
       <div class="match-info">
         <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير محدد'}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
     </div>
   `;
@@ -403,13 +398,13 @@ function createMatchCard(match) {
       </div>
       <div class="match-info">
         <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير محدد'}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
     </div>
   `;
 }
 
-// 9. أدوات مساعدة
+// 9. Helper Functions
 function formatDate(dateStr) {
   const options = { 
     weekday: 'long', 
@@ -417,22 +412,28 @@ function formatDate(dateStr) {
     month: 'long', 
     hour: '2-digit', 
     minute: '2-digit',
-    timeZone: 'Africa/Casablanca'
+    timeZone: CONFIG.TIMEZONE,
+    numberingSystem: 'latn'
   };
-  return new Date(dateStr).toLocaleString('ar-MA', options);
+  
+  let dateText = new Date(dateStr).toLocaleString('en-MA', options);
+  return dateText;
 }
 
 function formatKickoffTime(dateString) {
   const options = { 
     hour: '2-digit', 
     minute: '2-digit',
-    timeZone: 'Africa/Cairo'
+    timeZone: CONFIG.TIMEZONE,
+    numberingSystem: 'latn'
   };
-  return new Date(dateString).toLocaleTimeString('ar-EG', options);
+  
+  let timeText = new Date(dateString).toLocaleTimeString('en-MA', options);
+  return timeText;
 }
 
 function setupEventListeners() {
-  // التبويبات
+  // Tab navigation
   DOM.tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       DOM.tabButtons.forEach(b => b.classList.remove('active'));
@@ -448,7 +449,7 @@ function setupEventListeners() {
 }
 
 function setupMatchCards() {
-  // إضافة مستمعي الأحداث لأزرار المشاهدة
+  // Watch button events
   document.querySelectorAll('.watch-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -458,7 +459,7 @@ function setupMatchCards() {
     });
   });
 
-  // إضافة مستمعي الأحداث للبطاقات
+  // Card click events
   document.querySelectorAll('.broadcast-card').forEach(card => {
     card.addEventListener('click', handleCardClick);
     card.addEventListener('keydown', handleCardKeyPress);
@@ -485,8 +486,7 @@ function handleCardKeyPress(event) {
 function showMatchDetails(matchId) {
   const match = findMatchById(matchId);
   if (match) {
-    // يمكنك تنفيذ عرض تفاصيل المباراة في modal أو صفحة منفصلة
-    console.log('عرض تفاصيل المباراة:', match);
+    console.log('Showing match details:', match);
   }
 }
 
@@ -494,7 +494,7 @@ function findMatchById(matchId) {
   return appState.matchesData?.find(m => m.fixture.id == matchId);
 }
 
-// 10. التحكم في الواجهة
+// 10. UI Controls
 function showLoading() {
   if (DOM.loading) DOM.loading.style.display = 'flex';
 }
@@ -525,21 +525,21 @@ function showToast(message, type = 'info') {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// 11. الوظائف العامة
+// 11. Public Functions
 window.watchMatch = function(matchId, channelName) {
   if (!channelName) {
-    showToast('لا تتوفر قناة عربية ناقلة لهذه المباراة', 'error');
+    showToast('No Arabic channel available for this match', 'error');
     return;
   }
   
   const channelMap = {
-    'بي إن سبورت HD1': 'bein-sports-hd1',
-    'بي إن سبورت HD2': 'bein-sports-hd2',
-    'بي إن سبورت HD3': 'bein-sports-hd3',
+    'bein SPORTS HD1': 'bein-sports-hd1',
+    'bein SPORTS HD2': 'bein-sports-hd2',
+    'bein SPORTS HD3': 'bein-sports-hd3',
     'SSC 1': 'ssc-1',
     'SSC 2': 'ssc-2',
-    'أون تايم سبورت': 'on-time-sports',
-    'الكأس': 'al-kass'
+    'On Time Sports': 'on-time-sports',
+    'Alkass': 'al-kass'
   };
   
   const channelFile = channelMap[channelName];
@@ -548,7 +548,7 @@ window.watchMatch = function(matchId, channelName) {
     logMatchView(matchId, channelName);
     window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
   } else {
-    showToast('جاري العمل على إضافة دعم لهذه القناة', 'info');
+    showToast('This channel support is coming soon', 'info');
   }
 };
 
@@ -564,6 +564,6 @@ function logMatchView(matchId, channel) {
 
 window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
-  showToast('تم مسح ذاكرة التخزين المؤقت', 'success');
+  showToast('Cache cleared successfully', 'success');
   setTimeout(() => location.reload(), 1000);
 };
