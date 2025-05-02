@@ -47,6 +47,10 @@ body {
   gap: 10px;
 }
 
+.header .logo img {
+  height: 55px;
+}
+
 .header .logo h1 {
   color: var(--text-white);
   margin: 0;
