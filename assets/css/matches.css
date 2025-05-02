@@ -139,18 +139,14 @@ body {
   object-fit: contain;
 }
 
-.teams {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 15px 0;
-}
-
 .team {
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 1;
+  background-color: rgba(0, 0, 0, 0.5); /* اللون الأسود مع الشفافية */
+  padding: 10px;
+  border-radius: 10px; /* اختياري لجعل الحواف مدورة */
 }
 
 .team img {
