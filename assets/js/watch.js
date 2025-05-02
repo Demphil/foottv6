@@ -2,62 +2,58 @@
 
 /**
  * =============================================
- *                  تهيئة النظام
+ *               إعدادات النظام
  * =============================================
  */
-
-// إعدادات النظام
-const STREAM_CONFIG = {
+const CONFIG = {
     MAX_RETRIES: 3,
     RETRY_DELAY: 5000,
-    QUALITY_CHECK_INTERVAL: 30000,
-    AUTO_REFRESH_INTERVAL: 3600000 // كل ساعة
-};
-
-// حالة النظام
-let systemState = {
-    currentStream: null,
-    retryCount: 0,
-    connectionSpeed: null,
-    userCountry: null,
-    isFullscreen: false,
-    activeQuality: 'auto'
+    STREAM_TIMEOUT: 10000,
+    HEALTH_CHECK_INTERVAL: 30000
 };
 
 /**
  * =============================================
- *              الوظائف الأساسية
+ *               حالة النظام
  * =============================================
  */
+let systemState = {
+    currentMatch: null,
+    currentStream: null,
+    retryCount: 0,
+    isFullscreen: false,
+    streamHealth: 'loading',
+    quality: 'auto'
+};
 
-// تهيئة الصفحة عند التحميل
+/**
+ * =============================================
+ *             تهيئة الصفحة الرئيسية
+ * =============================================
+ */
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Initializing Watch Page...');
-    
     try {
-        // 1. كشف بلد المستخدم
-        systemState.userCountry = await detectUserCountry();
+        // 1. الحصول على معرف المباراة من URL
+        const matchId = getMatchIdFromURL();
+        if (!matchId) throw new Error('لم يتم تحديد مباراة للمشاهدة');
         
         // 2. تحميل بيانات المباراة
-        const matchId = getMatchIdFromURL();
-        if (!matchId) throw new Error('No match ID provided');
+        systemState.currentMatch = await loadMatchData(matchId);
+        if (!systemState.currentMatch) throw new Error('تعذر تحميل بيانات المباراة');
         
-        const matchData = await loadMatchData(matchId);
-        if (!matchData) throw new Error('Failed to load match data');
+        // 3. عرض بيانات المباراة
+        displayMatchInfo(systemState.currentMatch);
         
-        // 3. تهيئة مشغل الفيديو
-        await initializeVideoPlayer(matchData);
-        
-        // 4. بدء مراقبة الجودة
-        startQualityMonitor();
+        // 4. تهيئة مشغل الفيديو
+        await initializeVideoPlayer();
         
         // 5. إعداد واجهة المستخدم
         setupUI();
         
-        console.log('System initialized successfully');
+        console.log('تم تهيئة الصفحة بنجاح');
     } catch (error) {
-        console.error('Initialization error:', error);
-        showFatalError(error.message);
+        console.error('خطأ في التهيئة:', error);
+        showErrorPage(error.message);
     }
 });
 
@@ -66,61 +62,52 @@ document.addEventListener('DOMContentLoaded', async function() {
  *             إدارة بيانات المباراة
  * =============================================
  */
+function getMatchIdFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
 
 async function loadMatchData(matchId) {
-    console.log(`Loading data for match: ${matchId}`);
-    
     try {
         // 1. المحاولة الأولى: جلب البيانات من API
-        let matchData = await fetchMatchData(matchId);
+        const response = await fetch(`/api/matches/${matchId}`);
+        if (!response.ok) throw new Error('فشل في جلب البيانات');
         
-        // 2. المحاولة الثانية: البيانات المحلية
-        if (!matchData) {
-            matchData = findLocalMatchData(matchId);
-        }
+        const data = await response.json();
+        if (!data.broadcast?.channel) throw new Error('لا يوجد معلومات بث لهذه المباراة');
         
-        if (!matchData) {
-            throw new Error('Match data not available');
-        }
+        return data;
         
-        // 3. تحديث واجهة المستخدم
-        updateMatchUI(matchData);
-        
-        return matchData;
     } catch (error) {
         console.error('Error loading match data:', error);
         throw error;
     }
 }
 
-async function fetchMatchData(matchId) {
-    try {
-        const response = await fetch(`/api/matches/${matchId}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
-    } catch (error) {
-        console.warn('Failed to fetch match data:', error);
-        return null;
-    }
+function displayMatchInfo(match) {
+    // عرض معلومات الفريقين
+    document.getElementById('home-team-name').textContent = match.home_team.name;
+    document.getElementById('away-team-name').textContent = match.away_team.name;
+    document.getElementById('home-team-logo').src = match.home_team.logo || 'assets/images/default-team.png';
+    document.getElementById('away-team-logo').src = match.away_team.logo || 'assets/images/default-team.png';
+    
+    // عرض معلومات المباراة
+    document.getElementById('match-league').textContent = match.league.name;
+    document.getElementById('match-time').textContent = formatMatchTime(match.time);
+    document.getElementById('channel-name').textContent = getChannelName(match.broadcast.channel);
 }
 
-function findLocalMatchData(matchId) {
-    if (!window.matchesData) return null;
-    return window.matchesData.find(match => match.id === matchId);
+function formatMatchTime(time) {
+    return time || '--:--';
 }
 
-function updateMatchUI(matchData) {
-    // تحديث معلومات الفريقين
-    document.getElementById('home-team-name').textContent = matchData.home_team.name;
-    document.getElementById('away-team-name').textContent = matchData.away_team.name;
-    
-    // تحديث الشعارات
-    document.getElementById('home-team-logo').src = matchData.home_team.logo || 'assets/images/default-team.png';
-    document.getElementById('away-team-logo').src = matchData.away_team.logo || 'assets/images/default-team.png';
-    
-    // تحديث معلومات المباراة
-    document.getElementById('match-league').textContent = matchData.league.name;
-    document.getElementById('match-time').textContent = formatMatchTime(matchData.time);
+function getChannelName(channelId) {
+    const channels = {
+        'bein-sports-hd1': 'بي إن سبورت HD1',
+        'bein-sports-hd2': 'بي إن سبورت HD2',
+        'ssc-1': 'SSC 1'
+    };
+    return channels[channelId] || channelId;
 }
 
 /**
@@ -128,276 +115,83 @@ function updateMatchUI(matchData) {
  *             إدارة مشغل الفيديو
  * =============================================
  */
-
-async function initializeVideoPlayer(matchData) {
-    console.log('Initializing video player...');
-    
+async function initializeVideoPlayer() {
     try {
-        // 1. تحديد قناة البث
-        const broadcastChannel = matchData.broadcast.channel;
-        const streamType = matchData.broadcast.type; // 'official', 'backup', 'restricted'
+        // 1. الحصول على مصدر البث
+        const streamSource = getStreamSource();
         
-        // 2. الحصول على مصادر البث
-        const streamSources = getStreamSources(broadcastChannel, streamType);
-        if (!streamSources.length) throw new Error('No available stream sources');
+        // 2. إنشاء عنصر الفيديو
+        createVideoElement(streamSource);
         
-        // 3. بدء تشغيل البث
-        systemState.currentStream = {
-            channel: broadcastChannel,
-            sources: streamSources,
-            currentSourceIndex: 0
-        };
-        
-        await playCurrentStream();
-        
-        // 4. إعداد التحديث التلقائي
-        setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                refreshStream();
-            }
-        }, STREAM_CONFIG.AUTO_REFRESH_INTERVAL);
+        // 3. بدء مراقبة حالة البث
+        startStreamHealthCheck();
         
     } catch (error) {
-        console.error('Failed to initialize video player:', error);
+        console.error('خطأ في تهيئة مشغل الفيديو:', error);
         throw error;
     }
 }
 
-async function playCurrentStream() {
-    const currentSource = systemState.currentStream.sources[systemState.currentStream.currentSourceIndex];
+function getStreamSource() {
+    const channel = systemState.currentMatch.broadcast.channel;
+    const streamFile = `assets/streams/${channel}.html`;
     
-    try {
-        // 1. التحقق من توفر المصدر
-        await checkStreamAvailability(currentSource.url);
-        
-        // 2. تحميل مشغل الفيديو المناسب
-        loadVideoPlayer(currentSource);
-        
-        // 3. تحديث واجهة المستخدم
-        updateStreamInfo(currentSource);
-        
-        // 4. إعادة تعيين عداد المحاولات
-        systemState.retryCount = 0;
-        
-    } catch (error) {
-        console.error('Stream error:', error);
-        handleStreamError();
-    }
+    return {
+        type: 'iframe',
+        url: `${streamFile}?match=${systemState.currentMatch.id}`,
+        backup: systemState.currentMatch.broadcast.backup_sources || []
+    };
 }
 
-function loadVideoPlayer(source) {
+function createVideoElement(streamSource) {
     const videoContainer = document.getElementById('video-container');
-    
-    // مسح أي مشغل سابق
     videoContainer.innerHTML = '';
     
-    // تحديد نوع المشغل المناسب
-    if (source.type === 'embed') {
-        videoContainer.innerHTML = `
-            <iframe src="${source.url}" 
-                    frameborder="0" 
-                    allowfullscreen
-                    allow="autoplay; encrypted-media">
-            </iframe>`;
-    } 
-    else if (source.type === 'hls') {
-        videoContainer.innerHTML = `
-            <video id="hls-player" controls autoplay>
-                <source src="${source.url}" type="application/x-mpegURL">
-            </video>`;
-        initializeHLSPlayer(source.url);
-    }
-    else {
-        videoContainer.innerHTML = `
-            <video controls autoplay>
-                <source src="${source.url}" type="video/mp4">
-            </video>`;
-    }
-}
-
-function initializeHLSPlayer(url) {
-    if (typeof Hls === 'undefined') return;
+    const iframe = document.createElement('iframe');
+    iframe.src = streamSource.url;
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('allow', 'autoplay; encrypted-media');
+    iframe.onload = () => onStreamLoaded();
+    iframe.onerror = () => handleStreamError(streamSource.backup);
     
-    const video = document.getElementById('hls-player');
-    const hls = new Hls({
-        maxBufferLength: 30,
-        maxMaxBufferLength: 600,
-        maxBufferSize: 60 * 1000 * 1000,
-        maxBufferHole: 0.5
-    });
-    
-    hls.loadSource(url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.ERROR, function(event, data) {
-        if (data.fatal) {
-            handleStreamError();
-        }
-    });
+    videoContainer.appendChild(iframe);
+    systemState.currentStream = iframe;
 }
 
-/**
- * =============================================
- *             إدارة مصادر البث
- * =============================================
- */
-
-function getStreamSources(channel, streamType) {
-    // مصادر البث الافتراضية
-    const defaultSources = [
-        {
-            type: 'embed',
-            url: `/assets/streams/${channel}.html`,
-            quality: 'auto',
-            isOfficial: true
-        },
-        {
-            type: 'hls',
-            url: `https://cdn.example.com/streams/${channel}/index.m3u8`,
-            quality: '1080p',
-            isOfficial: false
-        }
-    ];
-    
-    // تصفية المصادر حسب النوع والجودة
-    return defaultSources.filter(source => {
-        // إذا كان البث رسميًا وتم طلب نوع رسمي
-        if (streamType === 'official' && !source.isOfficial) return false;
-        
-        // إذا كان البث مقيدًا جغرافيًا
-        if (source.geoRestricted && !source.allowedCountries.includes(systemState.userCountry)) {
-            return false;
-        }
-        
-        return true;
-    });
+function onStreamLoaded() {
+    systemState.streamHealth = 'active';
+    updateStreamStatus('مباشر');
 }
 
-async function checkStreamAvailability(url) {
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject('Timeout'), 5000);
-        
-        fetch(url, { method: 'HEAD' })
-            .then(response => {
-                clearTimeout(timeout);
-                response.ok ? resolve() : reject('Stream not available');
-            })
-            .catch(() => {
-                clearTimeout(timeout);
-                reject('Connection failed');
-            });
-    });
-}
-
-function handleStreamError() {
+function handleStreamError(backupSources) {
     systemState.retryCount++;
     
-    if (systemState.retryCount <= STREAM_CONFIG.MAX_RETRIES) {
-        // الانتقال إلى المصدر التالي
-        systemState.currentStream.currentSourceIndex = 
-            (systemState.currentStream.currentSourceIndex + 1) % systemState.currentStream.sources.length;
+    if (systemState.retryCount <= CONFIG.MAX_RETRIES && backupSources.length > 0) {
+        const nextSource = backupSources[0];
+        console.log('جرب مصدر احتياطي:', nextSource);
         
-        // إعادة المحاولة بعد تأخير
-        setTimeout(() => playCurrentStream(), STREAM_CONFIG.RETRY_DELAY);
+        setTimeout(() => {
+            createVideoElement({
+                type: nextSource.type,
+                url: nextSource.url,
+                backup: backupSources.slice(1)
+            });
+        }, CONFIG.RETRY_DELAY);
     } else {
-        showStreamError('تعذر الاتصال بمصادر البث المتاحة');
+        showNoStreamAvailable();
     }
 }
 
-function refreshStream() {
-    console.log('Refreshing stream...');
-    systemState.currentStream.currentSourceIndex = 0;
-    playCurrentStream();
-}
-
-/**
- * =============================================
- *             إدارة جودة البث
- * =============================================
- */
-
-function startQualityMonitor() {
-    // 1. كشف سرعة الاتصال
-    detectConnectionSpeed()
-        .then(speed => {
-            systemState.connectionSpeed = speed;
-            adjustQualityBasedOnSpeed(speed);
-        });
-    
-    // 2. مراقبة الجودة بشكل دوري
-    setInterval(() => {
-        if (document.visibilityState === 'visible') {
-            checkCurrentQuality();
+function startStreamHealthCheck() {
+    const interval = setInterval(() => {
+        if (systemState.streamHealth === 'active') {
+            // يمكنك إضافة اختبارات أكثر تطوراً هنا
+            console.log('البث يعمل بشكل طبيعي');
+        } else {
+            console.warn('تحذير: البث غير نشط');
+            handleStreamError(systemState.currentMatch.broadcast.backup_sources || []);
         }
-    }, STREAM_CONFIG.QUALITY_CHECK_INTERVAL);
-}
-
-async function detectConnectionSpeed() {
-    return new Promise(resolve => {
-        const testUrl = 'https://example.com/speed-test?size=100';
-        const startTime = Date.now();
-        
-        fetch(testUrl)
-            .then(() => {
-                const duration = (Date.now() - startTime) / 1000;
-                const speed = 100 / duration; // KB/s
-                resolve(speed);
-            })
-            .catch(() => resolve(1)); // سرعة افتراضية إذا فشل الاختبار
-    });
-}
-
-function adjustQualityBasedOnSpeed(speed) {
-    let quality;
-    
-    if (speed > 5) quality = '1080p';
-    else if (speed > 2) quality = '720p';
-    else quality = '480p';
-    
-    if (quality !== systemState.activeQuality) {
-        systemState.activeQuality = quality;
-        applyQualitySettings(quality);
-    }
-}
-
-function applyQualitySettings(quality) {
-    console.log(`Applying quality settings: ${quality}`);
-    // هنا يمكنك تطبيق إعدادات الجودة على مشغل الفيديو
-    // مثلاً تغيير رابط البث أو تعديل إعدادات HLS
-}
-
-function checkCurrentQuality() {
-    const videoElement = document.querySelector('video');
-    if (!videoElement) return;
-    
-    // كشف معدل الإطارات الحالي
-    const fps = calculateCurrentFPS(videoElement);
-    
-    // إذا كان معدل الإطارات منخفضاً، خفض الجودة
-    if (fps < 24 && systemState.activeQuality !== '480p') {
-        adjustQualityBasedOnSpeed(1); // فرض جودة منخفضة
-    }
-}
-
-function calculateCurrentFPS(video) {
-    let lastTime = performance.now();
-    let lastFrame = video.currentTime;
-    let fps = 0;
-    
-    function checkFPS() {
-        const now = performance.now();
-        const delta = (now - lastTime) / 1000;
-        const frameDelta = video.currentTime - lastFrame;
-        
-        if (delta >= 0.5 && frameDelta > 0) {
-            fps = frameDelta / delta;
-            lastTime = now;
-            lastFrame = video.currentTime;
-        }
-        
-        return fps;
-    }
-    
-    return checkFPS();
+    }, CONFIG.HEALTH_CHECK_INTERVAL);
 }
 
 /**
@@ -405,7 +199,6 @@ function calculateCurrentFPS(video) {
  *             إدارة واجهة المستخدم
  * =============================================
  */
-
 function setupUI() {
     // أزرار التحكم
     document.getElementById('quality-btn').addEventListener('click', toggleQualityMenu);
@@ -413,15 +206,7 @@ function setupUI() {
     document.getElementById('refresh-btn').addEventListener('click', refreshStream);
     
     // إدارة وضع ملء الشاشة
-    document.addEventListener('fullscreenchange', () => {
-        systemState.isFullscreen = !!document.fullscreenElement;
-    });
-}
-
-function updateStreamInfo(source) {
-    document.getElementById('channel-name').textContent = source.channelName || systemState.currentStream.channel;
-    document.getElementById('stream-quality').textContent = systemState.activeQuality.toUpperCase();
-    document.getElementById('stream-status').textContent = 'مباشر';
+    document.addEventListener('fullscreenchange', updateFullscreenState);
 }
 
 function toggleQualityMenu() {
@@ -434,25 +219,28 @@ function toggleQualityMenu() {
 }
 
 function renderQualityOptions() {
-    const qualities = ['auto', '1080p', '720p', '480p'];
+    const qualities = ['auto', 'hd', 'sd'];
     const container = document.getElementById('quality-options');
     
-    container.innerHTML = qualities.map(quality => `
-        <div class="quality-option ${quality === systemState.activeQuality ? 'active' : ''}" 
-             data-quality="${quality}">
-            ${quality.toUpperCase()}
+    container.innerHTML = qualities.map(q => `
+        <div class="quality-option ${q === systemState.quality ? 'active' : ''}" 
+             data-quality="${q}">
+            ${q.toUpperCase()}
         </div>
     `).join('');
     
-    // إضافة مستمعي الأحداث
     document.querySelectorAll('.quality-option').forEach(option => {
         option.addEventListener('click', () => {
-            systemState.activeQuality = option.dataset.quality;
-            applyQualitySettings(systemState.activeQuality);
-            document.getElementById('stream-quality').textContent = systemState.activeQuality.toUpperCase();
+            systemState.quality = option.dataset.quality;
+            applyQualitySettings();
             document.getElementById('quality-menu').classList.remove('active');
         });
     });
+}
+
+function applyQualitySettings() {
+    console.log('تم تغيير الجودة إلى:', systemState.quality);
+    // هنا يمكنك تطبيق إعدادات الجودة على البث
 }
 
 function toggleFullscreen() {
@@ -460,89 +248,76 @@ function toggleFullscreen() {
     
     if (!systemState.isFullscreen) {
         videoContainer.requestFullscreen().catch(err => {
-            console.error('Error attempting to enable fullscreen:', err);
+            console.error('خطأ في تفعيل ملء الشاشة:', err);
         });
     } else {
         document.exitFullscreen();
     }
 }
 
+function updateFullscreenState() {
+    systemState.isFullscreen = !!document.fullscreenElement;
+}
+
+function refreshStream() {
+    systemState.retryCount = 0;
+    initializeVideoPlayer();
+}
+
+function updateStreamStatus(status) {
+    document.getElementById('stream-status').textContent = status;
+}
+
 /**
  * =============================================
- *             معالجة الأخطاء
+ *             معالجة الأخطاء والرسائل
  * =============================================
  */
-
-function showStreamError(message) {
+function showNoStreamAvailable() {
     const videoContainer = document.getElementById('video-container');
     videoContainer.innerHTML = `
-        <div class="stream-error">
+        <div class="no-stream">
+            <i class="fas fa-video-slash"></i>
+            <h3>لا يتوفر بث مباشر حالياً</h3>
+            <p>سيتم عرض تسجيل المباراة فور انتهائها</p>
+            <img src="assets/images/default-video.jpg" alt="صورة بديلة">
+        </div>
+    `;
+}
+
+function showErrorPage(message) {
+    const main = document.querySelector('main');
+    main.innerHTML = `
+        <div class="error-page">
             <i class="fas fa-exclamation-triangle"></i>
-            <h3>خطأ في البث</h3>
+            <h2>حدث خطأ</h2>
             <p>${message}</p>
-            <div class="error-actions">
-                <button id="retry-stream" class="error-btn">
-                    <i class="fas fa-sync-alt"></i> إعادة المحاولة
-                </button>
-                <button id="report-problem" class="error-btn">
-                    <i class="fas fa-flag"></i> الإبلاغ عن مشكلة
+            <div class="actions">
+                <a href="matches.html" class="btn">
+                    <i class="fas fa-arrow-left"></i> العودة إلى المباريات
+                </a>
+                <button onclick="location.reload()" class="btn">
+                    <i class="fas fa-sync-alt"></i> إعادة تحميل
                 </button>
             </div>
         </div>
     `;
-    
-    document.getElementById('retry-stream').addEventListener('click', refreshStream);
-    document.getElementById('report-problem').addEventListener('click', reportProblem);
-}
-
-function showFatalError(message) {
-    const mainContent = document.querySelector('main');
-    mainContent.innerHTML = `
-        <div class="fatal-error">
-            <i class="fas fa-times-circle"></i>
-            <h3>خطأ فادح</h3>
-            <p>${message}</p>
-            <a href="/matches.html" class="back-btn">
-                <i class="fas fa-arrow-left"></i> العودة إلى المباريات
-            </a>
-        </div>
-    `;
-}
-
-function reportProblem() {
-    console.log('Problem reported');
-    // هنا يمكنك إضافة كود الإبلاغ عن المشاكل
 }
 
 /**
  * =============================================
- *             أدوات مساعدة
+ *               الأحداث العامة
  * =============================================
  */
-
-function getMatchIdFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('id');
-}
-
-function formatMatchTime(time) {
-    // تنسيق وقت المباراة
-    return time || '--:--';
-}
-
-async function detectUserCountry() {
-    try {
-        const response = await fetch('https://ipapi.co/json/');
-        const data = await response.json();
-        return data.country_code || 'SA'; // Default to Saudi Arabia
-    } catch (error) {
-        console.error('Failed to detect country:', error);
-        return 'SA';
-    }
-}
-
-// كشف الأخطاء غير المعالجة
 window.addEventListener('error', function(event) {
-    console.error('Unhandled error:', event.error);
-    showFatalError('حدث خطأ غير متوقع في النظام');
+    console.error('خطأ غير معالج:', event.error);
+    showErrorPage('حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.');
 });
+
+// دعم HLS.js إذا كان متاحاً
+if (typeof Hls !== 'undefined') {
+    Hls.DefaultConfig.maxBufferLength = 30;
+    Hls.DefaultConfig.maxMaxBufferLength = 600;
+    Hls.DefaultConfig.maxBufferSize = 60 * 1000 * 1000;
+    Hls.DefaultConfig.maxBufferHole = 0.5;
+}
