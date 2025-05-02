@@ -3,169 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشاهدة المباراة | matches.news</title>
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/watch.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <title>مشاهدة البث المباشر - كورة لايف</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/watch.css">
+    <link rel="preload" href="js/watch.js" as="script">
 </head>
 <body>
-    <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.html">
-                    <img src="assets/images/logo-white.png" alt="Matches News Logo">
-                </a>
+    <div class="watch-container">
+        <!-- شريط العنوان -->
+        <header class="watch-header">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <h1 id="match-title">جارٍ التحميل...</h1>
+            <div class="channel-info">
+                <img id="channel-logo" src="assets/images/channel-default.png" alt="قناة البث">
+                <span id="channel-name">--</span>
             </div>
-            <nav class="main-nav">
-                <ul>
-                    <li><a href="index.html">الرئيسية</a></li>
-                    <li><a href="matches.html">المباريات</a></li>
-                    <li><a href="news.html">الأخبار</a></li>
-                    <li><a href="news-videos.html">الفيديوهات</a></li>
-                </ul>
-            </nav>
-            <div class="mobile-menu-toggle">
-                <i class="fas fa-bars"></i>
+        </header>
+
+        <!-- مشغل الفيديو -->
+        <div class="video-container">
+            <div class="loader">
+                <div class="spinner"></div>
+                <p>جارٍ تحميل البث المباشر...</p>
             </div>
-        </div>
-    </header>
-
-    <main class="match-container">
-        <div class="match-content">
-            <!-- قسم الفيديو -->
-            <section class="video-section">
-                <div class="video-container" id="main-video">
-                    <div class="loading-spinner">
-                        <div class="spinner"></div>
-                        <p>جاري تحميل البث المباشر...</p>
-                    </div>
-                </div>
-                
-                <div class="match-controls">
-                    <button class="control-btn quality-btn">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span class="quality-text">HD</span>
-                    </button>
-                    <button class="control-btn fullscreen-btn">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                </div>
-            </section>
-
-            <!-- معلومات المباراة -->
-            <section class="match-info-section">
-                <div class="teams-info">
-                    <div class="team home-team">
-                        <img src="assets/images/default-team.png" alt="الفريق المضيف" id="home-logo">
-                        <h3 id="home-name">فريق 1</h3>
-                    </div>
-                    <div class="match-score-time">
-                        <div class="match-score">
-                            <span id="home-score">0</span>
-                            <span class="score-separator">-</span>
-                            <span id="away-score">0</span>
-                        </div>
-                        <div class="match-time" id="match-time">45:00</div>
-                    </div>
-                    <div class="team away-team">
-                        <img src="assets/images/default-team.png" alt="الفريق الضيف" id="away-logo">
-                        <h3 id="away-name">فريق 2</h3>
-                    </div>
-                </div>
-
-                <div class="match-details">
-                    <div class="detail-item">
-                        <span class="detail-label">البطولة:</span>
-                        <span class="detail-value" id="league">الدوري الممتاز</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">الملعب:</span>
-                        <span class="detail-value" id="stadium">ملعب المدينة</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">الحكم:</span>
-                        <span class="detail-value" id="referee">محمد عبد الله</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">التاريخ:</span>
-                        <span class="detail-value" id="match-date">20 نوفمبر 2023</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- إحصائيات وأحداث المباراة -->
-            <div class="stats-events-container">
-                <!-- إحصائيات المباراة -->
-                <section class="match-stats-section">
-                    <h3 class="section-title"><i class="fas fa-chart-bar"></i> إحصائيات المباراة</h3>
-                    <div class="stats-container" id="match-stats">
-                        <!-- سيتم ملؤها عبر JavaScript -->
-                    </div>
-                </section>
-
-                <!-- أحداث المباراة -->
-                <section class="match-events-section">
-                    <h3 class="section-title"><i class="fas fa-list-ul"></i> أحداث المباراة</h3>
-                    <div class="events-timeline" id="events-timeline">
-                        <!-- سيتم ملؤها عبر JavaScript -->
-                    </div>
-                </section>
+            <iframe id="stream-iframe" frameborder="0" allowfullscreen></iframe>
+            <div class="stream-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>حدث خطأ أثناء تحميل البث. يرجى المحاولة لاحقاً.</p>
+                <button class="retry-btn">إعادة المحاولة</button>
             </div>
         </div>
-    </main>
 
-    <footer class="main-footer">
-        <div class="footer-container">
-            <div class="footer-logo">
-                <img src="assets/images/logo.png" alt="Matches News Logo">
-            </div>
-            <div class="footer-links">
-                <div class="links-section">
-                    <h4>روابط سريعة</h4>
-                    <ul>
-                        <li><a href="index.html">الرئيسية</a></li>
-                        <li><a href="matches.html">المباريات</a></li>
-                        <li><a href="news.html">الأخبار</a></li>
-                        <li><a href="news-videos.html">الفيديوهات</a></li>
-                    </ul>
+        <!-- معلومات المباراة -->
+        <div class="match-info">
+            <div class="teams">
+                <div class="team">
+                    <img id="home-logo" src="assets/images/default-team.png" alt="الفريق المضيف">
+                    <span id="home-name">--</span>
                 </div>
-                <div class="links-section">
-                    <h4>الدوريات</h4>
-                    <ul>
-                        <li><a href="#">الدوري السعودي</a></li>
-                        <li><a href="#">الدوري الإنجليزي</a></li>
-                        <li><a href="#">دوري أبطال أوروبا</a></li>
-                        <li><a href="#">كأس العالم</a></li>
-                    </ul>
+                <div class="match-time">
+                    <span class="vs">VS</span>
+                    <time id="kickoff-time">--:--</time>
                 </div>
-                <div class="links-section">
-                    <h4>اتصل بنا</h4>
-                    <ul>
-                        <li><a href="#"><i class="fas fa-envelope"></i> info@matches.news</a></li>
-                        <li><a href="#"><i class="fas fa-phone"></i> +666</a></li>
-                    </ul>
+                <div class="team">
+                    <img id="away-logo" src="assets/images/default-team.png" alt="الفريق الضيف">
+                    <span id="away-name">--</span>
                 </div>
             </div>
-            <div class="footer-social">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-youtube"></i></a>
+            <div class="league-info">
+                <img id="league-logo" src="assets/images/default-league.png" alt="الدوري">
+                <span id="league-name">--</span>
             </div>
         </div>
-        <div class="footer-copyright">
-            <p>© 2023 matches.news جميع الحقوق محفوظة</p>
+
+        <!-- القنوات البديلة -->
+        <div class="alternative-channels">
+            <h3><i class="fas fa-satellite-dish"></i> قنوات بديلة</h3>
+            <div class="channels-list" id="channels-list">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </div>
         </div>
-    </footer>
-    <script>
-const params = new URLSearchParams(window.location.search);
-const matchId = params.get('id');
-const channel = params.get('channel');
-    </script>
-    <script src="assets/js/watch.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="assets/js/main.js"></script>
+
+        <!-- معلومات إضافية -->
+        <div class="additional-info">
+            <div class="info-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                    <span>الملعب</span>
+                    <p id="match-venue">--</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-calendar-alt"></i>
+                <div>
+                    <span>التاريخ</span>
+                    <p id="match-date">--</p>
+                </div>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <span>حالة المباراة</span>
+                    <p id="match-status">--</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرسائل العائمة -->
+    <div id="toast" class="toast"></div>
+
+    <!-- الجافاسكريبت -->
+    <script type="module" src="assets/js/watch.js"></script>
 </body>
 </html>
