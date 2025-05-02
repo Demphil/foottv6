@@ -1,5 +1,4 @@
 const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
-const FIXTURE_DETAILS_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
 const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // ⚠️ استخدم .env في بيئة الإنتاج
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
@@ -12,55 +11,11 @@ const leagues = [
     { id: 78, name: 'الدوري الألماني' },
     { id: 307, name: 'الدوري المغربي' },
     { id: 308, name: 'دوري أبطال إفريقيا' },
-    { id: 309, name: 'الدوري المغربي' }
-];
-
-// قائمة بالقنوات العربية المعروفة
-const ARABIC_CHANNELS = [
-    'bein sports', 'mbc pro sports', 'abu dhabi sports',
-    'dubai sports', 'shahid', 'alkass', 'ssc', 'on time sports'
+    { id: 309, name: 'كأس الاتحاد الإفريقي' }
 ];
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
-
-// دالة مساعدة لاستخراج القنوات العربية
-const extractArabicChannels = (fixtureDetails) => {
-    if (!fixtureDetails || !fixtureDetails.broadcasts) return [];
-    
-    return fixtureDetails.broadcasts
-        .flatMap(broadcast => broadcast.items || [])
-        .filter(item => ARABIC_CHANNELS.some(channel => 
-            item.name.toLowerCase().includes(channel.toLowerCase())
-        ))
-        .map(item => item.name);
-};
-
-// دالة لجلب تفاصيل المباراة
-const fetchFixtureDetails = async (fixtureId) => {
-    try {
-        const response = await fetch(
-            `${FIXTURE_DETAILS_URL}?id=${fixtureId}`,
-            {
-                method: 'GET',
-                headers: {
-                    'X-RapidAPI-Key': API_KEY,
-                    'X-RapidAPI-Host': API_HOST,
-                },
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`❌ خطأ في جلب تفاصيل المباراة: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.response[0] || null;
-    } catch (error) {
-        console.error(`🚨 فشل جلب تفاصيل المباراة ${fixtureId}:`, error);
-        return null;
-    }
-};
 
 export const fetchMatches = async () => {
     try {
@@ -97,29 +52,18 @@ export const fetchMatches = async () => {
 
                     const data = await response.json();
 
-                    if (!data.response || data.response.length === 0) {
+                    if (!Array.isArray(data.response) || data.response.length === 0) {
                         console.warn(`⚠️ لا توجد مباريات لبطولة ${league.name}`);
                         return [];
                     }
 
-                    // جلب تفاصيل كل مباراة مع القنوات
-                    const matchesWithDetails = await Promise.all(
-                        data.response.map(async (match) => {
-                            const details = await fetchFixtureDetails(match.fixture.id);
-                            const channels = details ? extractArabicChannels(details) : [];
-                            
-                            return {
-                                ...match,
-                                league: {
-                                    ...match.league,
-                                    name_ar: league.name
-                                },
-                                tv_channels: channels.length > 0 ? channels : ['غير معروف']
-                            };
-                        })
-                    );
-
-                    return matchesWithDetails;
+                    return data.response.map(match => ({
+                        ...match,
+                        league: {
+                            ...match.league,
+                            name_ar: league.name // 🔁 فقط نضيف الاسم العربي هنا
+                        }
+                    }));
                 } catch (error) {
                     lastError = error;
                     retries++;
