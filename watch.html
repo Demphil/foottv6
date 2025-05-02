@@ -1,1 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاهدة المباراة | matches.news</title>
+    <link rel="stylesheet" href="css/watch.css">
+    <!-- نفس ستايل صفحة news.html -->
+</head>
+<body>
+    <header>
+        <!-- نفس هيدر صفحة news.html -->
+    </header>
 
+    <main class="match-container">
+        <!-- قسم الفيديو -->
+        <section class="video-section">
+            <div class="video-container" id="main-video">
+                <!-- سيتم حقن الفيديو عبر JavaScript -->
+                <div class="loading">جاري تحميل البث المباشر...</div>
+            </div>
+            
+            <div class="match-controls">
+                <button class="quality-btn">الجودة <span>HD</span></button>
+                <button class="fullscreen-btn">ملء الشاشة</button>
+            </div>
+        </section>
+
+        <!-- معلومات المباراة -->
+        <section class="match-info">
+            <div class="teams-info">
+                <div class="team home-team">
+                    <img src="" alt="الفريق المضيف" id="home-logo">
+                    <h3 id="home-name">فريق 1</h3>
+                </div>
+                <div class="match-score">
+                    <span id="home-score">0</span> - 
+                    <span id="away-score">0</span>
+                    <div class="match-time" id="match-time">45:00</div>
+                </div>
+                <div class="team away-team">
+                    <img src="" alt="الفريق الضيف" id="away-logo">
+                    <h3 id="away-name">فريق 2</h3>
+                </div>
+            </div>
+
+            <div class="match-details">
+                <div class="detail">
+                    <span>البطولة:</span>
+                    <span id="league">الدوري الممتاز</span>
+                </div>
+                <div class="detail">
+                    <span>الملعب:</span>
+                    <span id="stadium">ملعب المدينة</span>
+                </div>
+                <div class="detail">
+                    <span>الحكم:</span>
+                    <span id="referee">محمد عبد الله</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- إحصائيات المباراة -->
+        <section class="match-stats">
+            <h3>إحصائيات المباراة</h3>
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat home-stat" style="width: 60%"></div>
+                    <div class="stat-name">تسديدات</div>
+                    <div class="stat away-stat" style="width: 40%"></div>
+                </div>
+                <!-- المزيد من الإحصائيات -->
+            </div>
+        </section>
+
+        <!-- أحداث المباراة -->
+        <section class="match-events">
+            <h3>أحداث المباراة</h3>
+            <div class="events-timeline" id="events-timeline">
+                <!-- سيتم ملؤها عبر JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <!-- نفس فوتر صفحة news.html -->
+    </footer>
+
+    <script src="js/watch.js"></script>
+</body>
+</html>
