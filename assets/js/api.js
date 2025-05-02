@@ -11,11 +11,27 @@ const leagues = [
     { id: 78, name: 'الدوري الألماني' },
     { id: 307, name: 'الدوري المغربي' },
     { id: 308, name: 'دوري أبطال إفريقيا' },
-    { id: 309, name: 'كأس الاتحاد الإفريقي' }
+    { id: 309, name: 'الدوري المغربي' }
 ];
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
+
+// دالة لتحديد القنوات الافتراضية حسب الدوري
+function getDefaultChannels(leagueId) {
+    const channelsMap = {
+        2: ['bein SPORTS HD1', 'bein SPORTS HD2'],       // دوري أبطال أوروبا
+        39: ['bein SPORTS HD3', 'SSC 1'],               // الدوري الإنجليزي
+        140: ['bein SPORTS HD1', 'Abu Dhabi Sports'],    // الدوري الإسباني
+        135: ['bein SPORTS HD2', 'SSC 2'],              // الدوري الإيطالي
+        61: ['bein SPORTS HD3', 'On Time Sports'],      // الدوري الفرنسي
+        78: ['bein SPORTS HD1', 'ZDF'],                 // الدوري الألماني
+        307: ['Arryadia', 'Al Aoula'],                 // الدوري المغربي
+        308: ['bein SPORTS HD4', 'Arryadia'],          // دوري أبطال إفريقيا
+        309: ['Al Aoula', 'Arryadia']                  // الدوري المغربي
+    };
+    return channelsMap[leagueId] || ['غير معروف'];
+}
 
 export const fetchMatches = async () => {
     try {
@@ -57,13 +73,16 @@ export const fetchMatches = async () => {
                         return [];
                     }
 
+                    // إضافة القنوات الافتراضية لكل مباراة
                     return data.response.map(match => ({
                         ...match,
                         league: {
                             ...match.league,
-                            name_ar: league.name // 🔁 فقط نضيف الاسم العربي هنا
-                        }
+                            name_ar: league.name
+                        },
+                        tv_channels: getDefaultChannels(league.id)
                     }));
+
                 } catch (error) {
                     lastError = error;
                     retries++;
@@ -72,7 +91,8 @@ export const fetchMatches = async () => {
                 }
             }
 
-            throw lastError;
+            console.error(`❌ فشل جلب بيانات ${league.name} بعد ${MAX_RETRIES} محاولات`);
+            return [];
         });
 
         const results = await Promise.all(requests);
