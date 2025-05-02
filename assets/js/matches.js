@@ -345,3 +345,32 @@ window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
   location.reload();
 };
+// js/matches.js
+window.matchesData = {
+    last_updated: "2023-11-20T15:00:00Z",
+    matches: [
+        {
+            id: "m1",
+            home_team: { name: "النصر", logo: "/images/teams/alnassr.png" },
+            away_team: { name: "الهلال", logo: "/images/teams/alhilal.png" },
+            home_score: 2,
+            away_score: 1,
+            time: "76:00",
+            league: "الدوري السعودي",
+            date: "2023-11-20T20:00:00",
+            stadium: "ملعب الملك فهد",
+            referee: "علي القحطاني",
+            stream_url: "https://example.com/stream/m1",
+            stats: {
+                shots_on_target: { home: 5, away: 3 },
+                possession: { home: 48, away: 52 },
+                corners: { home: 6, away: 4 }
+            },
+            events: [
+                { time: "23", type: "goal", description: "هدف", player: "كريستيانو رونالدو" },
+                { time: "45", type: "yellow_card", description: "بطاقة صفراء", player: "سالم الدوسري" }
+            ]
+        },
+        // ... المزيد من المباريات
+    ]
+};
