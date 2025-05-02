@@ -131,6 +131,7 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
 }
 
 .league-info img {
