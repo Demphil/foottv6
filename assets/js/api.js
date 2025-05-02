@@ -1,5 +1,5 @@
 const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
-const FIXTURE_DETAILS_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures'; // لنفس الAPI ولكن لجلب التفاصيل
+const FIXTURE_DETAILS_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
 const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // ⚠️ استخدم .env في بيئة الإنتاج
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
@@ -15,7 +15,7 @@ const leagues = [
     { id: 309, name: 'الدوري المغربي' }
 ];
 
-// قائمة بالقنوات العربية المعروفة (يمكن تحديثها حسب الحاجة)
+// قائمة بالقنوات العربية المعروفة
 const ARABIC_CHANNELS = [
     'bein sports', 'mbc pro sports', 'abu dhabi sports',
     'dubai sports', 'shahid', 'alkass', 'ssc', 'on time sports'
@@ -24,7 +24,7 @@ const ARABIC_CHANNELS = [
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 
-// دالة مساعدة لاستخراج القنوات العربية من بيانات المباراة
+// دالة مساعدة لاستخراج القنوات العربية
 const extractArabicChannels = (fixtureDetails) => {
     if (!fixtureDetails || !fixtureDetails.broadcasts) return [];
     
@@ -32,11 +32,11 @@ const extractArabicChannels = (fixtureDetails) => {
         .flatMap(broadcast => broadcast.items || [])
         .filter(item => ARABIC_CHANNELS.some(channel => 
             item.name.toLowerCase().includes(channel.toLowerCase())
-        )
+        ))
         .map(item => item.name);
 };
 
-// دالة جديدة لجلب تفاصيل المباراة (بما فيها القنوات الناقلة)
+// دالة لجلب تفاصيل المباراة
 const fetchFixtureDetails = async (fixtureId) => {
     try {
         const response = await fetch(
@@ -97,12 +97,12 @@ export const fetchMatches = async () => {
 
                     const data = await response.json();
 
-                    if (!Array.isArray(data.response) || data.response.length === 0) {
+                    if (!data.response || data.response.length === 0) {
                         console.warn(`⚠️ لا توجد مباريات لبطولة ${league.name}`);
                         return [];
                     }
 
-                    // جلب تفاصيل كل مباراة (بما فيها القنوات)
+                    // جلب تفاصيل كل مباراة مع القنوات
                     const matchesWithDetails = await Promise.all(
                         data.response.map(async (match) => {
                             const details = await fetchFixtureDetails(match.fixture.id);
@@ -134,7 +134,7 @@ export const fetchMatches = async () => {
         const results = await Promise.all(requests);
         const allMatches = results.flat();
 
-        console.log(`✅ تم جلب ${allMatches.length} مباراة بنجاح مع القنوات الناقلة`);
+        console.log(`✅ تم جلب ${allMatches.length} مباراة بنجاح`);
         return allMatches;
     } catch (error) {
         console.error('🚨 فشل جلب المباريات:', error);
