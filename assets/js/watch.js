@@ -1,66 +1,93 @@
+// watch.js - الإصدار الكامل المتكامل
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // تحليل معلمات URL بشكل أكثر دقة
-        const urlParams = new URL(window.location.href).searchParams;
-        const matchId = urlParams.get('id');
-        const channelKey = urlParams.get('channel');
-
-        // تحقق أكثر شمولاً من المعلمات
-        if (!matchId || !channelKey || isNaN(matchId)) {
-            showError('رابط غير صحيح', 'لم يتم توفير معرّف المباراة أو القناة بشكل صحيح');
-            return;
-        }
-
-        // بيانات تجريبية للمباراة (للاختبار)
-        const mockMatchData = {
-            teams: {
-                home: { name: "النادي الأهلي" },
-                away: { name: "النادي الهلال" }
-            },
-            league: { name: "الدوري السعودي للمحترفين" },
-            fixture: { date: new Date().toISOString() }
+        // 1. جلب معلمات URL سواء في الصفحة الرئيسية أو iframe
+        const getUrlParams = () => {
+            try {
+                const parentUrl = window.parent !== window ? window.parent.location.href : null;
+                const currentUrl = window.location.href;
+                return new URL(parentUrl || currentUrl).searchParams;
+            } catch (e) {
+                return new URLSearchParams(window.location.search);
+            }
         };
 
-        // بيانات القناة (استخدم البيانات الحقيقية هنا)
-        const channelData = getChannelData(channelKey);
-        if (!channelData) {
-            showError('قناة غير متوفرة', 'تعذر العثور على بيانات القناة المطلوبة');
+        const params = getUrlParams();
+        const matchId = params.get('id');
+        const channelKey = params.get('channel');
+
+        // 2. التحقق من وجود المعلمات المطلوبة
+        if (!matchId || !channelKey) {
+            showError('رابط غير صحيح', 'يجب الدخول عبر رابط المباراة الصحيح');
             return;
         }
 
-        // عرض البيانات (استخدم mockMatchData للاختبار)
-        renderMatchInfo(mockMatchData);
+        // 3. جلب بيانات المباراة من matches.js
+        const matchData = await getMatchData(matchId);
+        if (!matchData) {
+            showError('بيانات غير متوفرة', 'تعذر تحميل بيانات المباراة');
+            return;
+        }
+
+        // 4. جلب بيانات القناة
+        const channelData = getChannelData(channelKey);
+        if (!channelData) {
+            showError('قناة غير متوفرة', 'تعذر العثور على القناة المطلوبة');
+            return;
+        }
+
+        // 5. عرض البيانات
+        renderMatchInfo(matchData);
         renderChannelInfo(channelData);
-        loadStream(channelData);
+        setupVideoPlayer(channelData);
+
+        // 6. إعداد الاتصال مع الصفحة الرئيسية إذا كنا في iframe
+        if (window.self !== window.top) {
+            window.parent.postMessage({
+                type: 'iframe-loaded',
+                matchId,
+                status: 'ready'
+            }, '*');
+        }
 
     } catch (error) {
         console.error('حدث خطأ:', error);
-        showError('خطأ في النظام', 'تعذر تحميل الصفحة بشكل كامل');
+        showError('خطأ فني', 'حدث خطأ غير متوقع');
     }
 });
 
-// باقي الدوال تبقى كما هي...
-
-// 2. دالة لجلب بيانات المباراة
+// دالة لجلب بيانات المباراة من matches.js
 async function getMatchData(matchId) {
     try {
-        // جلب من التخزين المحلي أولاً
-        const cached = localStorage.getItem(`match_${matchId}`);
-        if (cached) return JSON.parse(cached);
-        
-        // أو جلب من API إذا لزم الأمر
-        const response = await fetch(`https://api.example.com/matches/${matchId}`);
-        if (!response.ok) throw new Error('Failed to fetch match data');
-        const data = await response.json();
-        localStorage.setItem(`match_${matchId}`, JSON.stringify(data));
-        return data;
+        // البحث في localStorage أولاً
+        const cachedMatches = localStorage.getItem('cached_matches');
+        if (cachedMatches) {
+            const matches = JSON.parse(cachedMatches);
+            const foundMatch = matches.find(m => m.id == matchId);
+            if (foundMatch) return foundMatch;
+        }
+
+        // إذا لم توجد في الذاكرة، نبحث في matches.js
+        if (typeof window.matchesData !== 'undefined') {
+            const foundMatch = window.matchesData.find(m => m.id == matchId);
+            if (foundMatch) {
+                // نحفظها في localStorage لاستخدامها لاحقًا
+                const currentCache = JSON.parse(localStorage.getItem('cached_matches') || []);
+                localStorage.setItem('cached_matches', JSON.stringify([...currentCache, foundMatch]));
+                return foundMatch;
+            }
+        }
+
+        // إذا لم توجد في أي مكان
+        return null;
+
     } catch (error) {
-        console.error('Error loading match data:', error);
+        console.error('خطأ في جلب بيانات المباراة:', error);
         return null;
     }
 }
 
-// 3. دالة لجلب بيانات القناة
+// دالة لجلب بيانات القناة
 function getChannelData(channelKey) {
     const CHANNELS = {
         'bein-sports-hd1': {
@@ -68,131 +95,78 @@ function getChannelData(channelKey) {
             logo: 'assets/images/channels/bein1.png',
             streamUrl: 'https://demphil.github.io/beinsports1/'
         },
-        'bein-sports-hd2': {
-            name: 'bein SPORTS HD2',
-            logo: 'assets/images/channels/bein2.png',
-            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
-        },
-        // ... أضف بقية القنوات بنفس الهيكل
+        // يمكنك إضافة المزيد من القنوات هنا
     };
     return CHANNELS[channelKey] || null;
 }
 
-// 4. عرض معلومات المباراة
+// دالة لعرض معلومات المباراة
 function renderMatchInfo(match) {
-    const matchTitle = document.getElementById('match-title');
-    const homeName = document.getElementById('home-name');
-    const awayName = document.getElementById('away-name');
-    const leagueName = document.getElementById('league-name');
-    const matchTime = document.getElementById('match-time');
-
-    if (matchTitle) matchTitle.textContent = `${match.teams.home.name} vs ${match.teams.away.name}`;
-    if (homeName) homeName.textContent = match.teams.home.name;
-    if (awayName) awayName.textContent = match.teams.away.name;
-    if (leagueName) leagueName.textContent = match.league.name;
-    if (matchTime) matchTime.textContent = new Date(match.fixture.date).toLocaleString('ar-SA');
+    document.getElementById('match-title').textContent = `${match.homeTeam} vs ${match.awayTeam}`;
+    document.getElementById('home-name').textContent = match.homeTeam;
+    document.getElementById('away-name').textContent = match.awayTeam;
+    document.getElementById('league-name').textContent = match.league;
+    document.getElementById('match-time').textContent = new Date(match.date).toLocaleString('ar-SA');
 }
 
-// 5. عرض معلومات القناة
+// دالة لعرض معلومات القناة
 function renderChannelInfo(channel) {
-    const channelName = document.getElementById('channel-name');
-    const channelLogo = document.getElementById('channel-logo');
-
-    if (channelName) channelName.textContent = channel.name;
-    if (channelLogo) {
-        channelLogo.src = channel.logo;
-        channelLogo.onerror = () => channelLogo.src = 'assets/images/default-channel.png';
-    }
+    const logo = document.getElementById('channel-logo');
+    logo.src = channel.logo;
+    logo.alt = channel.name;
+    document.getElementById('channel-name').textContent = channel.name;
 }
 
-// 6. تحميل البث المباشر
-function loadStream(channelData) {
+// دالة لإعداد مشغل الفيديو
+function setupVideoPlayer(channelData) {
     const playerContainer = document.getElementById('player-container');
-    const loadingIndicator = document.getElementById('loading');
-    const errorContainer = document.getElementById('error-container');
+    playerContainer.innerHTML = '';
 
-    // إخفاء الرسائل وإظهار التحميل
-    if (errorContainer) errorContainer.style.display = 'none';
-    if (loadingIndicator) loadingIndicator.style.display = 'block';
-    if (playerContainer) playerContainer.innerHTML = '';
-
-    // إنشاء مشغل الفيديو
     const video = document.createElement('video');
     video.controls = true;
     video.autoplay = true;
+    video.playsInline = true;
     video.style.width = '100%';
-    
+
+    // إعداد مصدر الفيديو
     const source = document.createElement('source');
     source.src = channelData.streamUrl;
     source.type = 'application/x-mpegURL';
-    
+
     video.appendChild(source);
-    if (playerContainer) playerContainer.appendChild(video);
+    playerContainer.appendChild(video);
 
-    // معالجة الأحداث
-    video.onloadeddata = () => {
-        if (loadingIndicator) loadingIndicator.style.display = 'none';
-    };
-    
-    video.onerror = () => {
-        if (loadingIndicator) loadingIndicator.style.display = 'none';
-        if (errorContainer) {
-            errorContainer.style.display = 'block';
-            errorContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>تعذر تحميل البث المباشر</span>
-                    <button class="btn-retry" onclick="retryStream()">إعادة المحاولة</button>
-                </div>
-            `;
-        }
-    };
-
-    // دعم HLS.js لمتصفحات غير Chrome
+    // دعم HLS.js للمتصفحات التي تحتاجه
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(channelData.streamUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR, function(event, data) {
+        hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
-                if (errorContainer) {
-                    errorContainer.style.display = 'block';
-                    errorContainer.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>خطأ في تشغيل البث</span>
-                            <button class="btn-retry" onclick="retryStream()">إعادة المحاولة</button>
-                        </div>
-                    `;
-                }
+                showError('خطأ في البث', 'تعذر تشغيل البث المباشر');
             }
         });
     }
+
+    video.addEventListener('error', () => {
+        showError('خطأ في التشغيل', 'تعذر تحميل الفيديو');
+    });
 }
 
-// 7. إعادة تحميل البث
-window.retryStream = function() {
-    const params = new URLSearchParams(window.location.search);
-    const channelKey = params.get('channel');
-    const channelData = getChannelData(channelKey);
-    if (channelData) loadStream(channelData);
-};
-
-// 8. إدارة الأخطاء
+// دالة لعرض الأخطاء
 function showError(title, message) {
     const errorContainer = document.getElementById('error-container');
-    const loadingIndicator = document.getElementById('loading');
-
-    if (errorContainer) {
-        errorContainer.innerHTML = `
-            <div class="alert alert-danger">
-                <h4>${title}</h4>
-                <p>${message}</p>
-                <a href="matches.html" class="btn-back">العودة إلى المباريات</a>
-            </div>
-        `;
-        errorContainer.style.display = 'block';
-    }
-    
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    errorContainer.innerHTML = `
+        <div class="error-message">
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <button onclick="window.location.reload()">إعادة المحاولة</button>
+            <a href="matches.html" class="back-btn">العودة للمباريات</a>
+        </div>
+    `;
+    errorContainer.style.display = 'block';
 }
+
+// جعل الدوال متاحة globally للاتصال بين الصفحات
+window.getMatchData = getMatchData;
+window.loadStream = setupVideoPlayer;
