@@ -46,31 +46,6 @@ if (!matchId) {
     console.error(err);  // Use 'err' instead of 'error'
     document.getElementById("match-title").textContent = "فشل تحميل بيانات المباراة.";
   });
-
-
-
-
-
-
-
-You said:
-watch.js:46 TypeError: Cannot read properties of null (reading '1')
-    at watch.js:23:62
-(anonymous)	@	watch.js:46
-Promise.catch		
-(anonymous)	@	watch.js:45
-
-
-ChatGPT said:
-The error you're encountering suggests that the text.match() method is not finding a match for the regular expression, which is causing it to return null. As a result, when you try to access the [1] element of null, it throws a TypeError.
-
-To fix this, you can add a check to ensure that the match() method actually returns a valid result before trying to access it.
-
-Here's an updated version of the code with a safety check:
-
-javascript
-Copy
-Edit
 fetch("assets/js/matches.js")
   .then((res) => res.text())
   .then((text) => {
