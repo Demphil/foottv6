@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>مشاهدة المباراة</title>
-  <link rel="stylesheet" href="assets/css/watch.css">
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاهدة البث المباشر</title>
+    <link rel="stylesheet" href="css/watch.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
 <div id="loading">
@@ -11,28 +13,8 @@
     <p>جارٍ تحميل البث المباشر...</p>
 </div>
 
-<div id="match-title"></div>
-<div id="home-name"></div>
-<div id="away-name"></div>
-<div id="league-name"></div>
-<div id="match-time"></div>
-<div id="channel-name"></div>
-<img id="channel-logo" src="" alt="شعار القناة">
-<div id="player-container"></div>
-<footer>
-<!-- معلومات القناة (اختياري) -->
-<div class="channel-info">
-    <img id="channel-logo" src="" alt="شعار القناة">
-    <span id="channel-name"></span>
-</div>
-</footer>
-<script>
-  // الكشف عن وضع iframe تلقائياً
-  if (window.self !== window.top) {
-    document.body.classList.add('iframe-mode');
-  }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+   
+
 
   <script src="assets/js/watch.js"></script>
 </body>
