@@ -16,7 +16,7 @@ const channelParam = urlParams.get("channel");
 if (!matchId) {
   document.getElementById("match-title").textContent = "لا توجد مباراة محددة.";
 } else {
-  fetch("matches.js")
+  fetch("assets/js/matches.js")
     .then((res) => res.text())
     .then((text) => {
       // استخراج مصفوفة المباريات من الملف النصي
