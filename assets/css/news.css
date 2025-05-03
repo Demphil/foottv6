@@ -134,7 +134,7 @@ body {
 }
 
 .section-title {
-  color: var(--text-white);
+  color: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
   font-size: 1.5rem;
   margin: 0;
   display: flex;
@@ -183,7 +183,7 @@ body {
 
 .breaking-news-content h3 {
   color: var(--primary-black);
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin: 0 0 5px 0;
 }
 
