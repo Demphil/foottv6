@@ -1,101 +1,72 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشاهدة البث المباشر - كورة لايف</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/js/watch.css">
-    <link rel="preload" href="assets/js/watch.js" as="script">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مشاهدة المباراة - كورة لايف</title>
+  <link rel="stylesheet" href="watch.css" />
+  <link rel="stylesheet" href="assets/css/shared.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2e0e6b2e2.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="watch-container">
-        <!-- شريط العنوان -->
-        <header class="watch-header">
-            <button class="back-btn" onclick="window.history.back()">
-                <i class="fas fa-arrow-right"></i>
-            </button>
-            <h1 id="match-title">جارٍ التحميل...</h1>
-            <div class="channel-info">
-                <img id="channel-logo" src="assets/images/channel-default.png" alt="قناة البث">
-                <span id="channel-name">--</span>
-            </div>
-        </header>
 
-        <!-- مشغل الفيديو -->
-        <div class="video-container">
-            <div class="loader">
-                <div class="spinner"></div>
-                <p>جارٍ تحميل البث المباشر...</p>
-            </div>
-            <iframe id="stream-iframe" frameborder="0" allowfullscreen></iframe>
-            <div class="stream-error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>حدث خطأ أثناء تحميل البث. يرجى المحاولة لاحقاً.</p>
-                <button class="retry-btn">إعادة المحاولة</button>
-            </div>
-        </div>
+  <!-- رأس الصفحة -->
+  <header class="watch-header">
+    <h1 id="match-title">تحميل...</h1>
+  </header>
 
-        <!-- معلومات المباراة -->
-        <div class="match-info">
-            <div class="teams">
-                <div class="team">
-                    <img id="home-logo" src="assets/images/default-team.png" alt="الفريق المضيف">
-                    <span id="home-name">--</span>
-                </div>
-                <div class="match-time">
-                    <span class="vs">VS</span>
-                    <time id="kickoff-time">--:--</time>
-                </div>
-                <div class="team">
-                    <img id="away-logo" src="assets/images/default-team.png" alt="الفريق الضيف">
-                    <span id="away-name">--</span>
-                </div>
-            </div>
-            <div class="league-info">
-                <img id="league-logo" src="assets/images/default-league.png" alt="الدوري">
-                <span id="league-name">--</span>
-            </div>
-        </div>
-
-        <!-- القنوات البديلة -->
-        <div class="alternative-channels">
-            <h3><i class="fas fa-satellite-dish"></i> قنوات بديلة</h3>
-            <div class="channels-list" id="channels-list">
-                <!-- سيتم ملؤها بالجافاسكريبت -->
-            </div>
-        </div>
-
-        <!-- معلومات إضافية -->
-        <div class="additional-info">
-            <div class="info-card">
-                <i class="fas fa-map-marker-alt"></i>
-                <div>
-                    <span>الملعب</span>
-                    <p id="match-venue">--</p>
-                </div>
-            </div>
-            <div class="info-card">
-                <i class="fas fa-calendar-alt"></i>
-                <div>
-                    <span>التاريخ</span>
-                    <p id="match-date">--</p>
-                </div>
-            </div>
-            <div class="info-card">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <span>حالة المباراة</span>
-                    <p id="match-status">--</p>
-                </div>
-            </div>
-        </div>
+  <!-- بطاقة المباراة -->
+  <section class="match-card">
+    <div class="teams-info">
+      <div class="team">
+        <img id="home-logo" src="assets/images/default-team.png" alt="شعار الفريق المستضيف">
+        <span id="home-name">الفريق 1</span>
+      </div>
+      <div class="vs">VS</div>
+      <div class="team">
+        <img id="away-logo" src="assets/images/default-team.png" alt="شعار الفريق الضيف">
+        <span id="away-name">الفريق 2</span>
+      </div>
     </div>
 
-    <!-- الرسائل العائمة -->
-    <div id="toast" class="toast"></div>
+    <div class="match-details">
+      <div class="league-info">
+        <img id="league-logo" src="assets/images/default-league.png" alt="شعار البطولة">
+        <span id="league-name">اسم البطولة</span>
+      </div>
+      <div class="extra-info">
+        <p id="match-venue">الملعب: ...</p>
+        <p id="match-date">التاريخ: ...</p>
+      </div>
+      <div class="status" id="match-status">الحالة: ...</div>
+    </div>
+  </section>
 
-    <!-- الجافاسكريبت -->
-    <script type="module" src="assets/js/watch.js"></script>
+  <!-- معلومات القناة -->
+  <section class="channel-info">
+    <img id="channel-logo" src="assets/images/default-channel.png" alt="شعار القناة">
+    <span id="channel-name">اسم القناة</span>
+  </section>
+
+  <!-- مشغل الفيديو -->
+  <section class="video-container">
+    <div class="loader" style="display: none;">جاري التحميل...</div>
+    <div class="stream-error" style="display: none;">
+      <p>تعذر تحميل البث</p>
+      <button class="retry-btn">إعادة المحاولة</button>
+    </div>
+    <iframe id="stream-iframe" allowfullscreen></iframe>
+  </section>
+
+  <!-- القنوات البديلة -->
+  <section class="alternative-channels">
+    <h2>قنوات بديلة</h2>
+    <div id="channels-list"></div>
+  </section>
+
+  <!-- سكريبتات -->
+  <script src="watch.js"></script>
 </body>
 </html>
