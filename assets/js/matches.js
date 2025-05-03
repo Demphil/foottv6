@@ -1,4 +1,4 @@
-matches.js / import { fetchMatches } from './api.js';
+ import { fetchMatches } from './api.js';
 
 // 1. App Settings
 const CONFIG = {
