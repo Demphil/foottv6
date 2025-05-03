@@ -46,7 +46,6 @@ if (!matchId) {
     console.error(err);  // Use 'err' instead of 'error'
     document.getElementById("match-title").textContent = "فشل تحميل بيانات المباراة.";
   });
-This should resolve the ReferenceError. Now, the error will be correctly logged as err inside the catch block.
 
 
 
