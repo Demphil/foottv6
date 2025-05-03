@@ -120,7 +120,7 @@ function getChannelData(channelKey) {
         'bein-sports-hd1': {
             name: 'bein SPORTS HD1',
             logo: 'assets/images/channels/bein1.png',
-            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+            streamUrl: 'https://stream.sainaertebat.com/hls2/bein1.m3u8'
         },
         'bein-sports-hd2': {
             name: 'bein SPORTS HD2',
