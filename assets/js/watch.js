@@ -1,4 +1,14 @@
 // 1. تهيئة الصفحة
+if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(channelData.streamUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.ERROR, function(event, data) {
+        if (data.fatal) {
+            showStreamError();
+        }
+    });
+}
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // تحليل معلمات URL
