@@ -43,7 +43,7 @@ if (!matchId) {
       }
     })
     .catch((err) => {
-      console.error(err);
+      console.error(error);
       document.getElementById("match-title").textContent = "فشل تحميل بيانات المباراة.";
     });
 }
