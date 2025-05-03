@@ -205,7 +205,7 @@ function initSlider(groups) {
 
   // إنشاء نقاط التوجيه
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
-    `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
+    <span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
   ).join('');
 
   // أحداث التحكم
@@ -240,12 +240,12 @@ function initSlider(groups) {
 
 function renderBroadcastMatches(matches) {
   if (!matches?.length) {
-    DOM.broadcastContainer.innerHTML = `
+    DOM.broadcastContainer.innerHTML = 
       <div class="no-matches">
         <i class="fas fa-tv"></i>
         <p>لا توجد مباريات منقولة حالياً</p>
       </div>
-    `;
+    ;
     return;
   }
 
@@ -255,18 +255,58 @@ function renderBroadcastMatches(matches) {
       ch => Object.keys(CONFIG.CHANNEL_URL_MAP).includes(ch)
     );
 
-    const knownChannels = broadcastStatus.allChannels.filter(
-  ch => Object.keys(CONFIG.CHANNEL_URL_MAP).includes(ch)
-);
+    const watchButton = firstKnownChannel
+      ? <a href="watch.html?match=${match.fixture.id}&channel=${CONFIG.CHANNEL_URL_MAP[firstKnownChannel]}" 
+            class="watch-btn" 
+            aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
+          <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
+        </a>
+      : '';
 
-const watchButtons = knownChannels.map(channel => `
-  <a href="watch.html?match=${match.fixture.id}&channel=${CONFIG.CHANNEL_URL_MAP[channel]}" 
-     class="watch-btn" 
-     aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name} على ${channel}">
-    <i class="fas fa-play"></i> مشاهدة (${channel})
-  </a>
-`).join('');
+    return 
+      <div class="broadcast-card" data-id="${match.fixture.id}">
+        <div class="teams">
+          <div class="team">
+            <img data-src="${match.teams.home.logo}" 
+                 alt="${match.teams.home.name}" 
+                 loading="lazy"
+                 onerror="this.src='assets/images/default-team.png'">
+            <span>${match.teams.home.name}</span>
+          </div>
+          <div class="match-time">
+            <span class="vs">VS</span>
+            <time datetime="${match.fixture.date}">${formatKickoffTime(match.fixture.date)}</time>
+          </div>
+          <div class="team">
+            <img data-src="${match.teams.away.logo}" 
+                 alt="${match.teams.away.name}" 
+                 loading="lazy"
+                 onerror="this.src='assets/images/default-team.png'">
+            <span>${match.teams.away.name}</span>
+          </div>
+        </div>
 
+        ${renderBroadcastInfo(broadcastStatus)}
+
+        <div class="match-info">
+          <span class="league-info">
+            <img data-src="${match.league.logo}" 
+                 alt="${match.league.name}"
+                 loading="lazy"
+                 onerror="this.src='assets/images/default-league.png'">
+            ${match.league.name}
+          </span>
+          <span class="match-venue">
+            <i class="fas fa-map-marker-alt"></i>
+            ${match.fixture.venue?.name || 'ملعب غير معروف'}
+          </span>
+        </div>
+
+        ${watchButton}
+      </div>
+    ;
+  }).join('');
+}
 
 function getBroadcastStatus(channels) {
   const arabicChannels = getArabicBroadcasters(channels);
@@ -285,29 +325,29 @@ function getBroadcastStatus(channels) {
 
 function renderBroadcastInfo(status) {
   if (status.noData) {
-    return `
+    return 
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
         <span>لا توجد بيانات بث</span>
       </div>
-    `;
+    ;
   }
   
   if (status.available) {
-    return `
+    return 
       <div class="broadcast-info available">
         <i class="fas fa-satellite-dish"></i>
         <span>${status.allChannels.join(' - ')}</span>
       </div>
-    `;
+    ;
   }
   
-  return `
+  return 
     <div class="broadcast-info not-available">
       <i class="fas fa-exclamation-triangle"></i>
       <span>غير متاح على القنوات العربية</span>
     </div>
-  `;
+  ;
 }
 
 function getArabicBroadcasters(channels) {
@@ -327,12 +367,12 @@ function renderAllMatches({ today, tomorrow, upcoming }) {
 function renderMatchList(matches, title) {
   return matches?.length
     ? matches.map(createMatchCard).join('')
-    : `<p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>`;
+    : <p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>;
 }
 
 // 9. قوالب البطاقات
 function createFeaturedCard(match) {
-  return `
+  return 
     <div class="featured-card" data-id="${match.fixture.id}">
       <div class="league-info">
         <img data-src="${match.league.logo}" 
@@ -363,11 +403,11 @@ function createFeaturedCard(match) {
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير معروف'}</span>
       </div>
     </div>
-  `;
+  ;
 }
 
 function createMatchCard(match) {
-  return `
+  return 
     <div class="match-card" data-id="${match.fixture.id}">
       <div class="league-info">
         <img data-src="${match.league.logo}" 
@@ -398,7 +438,7 @@ function createMatchCard(match) {
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير معروف'}</span>
       </div>
     </div>
-  `;
+  ;
 }
 
 // 10. أدوات مساعدة
@@ -435,7 +475,7 @@ function setupEventListeners() {
       document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
       });
-      document.getElementById(`${appState.currentTab}-matches`).classList.add('active');
+      document.getElementById(${appState.currentTab}-matches).classList.add('active');
     });
   });
   
@@ -472,7 +512,7 @@ function redirectToWatchPage(matchId, channelName) {
   const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
   if (channelKey) {
     logMatchView(matchId, channelName);
-    window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
+    window.location.href = watch.html?id=${matchId}&channel=${channelKey};
   } else {
     showToast('هذه القناة غير مدعومة حالياً', 'error');
   }
@@ -488,7 +528,7 @@ function logMatchView(matchId, channel) {
   localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50))); // حفظ آخر 50 مشاهدة فقط
 }
 
-function showMatchDetails(matchId) {
+function showMatchDetails(matchId, channelName) {
   // يمكنك تطوير هذه الدالة لعرض تفاصيل إضافية
   console.log('عرض تفاصيل المباراة:', matchId);
 }
@@ -512,20 +552,20 @@ function tryFallbackCache() {
 
 function showError(message) {
   if (DOM.errorContainer) {
-    DOM.errorContainer.innerHTML = `
+    DOM.errorContainer.innerHTML = 
       <div class="error-message">
         <i class="fas fa-exclamation-circle"></i>
         <span>${message}</span>
       </div>
-    `;
+    ;
     DOM.errorContainer.style.display = 'block';
   }
 }
 
 function showToast(message, type = 'info') {
   const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${message}</span>`;
+  toast.className = toast ${type};
+  toast.innerHTML = <span>${message}</span>;
   document.body.appendChild(toast);
   
   setTimeout(() => {
@@ -566,7 +606,7 @@ async function preloadWatchPages() {
     try {
       const reg = await navigator.serviceWorker.ready;
       const urls = Object.values(CONFIG.CHANNEL_URL_MAP).map(
-        channel => `watch.html?channel=${channel}`
+        channel => watch.html?channel=${channel}
       );
       await reg.preload(urls);
     } catch (e) {
