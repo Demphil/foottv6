@@ -291,13 +291,12 @@ function renderBroadcastMatches(matches) {
             ${match.fixture.venue?.name || 'ملعب غير معروف'}
           </span>
         </div>
-        <button class="watch-btn" 
-                data-match-id="${match.fixture.id}"
-                data-channel="${firstChannel}"
-                ${broadcastStatus.available ? '' : 'disabled'}
-                aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
-          <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
-        </button>
+        <a href="watch.html?match=${match.fixture.id}&channel=${firstChannel}" 
+   class="watch-btn" 
+   aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
+  <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
+</a>
+
       </div>
     `;
   }).join('');
