@@ -1,6 +1,6 @@
 // روابط القنوات حسب الاسم
 const channels = {
-  "beIN Sports HD 1": "https://demphil.github.io/live-stream/",
+  "beIN Sports HD 1": "https://z.alkoora.live/albaplayer/on-time-sport-1/",
   "beIN Sports HD 2": "https://example.com/bein2",
   "SSC Sports HD 1": "https://example.com/ssc1",
   "Al Kass One HD": "https://example.com/alkass1",
