@@ -266,7 +266,7 @@ const watchButtons = knownChannels.map(channel => `
     <i class="fas fa-play"></i> مشاهدة (${channel})
   </a>
 `).join('');
-}
+
 
 function getBroadcastStatus(channels) {
   const arabicChannels = getArabicBroadcasters(channels);
