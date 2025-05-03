@@ -17,7 +17,7 @@
 }
 /* التنسيق العام */
 body {
-  font-family: 'Tajawal', sans-serif;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
   background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
   margin: 0;
   padding-top: var(--header-height);
@@ -55,7 +55,7 @@ body {
 
 .header .logo h1 {
   color: var(--text-white);
-  position: center;
+  text-position: center;
   margin: 0;
   font-size: 1.3rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
