@@ -7,9 +7,6 @@
   --text-black: #1d3557;
   --header-height: 70px;
 }
-html {
-  scroll-behavior: smooth;
-}
 #top-of-page {
   position: absolute;
   top: 0;
@@ -58,6 +55,7 @@ body {
 
 .header .logo h1 {
   color: var(--text-white);
+  align-items: center;
   margin: 0;
   font-size: 1.3rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
@@ -204,7 +202,7 @@ h2 {
 }
 
 .sports-news-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--primary-white), var(--primary-red), var(--primary-yellow);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -221,7 +219,7 @@ h2 {
 }
 
 .sports-news-content h3 {
-  color: var(--primary-red);
+  color: var(--primary-white);
   font-size: 1.1rem;
   margin: 0 0 10px 0;
 }
@@ -310,7 +308,7 @@ h2 {
 }
 
 .news-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--primary-white), var(--primary-red), var(--primary-yellow);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -332,8 +330,8 @@ h2 {
 }
 
 .news-content h3 {
-  color: var(--primary-red);
-  font-size: 1rem;
+  color: var(--primary-white);
+  font-size: 1.2rem;
   margin: 0 0 10px 0;
 }
 
