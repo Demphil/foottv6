@@ -6,12 +6,27 @@
   <link rel="stylesheet" href="assets/css/watch.css">
 </head>
 <body>
-  <div id="watch-container"></div>
+ <div id="loading">
+    <div class="spinner"></div>
+    <p>جارٍ تحميل البث المباشر...</p>
+</div>
 
+<div id="error-container" style="display:none"></div>
 
+<div class="match-info">
+    <h1 id="match-title"></h1>
+    <div class="teams">
+        <span id="home-name"></span> vs <span id="away-name"></span>
+    </div>
+    <div class="details">
+        <span id="league-name"></span> | <span id="match-time"></span>
+    </div>
+</div>
 
+<div id="player-container"></div>
 
-  <!-- سكريبتات -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
   <script src="assets/js/watch.js"></script>
 </body>
 </html>
