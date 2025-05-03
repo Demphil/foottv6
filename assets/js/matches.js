@@ -1,4 +1,4 @@
-import { fetchMatches } from './api.js';
+ import { fetchMatches } from './api.js';
 
 // 1. App Settings
 const CONFIG = {
@@ -8,19 +8,37 @@ const CONFIG = {
   SLIDER_INTERVAL: 20000, // 20 seconds
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
-   {homeTeam: "Chelsea", awayTeam: "Liverpool"},
-    {homeTeam: "Real Madrid", awayTeam: "Celta Vigo"},
-    {homeTeam: "Real Sociedad", awayTeam: "Athletic Bilbao"},
-    {homeTeam: "Brentford", awayTeam: "Manchester United"},
-    {homeTeam: "roma", awayTeam: "fiorentina"}
+    {
+      homeTeam: "Chelsea",
+      awayTeam: "Liverpool",
+      channels: ["bein SPORTS HD1"]
+    },
+    {
+      homeTeam: "Real Madrid",
+      awayTeam: "Celta Vigo",
+      channels: ["bein SPORTS HD3"]
+    },
+    {
+      homeTeam: "Real Sociedad",
+      awayTeam: "Athletic Bilbao",
+      channels: ["bein SPORTS HD3"]
+    },
+    {
+      homeTeam: "Brentford",
+      awayTeam: "Manchester United",
+      channels: ["bein SPORTS HD1"]
+    },
+    {
+      homeTeam: "roma",
+      awayTeam: "fiorentina",
+      channels: ["AD SPORTS PREMIUM1"]
+    }
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
+    'bein-sports-hd2': 'bein SPORTS HD2',
     'bein-sports-hd3': 'bein SPORTS HD3',
-    'bein-sports-hd3': 'bein SPORTS HD3',
-    'bein-sports-hd1': 'bein SPORTS HD1',
-    'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-    
+    'ad-sports-premium1': 'AD SPORTS PREMIUM1'
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
@@ -220,32 +238,52 @@ function getManualBroadcastMatches(allMatches) {
   const selectedMatches = [];
   
   for (const criteria of CONFIG.MANUAL_BROADCAST_MATCHES) {
-    let foundMatch = null;
+    let foundMatch = allMatches.find(m => 
+      m.teams.home.name.toLowerCase().includes(criteria.homeTeam.toLowerCase()) && 
+      m.teams.away.name.toLowerCase().includes(criteria.awayTeam.toLowerCase())
+    );
     
-    if (criteria.matchId) {
-      foundMatch = allMatches.find(m => m.fixture.id == criteria.matchId);
-    } 
-    else if (criteria.homeTeam && criteria.awayTeam) {
-      foundMatch = allMatches.find(m => 
-        m.teams.home.name.toLowerCase().includes(criteria.homeTeam.toLowerCase()) && 
-        m.teams.away.name.toLowerCase().includes(criteria.awayTeam.toLowerCase())
-      );
-    }
-    else if (criteria.leagueId !== undefined) {
-      const leagueMatches = allMatches.filter(m => m.league.id == criteria.leagueId);
-      if (leagueMatches.length > 0) {
-        const pos = criteria.position || 0;
-        foundMatch = leagueMatches[pos] || leagueMatches[0];
-      }
-    }
-    
-    if (foundMatch && !selectedMatches.some(m => m.fixture.id === foundMatch.fixture.id)) {
+    if (foundMatch) {
+      // حفظ القنوات المخصصة في بيانات المباراة
+      foundMatch.manualChannels = criteria.channels;
       selectedMatches.push(foundMatch);
       if (selectedMatches.length >= CONFIG.MAX_BROADCAST_MATCHES) break;
     }
   }
   
   return selectedMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
+}
+
+function getManualBroadcastChannels(match) {
+  return match.manualChannels || null;
+}
+
+function getBroadcastStatus(broadcast, match) {
+  // التحقق أولاً من وجود قنوات يدوية
+  const manualChannels = getManualBroadcastChannels(match);
+  if (manualChannels) {
+    return {
+      available: true,
+      channel: manualChannels[0],
+      allChannels: manualChannels,
+      noData: false,
+      buttonText: 'Watch'
+    };
+  }
+
+  // إذا لم توجد قنوات يدوية، استخدم القنوات من API
+  const arabicBroadcasters = getArabicBroadcasters(broadcast || []);
+  const hasBroadcastData = broadcast?.length > 0;
+  const hasArabicBroadcast = arabicBroadcasters.length > 0;
+  
+  return {
+    available: hasArabicBroadcast,
+    channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
+    allChannels: arabicBroadcasters,
+    noData: !hasBroadcastData,
+    buttonText: hasArabicBroadcast ? 'Watch' : 
+               hasBroadcastData ? 'Not available' : 'No broadcast'
+  };
 }
 
 function renderBroadcastMatches(matches) {
@@ -265,7 +303,7 @@ function renderBroadcastMatches(matches) {
     const homeTeam = teams.home;
     const awayTeam = teams.away;
     
-    const broadcastStatus = getBroadcastStatus(broadcast);
+    const broadcastStatus = getBroadcastStatus(broadcast, match);
     
     return `
       <div class="broadcast-card" data-id="${fixture.id}" tabindex="0">
@@ -313,21 +351,6 @@ function renderBroadcastMatches(matches) {
         </button>
       </div>`;
   }).join('');
-}
-
-function getBroadcastStatus(broadcast) {
-  const arabicBroadcasters = getArabicBroadcasters(broadcast || []);
-  const hasBroadcastData = broadcast?.length > 0;
-  const hasArabicBroadcast = arabicBroadcasters.length > 0;
-  
-  return {
-    available: hasArabicBroadcast,
-    channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
-    allChannels: arabicBroadcasters,
-    noData: !hasBroadcastData,
-    buttonText: hasArabicBroadcast ? 'Watch' : 
-               hasBroadcastData ? 'Not available' : 'No broadcast'
-  };
 }
 
 function renderBroadcastInfo(status) {
@@ -570,10 +593,7 @@ window.watchMatch = function(matchId, channelName) {
     'bein SPORTS HD1': 'bein-sports-hd1',
     'bein SPORTS HD2': 'bein-sports-hd2',
     'bein SPORTS HD3': 'bein-sports-hd3',
-    'SSC 1': 'ssc-1',
-    'SSC 2': 'ssc-2',
-    'On Time Sports': 'on-time-sports',
-    'Alkass': 'al-kass'
+    'AD SPORTS PREMIUM1': 'ad-sports-premium1'
   };
   
   const channelFile = channelMap[channelName];
