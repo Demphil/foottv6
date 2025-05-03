@@ -62,7 +62,9 @@ body {
   font-size: 1.3rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
-
+h2 {
+   color: var(--text-white);
+}
 .nav ul {
   display: flex;
   gap: 15px;
