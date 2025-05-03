@@ -173,7 +173,7 @@ body {
 
 .breaking-news-image {
   width: 100%;
-  height: 120px;
+  height: 140px;
   object-fit: cover;
 }
 
@@ -182,14 +182,14 @@ body {
 }
 
 .breaking-news-content h3 {
-  color: var(--primary-red);
-  font-size: 1rem;
+  color: var(--primary-black);
+  font-size: 2rem;
   margin: 0 0 5px 0;
 }
 
 .breaking-news-content p {
   color: var(--text-black);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   margin: 0;
 }
