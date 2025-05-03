@@ -1,4 +1,4 @@
-import { fetchMatches } from './api.js';
+ import { fetchMatches } from './api.js';
 
 // 1. إعدادات التطبيق
 const CONFIG = {
@@ -479,37 +479,19 @@ function setupEventListeners() {
 }
 
 function setupMatchCards() {
-  // معالجة النقر على زر المشاهدة - الإصلاح الرئيسي هنا
+  // معالجة النقر على زر المشاهدة
   document.addEventListener('click', (e) => {
     const watchBtn = e.target.closest('.watch-btn');
     if (watchBtn && !watchBtn.disabled) {
       e.preventDefault();
-      e.stopPropagation();
-      
       const matchId = watchBtn.dataset.matchId;
       const channelName = watchBtn.dataset.channel;
       
-      if (!matchId) {
-        showToast('معرّف المباراة غير موجود', 'error');
-        return;
-      }
-      
-      if (!channelName || channelName === 'undefined') {
+      if (channelName && channelName !== 'undefined') {
+        redirectToWatchPage(matchId, channelName);
+      } else {
         showToast('لا توجد قناة متاحة للبث المباشر', 'error');
-        return;
       }
-      
-      // تحقق إضافي من وجود القناة في CONFIG.CHANNEL_URL_MAP
-      if (!CONFIG.CHANNEL_URL_MAP[channelName]) {
-        showToast('القناة غير مدعومة حالياً', 'error');
-        return;
-      }
-      
-      // تسجيل المشاهدة في السجل
-      logMatchView(matchId, channelName);
-      
-      // التوجيه إلى صفحة المشاهدة
-      window.location.href = `watch.html?id=${matchId}&channel=${CONFIG.CHANNEL_URL_MAP[channelName]}`;
     }
     
     // معالجة النقر على بطاقة المباراة
@@ -521,6 +503,16 @@ function setupMatchCards() {
   });
 }
 
+function redirectToWatchPage(matchId, channelName) {
+  const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
+  if (channelKey) {
+    logMatchView(matchId, channelName);
+    window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
+  } else {
+    showToast('هذه القناة غير مدعومة حالياً', 'error');
+  }
+}
+
 function logMatchView(matchId, channel) {
   const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
   history.unshift({
@@ -528,10 +520,11 @@ function logMatchView(matchId, channel) {
     channel,
     timestamp: new Date().toISOString()
   });
-  localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50)));
+  localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50))); // حفظ آخر 50 مشاهدة فقط
 }
 
 function showMatchDetails(matchId) {
+  // يمكنك تطوير هذه الدالة لعرض تفاصيل إضافية
   console.log('عرض تفاصيل المباراة:', matchId);
 }
 
@@ -596,6 +589,7 @@ function lazyLoadImages() {
       lazyImageObserver.observe(lazyImage);
     });
   } else {
+    // Fallback for browsers without IntersectionObserver
     lazyImages.forEach(img => {
       img.src = img.dataset.src;
     });
