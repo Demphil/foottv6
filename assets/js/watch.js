@@ -1,41 +1,45 @@
-// 1. تهيئة الصفحة
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // تحليل معلمات URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('id');
-        const channelKey = params.get('channel');
+        // تحليل معلمات URL بشكل أكثر دقة
+        const urlParams = new URL(window.location.href).searchParams;
+        const matchId = urlParams.get('id');
+        const channelKey = urlParams.get('channel');
 
-        // التحقق من وجود المعلمات المطلوبة
-        if (!matchId || !channelKey) {
-            showError('رابط غير صحيح', 'لم يتم توفير معرّف المباراة أو القناة');
+        // تحقق أكثر شمولاً من المعلمات
+        if (!matchId || !channelKey || isNaN(matchId)) {
+            showError('رابط غير صحيح', 'لم يتم توفير معرّف المباراة أو القناة بشكل صحيح');
             return;
         }
 
-        // تحميل بيانات المباراة من التخزين المحلي أو API
-        const matchData = await getMatchData(matchId);
-        if (!matchData) {
-            showError('بيانات غير متوفرة', 'تعذر تحميل بيانات المباراة');
-            return;
-        }
+        // بيانات تجريبية للمباراة (للاختبار)
+        const mockMatchData = {
+            teams: {
+                home: { name: "النادي الأهلي" },
+                away: { name: "النادي الهلال" }
+            },
+            league: { name: "الدوري السعودي للمحترفين" },
+            fixture: { date: new Date().toISOString() }
+        };
 
-        // تحميل بيانات القناة من التخزين المحلي
+        // بيانات القناة (استخدم البيانات الحقيقية هنا)
         const channelData = getChannelData(channelKey);
         if (!channelData) {
-            showError('قناة غير متوفرة', 'تعذر العثور على بيانات القناة');
+            showError('قناة غير متوفرة', 'تعذر العثور على بيانات القناة المطلوبة');
             return;
         }
 
-        // عرض البيانات
-        renderMatchInfo(matchData);
+        // عرض البيانات (استخدم mockMatchData للاختبار)
+        renderMatchInfo(mockMatchData);
         renderChannelInfo(channelData);
         loadStream(channelData);
 
     } catch (error) {
-        console.error('Error:', error);
-        showError('حدث خطأ', 'تعذر تحميل الصفحة بشكل كامل');
+        console.error('حدث خطأ:', error);
+        showError('خطأ في النظام', 'تعذر تحميل الصفحة بشكل كامل');
     }
 });
+
+// باقي الدوال تبقى كما هي...
 
 // 2. دالة لجلب بيانات المباراة
 async function getMatchData(matchId) {
