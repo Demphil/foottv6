@@ -1,14 +1,4 @@
 // 1. تهيئة الصفحة
-if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource(channelData.streamUrl);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.ERROR, function(event, data) {
-        if (data.fatal) {
-            showStreamError();
-        }
-    });
-}
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // تحليل معلمات URL
@@ -72,7 +62,7 @@ function getChannelData(channelKey) {
         'bein-sports-hd1': {
             name: 'bein SPORTS HD1',
             logo: 'assets/images/channels/bein1.png',
-            streamUrl: 'https://stream.sainaertebat.com/hls2/bein1.m3u8'
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
         },
         'bein-sports-hd2': {
             name: 'bein SPORTS HD2',
@@ -86,21 +76,29 @@ function getChannelData(channelKey) {
 
 // 4. عرض معلومات المباراة
 function renderMatchInfo(match) {
-    document.getElementById('match-title').textContent = 
-        `${match.teams.home.name} vs ${match.teams.away.name}`;
-    document.getElementById('home-name').textContent = match.teams.home.name;
-    document.getElementById('away-name').textContent = match.teams.away.name;
-    document.getElementById('league-name').textContent = match.league.name;
-    document.getElementById('match-time').textContent = 
-        new Date(match.fixture.date).toLocaleString('ar-SA');
+    const matchTitle = document.getElementById('match-title');
+    const homeName = document.getElementById('home-name');
+    const awayName = document.getElementById('away-name');
+    const leagueName = document.getElementById('league-name');
+    const matchTime = document.getElementById('match-time');
+
+    if (matchTitle) matchTitle.textContent = `${match.teams.home.name} vs ${match.teams.away.name}`;
+    if (homeName) homeName.textContent = match.teams.home.name;
+    if (awayName) awayName.textContent = match.teams.away.name;
+    if (leagueName) leagueName.textContent = match.league.name;
+    if (matchTime) matchTime.textContent = new Date(match.fixture.date).toLocaleString('ar-SA');
 }
 
 // 5. عرض معلومات القناة
 function renderChannelInfo(channel) {
-    document.getElementById('channel-name').textContent = channel.name;
-    const logo = document.getElementById('channel-logo');
-    logo.src = channel.logo;
-    logo.onerror = () => logo.src = 'assets/images/default-channel.png';
+    const channelName = document.getElementById('channel-name');
+    const channelLogo = document.getElementById('channel-logo');
+
+    if (channelName) channelName.textContent = channel.name;
+    if (channelLogo) {
+        channelLogo.src = channel.logo;
+        channelLogo.onerror = () => channelLogo.src = 'assets/images/default-channel.png';
+    }
 }
 
 // 6. تحميل البث المباشر
@@ -110,9 +108,9 @@ function loadStream(channelData) {
     const errorContainer = document.getElementById('error-container');
 
     // إخفاء الرسائل وإظهار التحميل
-    errorContainer.style.display = 'none';
-    loadingIndicator.style.display = 'block';
-    playerContainer.innerHTML = '';
+    if (errorContainer) errorContainer.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
+    if (playerContainer) playerContainer.innerHTML = '';
 
     // إنشاء مشغل الفيديو
     const video = document.createElement('video');
@@ -125,24 +123,47 @@ function loadStream(channelData) {
     source.type = 'application/x-mpegURL';
     
     video.appendChild(source);
-    playerContainer.appendChild(video);
+    if (playerContainer) playerContainer.appendChild(video);
 
     // معالجة الأحداث
     video.onloadeddata = () => {
-        loadingIndicator.style.display = 'none';
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
     };
     
     video.onerror = () => {
-        loadingIndicator.style.display = 'none';
-        errorContainer.style.display = 'block';
-        errorContainer.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>تعذر تحميل البث المباشر</span>
-                <button class="btn-retry" onclick="retryStream()">إعادة المحاولة</button>
-            </div>
-        `;
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+        if (errorContainer) {
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>تعذر تحميل البث المباشر</span>
+                    <button class="btn-retry" onclick="retryStream()">إعادة المحاولة</button>
+                </div>
+            `;
+        }
     };
+
+    // دعم HLS.js لمتصفحات غير Chrome
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(channelData.streamUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+                if (errorContainer) {
+                    errorContainer.style.display = 'block';
+                    errorContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>خطأ في تشغيل البث</span>
+                            <button class="btn-retry" onclick="retryStream()">إعادة المحاولة</button>
+                        </div>
+                    `;
+                }
+            }
+        });
+    }
 }
 
 // 7. إعادة تحميل البث
@@ -156,13 +177,18 @@ window.retryStream = function() {
 // 8. إدارة الأخطاء
 function showError(title, message) {
     const errorContainer = document.getElementById('error-container');
-    errorContainer.innerHTML = `
-        <div class="alert alert-danger">
-            <h4>${title}</h4>
-            <p>${message}</p>
-            <a href="matches.html" class="btn-back">العودة إلى المباريات</a>
-        </div>
-    `;
-    errorContainer.style.display = 'block';
-    document.getElementById('loading').style.display = 'none';
+    const loadingIndicator = document.getElementById('loading');
+
+    if (errorContainer) {
+        errorContainer.innerHTML = `
+            <div class="alert alert-danger">
+                <h4>${title}</h4>
+                <p>${message}</p>
+                <a href="matches.html" class="btn-back">العودة إلى المباريات</a>
+            </div>
+        `;
+        errorContainer.style.display = 'block';
+    }
+    
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
