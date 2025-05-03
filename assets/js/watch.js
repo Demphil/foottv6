@@ -1,4 +1,4 @@
-// watch.js - الإصدار الكامل المتكامل
+// watch.js - الإصدار المعدل ليتوافق مع matches.js
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 1. جلب معلمات URL سواء في الصفحة الرئيسية أو iframe
@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const params = getUrlParams();
         const matchId = params.get('id');
         const channelKey = params.get('channel');
+
+        console.log('URL Parameters:', { matchId, channelKey });
 
         // 2. التحقق من وجود المعلمات المطلوبة
         if (!matchId || !channelKey) {
@@ -63,16 +65,16 @@ async function getMatchData(matchId) {
         const cachedMatches = localStorage.getItem('cached_matches');
         if (cachedMatches) {
             const matches = JSON.parse(cachedMatches);
-            const foundMatch = matches.find(m => m.id == matchId);
+            const foundMatch = matches.find(m => m.fixture.id == matchId);
             if (foundMatch) return foundMatch;
         }
 
         // إذا لم توجد في الذاكرة، نبحث في matches.js
         if (typeof window.matchesData !== 'undefined') {
-            const foundMatch = window.matchesData.find(m => m.id == matchId);
+            const foundMatch = window.matchesData.find(m => m.fixture.id == matchId);
             if (foundMatch) {
                 // نحفظها في localStorage لاستخدامها لاحقًا
-                const currentCache = JSON.parse(localStorage.getItem('cached_matches') || []);
+                const currentCache = JSON.parse(localStorage.getItem('cached_matches') || '[]');
                 localStorage.setItem('cached_matches', JSON.stringify([...currentCache, foundMatch]));
                 return foundMatch;
             }
@@ -87,7 +89,7 @@ async function getMatchData(matchId) {
     }
 }
 
-// دالة لجلب بيانات القناة
+// دالة لجلب بيانات القناة (معدلة لتتوافق مع matches.js)
 function getChannelData(channelKey) {
     const CHANNELS = {
         'bein-sports-hd1': {
@@ -95,18 +97,47 @@ function getChannelData(channelKey) {
             logo: 'assets/images/channels/bein1.png',
             streamUrl: 'https://stream.sainaertebat.com/hls2/bein1.m3u8'
         },
-        // يمكنك إضافة المزيد من القنوات هنا
+        'bein-sports-hd2': {
+            name: 'bein SPORTS HD2',
+            logo: 'assets/images/channels/bein2.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        },
+        'bein-sports-hd3': {
+            name: 'bein SPORTS HD3',
+            logo: 'assets/images/channels/bein3.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        },
+        'ssc-1': {
+            name: 'SSC 1',
+            logo: 'assets/images/channels/ssc1.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        },
+        'ssc-2': {
+            name: 'SSC 2',
+            logo: 'assets/images/channels/ssc2.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        },
+        'on-time-sports': {
+            name: 'On Time Sports',
+            logo: 'assets/images/channels/ontime.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        },
+        'al-kass': {
+            name: 'Alkass',
+            logo: 'assets/images/channels/alkass.png',
+            streamUrl: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+        }
     };
     return CHANNELS[channelKey] || null;
 }
 
-// دالة لعرض معلومات المباراة
+// دالة لعرض معلومات المباراة (معدلة لتتوافق مع هيكل matches.js)
 function renderMatchInfo(match) {
-    document.getElementById('match-title').textContent = `${match.homeTeam} vs ${match.awayTeam}`;
-    document.getElementById('home-name').textContent = match.homeTeam;
-    document.getElementById('away-name').textContent = match.awayTeam;
-    document.getElementById('league-name').textContent = match.league;
-    document.getElementById('match-time').textContent = new Date(match.date).toLocaleString('ar-SA');
+    document.getElementById('match-title').textContent = `${match.teams.home.name} vs ${match.teams.away.name}`;
+    document.getElementById('home-name').textContent = match.teams.home.name;
+    document.getElementById('away-name').textContent = match.teams.away.name;
+    document.getElementById('league-name').textContent = match.league.name;
+    document.getElementById('match-time').textContent = formatMatchDate(match.fixture.date);
 }
 
 // دالة لعرض معلومات القناة
@@ -165,6 +196,19 @@ function showError(title, message) {
         </div>
     `;
     errorContainer.style.display = 'block';
+}
+
+// دالة مساعدة لتنسيق تاريخ المباراة
+function formatMatchDate(dateString) {
+    const options = { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        timeZone: 'Africa/Casablanca'
+    };
+    return new Date(dateString).toLocaleDateString('ar-MA', options);
 }
 
 // جعل الدوال متاحة globally للاتصال بين الصفحات
