@@ -25,9 +25,13 @@
     <img id="channel-logo" src="" alt="شعار القناة">
     <span id="channel-name"></span>
 </div>
-
 </footer>
-
+<script>
+  // الكشف عن وضع iframe تلقائياً
+  if (window.self !== window.top) {
+    document.body.classList.add('iframe-mode');
+  }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <script src="assets/js/watch.js"></script>
