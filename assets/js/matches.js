@@ -7,14 +7,20 @@ const CONFIG = {
   FEATURED_LEAGUES: [2, 39, 140, 135], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
   MAX_BROADCAST_MATCHES: 5,
+  MANUAL_BROADCAST_MATCHES: [
+   {homeTeam: "Chelsea", awayTeam: "Liverpool"},
+    {homeTeam: "Real Madrid", awayTeam: "Celta Vigo"},
+    {homeTeam: "Real Sociedad", awayTeam: "Athletic Bilbao"},
+    {homeTeam: "Brentford", awayTeam: "Manchester United"},
+    {homeTeam: "roma", awayTeam: "fiorentina"}
+  ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
-    'bein-sports-hd2': 'bein SPORTS HD2',
     'bein-sports-hd3': 'bein SPORTS HD3',
-    'ssc-1': 'SSC 1',
-    'ssc-2': 'SSC 2',
-    'on-time-sports': 'On Time Sports',
-    'al-kass': 'Alkass'
+    'bein-sports-hd3': 'bein SPORTS HD3',
+    'bein-sports-hd1': 'bein SPORTS HD1',
+    'ad-sports-premium1': 'AD SPORTS PREMIUM1',
+    
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
@@ -53,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const categorized = categorizeMatches(appState.matchesData);
     
     renderFeaturedMatches(categorized.featured);
-    renderBroadcastMatches(categorized.today.slice(0, CONFIG.MAX_BROADCAST_MATCHES));
+    renderBroadcastMatches(getManualBroadcastMatches(appState.matchesData));
     renderAllMatches(categorized);
     
     setupEventListeners();
@@ -206,16 +212,51 @@ function initSlider(groups) {
   startSliderInterval();
 }
 
+function getManualBroadcastMatches(allMatches) {
+  if (!CONFIG.MANUAL_BROADCAST_MATCHES.length) {
+    return allMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
+  }
+
+  const selectedMatches = [];
+  
+  for (const criteria of CONFIG.MANUAL_BROADCAST_MATCHES) {
+    let foundMatch = null;
+    
+    if (criteria.matchId) {
+      foundMatch = allMatches.find(m => m.fixture.id == criteria.matchId);
+    } 
+    else if (criteria.homeTeam && criteria.awayTeam) {
+      foundMatch = allMatches.find(m => 
+        m.teams.home.name.toLowerCase().includes(criteria.homeTeam.toLowerCase()) && 
+        m.teams.away.name.toLowerCase().includes(criteria.awayTeam.toLowerCase())
+      );
+    }
+    else if (criteria.leagueId !== undefined) {
+      const leagueMatches = allMatches.filter(m => m.league.id == criteria.leagueId);
+      if (leagueMatches.length > 0) {
+        const pos = criteria.position || 0;
+        foundMatch = leagueMatches[pos] || leagueMatches[0];
+      }
+    }
+    
+    if (foundMatch && !selectedMatches.some(m => m.fixture.id === foundMatch.fixture.id)) {
+      selectedMatches.push(foundMatch);
+      if (selectedMatches.length >= CONFIG.MAX_BROADCAST_MATCHES) break;
+    }
+  }
+  
+  return selectedMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
+}
+
 function renderBroadcastMatches(matches) {
   const { broadcastContainer } = DOM;
   
   if (!matches?.length) {
-    broadcastContainer.innerHTML = `
-      <div class="no-matches">
+    broadcastContainer.innerHTML = 
+      `<div class="no-matches">
         <i class="fas fa-tv"></i>
         <p>No broadcast matches available</p>
-      </div>
-    `;
+      </div>`;
     return;
   }
 
@@ -270,8 +311,7 @@ function renderBroadcastMatches(matches) {
                 aria-label="Watch match ${homeTeam.name} vs ${awayTeam.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
         </button>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -296,8 +336,7 @@ function renderBroadcastInfo(status) {
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
         <span>No broadcast data</span>
-      </div>
-    `;
+      </div>`;
   }
   
   if (status.available) {
@@ -305,16 +344,14 @@ function renderBroadcastInfo(status) {
       <div class="broadcast-info available">
         <i class="fas fa-satellite-dish"></i>
         <span>${status.allChannels.join(' - ')}</span>
-      </div>
-    `;
+      </div>`;
   }
   
   return `
     <div class="broadcast-info not-available">
       <i class="fas fa-exclamation-triangle"></i>
       <span>Not available on Arabic channels</span>
-    </div>
-  `;
+    </div>`;
 }
 
 function getArabicBroadcasters(broadcastData) {
@@ -374,8 +411,7 @@ function createFeaturedCard(match) {
         <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 function createMatchCard(match) {
@@ -400,8 +436,7 @@ function createMatchCard(match) {
         <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
         <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 // 9. Helper Functions
@@ -509,8 +544,7 @@ function showError(message) {
       <div class="error-message">
         <i class="fas fa-exclamation-circle"></i>
         <span>${message}</span>
-      </div>
-    `;
+      </div>`;
   }
 }
 
