@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشاهدة البث المباشر</title>
-    <link rel="stylesheet" href="assets/css/watch.css">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مشاهدة المباراة</title>
+  <link rel="stylesheet" href="assets/css/watch.css" />
 </head>
 <body>
-<div id="loading">
-    <div class="spinner"></div>
-    <p>جارٍ تحميل البث المباشر...</p>
-</div>
-
-   
-
-
+  <header>
+    <h1>مشاهدة المباراة مباشرة</h1>
+  </header>
+  <main id="watch-container">
+    <h2 id="match-title">تحميل المباراة...</h2>
+    <iframe id="stream-frame" allowfullscreen></iframe>
+  </main>
   <script src="assets/js/watch.js"></script>
 </body>
 </html>
