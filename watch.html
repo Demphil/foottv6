@@ -1,70 +1,15 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>مشاهدة المباراة - كورة لايف</title>
-  <link rel="stylesheet" href="assets/css/watch.css" />
-  <link rel="stylesheet" href="assets/css/shared.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/a2e0e6b2e2.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <title>مشاهدة المباراة</title>
+  <link rel="stylesheet" href="watch.css">
 </head>
 <body>
+  <div id="watch-container"></div>
 
-  <!-- رأس الصفحة -->
-  <header class="watch-header">
-    <h1 id="match-title">تحميل...</h1>
-  </header>
 
-  <!-- بطاقة المباراة -->
-  <section class="match-card">
-    <div class="teams-info">
-      <div class="team">
-        <img id="home-logo" src="assets/images/default-team.png" alt="شعار الفريق المستضيف">
-        <span id="home-name">الفريق 1</span>
-      </div>
-      <div class="vs">VS</div>
-      <div class="team">
-        <img id="away-logo" src="assets/images/default-team.png" alt="شعار الفريق الضيف">
-        <span id="away-name">الفريق 2</span>
-      </div>
-    </div>
 
-    <div class="match-details">
-      <div class="league-info">
-        <img id="league-logo" src="assets/images/default-league.png" alt="شعار البطولة">
-        <span id="league-name">اسم البطولة</span>
-      </div>
-      <div class="extra-info">
-        <p id="match-venue">الملعب: ...</p>
-        <p id="match-date">التاريخ: ...</p>
-      </div>
-      <div class="status" id="match-status">الحالة: ...</div>
-    </div>
-  </section>
-
-  <!-- معلومات القناة -->
-  <section class="channel-info">
-    <img id="channel-logo" src="assets/images/default-channel.png" alt="شعار القناة">
-    <span id="channel-name">اسم القناة</span>
-  </section>
-
-  <!-- مشغل الفيديو -->
-  <section class="video-container">
-    <div class="loader" style="display: none;">جاري التحميل...</div>
-    <div class="stream-error" style="display: none;">
-      <p>تعذر تحميل البث</p>
-      <button class="retry-btn">إعادة المحاولة</button>
-    </div>
-    <iframe id="stream-iframe" allowfullscreen></iframe>
-  </section>
-
-  <!-- القنوات البديلة -->
-  <section class="alternative-channels">
-    <h2>قنوات بديلة</h2>
-    <div id="channels-list"></div>
-  </section>
 
   <!-- سكريبتات -->
   <script src="assets/js/watch.js"></script>
