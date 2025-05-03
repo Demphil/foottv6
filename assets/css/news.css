@@ -50,7 +50,8 @@ body {
 }
 
 .header .logo img {
-  height: 70px;
+  height: 100px;
+  width: 100px;
 }
 
 .header .logo h1 {
