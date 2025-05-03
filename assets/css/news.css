@@ -160,7 +160,7 @@ body {
 }
 
 .breaking-news-card {
-  background: var(--primary-red), var(--primary-yellow);
+  background: var(--primary-red), var(--primary-yellow), var(--primary-white);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -182,14 +182,14 @@ body {
 }
 
 .breaking-news-content h3 {
-  color: var(--primary-black);
-  font-size: 1.5rem;
+  color: var(--primary-white);
+  font-size: 1.2rem;
   margin: 0 0 5px 0;
 }
 
 .breaking-news-content p {
   color: var(--text-black);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.4;
   margin: 0;
 }
