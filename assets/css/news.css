@@ -55,7 +55,7 @@ body {
 
 .header .logo h1 {
   color: var(--text-white);
-  align-items: center;
+  position: center;
   margin: 0;
   font-size: 1.3rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
@@ -219,7 +219,7 @@ h2 {
 }
 
 .sports-news-content h3 {
-  color: var(--primary-white);
+  color: var(--text-white);
   font-size: 1.1rem;
   margin: 0 0 10px 0;
 }
