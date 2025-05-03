@@ -255,57 +255,17 @@ function renderBroadcastMatches(matches) {
       ch => Object.keys(CONFIG.CHANNEL_URL_MAP).includes(ch)
     );
 
-    const watchButton = firstKnownChannel
-      ? `<a href="watch.html?match=${match.fixture.id}&channel=${CONFIG.CHANNEL_URL_MAP[firstKnownChannel]}" 
-            class="watch-btn" 
-            aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
-          <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
-        </a>`
-      : '';
+    const knownChannels = broadcastStatus.allChannels.filter(
+  ch => Object.keys(CONFIG.CHANNEL_URL_MAP).includes(ch)
+);
 
-    return `
-      <div class="broadcast-card" data-id="${match.fixture.id}">
-        <div class="teams">
-          <div class="team">
-            <img data-src="${match.teams.home.logo}" 
-                 alt="${match.teams.home.name}" 
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-team.png'">
-            <span>${match.teams.home.name}</span>
-          </div>
-          <div class="match-time">
-            <span class="vs">VS</span>
-            <time datetime="${match.fixture.date}">${formatKickoffTime(match.fixture.date)}</time>
-          </div>
-          <div class="team">
-            <img data-src="${match.teams.away.logo}" 
-                 alt="${match.teams.away.name}" 
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-team.png'">
-            <span>${match.teams.away.name}</span>
-          </div>
-        </div>
-
-        ${renderBroadcastInfo(broadcastStatus)}
-
-        <div class="match-info">
-          <span class="league-info">
-            <img data-src="${match.league.logo}" 
-                 alt="${match.league.name}"
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-league.png'">
-            ${match.league.name}
-          </span>
-          <span class="match-venue">
-            <i class="fas fa-map-marker-alt"></i>
-            ${match.fixture.venue?.name || 'ملعب غير معروف'}
-          </span>
-        </div>
-
-        ${watchButton}
-      </div>
-    `;
-  }).join('');
+const watchButtons = knownChannels.map(channel => `
+  <a href="watch.html?match=${match.fixture.id}&channel=${CONFIG.CHANNEL_URL_MAP[channel]}" 
+     class="watch-btn" 
+     aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name} على ${channel}">
+    <i class="fas fa-play"></i> مشاهدة (${channel})
+  </a>
+`).join('');
 }
 
 function getBroadcastStatus(channels) {
