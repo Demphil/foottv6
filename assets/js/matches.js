@@ -168,7 +168,7 @@ function initSlider(groups) {
 
   // Create dots
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
-    <span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
+  <span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>
   ).join('');
 
   // Event listeners
