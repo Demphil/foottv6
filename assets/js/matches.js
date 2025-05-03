@@ -1,4 +1,4 @@
- import { fetchMatches } from './api.js';
+import { fetchMatches } from './api.js';
 
 // 1. إعدادات التطبيق
 const CONFIG = {
@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     handleLoadingError(error);
   } finally {
     hideLoading();
-    // إظهار المحتوى بعد التحميل
     if (DOM.contentContainer) {
       DOM.contentContainer.style.display = 'block';
     }
@@ -76,7 +75,6 @@ async function loadDataAndRender() {
   try {
     appState.matchesData = await getMatchesData();
     const categorized = categorizeMatches(appState.matchesData);
-    
     renderCriticalContent(categorized);
     await renderSecondaryContent(categorized);
   } catch (error) {
@@ -98,7 +96,6 @@ async function getMatchesData() {
 function getValidCache() {
   const cached = localStorage.getItem(CONFIG.CACHE_KEY);
   if (!cached) return null;
-  
   try {
     const { data, timestamp } = JSON.parse(cached);
     return (Date.now() - timestamp < CONFIG.CACHE_DURATION) ? data : null;
@@ -114,9 +111,7 @@ async function fetchFreshData() {
 }
 
 function fetchFreshDataInBackground() {
-  fetchMatches()
-    .then(setCache)
-    .catch(console.error);
+  fetchMatches().then(setCache).catch(console.error);
 }
 
 function setCache(data) {
@@ -131,7 +126,7 @@ function categorizeMatches(matches) {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  
+
   return {
     today: filterByDate(matches, today),
     tomorrow: filterByDate(matches, tomorrow),
@@ -143,9 +138,7 @@ function categorizeMatches(matches) {
 
 function filterByDate(matches, date) {
   const dateStr = date.toDateString();
-  return matches.filter(m => 
-    new Date(m.fixture.date).toDateString() === dateStr
-  );
+  return matches.filter(m => new Date(m.fixture.date).toDateString() === dateStr);
 }
 
 // 8. التقديم المرئي
@@ -188,7 +181,7 @@ function chunkArray(arr, size) {
 
 function initSlider(groups) {
   let currentIndex = 0;
-  
+
   function showSlide(index) {
     currentIndex = index;
     DOM.featuredContainer.innerHTML = groups[index].map(createFeaturedCard).join('');
@@ -203,12 +196,10 @@ function initSlider(groups) {
     });
   }
 
-  // إنشاء نقاط التوجيه
-  DOM.sliderDots.innerHTML = groups.map((_, i) => 
+  DOM.sliderDots.innerHTML = groups.map((_, i) =>
     `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
-  // أحداث التحكم
   DOM.prevBtn.addEventListener('click', () => navigateSlider(-1));
   DOM.nextBtn.addEventListener('click', () => navigateSlider(1));
   DOM.sliderDots.addEventListener('click', handleDotClick);
@@ -252,15 +243,12 @@ function renderBroadcastMatches(matches) {
   DOM.broadcastContainer.innerHTML = matches.map(match => {
     const broadcastStatus = getBroadcastStatus(match.tv_channels || []);
     const firstChannel = broadcastStatus.allChannels[0] || '';
-    
+
     return `
       <div class="broadcast-card" data-id="${match.fixture.id}">
         <div class="teams">
           <div class="team">
-            <img data-src="${match.teams.home.logo}" 
-                 alt="${match.teams.home.name}" 
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-team.png'">
+            <img data-src="${match.teams.home.logo}" alt="${match.teams.home.name}" loading="lazy" onerror="this.src='assets/images/default-team.png'">
             <span>${match.teams.home.name}</span>
           </div>
           <div class="match-time">
@@ -268,22 +256,16 @@ function renderBroadcastMatches(matches) {
             <time datetime="${match.fixture.date}">${formatKickoffTime(match.fixture.date)}</time>
           </div>
           <div class="team">
-            <img data-src="${match.teams.away.logo}" 
-                 alt="${match.teams.away.name}" 
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-team.png'">
+            <img data-src="${match.teams.away.logo}" alt="${match.teams.away.name}" loading="lazy" onerror="this.src='assets/images/default-team.png'">
             <span>${match.teams.away.name}</span>
           </div>
         </div>
-        
+
         ${renderBroadcastInfo(broadcastStatus)}
-        
+
         <div class="match-info">
           <span class="league-info">
-            <img data-src="${match.league.logo}" 
-                 alt="${match.league.name}"
-                 loading="lazy"
-                 onerror="this.src='assets/images/default-league.png'">
+            <img data-src="${match.league.logo}" alt="${match.league.name}" loading="lazy" onerror="this.src='assets/images/default-league.png'">
             ${match.league.name}
           </span>
           <span class="match-venue">
@@ -294,7 +276,6 @@ function renderBroadcastMatches(matches) {
         <button class="watch-btn" 
                 data-match-id="${match.fixture.id}"
                 data-channel="${firstChannel}"
-                ${broadcastStatus.available ? '' : 'disabled'}
                 aria-label="مشاهدة مباراة ${match.teams.home.name} ضد ${match.teams.away.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
         </button>
@@ -307,7 +288,7 @@ function getBroadcastStatus(channels) {
   const arabicChannels = getArabicBroadcasters(channels);
   const hasChannels = channels?.length > 0;
   const hasArabicChannels = arabicChannels.length > 0;
-  
+
   return {
     available: hasArabicChannels,
     channel: hasArabicChannels ? arabicChannels[0] : null,
@@ -323,296 +304,15 @@ function renderBroadcastInfo(status) {
     return `
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
-        <span>لا توجد بيانات بث</span>
+        <span>لا توجد معلومات عن القنوات الناقلة</span>
       </div>
     `;
   }
-  
-  if (status.available) {
-    return `
-      <div class="broadcast-info available">
-        <i class="fas fa-satellite-dish"></i>
-        <span>${status.allChannels.join(' - ')}</span>
-      </div>
-    `;
-  }
-  
+
   return `
-    <div class="broadcast-info not-available">
-      <i class="fas fa-exclamation-triangle"></i>
-      <span>غير متاح على القنوات العربية</span>
+    <div class="broadcast-info">
+      <i class="fas fa-broadcast-tower"></i>
+      <span>بث عبر: ${status.allChannels.join(', ')}</span>
     </div>
   `;
 }
-
-function getArabicBroadcasters(channels) {
-  if (!channels?.length) return [];
-  
-  return channels
-    .filter(ch => ch && typeof ch === 'string')
-    .filter(ch => Object.values(CONFIG.ARABIC_CHANNELS).includes(ch));
-}
-
-function renderAllMatches({ today, tomorrow, upcoming }) {
-  DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
-  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
-  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
-}
-
-function renderMatchList(matches, title) {
-  return matches?.length
-    ? matches.map(createMatchCard).join('')
-    : `<p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>`;
-}
-
-// 9. قوالب البطاقات
-function createFeaturedCard(match) {
-  return `
-    <div class="featured-card" data-id="${match.fixture.id}">
-      <div class="league-info">
-        <img data-src="${match.league.logo}" 
-             alt="${match.league.name}" 
-             loading="lazy"
-             onerror="this.style.display='none'">
-        <span>${match.league.name}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img data-src="${match.teams.home.logo}" 
-               alt="${match.teams.home.name}" 
-               loading="lazy"
-               onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.home.name}</span>
-        </div>
-        <div class="vs">VS</div>
-        <div class="team">
-          <img data-src="${match.teams.away.logo}" 
-               alt="${match.teams.away.name}" 
-               loading="lazy"
-               onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.away.name}</span>
-        </div>
-      </div>
-      <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير معروف'}</span>
-      </div>
-    </div>
-  `;
-}
-
-function createMatchCard(match) {
-  return `
-    <div class="match-card" data-id="${match.fixture.id}">
-      <div class="league-info">
-        <img data-src="${match.league.logo}" 
-             alt="${match.league.name}" 
-             loading="lazy"
-             onerror="this.style.display='none'">
-        <span>${match.league.name}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img data-src="${match.teams.home.logo}" 
-               alt="${match.teams.home.name}" 
-               loading="lazy"
-               onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.home.name}</span>
-        </div>
-        <div class="vs">VS</div>
-        <div class="team">
-          <img data-src="${match.teams.away.logo}" 
-               alt="${match.teams.away.name}" 
-               loading="lazy"
-               onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.away.name}</span>
-        </div>
-      </div>
-      <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'غير معروف'}</span>
-      </div>
-    </div>
-  `;
-}
-
-// 10. أدوات مساعدة
-function formatDate(dateStr) {
-  const options = { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long', 
-    hour: '2-digit', 
-    minute: '2-digit',
-    timeZone: CONFIG.TIMEZONE
-  };
-  return new Date(dateStr).toLocaleDateString('ar-MA', options);
-}
-
-function formatKickoffTime(dateString) {
-  const options = { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    timeZone: CONFIG.TIMEZONE
-  };
-  return new Date(dateString).toLocaleTimeString('ar-MA', options);
-}
-
-// 11. إعداد واجهة المستخدم
-function setupEventListeners() {
-  // التنقل بين الألسنة
-  DOM.tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      DOM.tabButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      appState.currentTab = btn.dataset.tab;
-      
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-      });
-      document.getElementById(`${appState.currentTab}-matches`).classList.add('active');
-    });
-  });
-  
-  // إعداد معالجة الأحداث
-  setupMatchCards();
-}
-
-function setupMatchCards() {
-  // معالجة النقر على زر المشاهدة
-  document.addEventListener('click', (e) => {
-    const watchBtn = e.target.closest('.watch-btn');
-    if (watchBtn && !watchBtn.disabled) {
-      e.preventDefault();
-      const matchId = watchBtn.dataset.matchId;
-      const channelName = watchBtn.dataset.channel;
-      
-      if (channelName && channelName !== 'undefined') {
-        redirectToWatchPage(matchId, channelName);
-      } else {
-        showToast('لا توجد قناة متاحة للبث المباشر', 'error');
-      }
-    }
-    
-    // معالجة النقر على بطاقة المباراة
-    const matchCard = e.target.closest('.match-card, .featured-card');
-    if (matchCard && !e.target.closest('.watch-btn')) {
-      const matchId = matchCard.dataset.id;
-      showMatchDetails(matchId);
-    }
-  });
-}
-
-function redirectToWatchPage(matchId, channelName) {
-  const channelKey = CONFIG.CHANNEL_URL_MAP[channelName];
-  if (channelKey) {
-    logMatchView(matchId, channelName);
-    window.location.href = `watch.html?id=${matchId}&channel=${channelKey}`;
-  } else {
-    showToast('هذه القناة غير مدعومة حالياً', 'error');
-  }
-}
-
-function logMatchView(matchId, channel) {
-  const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
-  history.unshift({
-    matchId,
-    channel,
-    timestamp: new Date().toISOString()
-  });
-  localStorage.setItem('matchViews', JSON.stringify(history.slice(0, 50))); // حفظ آخر 50 مشاهدة فقط
-}
-
-function showMatchDetails(matchId) {
-  // يمكنك تطوير هذه الدالة لعرض تفاصيل إضافية
-  console.log('عرض تفاصيل المباراة:', matchId);
-}
-
-// 12. معالجة الأخطاء
-function handleLoadingError(error) {
-  console.error('Error:', error);
-  showError('حدث خطأ أثناء تحميل البيانات. جارٍ عرض البيانات المحفوظة...');
-  tryFallbackCache();
-}
-
-function tryFallbackCache() {
-  const cachedData = getValidCache();
-  if (cachedData) {
-    appState.matchesData = cachedData;
-    const categorized = categorizeMatches(cachedData);
-    renderFeaturedMatches(categorized.featured);
-    renderAllMatches(categorized);
-  }
-}
-
-function showError(message) {
-  if (DOM.errorContainer) {
-    DOM.errorContainer.innerHTML = `
-      <div class="error-message">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>${message}</span>
-      </div>
-    `;
-    DOM.errorContainer.style.display = 'block';
-  }
-}
-
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${message}</span>`;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-// 13. تحسينات الأداء
-function lazyLoadImages() {
-  const lazyImages = [].slice.call(document.querySelectorAll('img[loading="lazy"]'));
-  
-  if ('IntersectionObserver' in window) {
-    const lazyImageObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const lazyImage = entry.target;
-          lazyImage.src = lazyImage.dataset.src;
-          lazyImage.classList.add('loaded');
-          lazyImageObserver.unobserve(lazyImage);
-        }
-      });
-    });
-
-    lazyImages.forEach(lazyImage => {
-      lazyImageObserver.observe(lazyImage);
-    });
-  } else {
-    // Fallback for browsers without IntersectionObserver
-    lazyImages.forEach(img => {
-      img.src = img.dataset.src;
-    });
-  }
-}
-
-async function preloadWatchPages() {
-  if ('serviceWorker' in navigator) {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      const urls = Object.values(CONFIG.CHANNEL_URL_MAP).map(
-        channel => `watch.html?channel=${channel}`
-      );
-      await reg.preload(urls);
-    } catch (e) {
-      console.log('Preload failed:', e);
-    }
-  }
-}
-
-// 14. الوظائف العامة
-window.clearMatchesCache = function() {
-  localStorage.removeItem(CONFIG.CACHE_KEY);
-  showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
-  setTimeout(() => location.reload(), 1000);
-};
