@@ -5,76 +5,255 @@
   --text-white: #f1faee;
   --text-black: #1d3557;
   --header-height: 70px;
+  --border-radius: 12px;
+  --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* التنسيق العام */
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: var(--text-black);
-  color: var(--text-white);
+  font-family: 'Tajawal', sans-serif;
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  margin: 0;
   padding-top: var(--header-height);
+  color: var(--text-black);
+  min-height: 100vh;
 }
 
-h1 {
-  text-align: center;
-  font-size: 2.5rem;
+/* هيكل الصفحة الرئيسي */
+.watch-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* شريط العنوان */
+.watch-header {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  border-radius: var(--border-radius);
   margin-bottom: 20px;
-  color: var(--primary-red);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--box-shadow);
 }
 
-#watch-container {
+.watch-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-white);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-white);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* مشغل الفيديو */
+.video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  margin-bottom: 20px;
+}
+
+#stream-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* معلومات المباراة */
+.match-info {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  box-shadow: var(--box-shadow);
+}
+
+.teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-white);
+}
+
+.match-details {
+  display: flex;
+  justify-content: space-around;
+  color: var(--text-white);
+}
+
+/* القنوات البديلة */
+.alternative-channels {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  box-shadow: var(--box-shadow);
+}
+
+.alternative-channels h3 {
+  margin-top: 0;
+  color: var(--text-white);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.channels-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.channel-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.channel-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.channel-item img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.switch-btn {
+  background: var(--primary-yellow);
+  color: var(--text-black);
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-right: auto;
+  cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+}
+
+/* حالة التحميل */
+.loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  z-index: 10;
 }
 
-.player {
-  margin-top: 20px;
-  background: var(--glass-bg);
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  max-width: 800px;
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary-yellow);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 15px;
 }
 
-video {
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* حالة الخطأ */
+.stream-error {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-radius: 8px;
-  background: var(--text-black);
+  height: 100%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  z-index: 10;
+  text-align: center;
+  padding: 20px;
 }
 
-button {
-  background-color: var(--primary-yellow);
+.stream-error i {
+  font-size: 3rem;
+  color: var(--primary-red);
+  margin-bottom: 15px;
+}
+
+.btn-retry {
+  background: var(--primary-yellow);
   color: var(--text-black);
   border: none;
   padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
   border-radius: 5px;
-  margin-top: 20px;
-  transition: background-color 0.3s ease;
+  margin-top: 15px;
+  cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: bold;
 }
 
-button:hover {
-  background-color: var(--primary-red);
+/* الرسائل العائمة */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-black);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-a {
-  text-decoration: none;
+.toast.show {
+  opacity: 1;
 }
 
-button, a {
-  display: inline-block;
-  text-align: center;
-}
-
-p {
-  font-size: 1.2rem;
-  margin-top: 10px;
+/* التكيف مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .watch-container {
+    padding: 10px;
+  }
+  
+  .teams {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .channels-list {
+    grid-template-columns: 1fr;
+  }
 }
