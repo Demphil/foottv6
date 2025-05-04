@@ -1,4 +1,4 @@
- import { fetchMatches } from './api.js';
+import { fetchMatches } from './api.js';
 
 // 1. App Settings
 const CONFIG = {
@@ -9,36 +9,35 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Nottingham Forest",
-      awayTeam: "Crystal Palace",
+      homeTeam: "Crystal Palace",
+      awayTeam: "Nottingham Forest",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Real Mallorca",
-      awayTeam: "Girona",
+      homeTeam: "Girona",
+      awayTeam: "Mallorca",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Millan",
-      awayTeam: "Genoa",
+      homeTeam: "Genoa",
+      awayTeam: "AC MILON",
       channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Boavista",
-      awayTeam: "AVS Football",
-      channels: ["bein SPORTS HD4"]
+      homeTeam: "Brentford",
+      awayTeam: "Manchester United",
+      channels: ["bein SPORTS HD1"]
     },
-    {
-      homeTeam: "roma",
-      awayTeam: "fiorentina",
-      channels: ["AD SPORTS PREMIUM1"]
-   }
+    
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
     'bein-sports-hd2': 'bein SPORTS HD2',
     'bein-sports-hd3': 'bein SPORTS HD3',
-    'ad-sports-premium1': 'AD-SPORTS-PREMIUM1',
+   'bein-sports-hd1': 'bein SPORTS HD4',
+   'bein-sports-hd1': 'bein SPORTS HD5',
+   'bein-sports-hd1': 'bein SPORTS HD6',
+    'ad-sports-premium1': 'AD SPORTS PREMIUM1'
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
