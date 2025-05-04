@@ -56,7 +56,7 @@ body {
 
 
 .header .logo h1 {
-  color: var(--text-white);
+  color: var(--primary-white);
   margin: 0;
   font-size: 1.1rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
@@ -68,10 +68,11 @@ body {
   margin: 0;
   padding: 0;
   list-style: none;
+  color: var(--primary-white);
 }
 
 .nav ul li a {
-  color: var(--text-white);
+  color: var(--primary-white);
   text-decoration: none;
   font-weight: 500;
   padding: 5px 10px;
