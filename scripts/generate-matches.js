@@ -47,5 +47,3 @@ async function fetchMatches() {
         console.error('❌ Error fetching matches:', error.message);
     }
 }
-
-fetchMatches(); 
