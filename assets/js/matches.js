@@ -9,24 +9,24 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Chelsea",
-      awayTeam: "Liverpool",
+      homeTeam: "Nottingham Forest",
+      awayTeam: "Crystal Palace",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Real Madrid",
-      awayTeam: "Celta Vigo",
+      homeTeam: "Real Mallorca",
+      awayTeam: "Girona",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Real Sociedad",
-      awayTeam: "Athletic Bilbao",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "Millan",
+      awayTeam: "Genoa",
+      channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Brentford",
-      awayTeam: "Manchester United",
-      channels: ["bein SPORTS HD1"]
+      homeTeam: "Boavista",
+      awayTeam: "AVS Football",
+      channels: ["bein SPORTS HD4"]
     },
     {
       homeTeam: "roma",
