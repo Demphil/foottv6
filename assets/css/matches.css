@@ -71,7 +71,7 @@ body {
 }
 
 .nav ul li a {
-  color: var(--text-white);
+  color: var(--primary-white);
   text-decoration: none;
   font-weight: 500;
   padding: 5px 10px;
