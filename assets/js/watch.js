@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd3': 'bein SPORTS HD3',
             'bein-sports-hd5': 'bein SPORTS HD5',
             'bein-sports-hd6': 'bein SPORTS HD6',
-            'ad-sports-premium1': 'AD SPORTS PREMIUM1'
+            'ad-sports-premium1': 'AD SPORTS PREMIUM1',
         };
 
         return broadcastData
