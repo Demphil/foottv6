@@ -1,12 +1,14 @@
 /* ملف news.css */
 :root {
-  --primary-red: #e63946;
-  --primary-yellow: #ffd166;
-  --glass-bg: rgba(230, 57, 70, 0.15);
-  --text-white: #f1faee;
-  --text-black: #1d3557;
-  --header-height: 70px;
+  --primary-color: #e63946;
+  --secondary-color: #ffd166;
+  --dark-color: #1d3557;
+  --light-color: #f1faee;
+  --glass-effect: rgba(255, 255, 255, 0.1);
+  --header-height: 80px;
+  --footer-height: 80px;
 }
+
 
 /* التنسيق العام */
 body {
