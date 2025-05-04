@@ -72,7 +72,7 @@ body {
 }
 
 .nav ul li a {
-  color: var(--primary-white);
+  color: var(--text-white);
   text-decoration: none;
   font-weight: 500;
   padding: 5px 10px;
@@ -178,11 +178,11 @@ body {
 }
 
 .match-info {
-  color: var(--primary-white);
+  color: var(--text-white);
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  background: var(--glass-effect);
+  
 }
 
 .match-info i {
