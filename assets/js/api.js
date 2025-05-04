@@ -40,7 +40,7 @@ export const fetchMatches = async () => {
         }
 
         // ⬇️ تحميل البيانات من الملف الثابت
-        const response = await fetch('/data/matches.json');
+        const response = await fetch('/scripts/generate-matches.js');
         if (!response.ok) throw new Error('فشل تحميل البيانات من matches.json');
 
         const rawData = await response.json();
