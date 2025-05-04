@@ -5,16 +5,88 @@
   --text-white: #f1faee;
   --text-black: #1d3557;
   --header-height: 70px;
-  --border-radius: 12px;
-  --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
 }
-  body {
-            font-family: 'Arial', sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
+
+/* التنسيق العام */
+body {
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  margin: 0;
+  padding-top: var(--header-height);
+  color: var(--text-black);
+}
+
+.matches-main {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* تنسيق الهيدر (مطابق لـ news.html) */
+.header {
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  backdrop-filter: blur(10px);
+  height: var(--header-height);
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.header .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header .logo img {
+    height: 100px;
+  width: 100px;
+}
+
+
+
+.header .logo h1 {
+  color: var(--text-white);
+  margin: 0;
+  font-size: 1.1rem;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.nav ul {
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav ul li a {
+  color: var(--text-white);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.nav ul li a:hover,
+.nav ul li a.active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-toggle {
+  display: none;
+  color: var(--text-white);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
         #loading {
             display: flex;
             justify-content: center;
