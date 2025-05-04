@@ -1,12 +1,14 @@
 /* تنسيق الفوتر الجديد */
 .footer {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   color: var(--text-white);
   padding: 1.5rem 0;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   height: auto;
   min-height: 120px; /* ارتفاع أصغر */
+  color: var(--light-color);
+  background: var(--glass-effect);
 }
 
 .footer-content {
@@ -19,7 +21,7 @@
 }
 
 .footer-logo .logo-text {
-  font-family: 'Tajawal', sans-serif;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
   font-weight: 900;
   font-size: 2.5rem;
   color: var(--text-white);
