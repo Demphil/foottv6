@@ -1,19 +1,32 @@
-/* ملف watch.css المعدل */
+/* watch.css - متكامل مع watch.html و watch.js */
 
 :root {
-  --primary-red: #e63946;
-  --primary-yellow: #ffd166;
-  --glass-bg: rgba(230, 57, 70, 0.15);
-  --text-white: #f1faee;
-  --text-black: #1d3557;
+  --primary-color: #e63946;
+  --secondary-color: #ffd166;
+  --dark-color: #1d3557;
+  --light-color: #f1faee;
+  --glass-effect: rgba(255, 255, 255, 0.1);
   --header-height: 80px;
+  --footer-height: 80px;
 }
 
-/* ========= تنسيق الهيدر الجديد ========= */
+/* التنسيق العام */
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  color: var(--light-color);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* الهيدر المعدل */
 .header {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
   height: var(--header-height);
-  padding: 0 30px;
+  padding: 0 20px;
   position: fixed;
   top: 0;
   left: 0;
@@ -22,8 +35,8 @@
   align-items: center;
   justify-content: space-between;
   z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .header .logo {
@@ -33,129 +46,335 @@
 }
 
 .header .logo img {
-  height: 100px;
-  width: 160px;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+  height: 50px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 .header .logo h1 {
-  color: var(--text-white);
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
+  color: var(--light-color);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .nav ul {
   display: flex;
-  gap: 25px;
+  gap: 20px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .nav ul li a {
-  color: var(--text-white);
+  color: var(--light-color);
   text-decoration: none;
   font-weight: 600;
   font-size: 1.1rem;
   padding: 8px 15px;
   border-radius: 30px;
   transition: all 0.3s ease;
-  display: inline-block;
 }
 
 .nav ul li a:hover,
 .nav ul li a.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
-/* ========= تنسيق البطاقات المعدل ========= */
+.menu-toggle {
+  display: none;
+  color: var(--light-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* المحتوى الرئيسي */
+#match-container {
+  margin-top: var(--header-height);
+  padding: 20px;
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* شاشة التحميل */
+#loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  gap: 15px;
+}
+
+/* زر العودة */
+#back-button {
+  background: var(--glass-effect);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--light-color);
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* معلومات المباراة */
+#match-info {
+  margin-bottom: 30px;
+}
+
+.match-header {
+  background: var(--glass-effect);
+  backdrop-filter: blur(10px);
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.league-info {
+  margin-bottom: 20px;
+}
+
+.league-logo {
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.teams {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin: 25px 0;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.team.home {
+  align-items: flex-end;
+}
+
+.team.away {
+  align-items: flex-start;
+}
+
+.team img {
+  height: 70px;
+  width: auto;
+  margin-bottom: 10px;
+  object-fit: contain;
+}
+
+.vs {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--secondary-color);
+  margin: 0 15px;
+}
+
+.match-meta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.match-meta p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* مشغل الفيديو */
+.video-container {
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
+  background: #000;
+}
+
+.live-stream {
+  width: 100%;
+  height: 500px;
+  border: none;
+}
+
+/* قائمة القنوات */
+.channel-list {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.channels-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.channel-btn {
+  background: var(--glass-effect);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--light-color);
+  padding: 8px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.channel-btn.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 600;
+}
+
+.channel-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* المباريات الأخرى */
+#other-matches {
+  margin-top: 40px;
+}
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
 .match-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--glass-effect);
   backdrop-filter: blur(10px);
   border-radius: 15px;
   padding: 20px;
-  min-width: 300px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-white);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.match-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .match-card .teams {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin: 15px 0;
 }
 
-/* الفريق الضيف (اليسار) */
-.match-card .team.away {
+.match-card .team {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
+  align-items: center;
+  flex: 1;
 }
 
-/* الفريق المضيف (اليمين) */
 .match-card .team.home {
-  display: flex;
-  flex-direction: column;
   align-items: flex-end;
-  text-align: right;
+}
+
+.match-card .team.away {
+  align-items: flex-start;
 }
 
 .match-card .team img {
-  width: 50px;
   height: 50px;
-  object-fit: contain;
+  width: auto;
   margin-bottom: 8px;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
-}
-
-.match-card .team-name {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin: 5px 0;
 }
 
 .match-card .vs {
   font-size: 1.2rem;
-  font-weight: bold;
-  padding: 0 15px;
-  color: var(--primary-yellow);
+  margin: 0 10px;
 }
 
 .match-card .match-time {
-  font-size: 0.9rem;
   text-align: center;
   margin-top: 15px;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(0, 0, 0, 0.2);
-  padding: 5px 10px;
-  border-radius: 20px;
-  display: inline-block;
 }
 
-/* ========= تحسينات إضافية ========= */
-.match-header {
-  margin-top: calc(var(--header-height) + 20px);
-  /* باقي التنسيقات كما هي */
+/* الفوتر */
+.footer {
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  color: var(--light-color);
+  padding: 20px 0;
+  margin-top: auto;
 }
 
-/* التأكد من أن المحتوى لا يختفي خلف الهيدر */
-#match-container {
-  padding-top: 30px;
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* تأثيرات التحويم */
-.match-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+.footer-logo .logo-text {
+  color: var(--light-color);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  color: var(--light-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+.copyright {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* التنسيق للجوال */
@@ -164,20 +383,39 @@
     padding: 0 15px;
   }
   
-  .header .logo h1 {
-    font-size: 1.2rem;
-  }
-  
   .nav ul {
-    gap: 10px;
+    display: none;
   }
   
-  .nav ul li a {
-    padding: 6px 10px;
-    font-size: 0.9rem;
+  .menu-toggle {
+    display: block;
   }
   
-  .match-card {
-    min-width: 260px;
+  .live-stream {
+    height: 300px;
+  }
+  
+  .teams {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .team.home,
+  .team.away {
+    align-items: center !important;
+  }
+  
+  .matches-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
