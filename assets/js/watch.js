@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
            'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
             'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
-             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5'
+             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5'/,
              'bein-sports-hd6':  'https://yallateri.com/albaplayer/yalla-live-6/',
             'ad-sports-premium1': 'https://example-stream.com/adsports1',
             // أضف روابط القنوات الفعلية هنا
