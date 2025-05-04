@@ -22,6 +22,10 @@ body {
   flex-direction: column;
 }
 
+.favicon.icon {
+  width: 32px;  /* تغيير العرض */
+  height: 32px; /* تغيير الارتفاع */
+}
 /* الهيدر المعدل */
 .header {
   background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
@@ -150,7 +154,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
    height: 30vh; /* 50% من ارتفاع الشاشة */
-  min-height: 200px; /* حد أدنى لضمان عدم تصغير الشاشة جدًا */
+  min-height: 300px; /* حد أدنى لضمان عدم تصغير الشاشة جدًا */
 }
 }
 
