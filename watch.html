@@ -1,20 +1,30 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مشاهدة المباراة</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بث مباشر - مباراة اليوم</title>
   <link rel="stylesheet" href="assets/css/watch.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <header>
-    <h1>مشاهدة المباراة مباشرة</h1>
-  </header>
-  <main id="watch-container">
-    <h2 id="match-title">تحميل المباراة...</h2>
-    <iframe id="stream-frame" allowfullscreen></iframe>
-  </main>
-  <script src="assets/js/watch.js"></script>
+    <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات المباراة...
+    </div>
+
+    <div id="error-container"></div>
+
+    <div id="match-container" style="display:none;">
+        <button id="back-button"><i class="fas fa-arrow-left"></i> العودة</button>
+        
+        <div id="match-info"></div>
+        
+        <div id="video-frame"></div>
+        
+        <h3>القنوات المتاحة:</h3>
+        <div id="channel-list" class="channel-list"></div>
+    </div>
+
+    <script src="assets/js/watch.js"></script>
 </body>
 </html>
-
