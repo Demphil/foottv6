@@ -7,26 +7,23 @@
   --text-black: #1d3557;
   --header-height: 70px;
 }
-#top-of-page {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  visibility: hidden;
-}
+
 /* التنسيق العام */
 body {
   font-family: 'IBM Plex Sans Arabic', sans-serif;
   background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
   margin: 0;
   padding-top: var(--header-height);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  color: var(--text-black);
 }
 
-/* الهيدر */
+.matches-main {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* تنسيق الهيدر (مطابق لـ news.html) */
 .header {
   background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
   backdrop-filter: blur(10px);
@@ -42,7 +39,6 @@ body {
   z-index: 1000;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
 .header .logo {
   display: flex;
   align-items: center;
@@ -50,20 +46,19 @@ body {
 }
 
 .header .logo img {
-  height: 100px;
+    height: 100px;
   width: 100px;
 }
 
+
+
 .header .logo h1 {
   color: var(--text-white);
-  text-position: center;
   margin: 0;
   font-size: 1.1rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
-h2 .i{
-   color: var(--primary-white), var(--text-white);
-}
+
 .nav ul {
   display: flex;
   gap: 15px;
