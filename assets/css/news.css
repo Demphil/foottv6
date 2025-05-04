@@ -52,13 +52,12 @@ body {
     height: 100px;
   width: 100px;
   color: var(--primary-white);
-  background: var(--glass-effect);
 }
 
 
 
 .header .logo h1 {
-  color: var(--primary-white);
+  color: var(--text-white);
   margin: 0;
   font-size: 1.1rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
@@ -73,7 +72,7 @@ body {
 }
 
 .nav ul li a {
-  color: var(--text-white);
+  color: var(--primary-white);
   text-decoration: none;
   font-weight: 500;
   padding: 5px 10px;
@@ -136,7 +135,7 @@ body {
 }
 
 .section-title {
-  color: var(--primary-white)
+  color: var(--text-white)
   font-size: 1.5rem;
   margin: 0;
   display: flex;
