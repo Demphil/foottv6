@@ -54,7 +54,7 @@ body {
 .header .logo h1 {
   color: var(--text-white);
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
