@@ -1,4 +1,3 @@
-// watch.js
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. الحصول على معرّف المباراة والقناة من URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         videoFrame: document.getElementById('video-frame'),
         matchInfo: document.getElementById('match-info'),
         channelList: document.getElementById('channel-list'),
+        otherMatches: document.getElementById('other-matches'),
         backButton: document.getElementById('back-button')
     };
 
@@ -34,10 +34,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // 5. عرض معلومات المباراة
-        renderMatchDetails(match, channel);
+        // 5. الحصول على 4 مباريات أخرى عشوائية (غير المباراة الحالية)
+        const otherMatches = getOtherMatches(matchesData, matchId, 4);
 
-        // 6. إعداد البث المباشر
+        // 6. عرض معلومات المباراة والمباريات الأخرى
+        renderMatchDetails(match, channel, otherMatches);
+
+        // 7. إعداد البث المباشر
         setupLiveStream(channel);
 
     } catch (error) {
@@ -47,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideLoading();
     }
 
-    // 7. أحداث الأزرار
+    // 8. أحداث الأزرار
     DOM.backButton.addEventListener('click', () => {
         window.history.back();
     });
@@ -63,7 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { data } = JSON.parse(cached);
                 return data;
             } catch {
-                // إذا كان هناك خطأ في التخزين المؤقت، نستدعي API مباشرة
                 return await fetchMatches();
             }
         }
@@ -74,58 +76,136 @@ document.addEventListener('DOMContentLoaded', async () => {
         return matches.find(m => m.fixture.id == id);
     }
 
-    function renderMatchDetails(match, selectedChannel) {
+    function getOtherMatches(matches, currentMatchId, count) {
+        return matches
+            .filter(m => m.fixture.id != currentMatchId)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, count);
+    }
+
+    function renderMatchDetails(match, selectedChannel, otherMatches) {
         const { fixture, teams, league } = match;
         
+        // عرض معلومات المباراة الرئيسية
         DOM.matchInfo.innerHTML = `
             <div class="match-header">
-                <img src="${league.logo}" alt="${league.name}" class="league-logo">
-                <h2>${league.name}</h2>
-            </div>
-            <div class="teams">
-                <div class="team">
-                    <img src="${teams.home.logo}" alt="${teams.home.name}">
-                    <h3>${teams.home.name}</h3>
+                <div class="league-info">
+                    <img src="${league.logo}" alt="${league.name}" class="league-logo">
+                    <h2>${league.name}</h2>
                 </div>
-                <div class="vs">VS</div>
-                <div class="team">
-                    <img src="${teams.away.logo}" alt="${teams.away.name}">
-                    <h3>${teams.away.name}</h3>
+                <div class="teams">
+                    <div class="team">
+                        <img src="${teams.home.logo}" alt="${teams.home.name}">
+                        <h3>${teams.home.name}</h3>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="team">
+                        <img src="${teams.away.logo}" alt="${teams.away.name}">
+                        <h3>${teams.away.name}</h3>
+                    </div>
                 </div>
-            </div>
-            <div class="match-meta">
-                <p><i class="fas fa-calendar-alt"></i> ${formatDate(fixture.date)}</p>
-                <p><i class="fas fa-map-marker-alt"></i> ${fixture.venue?.name || 'ملعب غير معروف'}</p>
+                <div class="match-meta">
+                    <p><i class="fas fa-calendar-alt"></i> ${formatDate(fixture.date)}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${fixture.venue?.name || 'ملعب غير معروف'}</p>
+                </div>
             </div>
         `;
 
-        // عرض قنوات البث المتاحة
-        if (match.broadcast?.length > 0) {
-            const channels = getArabicBroadcasters(match.broadcast);
-            if (channels.length > 0) {
-                DOM.channelList.innerHTML = channels.map(c => `
-                    <button class="channel-btn ${c === selectedChannel ? 'active' : ''}" 
-                            data-channel="${c}">
-                        ${c}
-                    </button>
-                `).join('');
+        // عرض القنوات المتاحة
+        renderChannels(match, selectedChannel);
 
-                // إضافة أحداث تغيير القناة
-                document.querySelectorAll('.channel-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const newChannel = btn.dataset.channel;
-                        window.location.href = `watch.html?id=${matchId}&channel=${newChannel}`;
-                    });
+        // عرض المباريات الأخرى
+        renderOtherMatches(otherMatches);
+    }
+
+    function renderChannels(match, selectedChannel) {
+        const channels = getArabicBroadcasters(match.broadcast || []);
+        if (channels.length > 0) {
+            DOM.channelList.innerHTML = `
+                <h3 class="section-title">القنوات الناقلة:</h3>
+                <div class="channels-container">
+                    ${channels.map(c => `
+                        <button class="channel-btn ${c === selectedChannel ? 'active' : ''}" 
+                                data-channel="${getChannelKey(c)}">
+                            ${c}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            // إضافة أحداث تغيير القناة
+            document.querySelectorAll('.channel-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const newChannel = btn.dataset.channel;
+                    window.location.href = `watch.html?id=${matchId}&channel=${newChannel}`;
                 });
-            }
+            });
         }
+    }
+
+    function renderOtherMatches(matches) {
+        if (matches.length > 0) {
+            DOM.otherMatches.innerHTML = `
+                <h3 class="section-title">مباريات أخرى مباشرة:</h3>
+                <div class="matches-grid">
+                    ${matches.map(m => createMatchCard(m)).join('')}
+                </div>
+            `;
+            
+            // إضافة أحداث النقر للبطاقات
+            document.querySelectorAll('.match-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const matchId = card.dataset.id;
+                    const channel = card.dataset.channel;
+                    if (matchId && channel) {
+                        window.location.href = `watch.html?id=${matchId}&channel=${channel}`;
+                    }
+                });
+            });
+        }
+    }
+
+    function createMatchCard(match) {
+        const { fixture, teams, league } = match;
+        const channels = getArabicBroadcasters(match.broadcast || []);
+        const mainChannel = channels.length > 0 ? getChannelKey(channels[0]) : '';
+        
+        return `
+            <div class="match-card" data-id="${fixture.id}" data-channel="${mainChannel}">
+                <div class="card-header">
+                    <img src="${league.logo}" alt="${league.name}" class="league-logo">
+                    <span class="league-name">${league.name}</span>
+                </div>
+                <div class="teams">
+                    <div class="team">
+                        <img src="${teams.home.logo}" alt="${teams.home.name}">
+                        <span class="team-name">${teams.home.name}</span>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="team">
+                        <img src="${teams.away.logo}" alt="${teams.away.name}">
+                        <span class="team-name">${teams.away.name}</span>
+                    </div>
+                </div>
+                <div class="match-time">
+                    <i class="fas fa-clock"></i> ${formatKickoffTime(fixture.date)}
+                </div>
+                ${channels.length > 0 ? `
+                    <div class="match-channel">
+                        <i class="fas fa-tv"></i> ${channels[0]}
+                    </div>
+                ` : ''}
+            </div>
+        `;
     }
 
     function setupLiveStream(channel) {
         const CHANNEL_URLS = {
-            'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
-            'bein-sports-hd2': 'https://example-stream.com/bein2',
-            'bein-sports-hd3': 'https://example-stream.com/bein3',
+           'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
+            'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
+            'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
+             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5'
+             'bein-sports-hd6':  'https://yallateri.com/albaplayer/yalla-live-6/',
             'ad-sports-premium1': 'https://example-stream.com/adsports1'
             // أضف روابط القنوات الفعلية هنا
         };
@@ -133,11 +213,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const streamUrl = CHANNEL_URLS[channel] || CHANNEL_URLS['bein-sports-hd1'];
         
         DOM.videoFrame.innerHTML = `
-            <iframe src="${streamUrl}" 
-                    frameborder="0" 
-                    allowfullscreen
-                    allow="autoplay"
-                    class="live-stream"></iframe>
+            <div class="video-container">
+                <iframe src="${streamUrl}" 
+                        frameborder="0" 
+                        allowfullscreen
+                        allow="autoplay"
+                        class="live-stream"></iframe>
+            </div>
         `;
     }
 
@@ -150,16 +232,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         return broadcastData
-            .filter(b => b && b.name)
-            .map(b => {
+            ?.filter(b => b && b.name)
+            ?.map(b => {
                 const cleanName = b.name.toLowerCase().replace(/\s+/g, '-');
                 const matchedKey = Object.keys(ARABIC_CHANNELS).find(key => 
                     cleanName.includes(key.toLowerCase())
                 );
                 return matchedKey ? ARABIC_CHANNELS[matchedKey] : null;
             })
-            .filter(Boolean)
-            .filter((v, i, a) => a.indexOf(v) === i);
+            ?.filter(Boolean)
+            ?.filter((v, i, a) => a.indexOf(v) === i) || [];
+    }
+
+    function getChannelKey(channelName) {
+        const ARABIC_CHANNELS = {
+            'bein SPORTS HD1': 'bein-sports-hd1',
+            'bein SPORTS HD2': 'bein-sports-hd2',
+            'bein SPORTS HD3': 'bein-sports-hd3',
+            'AD SPORTS PREMIUM1': 'ad-sports-premium1'
+        };
+        return ARABIC_CHANNELS[channelName] || '';
     }
 
     function formatDate(dateStr) {
@@ -173,6 +265,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             timeZone: 'Africa/Casablanca'
         };
         return new Date(dateStr).toLocaleDateString('ar-MA', options);
+    }
+
+    function formatKickoffTime(dateString) {
+        const options = { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZone: 'Africa/Casablanca'
+        };
+        return new Date(dateString).toLocaleTimeString('ar-MA', options);
     }
 
     function showLoading() {
