@@ -32,7 +32,7 @@ const CONFIG = {
       homeTeam: "roma",
       awayTeam: "fiorentina",
       channels: ["AD SPORTS PREMIUM1"]
-    }
+   },
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
