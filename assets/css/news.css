@@ -61,8 +61,8 @@ body {
   font-size: 1.1rem;
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
-h2 {
-   color: var(--primary-white);
+h2 .i{
+   color: var(--primary-white), var(--text-white);
 }
 .nav ul {
   display: flex;
@@ -161,7 +161,7 @@ h2 {
 }
 
 .breaking-news-card {
-  background: var(--primary-white), var(--primary-red), var(--primary-yellow);
+  background: var(--primary-white),  var(--primary-yellow);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -203,7 +203,7 @@ h2 {
 }
 
 .sports-news-card {
-  background: var(--primary-white), var(--primary-red), var(--primary-yellow);
+  background: var(--primary-white),  var(--primary-yellow);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -309,7 +309,7 @@ h2 {
 }
 
 .news-card {
-  background: var(--primary-white), var(--primary-red), var(--primary-yellow);
+  background: var(--primary-white),  var(--primary-yellow);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
