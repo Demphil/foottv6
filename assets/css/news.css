@@ -12,7 +12,8 @@
 /* التنسيق العام */
 body {
   font-family: 'IBM Plex Sans Arabic', sans-serif;
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  color: var(--light-color);
   margin: 0;
   padding-top: var(--header-height);
   color: var(--text-black);
@@ -26,7 +27,7 @@ body {
 
 /* تنسيق الهيدر (مطابق لـ news.html) */
 .header {
-  background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
+  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
   backdrop-filter: blur(10px);
   height: var(--header-height);
   padding: 0 20px;
@@ -157,15 +158,19 @@ body {
 }
 
 .breaking-news-card {
-  background: var(--primary-white),  var(--primary-yellow);
+  color: var(--light-color);
   border-radius: 8px;
   overflow: hidden;
+  background: var(--glass-effect);
+  backdrop-filter: blur(10px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
 .breaking-news-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .breaking-news-image {
@@ -199,10 +204,13 @@ body {
 }
 
 .sports-news-card {
-  background: var(--primary-white),  var(--primary-yellow);
+  background: var(--glass-effect);
+  backdrop-filter: blur(10px);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: var(--light-color);
+
 }
 
 .sports-news-image {
@@ -291,6 +299,7 @@ body {
 .category-btn.active {
   background: var(--text-white);
   color: var(--primary-red);
+  background: var(--glass-effect);
 }
 
 .sports-news-section {
@@ -305,11 +314,12 @@ body {
 }
 
 .news-card {
-  background: var(--primary-white),  var(--primary-yellow);
+  background: var(--glass-effect);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  color: var(--light-color);
 }
 
 .news-card:hover {
