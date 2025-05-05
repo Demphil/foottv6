@@ -9,18 +9,18 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Crystal Palace",
-      awayTeam: "Nottingham Forest",
+      homeTeam: "Barcelona",
+      awayTeam: "Inter",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Girona",
-      awayTeam: "Mallorca",
+      homeTeam: "Al Arabi SC",
+      awayTeam: "Al Safa",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Genoa",
-      awayTeam: "AC Milan",
+      homeTeam: "Al Zulfi",
+      awayTeam: "Al Taee",
       channels: ["AD SPORTS PREMIUM1"]
     },
      {
