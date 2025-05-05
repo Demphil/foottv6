@@ -418,7 +418,6 @@ body {
     border-radius: 8px;
     background: var(--dark-color);
      width: 100%;
-     aspect-ratio: 16/9;
     height: auto;
   }
   
