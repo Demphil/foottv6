@@ -597,7 +597,11 @@ window.watchMatch = function(matchId, channelName) {
     'bein SPORTS HD1': 'bein-sports-hd1',
     'bein SPORTS HD2': 'bein-sports-hd2',
     'bein SPORTS HD3': 'bein-sports-hd3',
-    'AD SPORTS PREMIUM1': 'ad-sports-premium1'
+    'bein SPORTS HD4': 'bein-sports-hd4',
+    'bein SPORTS HD5': 'bein-sports-hd5',
+    'bein SPORTS HD6': 'bein-sports-hd6',
+
+    'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
   
   const channelFile = channelMap[channelName];
