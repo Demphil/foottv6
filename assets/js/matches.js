@@ -19,8 +19,8 @@ const CONFIG = {
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Genoa",
-      awayTeam: "AC MILON",
+      homeTeam: "AC Milan",
+      awayTeam: "Genoa",
       channels: ["AD SPORTS PREMIUM1"]
     },
     {
