@@ -388,12 +388,13 @@ body {
 }
 
 /* التنسيق للجوال */
-/* تحسينات إضافية للهواتف */
+/* تحسينات إضافية للهواتف مع الحفاظ على ألوانك الأصلية */
 @media (max-width: 768px) {
   /* تعديل الهيدر */
   .header {
     height: 60px;
     padding: 0 10px;
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
   }
   
   .header .logo img {
@@ -402,17 +403,20 @@ body {
   
   .header .logo h1 {
     font-size: 1.2rem;
+    color: var(--light-color);
   }
   
   /* تعديل مساحة المحتوى الرئيسي */
   #match-container {
     margin-top: 60px;
     padding: 10px;
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   }
   
   /* تعديل حجم مشغل الفيديو */
   .video-container {
     border-radius: 8px;
+    background: var(--dark-color);
   }
   
   .live-stream {
@@ -424,6 +428,8 @@ body {
     padding: 15px;
     min-height: 200px;
     height: auto;
+    background: var(--glass-effect);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .league-logo {
@@ -436,11 +442,13 @@ body {
   
   .vs {
     font-size: 1.2rem;
+    color: var(--secondary-color);
   }
   
   .match-meta {
     flex-direction: column;
     gap: 5px;
+    color: var(--light-color);
   }
   
   /* تعديل قائمة القنوات */
@@ -451,11 +459,21 @@ body {
   .channel-btn {
     padding: 6px 15px;
     font-size: 0.8rem;
+    background: var(--glass-effect);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--light-color);
+  }
+  
+  .channel-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
   }
   
   /* تعديل المباريات الأخرى */
   .match-card {
     padding: 15px;
+    background: var(--glass-effect);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .match-card .team img {
@@ -510,15 +528,26 @@ body {
   }
 }
 
-/* تحسينات عامة للهاتف */
+/* تحسينات عامة للهاتف مع الحفاظ على الألوان */
 @media (hover: none) {
-  /* إزالة تأثيرات hover للأجهزة التي لا تدعمها */
+  /* إزالة تأثيرات hover مع الحفاظ على الألوان */
   .nav ul li a:hover,
-  .nav ul li a.active,
-  .channel-btn:hover,
-  .match-card:hover,
+  .nav ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--light-color);
+  }
+  
+  .channel-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--light-color);
+  }
+  
+  .match-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
   .footer-links a:hover {
-    transform: none;
+    color: var(--secondary-color);
   }
   
   /* تحسين قابلية النقر */
@@ -527,14 +556,14 @@ body {
   }
 }
 
-/* تحسينات للوضع الداكن في بعض المتصفحات */
+/* تحسينات للوضع الداكن مع استخدام ألوانك */
 @media (prefers-color-scheme: dark) {
   body {
-    background: linear-gradient(135deg, #0a192f, #1a365d);
+    background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   }
   
   .header, .footer {
-    background: linear-gradient(135deg, #1a365d, #0a192f);
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
   }
 }
 
