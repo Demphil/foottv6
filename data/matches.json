@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 261,
+  "results": 260,
   "paging": {
     "current": 1,
     "total": 1
@@ -19,8 +19,8 @@
         "date": "2025-05-05T20:00:00+03:00",
         "timestamp": 1746464400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746464400,
+          "second": 1746468000
         },
         "venue": {
           "id": 7996,
@@ -28,9 +28,9 @@
           "city": "Malmö"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 58,
           "extra": null
         }
       },
@@ -59,13 +59,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -84,7 +84,7 @@
     {
       "fixture": {
         "id": 1223938,
-        "referee": "G. Collu",
+        "referee": "Giuseppe Collu, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-05T21:45:00+03:00",
         "timestamp": 1746470700,
@@ -154,7 +154,7 @@
     {
       "fixture": {
         "id": 1208368,
-        "referee": "A. Madley",
+        "referee": "Andy Madley, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-05T22:00:00+03:00",
         "timestamp": 1746471600,
@@ -224,7 +224,7 @@
     {
       "fixture": {
         "id": 1208791,
-        "referee": "Mario Melero",
+        "referee": "Mario Melero Lopez, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-05T22:00:00+03:00",
         "timestamp": 1746471600,
