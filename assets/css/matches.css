@@ -406,65 +406,238 @@ body {
 }
 
 /* التجاوب مع الشاشات الصغيرة */
-/* تعديلات خاصة للهيدر على الجوال */
+/* تحسينات للهواتف مع الحفاظ على الألوان الأصلية */
+@media (max-width: 992px) {
+  .matches-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .featured-slider {
+    height: auto;
+  }
+  
+  .featured-card {
+    margin-bottom: 10px;
+  }
+  
+  .broadcast-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
+  /* تعديلات الهيدر */
   .header {
     height: 60px;
-    padding: 0 15px;
+    padding: 0 10px;
   }
+  
+  .header .logo img {
+    height: 60px;
+  }
+  
+  .header .logo h1 {
+    font-size: 0.9rem;
+  }
+  
+  .nav ul {
+    display: ;
+  }
+  
+  .menu-toggle {
+    display: block;
+  }
+  
+  /* تعديلات المحتوى الرئيسي */
+  .matches-main {
+    padding: 10px;
+    padding-top: calc(60px + 10px);
+  }
+  
+  /* تعديلات البطاقات */
+  .featured-card,
+  .broadcast-card,
+  .match-card {
+    padding: 12px;
+  }
+  
+  .team img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .vs {
+    font-size: 1rem;
+  }
+  
+  .match-info {
+    font-size: 0.8rem;
+  }
+  
+  /* تعديلات الأزرار */
+  .watch-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .tab-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  /* تعديلات عناصر التحكم بالسلايدر */
+  .slider-controls {
+    gap: 10px;
+  }
+  
+  .slider-prev,
+  .slider-next {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+  }
+}
 
+@media (max-width: 576px) {
+  /* تعديلات إضافية للشاشات الصغيرة */
+  .matches-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .tab-btn {
+    width: auto;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .featured-section,
+  .broadcast-section,
+  .all-matches {
+    padding: 10px;
+  }
+  
+  /* تحسينات للوضع الأفقي */
+  @media screen and (orientation: landscape) {
+    .featured-slider {
+      height: 200px;
+    }
+    
+    .matches-layout {
+      grid-template-columns: 40% 60%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات للهواتف الصغيرة جداً */
+  .header .logo h1 {
+    display: none;
+  }
+  
   .header .logo img {
     height: 50px;
   }
-
-  .header .logo h1 {
-    font-size: 1.2rem;
+  
+  .team img {
+    width: 35px;
+    height: 35px;
   }
-
-  /* تصميم قائمة الجوال */
-  .nav {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    z-index: 999;
-  }
-
-  .nav.active {
-    max-height: 300px;
-    padding: 15px 0;
-  }
-
-  .nav ul {
-    flex-direction: column;
+  
+  .tab-content.active {
     gap: 10px;
-    padding: 0 20px;
   }
-
-  .nav ul li a {
-    display: block;
-    padding: 10px 15px;
-    border-radius: 5px;
+  
+  .match-card {
+    padding: 10px;
   }
-
-  .menu-toggle {
-    display: block;
-    font-size: 1.8rem;
-  }
-
-  /* تعديلات إضافية للشاشات الصغيرة جداً */
-  @media (max-width: 480px) {
-    .header .logo h1 {
-      display: none;
+  
+  /* تحسينات خاصة باللمس */
+  @media (hover: none) {
+    .featured-card:hover,
+    .broadcast-card:hover,
+    .match-card:hover,
+    .nav ul li a:hover,
+    .watch-btn:hover,
+    .tab-btn:hover,
+    .slider-prev:hover,
+    .slider-next:hover {
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
-    .header .logo img {
-      height: 45px;
+    .featured-card:hover,
+    .broadcast-card:hover,
+    .match-card:hover {
+      background: var(--glass-effect);
+    }
+    
+    .watch-btn:hover,
+    .tab-btn:hover {
+      background: var(--primary-color);
     }
   }
+}
 
+@media (max-width: 360px) {
+  /* تعديلات للهواتف القديمة */
+  .team img {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .vs {
+    font-size: 0.9rem;
+  }
+  
+  .match-time {
+    font-size: 0.8rem;
+  }
+  
+  .watch-btn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .tab-btn {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+/* تحسينات الأداء والوضع الداكن */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  }
+  
+  .header {
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+  }
+}
+
+/* تحسينات عامة للهواتف */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+a, button {
+  -webkit-tap-highlight-color: transparent;
+}
