@@ -376,46 +376,193 @@ body {
 
 
 /* التكيف مع الشاشات الصغيرة */
+/* تحسينات للهواتف مع الحفاظ على الألوان الأصلية */
 @media (max-width: 1024px) {
   .breaking-news-container {
     grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+  
+  .news-card {
+    padding: 15px;
+  }
+  
+  .news-title {
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 768px) {
+  /* تعديلات الهيدر */
   .header {
     padding: 0 15px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
   }
   
+  .header .logo img {
+    height: 50px;
+  }
+  
+  .header .logo h1 {
+    font-size: 1.2rem;
+  }
+  
+  /* تصميم قائمة الجوال */
   .nav {
     display: none;
-    position: absolute;
-    top: var(--header-height);
+    position: fixed;
+    top: 60px;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, var(--primary-red), var(--primary-yellow));
-    padding: 15px;
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+    padding: 15px 20px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
   }
   
   .nav.active {
     display: block;
+    max-height: 500px;
   }
   
   .nav ul {
     flex-direction: column;
     gap: 10px;
+    padding: 0;
+  }
+  
+  .nav ul li a {
+    display: block;
+    padding: 10px 15px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .nav ul li a:hover,
+  .nav ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: none;
   }
   
   .menu-toggle {
     display: block;
+    font-size: 1.8rem;
+    color: var(--light-color);
   }
   
+  /* تعديلات المحتوى الرئيسي */
   .breaking-news-container,
   .sports-news-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
   
+  .news-card {
+    padding: 12px;
+  }
+  
+  .news-image {
+    height: 180px;
+  }
+  
+  .news-title {
+    font-size: 1rem;
+    margin: 8px 0;
+  }
+  
+  .news-excerpt {
+    font-size: 0.9rem;
+  }
+  
+  /* تعديلات الفوتر */
   .footer-content {
     flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* تعديلات إضافية للشاشات الصغيرة */
+  .header .logo h1 {
+    display: none;
+  }
+  
+  .header .logo img {
+    height: 45px;
+  }
+  
+  .breaking-news-title {
+    font-size: 1.3rem;
+  }
+  
+  .news-image {
+    height: 150px;
+  }
+  
+  .read-more {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  /* تحسينات للوضع الأفقي */
+  @media screen and (orientation: landscape) {
+    .breaking-news-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .news-card {
+      padding: 10px;
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  /* تعديلات للهواتف القديمة */
+  .news-image {
+    height: 120px;
+  }
+  
+  .news-title {
+    font-size: 0.95rem;
+  }
+  
+  .news-meta {
+    font-size: 0.8rem;
+  }
+  
+  .read-more {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+}
+
+/* تحسينات خاصة باللمس */
+@media (hover: none) {
+  .news-card:hover,
+  .nav ul li a:hover,
+  .read-more:hover {
+    transform: none;
+  }
+  
+  .news-card:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* تحسينات الأداء */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
   }
 }
