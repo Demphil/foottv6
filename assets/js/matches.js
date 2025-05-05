@@ -27,7 +27,7 @@ const CONFIG = {
       homeTeam: "Real Madrid",
       awayTeam: "Barcelona",
       channels: ["bein SPORTS HD1"]
-    },
+    }
     
   ],
   ARABIC_CHANNELS: {
