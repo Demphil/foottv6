@@ -410,20 +410,25 @@ body {
   #match-container {
     margin-top: 60px;
     padding: 10px;
-  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+    background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   }
   
-  /* تعديل حجم مشغل الفيديو */
+  /* تعديل حجم مشغل الفيديو - النسخة المعدلة */
   .video-container {
+    width: 100%;
     border-radius: 8px;
-    background: var(--dark-color);
-     width: 100%;
-       max-height: 100%;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+    background: #000;
+    aspect-ratio: 16/9; /* نسبة جديدة */
   }
-
   
   .live-stream {
-    height: 200px;
+    width: 100%;
+    height: 280px; /* زيادة الارتفاع */
+    min-height: 250px; /* حد أدنى جديد */
+    border: none;
   }
   
   /* تعديل معلومات المباراة */
@@ -432,6 +437,9 @@ body {
     min-height: 200px;
     height: auto;
     background: var(--glass-effect);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
@@ -476,6 +484,9 @@ body {
   .match-card {
     padding: 15px;
     background: var(--glass-effect);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    transition: all 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
@@ -490,7 +501,8 @@ body {
     }
     
     .live-stream {
-      height: 180px;
+      height: 240px; /* تعديل الارتفاع */
+      min-height: 220px;
     }
     
     .match-header {
@@ -508,7 +520,8 @@ body {
     /* تحسينات للوضع الأفقي */
     @media screen and (orientation: landscape) {
       .live-stream {
-        height: 180px;
+        height: 220px; /* تعديل الارتفاع */
+        min-height: 200px;
       }
       
       .match-header {
@@ -521,7 +534,8 @@ body {
   /* تحسينات للهواتف القديمة */
   @media (max-width: 360px) {
     .live-stream {
-      height: 150px;
+      height: 200px; /* تعديل الارتفاع */
+      min-height: 180px;
     }
     
     .channel-btn {
