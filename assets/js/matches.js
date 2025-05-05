@@ -9,18 +9,18 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Barcelona",
-      awayTeam: "Inter",
+      homeTeam: "Inter",
+      awayTeam: "Barcelona",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Al Arabi SC",
-      awayTeam: "Al Safa",
+      homeTeam: "Al Safa",
+      awayTeam: "Al Arabi SC",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Al Zulfi",
-      awayTeam: "Al Taee",
+      homeTeam: "Al Taee",
+      awayTeam: "Al Zulfi",
       channels: ["AD SPORTS PREMIUM1"]
     }
    
