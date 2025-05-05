@@ -37,7 +37,7 @@ const CONFIG = {
    'bein-sports-hd1': 'bein SPORTS HD4',
    'bein-sports-hd1': 'bein SPORTS HD5',
    'bein-sports-hd1': 'bein SPORTS HD6',
-    'ad-sports-premium1': 'AD SPORTS PREMIUM1'
+    'ad-sports-premium1': 'AD SPORTS PREMIUM1',
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
