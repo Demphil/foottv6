@@ -12,9 +12,9 @@ Disallow: /*?*
 Disallow: /*.json
 Disallow: /*.php
 
-Sitemap: https://www.yoursite.com/sitemap.xml
-Sitemap: https://www.yoursite.com/sitemap-matches.xml
-Sitemap: https://www.yoursite.com/sitemap-leagues.xml
+Sitemap: https://www.foottv.info/sitemap.xml
+Sitemap: https:/www.foottv.info/sitemap-matches.xml
+Sitemap: https://wwwfoottv.info/sitemap-leagues.xml
 
 # تحسين لمحركات البحث الرئيسية
 User-agent: Googlebot
