@@ -389,44 +389,168 @@ body {
 }
 
 /* التنسيق للجوال */
+/* تحسينات إضافية للهواتف */
 @media (max-width: 768px) {
+  /* تعديل الهيدر */
   .header {
-    padding: 0 15px;
+    height: 60px;
+    padding: 0 10px;
   }
   
-  .nav ul {
-    display: none;
+  .header .logo img {
+    height: 50px;
   }
   
-  .menu-toggle {
-    display: block;
+  .header .logo h1 {
+    font-size: 1.2rem;
+  }
+  
+  /* تعديل مساحة المحتوى الرئيسي */
+  #match-container {
+    margin-top: 60px;
+    padding: 10px;
+  }
+  
+  /* تعديل حجم مشغل الفيديو */
+  .video-container {
+    border-radius: 8px;
   }
   
   .live-stream {
-    height: 300px;
+    height: 200px;
   }
   
-  .teams {
+  /* تعديل معلومات المباراة */
+  .match-header {
+    padding: 15px;
+    min-height: 200px;
+    height: auto;
+  }
+  
+  .league-logo {
+    height: 40px;
+  }
+  
+  .team img {
+    height: 50px;
+  }
+  
+  .vs {
+    font-size: 1.2rem;
+  }
+  
+  .match-meta {
     flex-direction: column;
-    gap: 15px;
+    gap: 5px;
   }
   
-  .team.home,
-  .team.away {
-    align-items: center !important;
-  }
-  
-  .matches-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .footer-links {
-    flex-wrap: wrap;
+  /* تعديل قائمة القنوات */
+  .channels-container {
     justify-content: center;
+  }
+  
+  .channel-btn {
+    padding: 6px 15px;
+    font-size: 0.8rem;
+  }
+  
+  /* تعديل المباريات الأخرى */
+  .match-card {
+    padding: 15px;
+  }
+  
+  .match-card .team img {
+    height: 40px;
+  }
+  
+  /* تحسينات للشاشات الصغيرة جدًا */
+  @media (max-width: 480px) {
+    .header .logo h1 {
+      display: none;
+    }
+    
+    .live-stream {
+      height: 180px;
+    }
+    
+    .match-header {
+      padding: 10px;
+    }
+    
+    .team img {
+      height: 40px;
+    }
+    
+    .vs {
+      font-size: 1rem;
+    }
+    
+    /* تحسينات للوضع الأفقي */
+    @media screen and (orientation: landscape) {
+      .live-stream {
+        height: 180px;
+      }
+      
+      .match-header {
+        min-height: 150px;
+        height: auto;
+      }
+    }
+  }
+  
+  /* تحسينات للهواتف القديمة */
+  @media (max-width: 360px) {
+    .live-stream {
+      height: 150px;
+    }
+    
+    .channel-btn {
+      padding: 5px 12px;
+      font-size: 0.7rem;
+    }
+  }
+}
+
+/* تحسينات عامة للهاتف */
+@media (hover: none) {
+  /* إزالة تأثيرات hover للأجهزة التي لا تدعمها */
+  .nav ul li a:hover,
+  .nav ul li a.active,
+  .channel-btn:hover,
+  .match-card:hover,
+  .footer-links a:hover {
+    transform: none;
+  }
+  
+  /* تحسين قابلية النقر */
+  a, button, .channel-btn, .match-card {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* تحسينات للوضع الداكن في بعض المتصفحات */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #0a192f, #1a365d);
+  }
+  
+  .header, .footer {
+    background: linear-gradient(135deg, #1a365d, #0a192f);
+  }
+}
+
+/* منع تكبير النص عند الدوران */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+/* تحسين أداء الحركات والانتقالات */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
