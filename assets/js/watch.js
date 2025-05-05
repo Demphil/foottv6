@@ -203,28 +203,79 @@ document.addEventListener('DOMContentLoaded', async () => {
         const CHANNEL_URLS = {
             'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
-            'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
             'bein-sports-hd4': 'https://yallateri.com/albaplayer/yalla-live-4/',
             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5',
-            'bein-sports-hd6':  'https://yallateri.com/albaplayer/yalla-live-6/',
+            'bein-sports-hd6': 'https://yallateri.com/albaplayer/yalla-live-6/',
             'ad-sports-premium1': 'https://yallateri.com/albaplayer/yalla-live-7',
             'SSC1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
             'SSC2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
             'SSC-EXTRA1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
-            // أضف روابط القنوات الفعلية هنا
+            'bein-sports-hd3': 'https://top1-cdnnew.newkso.ru/top1-cdn/R0tcyrMCFm/mono.m3u8',
         };
 
         const streamUrl = CHANNEL_URLS[channel] || CHANNEL_URLS['bein-sports-hd1'];
         
         DOM.videoFrame.innerHTML = `
             <div class="video-container">
-                <iframe src="${streamUrl}" 
-                        frameborder="0" 
-                        allowfullscreen
-                        allow="autoplay"
-                        class="live-stream"></iframe>
+                <video id="hls-video" controls></video>
             </div>
         `;
+
+        const video = document.getElementById('hls-video');
+        
+        if (streamUrl.includes('.m3u8')) {
+            // تشغيل روابط HLS باستخدام hls.js
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(e => {
+                        console.error('Auto-play failed:', e);
+                        showError('تعذر التشغيل التلقائي. الرجاء تشغيل الفيديو يدوياً');
+                    });
+                });
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                showError('خطأ في الشبكة. جاري المحاولة مرة أخرى...');
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                showError('خطأ في الوسائط. جاري إعادة المحاولة...');
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                showError('تعذر تحميل البث المباشر');
+                                break;
+                        }
+                    }
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // دعم HLS الأصلي لمتصفحات Safari
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata', () => {
+                    video.play().catch(e => {
+                        console.error('Auto-play failed:', e);
+                        showError('تعذر التشغيل التلقائي. الرجاء تشغيل الفيديو يدوياً');
+                    });
+                });
+            } else {
+                showError('المتصفح لا يدعم تشغيل هذا النوع من البث');
+            }
+        } else {
+            // تشغيل روابط iframe العادية
+            DOM.videoFrame.innerHTML = `
+                <div class="video-container">
+                    <iframe src="${streamUrl}" 
+                            frameborder="0" 
+                            allowfullscreen
+                            allow="autoplay"
+                            class="live-stream"></iframe>
+                </div>
+            `;
+        }
     }
 
     function getArabicBroadcasters(broadcastData) {
