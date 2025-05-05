@@ -226,7 +226,7 @@ body {
   margin-bottom: 30px;
   background: #000;
 }
-.video {
+..hls-video {
      width: auto;
     border-radius: 8px;
     overflow: hidden;
