@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const CHANNEL_URLS = {
             'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
+            'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
             'bein-sports-hd4': 'https://yallateri.com/albaplayer/yalla-live-4/',
             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5',
             'bein-sports-hd6': 'https://yallateri.com/albaplayer/yalla-live-6/',
@@ -210,7 +211,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
             'SSC2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
             'SSC-EXTRA1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
-            'bein-sports-hd3': 'https://top1-cdnnew.newkso.ru/top1-cdn/R0tcyrMCFm/mono.m3u8',
+            'Arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
+            
+            
         };
 
         const streamUrl = CHANNEL_URLS[channel] || CHANNEL_URLS['bein-sports-hd1'];
@@ -286,6 +289,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd5': 'bein SPORTS HD5',
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
+            'Arryadia-SD/HD': 'ARRYADIA-SD/HD',
         };
 
         return broadcastData
