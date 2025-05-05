@@ -641,3 +641,35 @@ html {
 a, button {
   -webkit-tap-highlight-color: transparent;
 }
+@media (max-width: 992px) {
+  .matches-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .featured-slider {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 15px;
+  }
+  
+  .tab-content.active {
+    grid-template-columns: 1fr;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .matches-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    width: 100%;
+  }
