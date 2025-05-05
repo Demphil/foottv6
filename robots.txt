@@ -18,6 +18,8 @@ Sitemap: https://www.foottv.info/sitemap-leagues.xml
 
 # تحسين لمحركات البحث الرئيسية
 User-agent: Googlebot
+Allow: /matches/*.html$
+Allow: /leagues/*.html$
 
 
 User-agent: Bingbot
