@@ -1,0 +1,38 @@
+User-agent: *
+Allow: /$
+Allow: /matches/*
+Allow: /leagues/*
+Allow: /teams/*
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /config/
+Disallow: /search/
+Disallow: /*?*
+Disallow: /*.json
+Disallow: /*.php
+
+Sitemap: https://www.foottv.info/sitemap.xml
+Sitemap: https:/www.foottv.info/sitemap-matches.xml
+Sitemap: https://wwwfoottv.info/sitemap-leagues.xml
+
+# تحسين لمحركات البحث الرئيسية
+User-agent: Googlebot
+Allow: /matches/*.html$
+Allow: /leagues/*.html$
+Crawl-delay: 2
+
+User-agent: Bingbot
+Allow: /teams/*.html$
+Crawl-delay: 3
+
+# سياسة الوسائط
+User-agent: Googlebot-Image
+Allow: /images/leagues/
+Allow: /images/teams/
+Disallow: /images/temp/
+
+# سياسة الفيديو (إذا كان لديك فيديوهات)
+User-agent: Googlebot-Video
+Allow: /videos/highlights/
+Disallow: /videos/private/
