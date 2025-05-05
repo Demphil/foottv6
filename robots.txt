@@ -14,13 +14,11 @@ Disallow: /*.php
 
 Sitemap: https://www.foottv.info/sitemap.xml
 Sitemap: https:/www.foottv.info/sitemap-matches.xml
-Sitemap: https://wwwfoottv.info/sitemap-leagues.xml
+Sitemap: https://www.foottv.info/sitemap-leagues.xml
 
 # تحسين لمحركات البحث الرئيسية
 User-agent: Googlebot
-Allow: /matches/*.html$
-Allow: /leagues/*.html$
-Crawl-delay: 2
+
 
 User-agent: Bingbot
 Allow: /teams/*.html$
