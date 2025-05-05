@@ -28,10 +28,10 @@
           "city": "Malmö"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 58,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 5
         }
       },
       "league": {
@@ -59,8 +59,8 @@
         }
       },
       "goals": {
-        "home": 1,
-        "away": 1
+        "home": 2,
+        "away": 2
       },
       "score": {
         "halftime": {
@@ -68,8 +68,8 @@
           "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-05T21:45:00+03:00",
         "timestamp": 1746470700,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746470700,
+          "second": 1746474300
         },
         "venue": {
           "id": 905,
@@ -98,10 +98,10 @@
           "city": "Genova"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -119,27 +119,27 @@
           "id": 495,
           "name": "Genoa",
           "logo": "https://media.api-sports.io/football/teams/495.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 489,
           "name": "AC Milan",
           "logo": "https://media.api-sports.io/football/teams/489.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -159,8 +159,8 @@
         "date": "2025-05-05T22:00:00+03:00",
         "timestamp": 1746471600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746471600,
+          "second": 1746475200
         },
         "venue": {
           "id": 525,
@@ -168,10 +168,10 @@
           "city": "London"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 90,
+          "extra": 11
         }
       },
       "league": {
@@ -199,13 +199,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -229,8 +229,8 @@
         "date": "2025-05-05T22:00:00+03:00",
         "timestamp": 1746471600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746471600,
+          "second": 1746475200
         },
         "venue": {
           "id": 1478,
@@ -238,10 +238,10 @@
           "city": "Girona"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 4
         }
       },
       "league": {
@@ -259,27 +259,27 @@
           "id": 547,
           "name": "Girona",
           "logo": "https://media.api-sports.io/football/teams/547.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 798,
           "name": "Mallorca",
           "logo": "https://media.api-sports.io/football/teams/798.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "extratime": {
           "home": null,
