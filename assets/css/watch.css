@@ -458,10 +458,9 @@ body {
 /* مشغل الفيديو للجوال */
 .video-container {
   position: fixed;
-  top: var(--header-height);
   left: 0;
   right: 0;
-  bottom: var(--footer-height);
+  
   width: 100%;
   height: auto;
   border-radius: 0;
