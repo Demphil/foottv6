@@ -22,18 +22,8 @@ const CONFIG = {
       homeTeam: "Al Zulfi",
       awayTeam: "Al Taee",
       channels: ["AD SPORTS PREMIUM1"]
-    },
-     {
-      homeTeam: "Barcelona",
-      awayTeam: "Inter",
-      channels: ["bein SPORTS HD1"]
-    },
-    {
-      homeTeam: "Real Madrid",
-      awayTeam: "Barcelona",
-      channels: ["bein SPORTS HD1"]
     }
-    
+   
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
