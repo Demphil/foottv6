@@ -156,7 +156,6 @@ body {
    height: 30vh; /* 50% من ارتفاع الشاشة */
   min-height: 300px; /* حد أدنى لضمان عدم تصغير الشاشة جدًا */
 }
-}
 
 .league-info {
   margin-bottom: 20px;
