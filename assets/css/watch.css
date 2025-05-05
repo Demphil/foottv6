@@ -419,6 +419,7 @@ body {
     background: var(--dark-color);
      width: 100%;
      aspect-ratio: 16/9;
+    height: 80px;
   }
   
   .live-stream {
