@@ -225,6 +225,46 @@ body {
   transition: all 0.3s ease;
   color: var(--light-color);
 }
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+.team img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.vs {
+  font-weight: bold;
+  color: var(--primary-white);
+  font-size: 1.2rem;
+}
+
+.match-info {
+  color: var(--text-white);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  
+}
+
+.match-info i {
+  margin-left: 5px;
+  color: var(--primary-white);
+  background: var(--glass-effect);
+}
 
 .broadcast-card:hover {
   transform: translateX(-5px);
