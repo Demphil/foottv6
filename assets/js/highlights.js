@@ -20,7 +20,7 @@ async function loadHighlights() {
     
     // 1. محاولة استخدام Backend Proxy بدلاً من CORS Proxy
     try {
-        const response = await fetch('/api/highlights', {
+        const response = await fetch('assets/js/highlights.api.js', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json'
