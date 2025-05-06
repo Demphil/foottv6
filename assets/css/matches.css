@@ -422,7 +422,7 @@ body {
   }
   
   .broadcast-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: 5fr;
   }
 }
 
