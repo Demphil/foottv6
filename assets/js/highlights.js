@@ -1,151 +1,161 @@
-// التهيئة الأساسية
-document.addEventListener('DOMContentLoaded', () => {
-    // تعيين سنة الفوتر
-    document.getElementById('year').textContent = new Date().getFullYear();
-    
-    // جلب الملخصات عند تحميل الصفحة
-    fetchHighlights('all');
-    
-    // إضافة مستمع لتغيير الدوريات
-    document.getElementById('league-select').addEventListener('change', (e) => {
-        fetchHighlights(e.target.value);
-    });
+// إصدار معدل مع حلول CORS
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await loadHighlights();
+    } catch (error) {
+        console.error('حدث خطأ:', error);
+        showError('خطأ في النظام', 'تعذر تحميل الملخصات');
+        loadFallbackData();
+    }
 });
 
-// دالة جلب الملخصات من API
-async function fetchHighlights(league) {
+async function loadHighlights() {
     const loading = document.getElementById('loading');
     const errorContainer = document.getElementById('error-container');
     const grid = document.getElementById('highlights-grid');
     
+    loading.style.display = 'flex';
+    errorContainer.style.display = 'none';
+    grid.innerHTML = '';
+    
+    // 1. محاولة استخدام CORS Proxy
     try {
-        // إظهار حالة التحميل
-        loading.style.display = 'flex';
-        errorContainer.style.display = 'none';
-        grid.innerHTML = '';
+        const proxyUrl = 'https://api.allorigins.win/get?url=';
+        const apiUrl = encodeURIComponent('https://soccer.highlightly.net/highlights');
         
-        // تحديد رابط API حسب الدوري المحدد
-        let apiUrl = 'https://soccer.highlightly.net/highlights/{id}';
-        if (league !== 'all') {
-            apiUrl += `/${getLeagueId(league)}`;
-        }
-        
-        // إجراء طلب API
-        const response = await fetch(apiUrl, {
-            method: 'GET',
+        const response = await fetch(`${proxyUrl}${apiUrl}`, {
             headers: {
-                'x-rapidapi-key': '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f',
-                'x-rapidapi-host': 'https://soccer.highlightly.net/highlights/{id}',
+                'X-Requested-With': 'XMLHttpRequest'
             }
         });
         
-        if (!response.ok) {
-            throw new Error('فشل في جلب البيانات من السيرفر');
-        }
+        if (!response.ok) throw new Error('فشل في جلب البيانات عبر الوكيل');
         
         const data = await response.json();
+        const highlights = JSON.parse(data.contents);
         
-        // عرض الملخصات
-        displayHighlights(data);
+        displayHighlights(highlights);
+        return;
+    } catch (proxyError) {
+        console.log('فشل الوكيل، جرب الطريقة المباشرة:', proxyError);
+    }
+    
+    // 2. المحاولة المباشرة مع CORS
+    try {
+        const response = await fetch('https://soccer.highlightly.net/highlights', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+                // تم إزالة الرؤوس غير المسموح بها
+            }
+        });
         
-    } catch (error) {
-        console.error('حدث خطأ:', error);
-        showError('حدث خطأ', 'تعذر تحميل الملخصات. يرجى المحاولة لاحقاً.');
-    } finally {
-        loading.style.display = 'none';
+        if (!response.ok) throw new Error(`خطأ في السيرفر: ${response.status}`);
+        
+        const highlights = await response.json();
+        displayHighlights(highlights);
+        
+    } catch (directError) {
+        console.error('فشل الطلب المباشر:', directError);
+        throw directError;
     }
 }
 
-// دالة تحويل اسم الدوري إلى ID
-function getLeagueId(league) {
-    const leagues = {
-        'champions': 'champions-league',
-        'premier': 'premier-league',
-        'laliga': 'la-liga',
-        'bundesliga': 'bundesliga',
-        'seriea': 'serie-a',
-        'ligue1': 'ligue-1',
-        'saudi': 'saudi-league',
-        'egypt': 'egyptian-league',
-        'morocco': 'moroccan-league'
-    };
-    return leagues[league] || '';
-}
-
-// دالة عرض الملخصات
+// دالة لعرض البيانات
 function displayHighlights(highlights) {
     const grid = document.getElementById('highlights-grid');
     
-    if (!highlights || highlights.length === 0) {
-        grid.innerHTML = '<div class="no-highlights">لا توجد ملخصات متاحة حالياً</div>';
+    if (!highlights || !highlights.length) {
+        grid.innerHTML = '<div class="no-data">لا توجد ملخصات متاحة حالياً</div>';
         return;
     }
     
     grid.innerHTML = highlights.map(highlight => `
         <div class="highlight-card">
-            <div class="highlight-header">
-                <span class="league-badge ${highlight.league.toLowerCase().replace(' ', '-')}">
-                    ${highlight.league}
-                </span>
-                <span class="match-date">${formatDate(highlight.date)}</span>
+            <div class="league-info">
+                <img src="${highlight.league_logo || 'default-league.png'}" 
+                     alt="${highlight.league_name}">
+                <span>${highlight.league_name}</span>
             </div>
-            
             <div class="match-info">
-                <div class="team home-team">
-                    <img src="${highlight.home_team_logo || 'assets/images/default-team.png'}" 
-                         alt="${highlight.home_team}" 
-                         onerror="this.src='assets/images/default-team.png'">
+                <div class="team home">
+                    <img src="${highlight.home_team_logo || 'default-team.png'}" 
+                         alt="${highlight.home_team}">
                     <span>${highlight.home_team}</span>
                 </div>
-                
-                <div class="match-score">
-                    <span>${highlight.home_score || '0'} - ${highlight.away_score || '0'}</span>
+                <div class="score">
+                    ${highlight.home_score || 0} - ${highlight.away_score || 0}
                 </div>
-                
-                <div class="team away-team">
-                    <img src="${highlight.away_team_logo || 'assets/images/default-team.png'}" 
-                         alt="${highlight.away_team}" 
-                         onerror="this.src='assets/images/default-team.png'">
+                <div class="team away">
+                    <img src="${highlight.away_team_logo || 'default-team.png'}" 
+                         alt="${highlight.away_team}">
                     <span>${highlight.away_team}</span>
                 </div>
             </div>
-            
-            <div class="highlight-video">
-                <iframe src="${highlight.video_url}" 
+            <div class="video-container">
+                <iframe src="${getEmbedUrl(highlight.video_url)}" 
                         frameborder="0" 
-                        allowfullscreen
-                        loading="lazy"></iframe>
+                        allowfullscreen></iframe>
             </div>
-            
-            <div class="highlight-footer">
-                <span class="duration"><i class="fas fa-clock"></i> ${highlight.duration || 'غير معروف'}</span>
-                <a href="${highlight.video_url}" target="_blank" class="watch-btn">
-                    <i class="fas fa-external-link-alt"></i> مشاهدة في نافذة جديدة
-                </a>
+            <div class="match-meta">
+                <span class="date">${formatDate(highlight.date)}</span>
+                <span class="duration">${highlight.duration || '--:--'}</span>
             </div>
         </div>
     `).join('');
 }
 
-// دالة تنسيق التاريخ
+// دوال مساعدة
+function getEmbedUrl(url) {
+    if (!url) return '';
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname.includes('youtube.com')) {
+            const videoId = urlObj.searchParams.get('v');
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        return url;
+    } catch {
+        return url;
+    }
+}
+
 function formatDate(dateString) {
     const options = { 
-        weekday: 'long', 
-        day: 'numeric', 
+        year: 'numeric', 
         month: 'long', 
-        year: 'numeric',
-        hour: '2-digit', 
+        day: 'numeric',
+        hour: '2-digit',
         minute: '2-digit'
     };
     return new Date(dateString).toLocaleDateString('ar-SA', options);
 }
 
-// دالة عرض الأخطاء
+function loadFallbackData() {
+    const fallbackData = [
+        {
+            league_name: "الدوري الإنجليزي",
+            league_logo: "premier-league.png",
+            home_team: "أرسنال",
+            away_team: "تشيلسي",
+            home_score: 2,
+            away_score: 1,
+            home_team_logo: "arsenal.png",
+            away_team_logo: "chelsea.png",
+            video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            date: new Date().toISOString(),
+            duration: "10:30"
+        }
+    ];
+    displayHighlights(fallbackData);
+}
+
 function showError(title, message) {
     const errorContainer = document.getElementById('error-container');
     errorContainer.innerHTML = `
         <div class="error-message">
-            <h3><i class="fas fa-exclamation-triangle"></i> ${title}</h3>
+            <h3>${title}</h3>
             <p>${message}</p>
             <button onclick="window.location.reload()">إعادة المحاولة</button>
         </div>
