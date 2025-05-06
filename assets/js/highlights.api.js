@@ -1,108 +1,258 @@
 const express = require('express');
 const axios = require('axios');
-const router = express.Router();
 const NodeCache = require('node-cache');
+const router = express.Router();
 
-const API_KEY = '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f';
-const API_HOST = 'football-highlights-api.p.rapidapi.com';
+// تكوين API
+const API_CONFIG = {
+    KEY: '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f',
+    HOST: 'football-highlights-api.p.rapidapi.com',
+    BASE_URL: 'https://football-highlights-api.p.rapidapi.com'
+};
 
-// إنشاء مخزن مؤقت مع صلاحية 12 ساعة (تحديث مرتين يوميًا)
-const cache = new NodeCache({ stdTTL: 43200, checkperiod: 3600 });
+// تهيئة التخزين المؤقت (12 ساعة صلاحية)
+const cache = new NodeCache({
+    stdTTL: 43200,
+    checkperiod: 600,
+    useClones: false
+});
 
-// مسار لجلب جميع الملخصات مع التخزين المؤقت
-router.get('/highlights', async (req, res) => {
+// Middleware للتحقق من المصادقة
+const authenticateRequest = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey || apiKey !== process.env.API_SECRET) {
+        return res.status(403).json({
+            status: 'error',
+            message: 'غير مصرح بالوصول',
+            code: 'AUTH_REQUIRED'
+        });
+    }
+    next();
+};
+
+// معالج الأخطاء المركزي
+const errorHandler = (err, req, res, next) => {
+    console.error('API Error:', err.stack);
+    
+    const statusCode = err.statusCode || 500;
+    const errorCode = err.code || 'INTERNAL_ERROR';
+    
+    res.status(statusCode).json({
+        status: 'error',
+        message: err.message || 'حدث خطأ غير متوقع',
+        code: errorCode,
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+};
+
+// مسار لجلب جميع الملخصات
+router.get('/', async (req, res, next) => {
     try {
         const cacheKey = 'all_highlights';
         const cachedData = cache.get(cacheKey);
         
-        // إذا كانت البيانات موجودة في الذاكرة المؤقتة
         if (cachedData) {
-            console.log('Returning cached data for all highlights');
-            return res.json(cachedData);
+            console.log('[CACHE] Returning cached highlights');
+            return res.json({
+                status: 'success',
+                data: cachedData,
+                cached: true,
+                timestamp: new Date()
+            });
         }
         
-        // جلب البيانات من API الخارجية
-        const response = await axios.get(`https://${API_HOST}/highlights`, {
+        console.log('[API] Fetching fresh highlights data');
+        const response = await axios.get(`${API_CONFIG.BASE_URL}/highlights`, {
             headers: {
-                'x-rapidapi-key': API_KEY,
-                'x-rapidapi-host': API_HOST
-            }
+                'X-RapidAPI-Key': API_CONFIG.KEY,
+                'X-RapidAPI-Host': API_CONFIG.HOST,
+                'Accept': 'application/json'
+            },
+            timeout: 5000
         });
         
-        // تخزين البيانات في الذاكرة المؤقتة
-        cache.set(cacheKey, response.data);
-        console.log('Fetched fresh data for all highlights');
-        
-        res.json(response.data);
-    } catch (error) {
-        console.error('API Error:', error);
-        
-        // محاولة إرجاع بيانات قديمة إذا كانت متاحة
-        const cachedData = cache.get('all_highlights');
-        if (cachedData) {
-            console.log('Returning stale cached data due to API error');
-            return res.json(cachedData);
+        if (!response.data || !Array.isArray(response.data)) {
+            throw new Error('Invalid API response structure');
         }
         
-        res.status(500).json({ 
-            error: 'Failed to fetch highlights',
-            details: error.message
+        // معالجة البيانات قبل التخزين
+        const processedData = processHighlightsData(response.data);
+        
+        cache.set(cacheKey, processedData);
+        console.log(`[CACHE] Stored ${processedData.length} highlights`);
+        
+        res.json({
+            status: 'success',
+            data: processedData,
+            cached: false,
+            timestamp: new Date()
         });
+        
+    } catch (error) {
+        error.apiEndpoint = '/highlights';
+        next(error);
     }
 });
 
-// مسار لجلب ملخصات دوري معين مع التخزين المؤقت
-router.get('/highlights/:league', async (req, res) => {
+// مسار لجلب ملخصات دوري معين
+router.get('/league/:leagueId', async (req, res, next) => {
     try {
-        const league = req.params.league;
-        const cacheKey = `league_${league}`;
+        const { leagueId } = req.params;
+        const cacheKey = `league_${leagueId}`;
         const cachedData = cache.get(cacheKey);
         
-        // إذا كانت البيانات موجودة في الذاكرة المؤقتة
         if (cachedData) {
-            console.log(`Returning cached data for ${league} league`);
-            return res.json(cachedData);
+            return res.json({
+                status: 'success',
+                data: cachedData,
+                cached: true,
+                timestamp: new Date()
+            });
         }
         
-        // جلب البيانات من API الخارجية
-        const response = await axios.get(`https://${API_HOST}/highlights/${league}`, {
+        const validLeagues = {
+            'champions': 'Champions League',
+            'premier': 'Premier League',
+            'laliga': 'La Liga',
+            'bundesliga': 'Bundesliga',
+            'seriea': 'Serie A',
+            'ligue1': 'Ligue 1',
+            'saudi': 'Saudi League',
+            'egypt': 'Egyptian League',
+            'morocco': 'Moroccan League'
+        };
+        
+        if (!validLeagues[leagueId]) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'الدوري المطلوب غير صحيح',
+                validLeagues: Object.keys(validLeagues)
+            });
+        }
+        
+        const response = await axios.get(`${API_CONFIG.BASE_URL}/highlights/${leagueId}`, {
             headers: {
-                'x-rapidapi-key': API_KEY,
-                'x-rapidapi-host': API_HOST
-            }
+                'X-RapidAPI-Key': API_CONFIG.KEY,
+                'X-RapidAPI-Host': API_CONFIG.HOST
+            },
+            timeout: 5000
         });
         
-        // تخزين البيانات في الذاكرة المؤقتة
-        cache.set(cacheKey, response.data);
-        console.log(`Fetched fresh data for ${league} league`);
+        const processedData = processHighlightsData(response.data);
+        cache.set(cacheKey, processedData);
         
-        res.json(response.data);
+        res.json({
+            status: 'success',
+            data: processedData,
+            cached: false,
+            timestamp: new Date()
+        });
+        
     } catch (error) {
-        console.error('API Error:', error);
-        
-        // محاولة إرجاع بيانات قديمة إذا كانت متاحة
-        const cachedData = cache.get(`league_${req.params.league}`);
-        if (cachedData) {
-            console.log('Returning stale cached data due to API error');
-            return res.json(cachedData);
-        }
-        
-        res.status(500).json({ 
-            error: `Failed to fetch ${req.params.league} highlights`,
-            details: error.message
-        });
+        error.apiEndpoint = `/highlights/league/${req.params.leagueId}`;
+        next(error);
     }
 });
 
-// مسار لإعادة تحميل البيانات يدويًا (للاستخدام الداخلي فقط)
-router.post('/refresh-cache', (req, res) => {
-    if (req.headers['x-admin-key'] !== 'YOUR_SECRET_ADMIN_KEY') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-    
-    cache.flushAll();
-    console.log('Cache has been cleared manually');
-    res.json({ message: 'Cache refreshed successfully' });
+// مسار لإحصاءات الاستخدام
+router.get('/stats', authenticateRequest, (req, res) => {
+    const stats = cache.getStats();
+    res.json({
+        status: 'success',
+        data: {
+            hits: stats.hits,
+            misses: stats.misses,
+            keys: stats.keys,
+            cacheSize: cache.keys().length
+        }
+    });
 });
+
+// مسار لإعادة تحميل الذاكرة المؤقتة
+router.post('/refresh-cache', authenticateRequest, (req, res) => {
+    cache.flushAll();
+    console.log('[CACHE] Cache cleared manually');
+    res.json({
+        status: 'success',
+        message: 'تم تحديث الذاكرة المؤقتة بنجاح'
+    });
+});
+
+// معالجة بيانات الملخصات
+function processHighlightsData(data) {
+    return data.map(item => ({
+        id: item.id || generateId(),
+        league: item.league || 'غير معروف',
+        date: item.date || new Date().toISOString(),
+        homeTeam: item.home_team || 'فريق غير معروف',
+        awayTeam: item.away_team || 'فريق غير معروف',
+        homeScore: item.home_score ?? 0,
+        awayScore: item.away_score ?? 0,
+        videoUrl: validateVideoUrl(item.video_url),
+        thumbnail: item.thumbnail || getDefaultThumbnail(item.league),
+        duration: formatDuration(item.duration),
+        importance: calculateImportance(item)
+    })).filter(item => item.videoUrl); // إزالة العناصر بدون رابط فيديو صالح
+}
+
+// دوال مساعدة
+function generateId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+
+function validateVideoUrl(url) {
+    if (!url) return null;
+    try {
+        const parsed = new URL(url);
+        if (parsed.hostname.includes('youtube.com') || 
+            parsed.hostname.includes('dailymotion.com') ||
+            parsed.hostname.includes('vimeo.com')) {
+            return url;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function formatDuration(duration) {
+    if (!duration) return '00:00';
+    if (typeof duration === 'number') {
+        const mins = Math.floor(duration / 60);
+        const secs = duration % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return duration;
+}
+
+function getDefaultThumbnail(league) {
+    const leagueThumbnails = {
+        'Champions League': '/assets/thumbnails/champions.jpg',
+        'Premier League': '/assets/thumbnails/premier.jpg',
+        'La Liga': '/assets/thumbnails/laliga.jpg',
+        'Bundesliga': '/assets/thumbnails/bundesliga.jpg',
+        'Serie A': '/assets/thumbnails/seriea.jpg',
+        'Ligue 1': '/assets/thumbnails/ligue1.jpg'
+    };
+    return leagueThumbnails[league] || '/assets/thumbnails/default.jpg';
+}
+
+function calculateImportance(match) {
+    let importance = 0;
+    
+    // زيادة الأهمية حسب الدوري
+    if (match.league.includes('Champions')) importance += 3;
+    else if (match.league.includes('Premier')) importance += 2;
+    else importance += 1;
+    
+    // زيادة الأهمية حسب عدد الأهداف
+    const totalGoals = (match.home_score || 0) + (match.away_score || 0);
+    importance += Math.min(totalGoals, 5);
+    
+    return importance;
+}
+
+// تسجيل معالج الأخطاء
+router.use(errorHandler);
 
 module.exports = router;
