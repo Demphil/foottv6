@@ -7,7 +7,7 @@ const router = express.Router();
 const API_CONFIG = {
     KEY: '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f',
     HOST: 'football-highlights-api.p.rapidapi.com',
-    BASE_URL: 'https://football-highlights-api.p.rapidapi.com'
+    BASE_URL: 'https://football-highlights-api.p.rapidapi.com',
 };
 
 // تهيئة التخزين المؤقت (12 ساعة صلاحية)
