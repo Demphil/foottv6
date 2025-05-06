@@ -35,7 +35,7 @@ async function initHighlights() {
 async function fetchHighlightsWithFallback() {
     try {
         // المحاولة الأولى: الخادم الخلفي
-        const response = await fetchWithTimeout('assets/js/highlights.api.js', , {
+        const response = await fetchWithTimeout('assets/js/highlights.api.js', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
