@@ -370,7 +370,7 @@ body {
 
 /* عناصر التحكم بالسلايدر */
 .slider-controls {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   gap: 15px;
