@@ -1,0 +1,301 @@
+:root {
+    --primary-color: #e63946;
+    --secondary-color: #ffd166;
+    --dark-color: #1d3557;
+    --light-color: #f1faee;
+    --glass-bg: rgba(230, 57, 70, 0.15);
+    --header-height: 80px;
+    --footer-height: 70px;
+}
+
+/* التنسيق العام */
+body {
+    font-family: 'Tajawal', sans-serif;
+    background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+    color: var(--light-color);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+/* الهيدر */
+.highlights-header {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.highlights-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.highlights-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.league-filter select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--light-color);
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+}
+
+.league-filter select option {
+    background: var(--dark-color);
+}
+
+/* المحتوى الرئيسي */
+main {
+    flex: 1;
+    padding: 20px 0;
+}
+
+.loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--secondary-color);
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error-container {
+    display: none;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.error-message h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+}
+
+.error-message button {
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: bold;
+}
+
+.no-highlights {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+/* شبكة الملخصات */
+.highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.highlight-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.highlight-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.highlight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.league-badge {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+/* ألوان شعارات الدوريات */
+.league-badge.champions-league { background: #1a3e72; color: #fff; }
+.league-badge.premier-league { background: #3d195b; color: #fff; }
+.league-badge.la-liga { background: #f7b731; color: #000; }
+.league-badge.bundesliga { background: #d63031; color: #fff; }
+.league-badge.serie-a { background: #008c45; color: #fff; }
+.league-badge.ligue-1 { background: #192a56; color: #fff; }
+.league-badge.saudi-league { background: #0c2461; color: #fff; }
+.league-badge.egyptian-league { background: #e84118; color: #fff; }
+.league-badge.moroccan-league { background: #4a69bd; color: #fff; }
+
+.match-date {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.match-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.team img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 8px;
+}
+
+.match-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 15px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.highlight-video {
+    position: relative;
+    padding-bottom: 56.25%; /* نسبة 16:9 */
+    height: 0;
+    overflow: hidden;
+}
+
+.highlight-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.highlight-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.duration {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.watch-btn {
+    background: var(--secondary-color);
+    color: var(--dark-color);
+    padding: 6px 12px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.watch-btn:hover {
+    background: #ffc107;
+    transform: translateY(-2px);
+}
+
+/* الفوتر */
+.highlights-footer {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 30px;
+}
+
+/* التكيف مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .highlights-header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .highlights-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .highlight-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --header-height: 70px;
+        --footer-height: 60px;
+    }
+    
+    .match-info {
+        flex-direction: column;
+    }
+    
+    .match-score {
+        margin: 10px 0;
+    }
+}
