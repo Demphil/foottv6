@@ -1,4 +1,4 @@
-// إصدار معدل مع حلول CORS
+// إصدار متكامل مع حلول CORS وطلبات /matches/{id}
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadHighlights();
@@ -18,27 +18,81 @@ async function loadHighlights() {
     errorContainer.style.display = 'none';
     grid.innerHTML = '';
     
-    // 1. محاولة استخدام CORS Proxy
+    // 1. محاولة استخدام Backend Proxy بدلاً من CORS Proxy
     try {
-        const proxyUrl = 'https://api.allorigins.win/get?url=';
-        const apiUrl = encodeURIComponent('https://soccer.highlightly.net/highlights');
-        
-        const response = await fetch(`${proxyUrl}${apiUrl}`, {
+        const response = await fetch('/api/highlights', {
+            method: 'GET',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'Accept': 'application/json'
             }
         });
         
-        if (!response.ok) throw new Error('فشل في جلب البيانات عبر الوكيل');
+        if (!response.ok) throw new Error(`خطأ في السيرفر: ${response.status}`);
         
-        const data = await response.json();
-        const highlights = JSON.parse(data.contents);
-        
+        const highlights = await response.json();
         displayHighlights(highlights);
         return;
+        
     } catch (proxyError) {
-        console.log('فشل الوكيل، جرب الطريقة المباشرة:', proxyError);
+        console.log('فشل الاتصال بالخادم الخلفي:', proxyError);
     }
+    
+    // 2. المحاولة المباشرة كحل أخير
+    try {
+        const response = await fetch('https://soccer.highlightly.net/highlights', {
+            method: 'GET',
+            mode: 'no-cors', // وضع no-cors للطلبات المباشرة
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        // معالجة الاستجابة الغامضة (opaque response)
+        if (response.type === 'opaque') {
+            throw new Error('الاستجابة غير متاحة بسبب سياسة CORS');
+        }
+        
+        const highlights = await response.json();
+        displayHighlights(highlights);
+        
+    } catch (directError) {
+        console.error('فشل الطلب المباشر:', directError);
+        throw directError;
+    }
+}
+
+// دالة جديدة لجلب مباراة محددة
+async function fetchMatchById(matchId) {
+    try {
+        // 1. محاولة استخدام Backend Proxy أولاً
+        const response = await fetch(`/api/matches/${matchId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) throw new Error(`خطأ في السيرفر: ${response.status}`);
+        
+        return await response.json();
+        
+    } catch (error) {
+        console.error('فشل في جلب بيانات المباراة:', error);
+        
+        // 2. العودة إلى بيانات تجريبية
+        return {
+            id: matchId,
+            league: "الدوري الإنجليزي",
+            date: new Date().toISOString(),
+            home_team: "فريق غير معروف",
+            away_team: "فريق غير معروف",
+            video_url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            duration: "10:00"
+        };
+    }
+}
+
+// باقي الدوال (displayHighlights, getEmbedUrl, formatDate, loadFallbackData, showError) تبقى كما هي
     
     // 2. المحاولة المباشرة مع CORS
     try {
