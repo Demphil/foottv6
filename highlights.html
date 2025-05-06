@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملخصات المباريات - Football Highlights</title>
+    <link rel="stylesheet" href="css/highlights.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="highlights-header">
+        <div class="container">
+            <h1><i class="fas fa-play-circle"></i> ملخصات المباريات</h1>
+            <div class="league-filter">
+                <select id="league-select">
+                    <option value="all">جميع الدوريات</option>
+                    <option value="champions">دوري أبطال أوروبا</option>
+                    <option value="premier">الدوري الإنجليزي</option>
+                    <option value="laliga">الدوري الإسباني</option>
+                    <option value="bundesliga">الدوري الألماني</option>
+                    <option value="seriea">الدوري الإيطالي</option>
+                    <option value="ligue1">الدوري الفرنسي</option>
+                    <option value="saudi">الدوري السعودي</option>
+                    <option value="egypt">الدوري المصري</option>
+                    <option value="morocco">الدوري المغربي</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>جاري تحميل الملخصات...</p>
+        </div>
+
+        <div class="error-container" id="error-container" style="display:none"></div>
+
+        <div class="highlights-grid" id="highlights-grid"></div>
+    </main>
+
+    <footer class="highlights-footer">
+        <div class="container">
+            <p>جميع حقوق النشر محفوظة &copy; <span id="year"></span></p>
+        </div>
+    </footer>
+
+    <script src="js/highlights.js"></script>
+</body>
+</html>
