@@ -25,7 +25,7 @@ async function fetchHighlights(league) {
         grid.innerHTML = '';
         
         // تحديد رابط API حسب الدوري المحدد
-        let apiUrl = 'https://football-highlights-api.p.rapidapi.com/highlights/{id}';
+        let apiUrl = 'football-highlights-api.p.rapidapi.com';
         if (league !== 'all') {
             apiUrl += `/${getLeagueId(league)}`;
         }
