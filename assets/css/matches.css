@@ -409,7 +409,7 @@ body {
 /* تحسينات للهواتف مع الحفاظ على الألوان الأصلية */
 @media (max-width: 992px) {
   .matches-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 5fr;
     gap: 15px;
   }
   
