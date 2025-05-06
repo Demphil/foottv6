@@ -94,27 +94,7 @@ async function fetchMatchById(matchId) {
 
 // باقي الدوال (displayHighlights, getEmbedUrl, formatDate, loadFallbackData, showError) تبقى كما هي
     
-    // 2. المحاولة المباشرة مع CORS
-    try {
-        const response = await fetch('https://soccer.highlightly.net/highlights', {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Accept': 'application/json',
-                // تم إزالة الرؤوس غير المسموح بها
-            }
-        });
-        
-        if (!response.ok) throw new Error(`خطأ في السيرفر: ${response.status}`);
-        
-        const highlights = await response.json();
-        displayHighlights(highlights);
-        
-    } catch (directError) {
-        console.error('فشل الطلب المباشر:', directError);
-        throw directError;
-    }
-}
+   
 
 // دالة لعرض البيانات
 function displayHighlights(highlights) {
