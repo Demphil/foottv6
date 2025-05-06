@@ -35,7 +35,7 @@ async function fetchHighlights(league) {
             method: 'GET',
             headers: {
                 'x-rapidapi-key': '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f',
-                'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com'
+                'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com',
             }
         });
         
