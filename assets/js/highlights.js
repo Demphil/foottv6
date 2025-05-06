@@ -97,7 +97,7 @@ function displayHighlights(highlights) {
                 <div class="team home-team">
                     <img src="${highlight.home_team_logo || 'default-team.png'}" 
                          alt="${highlight.home_team}" 
-                         onerror="this.src='default-team.png'">
+                         onerror="this.src='assets/images/default-team.png'">
                     <span>${highlight.home_team}</span>
                 </div>
                 
@@ -108,7 +108,7 @@ function displayHighlights(highlights) {
                 <div class="team away-team">
                     <img src="${highlight.away_team_logo || 'default-team.png'}" 
                          alt="${highlight.away_team}" 
-                         onerror="this.src='default-team.png'">
+                         onerror="this.src='assets/images/default-team.png'">
                     <span>${highlight.away_team}</span>
                 </div>
             </div>
