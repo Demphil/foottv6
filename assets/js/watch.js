@@ -208,11 +208,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5',
             'bein-sports-hd6': 'https://yallateri.com/albaplayer/yalla-live-6/',
             'ad-sports-premium1': 'https://yallateri.com/albaplayer/yalla-live-7',
-            'SSC1-HD': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
-            'SSC2-HD': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
-            'SSC-EXTRA1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
-            'SSC-EXTRA2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
-            'SSC-EXTRA3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
+            'ssc1-hd': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
+            'ssc2-hd': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
+            'ssc-extra1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
+            'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
+            'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
             'Arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
             
             
