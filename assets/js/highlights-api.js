@@ -1,88 +1,65 @@
-const fetchHighlights = async (league = '2, 140, 135, 78, 61, 450, 307, 1, 659, 660, 17, 415') => {
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
-            'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
+import { fetchHighlights } from './highlights-api.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const elements = {
+        container: document.getElementById('highlights-container'),
+        filter: document.getElementById('league-filter'),
+        loading: document.getElementById('loading-indicator'),
+        error: document.getElementById('error-display')
+    };
+
+    const displayHighlights = (highlights) => {
+        if (!highlights || !highlights.length) {
+            elements.container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-info-circle"></i>
+                    <p>لا توجد ملخصات متاحة حالياً</p>
+                </div>
+            `;
+            return;
+        }
+
+        elements.container.innerHTML = highlights.map(match => `
+            <div class="highlight-card">
+                <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
+                <p class="match-meta">
+                    <span>${match.competition}</span>
+                    <span>${new Date(match.date).toLocaleDateString()}</span>
+                </p>
+                <div class="video-container">
+                    <iframe src="${match.embed}" 
+                            frameborder="0" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    const loadHighlights = async (league = '') => {
+        try {
+            elements.loading.style.display = 'block';
+            const data = await fetchHighlights(league);
+            displayHighlights(data);
+        } catch (error) {
+            console.error('Error:', error);
+            elements.error.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>حدث خطأ في جلب البيانات</p>
+                    <small>${error.message}</small>
+                </div>
+            `;
+            elements.error.style.display = 'block';
+        } finally {
+            elements.loading.style.display = 'none';
         }
     };
 
-    try {
-        // بناء URL مع معلمات إلزامية
-        const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        
-        // المعلمات الإلزامية حسب وثائق API
-        const mandatoryParams = {
-            date: new Date().toISOString().split('T')[0], // تاريخ اليوم
-            limit: '10'
-        };
+    // معالجة أحداث الفلتر
+    elements.filter?.addEventListener('change', (e) => {
+        loadHighlights(e.target.value);
+    });
 
-        // إضافة المعلمات الإلزامية
-        Object.keys(mandatoryParams).forEach(key => {
-            url.searchParams.append(key, mandatoryParams[key]);
-        });
-
-        // إضافة فلتر الدوري إذا كان موجوداً
-        if (league && league.trim() !== '') {
-            url.searchParams.append('competition_name', league.trim());
-        }
-
-        console.log('Request URL:', url.toString());
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.matches || [];
-
-    } catch (error) {
-        console.error('API Error:', error.message);
-        throw error;
-    }
-};
-
-// دالة للحصول على بيانات وهمية
-const getMockHighlights = (league = '') => {
-    const mockData = {
-        'Champions League': [
-            {
-                id: 'mock-1',
-                title: 'Champions League Highlights',
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                date: new Date().toISOString(),
-                competition: 'UEFA Champions League',
-                homeTeam: 'Real Madrid',
-                awayTeam: 'Manchester City'
-            }
-        ],
-        'La Liga': [
-            {
-                id: 'mock-2',
-                title: 'La Liga Highlights',
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                date: new Date().toISOString(),
-                competition: 'La Liga',
-                homeTeam: 'Barcelona',
-                awayTeam: 'Real Madrid'
-            }
-        ],
-        'default': [
-            {
-                id: 'mock-3',
-                title: 'Latest Football Highlights',
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                date: new Date().toISOString(),
-                competition: 'Premier League',
-                homeTeam: 'Liverpool',
-                awayTeam: 'Chelsea'
-            }
-        ]
-    };
-
-    return league ? mockData[league] || mockData.default : mockData.default;
-};
-
-export { fetchHighlights, getMockHighlights };
+    // التحميل الأولي
+    await loadHighlights();
+});
