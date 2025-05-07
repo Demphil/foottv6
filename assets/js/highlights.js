@@ -1,81 +1,98 @@
 import { fetchHighlights } from './highlights-api.js';
 
+// حالة Fallback للبيانات
+const FALLBACK_HIGHLIGHTS = [
+    {
+        id: 'fallback-1',
+        title: 'Sample Highlight',
+        embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        date: new Date().toISOString(),
+        competition: 'Premier League',
+        homeTeam: 'Home Team',
+        awayTeam: 'Away Team'
+    }
+];
+
 document.addEventListener('DOMContentLoaded', async () => {
     const elements = {
-        container: document.getElementById('highlights-container'),
-        filter: document.getElementById('league-filter'),
-        loading: document.getElementById('loading-indicator'),
-        error: document.getElementById('error-display')
+        container: document.querySelector('#highlights-container'),
+        filter: document.querySelector('#league-filter'),
+        loading: document.querySelector('#loading-indicator'),
+        error: document.querySelector('#error-display')
     };
 
-    // دالة مساعدة لعرض/إخفاء العناصر
-    const setDisplay = (element, show) => {
-        if (element) element.style.display = show ? 'block' : 'none';
-    };
+    // وظائف مساعدة
+    const showElement = (el) => el && (el.style.display = 'block');
+    const hideElement = (el) => el && (el.style.display = 'none');
 
-    const displayHighlights = (highlights) => {
-        if (!highlights || highlights.length === 0) {
+    const displayHighlights = (highlights = []) => {
+        if (!elements.container) return;
+
+        if (!highlights.length) {
             elements.container.innerHTML = `
-                <div class="no-results">
+                <div class="no-highlights">
                     <i class="fas fa-info-circle"></i>
-                    <p>No highlights found. Try another league or check back later.</p>
+                    <p>No highlights available at the moment.</p>
                 </div>
             `;
             return;
         }
 
-        elements.container.innerHTML = highlights.map(match => `
-            <div class="highlight-card">
-                <div class="match-header">
-                    <h3>${match.homeTeam || 'Team 1'} vs ${match.awayTeam || 'Team 2'}</h3>
-                    <div class="match-details">
-                        <span class="competition">${match.competition || 'Unknown'}</span>
-                        <span class="date">${match.date ? new Date(match.date).toLocaleDateString() : 'N/A'}</span>
+        elements.container.innerHTML = highlights.map(highlight => `
+            <div class="highlight-card" data-id="${highlight.id}">
+                <div class="card-header">
+                    <h3>${highlight.homeTeam || 'Team 1'} vs ${highlight.awayTeam || 'Team 2'}</h3>
+                    <div class="match-meta">
+                        <span class="competition">${highlight.competition || 'Unknown Competition'}</span>
+                        <span class="date">${new Date(highlight.date).toLocaleDateString() || 'N/A'}</span>
                     </div>
                 </div>
-                <div class="video-container">
-                    ${match.embed ? `
-                        <iframe src="${match.embed}" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen></iframe>
-                    ` : '<p class="no-video">Video not available</p>'}
+                <div class="video-wrapper">
+                    <iframe src="${highlight.embed || ''}"
+                            title="${highlight.title || 'Football Highlight'}"
+                            frameborder="0"
+                            allowfullscreen></iframe>
                 </div>
+                ${highlight.title ? `<div class="card-footer">${highlight.title}</div>` : ''}
             </div>
         `).join('');
     };
 
     const loadHighlights = async (league = '') => {
+        showElement(elements.loading);
+        hideElement(elements.error);
+
         try {
-            setDisplay(elements.loading, true);
-            setDisplay(elements.error, false);
+            let highlights = await fetchHighlights(league);
             
-            const data = await fetchHighlights(league);
-            displayHighlights(data);
+            // إذا كانت البيانات فارغة، استخدم Fallback
+            if (!highlights || !highlights.length) {
+                console.warn('Using fallback data');
+                highlights = FALLBACK_HIGHLIGHTS;
+            }
+            
+            displayHighlights(highlights);
         } catch (error) {
-            console.error('Loading Error:', error);
+            console.error('Loading failed, using fallback:', error);
+            displayHighlights(FALLBACK_HIGHLIGHTS);
+            
             if (elements.error) {
                 elements.error.innerHTML = `
-                    <div class="error-content">
+                    <div class="error-message">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Error Loading Highlights</h3>
+                        <h4>Connection Issue</h4>
                         <p>${error.message}</p>
-                        <button class="retry-btn">Try Again</button>
+                        <small>Showing sample data</small>
                     </div>
                 `;
-                setDisplay(elements.error, true);
-                
-                // إضافة معالج حدث للزر
-                elements.error.querySelector('.retry-btn')?.addEventListener('click', () => {
-                    loadHighlights(league);
-                });
+                showElement(elements.error);
             }
         } finally {
-            setDisplay(elements.loading, false);
+            hideElement(elements.loading);
         }
     };
 
-    // معالجة تغيير الفلتر
+    // معالجة أحداث الفلتر
     if (elements.filter) {
         elements.filter.addEventListener('change', (e) => {
             loadHighlights(e.target.value);
