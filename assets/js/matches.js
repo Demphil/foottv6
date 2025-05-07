@@ -21,7 +21,7 @@ const CONFIG = {
     {
       homeTeam: "Al-Ahli Jeddah",
       awayTeam: "Al Taawon",
-      channels: ["SSC EXTRA 2 "]
+      channels: ["SSC EXTRA 2"]
     },
     {
       homeTeam: "Al-Nassr",
@@ -600,10 +600,10 @@ window.watchMatch = function(matchId, channelName) {
     'bein SPORTS HD4': 'bein-sports-hd4',
     'bein SPORTS HD5': 'bein-sports-hd5',
     'bein SPORTS HD6': 'bein-sports-hd6',
-       'ssc1-hd': 'SSC1 HD',
-    'ssc-extra2': 'SSC EXTRA2',
-    'ssc-extra1': 'SSC EXTRA1',
-    'ssc-extra3': 'SSC EXTRA3',
+       'SSC 1 HD': 'ssc1-hd',
+    'SSC EXTRA 2': 'ssc-extra2',
+    'SSC EXTRA 1': 'ssc-extra1',
+    'SSC EXTRA 3': 'ssc-extra3',
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
