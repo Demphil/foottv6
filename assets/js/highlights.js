@@ -56,26 +56,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         };
 
-        const loadHighlights = async (league = '') => {
-            try {
-                showLoadingState(true);
-                const highlights = await fetchHighlights(league);
-                displayHighlights(highlights);
-            } catch (error) {
-                console.error('Error loading highlights:', error);
-                highlightsContainer.innerHTML = '<p class="no-highlights">Failed to load highlights. Please refresh the page.</p>';
-            } finally {
-                showLoadingState(false);
-            }
-        };
-
-        // Initial load
-        await loadHighlights();
-
-        // Filter by league
-        leagueFilter.addEventListener('change', async (e) => {
-            await loadHighlights(e.target.value);
-        });
+      // js/highlights.js (partial update)
+const loadHighlights = async (league = '') => {
+    try {
+        showLoadingState(true);
+        const highlights = await fetchHighlights(league);
+        
+        if (!highlights || !Array.isArray(highlights)) {
+            throw new Error('Invalid highlights data received');
+        }
+        
+        displayHighlights(highlights);
+    } catch (error) {
+        console.error('Error loading highlights:', error);
+        highlightsContainer.innerHTML = `
+            <div class="error-message">
+                <p>Failed to load highlights. Please try again later.</p>
+                <p class="error-detail">${error.message}</p>
+            </div>
+        `;
+    } finally {
+        showLoadingState(false);
+    }
+};
 
     } catch (error) {
         console.error('Initialization error:', error);
