@@ -128,3 +128,20 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* assets/css/highlights.css addition */
+.error-message {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 20px;
+    background: #ffecec;
+    border: 1px solid #ffbdbd;
+    border-radius: 4px;
+    color: #d8000c;
+}
+
+.error-detail {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-top: 10px;
+}
