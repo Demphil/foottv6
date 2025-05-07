@@ -16,18 +16,18 @@ const CONFIG = {
     {
       homeTeam: "Al-Raed",
       awayTeam: "Al-Hilal Saudi FC",
-      channels: ["SSC EXTRA 1"]
+      channels: ["SSC EXTRA1"]
     },
     {
       homeTeam: "Al-Ahli Jeddah",
       awayTeam: "Al Taawon",
-      channels: ["SSC EXTRA 2"]
+      channels: ["SSC EXTRA2"]
     },
     {
       homeTeam: "Al-Nassr",
       awayTeam: "Al-Ittihad FC",
-      channels: ["SSC 1 HD"]
-    }
+      channels: ["SSC HD1"]
+    },
      
   ],
   ARABIC_CHANNELS: {
