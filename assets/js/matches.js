@@ -41,7 +41,7 @@ const CONFIG = {
      'SSC-HD1': 'SSC HD1',
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
-    'ssc-extra3': 'SSC EXTRA3'
+    'ssc-extra3': 'SSC EXTRA3',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -605,7 +605,7 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
 
-    'AD SPORTS PREMIUM1': 'ad-sports-premium1'
+    'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
   
   const channelFile = channelMap[channelName];
