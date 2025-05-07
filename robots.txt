@@ -24,7 +24,6 @@ Allow: /leagues/*.html$
 
 User-agent: Bingbot
 Allow: /teams/*.html$
-Crawl-delay: 3
 
 # سياسة الوسائط
 User-agent: Googlebot-Image
