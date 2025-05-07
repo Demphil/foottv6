@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein SPORTS HD1': 'bein-sports-hd1',
             'bein SPORTS HD2': 'bein-sports-hd2',
             'bein SPORTS HD3': 'bein-sports-hd3',
-            'AD SPORTS PREMIUM1': 'ad-sports-premium1'
+            'AD SPORTS PREMIUM1': 'ad-sports-premium1',
             'SSC HD1': 'ssc-hd1',
             'SSC EXTRA2': 'ssc-extra2',
             'SSC EXTRA1': 'ssc-extra1',
