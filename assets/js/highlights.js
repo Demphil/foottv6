@@ -1,98 +1,86 @@
-import { fetchHighlights } from './highlights-api.js';
-
-// حالة Fallback للبيانات
-const FALLBACK_HIGHLIGHTS = [
-    {
-        id: 'fallback-1',
-        title: 'Sample Highlight',
-        embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-        date: new Date().toISOString(),
-        competition: 'Premier League',
-        homeTeam: 'Home Team',
-        awayTeam: 'Away Team'
-    }
-];
+import { fetchHighlights, getMockHighlights } from './highlights-api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const elements = {
-        container: document.querySelector('#highlights-container'),
-        filter: document.querySelector('#league-filter'),
-        loading: document.querySelector('#loading-indicator'),
-        error: document.querySelector('#error-display')
+        container: document.getElementById('highlights-container'),
+        filter: document.getElementById('league-filter'),
+        loading: document.getElementById('loading-indicator'),
+        error: document.getElementById('error-display')
     };
 
-    // وظائف مساعدة
-    const showElement = (el) => el && (el.style.display = 'block');
-    const hideElement = (el) => el && (el.style.display = 'none');
+    const showLoading = (show) => {
+        if (elements.loading) elements.loading.style.display = show ? 'block' : 'none';
+    };
 
-    const displayHighlights = (highlights = []) => {
+    const showError = (message) => {
+        if (elements.error) {
+            elements.error.innerHTML = `
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>حدث خطأ</h3>
+                    <p>${message}</p>
+                    <button class="retry-btn">إعادة المحاولة</button>
+                </div>
+            `;
+            elements.error.style.display = 'block';
+            
+            elements.error.querySelector('.retry-btn').addEventListener('click', () => {
+                loadHighlights(elements.filter?.value || '');
+            });
+        }
+    };
+
+    const displayHighlights = (highlights) => {
         if (!elements.container) return;
 
-        if (!highlights.length) {
+        if (!highlights || highlights.length === 0) {
             elements.container.innerHTML = `
-                <div class="no-highlights">
+                <div class="no-results">
                     <i class="fas fa-info-circle"></i>
-                    <p>No highlights available at the moment.</p>
+                    <p>لا توجد ملخصات متاحة حالياً</p>
                 </div>
             `;
             return;
         }
 
-        elements.container.innerHTML = highlights.map(highlight => `
-            <div class="highlight-card" data-id="${highlight.id}">
-                <div class="card-header">
-                    <h3>${highlight.homeTeam || 'Team 1'} vs ${highlight.awayTeam || 'Team 2'}</h3>
+        elements.container.innerHTML = highlights.map(match => `
+            <div class="highlight-card">
+                <div class="match-header">
+                    <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
                     <div class="match-meta">
-                        <span class="competition">${highlight.competition || 'Unknown Competition'}</span>
-                        <span class="date">${new Date(highlight.date).toLocaleDateString() || 'N/A'}</span>
+                        <span class="league">${match.competition}</span>
+                        <span class="date">${new Date(match.date).toLocaleDateString()}</span>
                     </div>
                 </div>
-                <div class="video-wrapper">
-                    <iframe src="${highlight.embed || ''}"
-                            title="${highlight.title || 'Football Highlight'}"
-                            frameborder="0"
+                <div class="video-container">
+                    <iframe src="${match.embed}" 
+                            frameborder="0" 
                             allowfullscreen></iframe>
                 </div>
-                ${highlight.title ? `<div class="card-footer">${highlight.title}</div>` : ''}
+                ${match.title ? `<div class="match-title">${match.title}</div>` : ''}
             </div>
         `).join('');
     };
 
     const loadHighlights = async (league = '') => {
-        showElement(elements.loading);
-        hideElement(elements.error);
+        showLoading(true);
+        if (elements.error) elements.error.style.display = 'none';
 
         try {
-            let highlights = await fetchHighlights(league);
-            
-            // إذا كانت البيانات فارغة، استخدم Fallback
-            if (!highlights || !highlights.length) {
-                console.warn('Using fallback data');
-                highlights = FALLBACK_HIGHLIGHTS;
-            }
-            
+            // محاولة جلب البيانات الحقيقية أولاً
+            const highlights = await fetchHighlights(league);
             displayHighlights(highlights);
         } catch (error) {
-            console.error('Loading failed, using fallback:', error);
-            displayHighlights(FALLBACK_HIGHLIGHTS);
-            
-            if (elements.error) {
-                elements.error.innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h4>Connection Issue</h4>
-                        <p>${error.message}</p>
-                        <small>Showing sample data</small>
-                    </div>
-                `;
-                showElement(elements.error);
-            }
+            console.warn('Using mock data due to:', error.message);
+            // استخدام البيانات الوهمية عند الفشل
+            displayHighlights(getMockHighlights(league));
+            showError('لا يمكن الاتصال بالخادم. يتم عرض بيانات تجريبية.');
         } finally {
-            hideElement(elements.loading);
+            showLoading(false);
         }
     };
 
-    // معالجة أحداث الفلتر
+    // معالجة تغيير الفلتر
     if (elements.filter) {
         elements.filter.addEventListener('change', (e) => {
             loadHighlights(e.target.value);
