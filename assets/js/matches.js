@@ -27,7 +27,7 @@ const CONFIG = {
       homeTeam: "Al-Nassr",
       awayTeam: "Al-Ittihad FC",
       channels: ["SSC1 HD"]
-    }
+    },
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
@@ -37,6 +37,10 @@ const CONFIG = {
    'bein-sports-hd1': 'bein SPORTS HD5',
    'bein-sports-hd1': 'bein SPORTS HD6',
     'ad-sports-premium1': 'AD SPORTS PREMIUM1',
+    'ssc1-hd': 'SSC1 HD',
+        'ssc-extra2': 'SSC EXTRA2',
+    'ssc-extra1': 'SSC EXTRA1',
+
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
