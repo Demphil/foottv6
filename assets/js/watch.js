@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'ad-sports-premium1': 'https://yallateri.com/albaplayer/yalla-live-7',
             'ssc-hd1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
             'ssc-hd2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
-            'ssc-extra1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
+            'ssc-extra1': 'https://www.elahmad.com/tv/live/shahid_shaka.php?id=ssc_extra1',
             'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
             'Arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
