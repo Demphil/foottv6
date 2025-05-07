@@ -1,59 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football Matches Tracker - Highlights</title>
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <title>ملخصات المباريات - متتبع المباريات</title>
+    <!-- الروابط الأساسية -->
+    <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/highlights.css">
     <link rel="icon" href="assets/images/favicon.icon">
+    <!-- خطوط وأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="container">
+    <header class="header">
+        <div class="header-container">
             <a href="index.html" class="logo">
-                <img src="assets/images/logo.png" alt="Football Matches Tracker">
+                <img src="assets/images/logo.png" alt="متتبع المباريات">
             </a>
             <nav>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="matches.html">Matches</a></li>
-                    <li><a href="highlights.html" class="active">Highlights</a></li>
-                    <li><a href="news.html">News</a></li>
-                    <li><a href="watch.html">Watch</a></li>
+                <ul class="nav-menu">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="matches.html">المباريات</a></li>
+                    <li><a href="highlights.html" class="active">الملخصات</a></li>
+                    <li><a href="news.html">الأخبار</a></li>
+                    <li><a href="watch.html">البث المباشر</a></li>
                 </ul>
             </nav>
+            <button class="mobile-menu-btn" aria-label="قائمة الهاتف">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </header>
 
-    <main class="container">
-        <h1>Football Highlights</h1>
+    <main class="main-container">
+        <h1 class="page-title">ملخصات المباريات</h1>
         
-        <select id="league-filter">
-            <option value="">All Leagues</option>
-            <option value="Champions League">UEFA Champions League</option>
-            <option value="La Liga">La Liga (Spain)</option>
-            <option value="Serie A">Serie A (Italy)</option>
-            <option value="Ligue 1">Ligue 1 (France)</option>
-            <option value="Saudi Professional League">Saudi Pro League</option>
-            <option value="Europa Conference League">UEFA Conference League</option>
-            <option value="AFC Champions League">AFC Champions League</option>
-        </select>
-        
-        <div id="loading-indicator">
-            <div class="spinner"></div>
-            <p>Loading highlights...</p>
+        <!-- قسم الفلاتر والبحث -->
+        <div class="filter-section">
+            <select id="league-filter" class="league-filter">
+                <option value="">كل الدوريات</option>
+                <option value="Champions League">دوري أبطال أوروبا</option>
+                <option value="La Liga">الدوري الإسباني</option>
+                <option value="Serie A">الدوري الإيطالي</option>
+                <option value="Ligue 1">الدوري الفرنسي</option>
+                <option value="Saudi Professional League">الدوري السعودي</option>
+                <option value="Europa Conference League">دوري المؤتمر الأوروبي</option>
+                <option value="AFC Champions League">دوري أبطال آسيا</option>
+            </select>
+            
+            <button id="refresh-btn" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i> تحديث
+            </button>
         </div>
         
-        <div id="highlights-container"></div>
+        <!-- حالة التحميل -->
+        <div id="loading-indicator" class="loading-state">
+            <div class="spinner"></div>
+            <p>جاري تحميل الملخصات...</p>
+        </div>
+        
+        <!-- عرض الأخطاء -->
+        <div id="error-display" class="error-state" style="display: none;"></div>
+        
+        <!-- حاوية الملخصات -->
+        <div id="highlights-container" class="highlights-grid"></div>
+        
+        <!-- حالة عدم وجود نتائج -->
+        <div id="no-results" class="no-highlights" style="display: none;">
+            <i class="fas fa-info-circle"></i>
+            <p>لا توجد ملخصات متاحة حاليًا</p>
+        </div>
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 Football Matches Tracker. All rights reserved.</p>
+            <p>&copy; <span id="current-year">2025</span> متتبع المباريات. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
 
+    <!-- السكريبتات -->
     <script type="module" src="assets/js/highlights.js"></script>
+    <script>
+        // تحديث السنة تلقائياً
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // قائمة الهاتف المتحركة
+        document.querySelector('.mobile-menu-btn').addEventListener('click', () => {
+            document.querySelector('.nav-menu').classList.toggle('show');
+        });
+    </script>
 </body>
 </html>
