@@ -292,6 +292,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
             'Arryadia-SD/HD': 'ARRYADIA-SD/HD',
+               'ssc1-hd': 'SSC1 HD',
+    'ssc-extra2': 'SSC EXTRA2',
+    'ssc-extra1': 'SSC EXTRA1',
+    'ssc-extra3': 'SSC EXTRA3',
         };
 
         return broadcastData
