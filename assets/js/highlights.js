@@ -1,19 +1,22 @@
 import { fetchHighlights } from './highlights-api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // عناصر DOM
-    const container = document.getElementById('highlights-container');
-    const leagueFilter = document.getElementById('league-filter');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const errorDisplay = document.getElementById('error-display');
+    const elements = {
+        container: document.getElementById('highlights-container'),
+        filter: document.getElementById('league-filter'),
+        loading: document.getElementById('loading-indicator'),
+        error: document.getElementById('error-display')
+    };
 
-    // دالة العرض
+    const showElement = (el) => el && (el.style.display = 'block');
+    const hideElement = (el) => el && (el.style.display = 'none');
+
     const displayHighlights = (highlights) => {
-        if (!container) return;
+        if (!elements.container || !highlights) return;
 
-        if (!highlights || highlights.length === 0) {
-            container.innerHTML = `
-                <div class="no-highlights">
+        if (!highlights.length) {
+            elements.container.innerHTML = `
+                <div class="no-results">
                     <i class="fas fa-info-circle"></i>
                     <p>لا توجد ملخصات متاحة حالياً</p>
                 </div>
@@ -21,55 +24,58 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        container.innerHTML = highlights.map(match => `
+        elements.container.innerHTML = highlights.map(match => `
             <div class="highlight-card">
                 <div class="match-header">
-                    <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
+                    <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
                     <div class="match-meta">
-                        <span>${match.competition}</span>
-                        <span>${new Date(match.date).toLocaleDateString('ar-EG')}</span>
+                        <span>${match.competition || 'دوري غير معروف'}</span>
+                        <span>${match.date ? new Date(match.date).toLocaleDateString('ar-EG') : 'تاريخ غير معروف'}</span>
                     </div>
                 </div>
                 <div class="video-container">
-                    <iframe src="${match.embed}" 
+                    <iframe src="${match.embed || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" 
                             frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowfullscreen></iframe>
                 </div>
             </div>
         `).join('');
     };
 
-    // دالة التحميل
     const loadHighlights = async (league = '') => {
         try {
-            if (loadingIndicator) loadingIndicator.style.display = 'block';
-            if (errorDisplay) errorDisplay.style.display = 'none';
+            showElement(elements.loading);
+            hideElement(elements.error);
             
             const highlights = await fetchHighlights(league);
             displayHighlights(highlights);
             
         } catch (error) {
             console.error('Error:', error);
-            if (errorDisplay) {
-                errorDisplay.innerHTML = `
+            if (elements.error) {
+                elements.error.innerHTML = `
                     <div class="error-message">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>حدث خطأ في جلب البيانات</p>
                         <small>${error.message}</small>
-                        <button onclick="window.location.reload()">إعادة المحاولة</button>
+                        <button class="retry-btn">إعادة المحاولة</button>
                     </div>
                 `;
-                errorDisplay.style.display = 'block';
+                showElement(elements.error);
+                
+                // إضافة معالج حدث للزر
+                elements.error.querySelector('.retry-btn').addEventListener('click', () => {
+                    loadHighlights(league);
+                });
             }
         } finally {
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            hideElement(elements.loading);
         }
     };
 
-    // أحداث الفلتر
-    if (leagueFilter) {
-        leagueFilter.addEventListener('change', (e) => {
+    // معالجة تغيير الفلتر
+    if (elements.filter) {
+        elements.filter.addEventListener('change', (e) => {
             loadHighlights(e.target.value);
         });
     }
