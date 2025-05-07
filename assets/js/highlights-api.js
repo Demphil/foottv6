@@ -8,12 +8,11 @@ const fetchHighlights = async (league = '') => {
     };
 
     try {
-        // بناء URL حسب الوثائق الرسمية للAPI
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
         
         // المعلمات الأساسية المطلوبة
         const params = {
-            date: new Date().toISOString().split('T')[0], // تاريخ اليوم
+            date: new Date().toISOString().split('T')[0],
             limit: '10',
             timezone: 'Europe/London'
         };
@@ -23,9 +22,12 @@ const fetchHighlights = async (league = '') => {
             url.searchParams.append(key, params[key]);
         });
 
-        // المعلمة الصحيحة حسب الوثائق (قد تكون league_name بدلاً من competition)
+        // جرب هذه المعلمات البديلة حسب وثائق API
         if (league) {
-            url.searchParams.append('league_name', league); // جرب أيضاً competition_name أو league
+            // جرب أحد هذه الخيارات:
+            url.searchParams.append('league', league); // الخيار الأول
+            // url.searchParams.append('competition', league); // الخيار الثاني
+            // url.searchParams.append('comp_name', league); // الخيار الثالث
         }
 
         console.log('Request URL:', url.toString());
@@ -34,54 +36,55 @@ const fetchHighlights = async (league = '') => {
         
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('API Error Details:', errorData);
-            throw new Error(`API Error: ${errorData.message || response.status}`);
+            throw new Error(errorData.message || `HTTP Error: ${response.status}`);
         }
 
         const data = await response.json();
-        
-        // التحقق من هيكل البيانات المتوقع
-        if (!data || !Array.isArray(data)) {
-            console.warn('Unexpected API response structure:', data);
-            return getFallbackData(league);
-        }
-
-        return data;
+        return data.matches || data || [];
 
     } catch (error) {
-        console.error('API Request Failed:', error);
+        console.error('API Error:', error);
+        // بيانات وهمية للطوارئ
         return getFallbackData(league);
     }
 };
 
 // بيانات احتياطية
 const getFallbackData = (league) => {
-    const leagues = {
-        'Champions League': {
-            homeTeam: 'ريال مدريد',
-            awayTeam: 'مانشستر سيتي',
-            competition: 'دوري الأبطال'
-        },
-        'La Liga': {
-            homeTeam: 'برشلونة',
-            awayTeam: 'ريال مدريد',
-            competition: 'لاليغا'
-        },
-        'default': {
-            homeTeam: 'النصر',
-            awayTeam: 'الهلال',
-            competition: 'الدوري السعودي'
-        }
+    const fallbackMatches = {
+        'Champions League': [
+            {
+                id: 'fallback-1',
+                homeTeam: 'ريال مدريد',
+                awayTeam: 'مانشستر سيتي',
+                competition: 'دوري الأبطال',
+                date: new Date().toISOString(),
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            }
+        ],
+        'Premier League': [
+            {
+                id: 'fallback-2',
+                homeTeam: 'ليفربول',
+                awayTeam: 'مانشستر يونايتد',
+                competition: 'الدوري الإنجليزي',
+                date: new Date().toISOString(),
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            }
+        ],
+        'default': [
+            {
+                id: 'fallback-3',
+                homeTeam: 'النصر',
+                awayTeam: 'الهلال',
+                competition: 'الدوري السعودي',
+                date: new Date().toISOString(),
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            }
+        ]
     };
-    
-    const match = leagues[league] || leagues['default'];
-    
-    return [{
-        id: 'fallback-' + Math.random().toString(36).substr(2, 9),
-        ...match,
-        date: new Date().toISOString(),
-        embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
-    }];
+
+    return fallbackMatches[league] || fallbackMatches['default'];
 };
 
 export { fetchHighlights };
