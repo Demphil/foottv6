@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'ssc-extra1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA1',
             'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
-            'Arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0'
+            'Arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
             
             
         };
@@ -292,10 +292,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
             'Arryadia-SD/HD': 'ARRYADIA-SD/HD',
-            'SSC HD1': 'ssc-hd1',
-            'SSC EXTRA2': 'ssc-extra2',
-            'SSC EXTRA1': 'ssc-extra1',
-            'SSC EXTRA3': 'ssc-extra3'
+            'SSC-HD1': 'ssc hd1',
+            'SSC-EXTRA2': 'ssc extra2',
+            'SSC-EXTRA1': 'ssc extra1',
+            'SSC-EXTRA3': 'ssc extra3',
         };
 
         return broadcastData
@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC HD1': 'ssc-hd1',
             'SSC EXTRA2': 'ssc-extra2',
             'SSC EXTRA1': 'ssc-extra1',
-            'SSC EXTRA3': 'ssc-extra3'
+            'SSC EXTRA3': 'ssc-extra3',
         };
         return ARABIC_CHANNELS[channelName] || '';
     }
