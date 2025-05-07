@@ -317,6 +317,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein SPORTS HD2': 'bein-sports-hd2',
             'bein SPORTS HD3': 'bein-sports-hd3',
             'AD SPORTS PREMIUM1': 'ad-sports-premium1'
+               'ssc1-hd': 'SSC1 HD',
+    'ssc-extra2': 'SSC EXTRA2',
+    'ssc-extra1': 'SSC EXTRA1',
+    'ssc-extra3': 'SSC EXTRA3',
         };
         return ARABIC_CHANNELS[channelName] || '';
     }
