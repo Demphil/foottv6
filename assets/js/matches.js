@@ -9,21 +9,25 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Inter",
-      awayTeam: "Barcelona",
+      homeTeam: "Paris Saint Germain",
+      awayTeam: "Arsenal",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Al Safa",
-      awayTeam: "Al Arabi SC",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "Al-Raed",
+      awayTeam: "Al-Hilal Saidi FC",
+      channels: ["SSC EXTRA1"]
     },
     {
-      homeTeam: "Al Taee",
-      awayTeam: "Al Zulfi",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Al-Ahli Jeddah",
+      awayTeam: "Al Taawon",
+      channels: ["SSC EXTRA2"]
+    },
+    {
+      homeTeam: "Al-Nassr",
+      awayTeam: "Al-Ittihad FC",
+      channels: ["SSC1 HD"]
     }
-   
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
