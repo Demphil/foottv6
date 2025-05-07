@@ -28,6 +28,11 @@ const CONFIG = {
       awayTeam: "Al-Ittihad FC",
       channels: ["SSC1 HD"]
     },
+     {
+      homeTeam: "Al-Nassr",
+      awayTeam: "Al-Ittihad FC",
+      channels: ["SSC1 HD"]
+    }
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
