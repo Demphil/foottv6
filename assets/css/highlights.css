@@ -198,20 +198,51 @@
 }
 
 /* Loading and Error States */
-.loading-state {
-  text-align: center;
-  padding: 3rem;
-  grid-column: 1 / -1;
+/* حالة التحميل المعدلة */
+#loading-indicator {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 1000;
 }
 
-.spinner {
-  border: 5px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top: 5px solid var(--secondary-color);
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+.loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--secondary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+/* رسائل الخطأ */
+.error-state {
+    background: #ffebee;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    margin: 2rem auto;
+    max-width: 500px;
+}
+
+.error-state i {
+    color: #d32f2f;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.error-state button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 1rem;
 }
 
 @keyframes spin {
