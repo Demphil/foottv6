@@ -2,42 +2,43 @@ const fetchHighlights = async (league = '') => {
     const options = {
         method: 'GET',
         headers: {
-            'x-rapidapi-host': 'football-highlights-api.p.rapidapi.com',
-            'x-rapidapi-key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
-            'Content-Type': 'application/json'
+            'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
+            'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
         }
     };
 
     try {
-        // استخدام URL صحيح مع مسار API الدقيق
-        const url = new URL('https://football-highlights-api.p.rapidapi.com/api/v3/highlights');
+        // استخدام النقطة النهائية الصحيحة حسب وثائق API
+        const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
         url.searchParams.append('limit', '50');
-        url.searchParams.append('timezone', 'Europe/London'); // تغيير المنطقة الزمنية
+        url.searchParams.append('timezone', 'Europe/London');
         
         if (league) {
-            url.searchParams.append('competitionName', league); // تغيير المعلمة إلى ما يتوقعه API
+            url.searchParams.append('competition', league);
         }
 
-        // إضافة console.log لتصحيح الأخطاء
-        console.log('Request URL:', url.toString());
-
+        console.log('Requesting URL:', url.toString());
+        
         const response = await fetch(url, options);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json();
+            console.error('API Error Details:', errorData);
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('API Response:', data); // تسجيل الاستجابة للتصحيح
+        console.log('API Response Data:', data);
         
-        if (!data || !data.response || !Array.isArray(data.response)) {
-            throw new Error('Invalid data structure from API');
+        // تعديل هذا حسب هيكل الاستجابة الفعلي للAPI
+        if (!data || !Array.isArray(data)) {
+            throw new Error('Invalid data structure received from API');
         }
 
-        return data.response; // تعديل حسب هيكل الاستجابة الفعلي
+        return data;
     } catch (error) {
-        console.error('API Error:', error);
-        throw error;
+        console.error('Full API Error:', error);
+        throw new Error(`Failed to fetch highlights: ${error.message}`);
     }
 };
 
