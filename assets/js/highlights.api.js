@@ -6,7 +6,7 @@ const router = express.Router();
 // تكوين API
 const API_CONFIG = {
     KEY: '348a4368-8fcb-4e3e-ac4a-7fb6c214e22f',
-    HOST: 'football-highlights-api.p.rapidapi.com',
+    HOST: 'https://football-highlights-api.p.rapidapi.com/highlights',
     BASE_URL: 'https://football-highlights-api.p.rapidapi.com',
 };
 
