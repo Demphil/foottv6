@@ -1,46 +1,43 @@
 import { fetchHighlights } from './highlights-api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // عناصر DOM مع قيمة افتراضية إذا لم توجد
-    const highlightsContainer = document.getElementById('highlights-container') || document.createElement('div');
-    const leagueFilter = document.getElementById('league-filter') || document.createElement('select');
-    const loadingIndicator = document.getElementById('loading-indicator') || document.createElement('div');
-
-    // دالة مساعدة لعرض حالة التحميل
-    const setLoading = (isLoading) => {
-        if (loadingIndicator) {
-            loadingIndicator.style.display = isLoading ? 'block' : 'none';
-        }
-        if (highlightsContainer && !isLoading) {
-            highlightsContainer.style.display = 'grid';
-        }
+    const elements = {
+        container: document.getElementById('highlights-container'),
+        filter: document.getElementById('league-filter'),
+        loading: document.getElementById('loading-indicator'),
+        error: document.getElementById('error-display')
     };
 
-    // دالة لعرض البطاقات
+    // دالة مساعدة لعرض/إخفاء العناصر
+    const setDisplay = (element, show) => {
+        if (element) element.style.display = show ? 'block' : 'none';
+    };
+
     const displayHighlights = (highlights) => {
         if (!highlights || highlights.length === 0) {
-            highlightsContainer.innerHTML = `
-                <div class="no-highlights">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>No highlights available. Try another league or check back later.</p>
+            elements.container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No highlights found. Try another league or check back later.</p>
                 </div>
             `;
             return;
         }
 
-        highlightsContainer.innerHTML = highlights.map(match => `
+        elements.container.innerHTML = highlights.map(match => `
             <div class="highlight-card">
-                <div class="match-info">
-                    <h3>${match.homeTeam?.name || 'N/A'} vs ${match.awayTeam?.name || 'N/A'}</h3>
-                    <div class="match-meta">
-                        <span class="league">${match.competition?.name || 'Unknown League'}</span>
-                        <span class="date">${new Date(match.date).toLocaleDateString() || 'Unknown Date'}</span>
+                <div class="match-header">
+                    <h3>${match.homeTeam || 'Team 1'} vs ${match.awayTeam || 'Team 2'}</h3>
+                    <div class="match-details">
+                        <span class="competition">${match.competition || 'Unknown'}</span>
+                        <span class="date">${match.date ? new Date(match.date).toLocaleDateString() : 'N/A'}</span>
                     </div>
                 </div>
-                <div class="highlight-video">
-                    ${match.videos?.length ? `
-                        <iframe src="${match.videos[0].embed}" 
+                <div class="video-container">
+                    ${match.embed ? `
+                        <iframe src="${match.embed}" 
                                 frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                 allowfullscreen></iframe>
                     ` : '<p class="no-video">Video not available</p>'}
                 </div>
@@ -48,31 +45,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         `).join('');
     };
 
-    // دالة جلب البيانات
     const loadHighlights = async (league = '') => {
         try {
-            setLoading(true);
+            setDisplay(elements.loading, true);
+            setDisplay(elements.error, false);
+            
             const data = await fetchHighlights(league);
             displayHighlights(data);
         } catch (error) {
-            console.error('Load Error:', error);
-            highlightsContainer.innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-times-circle"></i>
-                    <h3>Failed to load highlights</h3>
-                    <p>${error.message}</p>
-                    <button onclick="window.location.reload()">Retry</button>
-                </div>
-            `;
+            console.error('Loading Error:', error);
+            if (elements.error) {
+                elements.error.innerHTML = `
+                    <div class="error-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error Loading Highlights</h3>
+                        <p>${error.message}</p>
+                        <button class="retry-btn">Try Again</button>
+                    </div>
+                `;
+                setDisplay(elements.error, true);
+                
+                // إضافة معالج حدث للزر
+                elements.error.querySelector('.retry-btn')?.addEventListener('click', () => {
+                    loadHighlights(league);
+                });
+            }
         } finally {
-            setLoading(false);
+            setDisplay(elements.loading, false);
         }
     };
 
-    // معالجة الأحداث
-    leagueFilter.addEventListener('change', (e) => {
-        loadHighlights(e.target.value);
-    });
+    // معالجة تغيير الفلتر
+    if (elements.filter) {
+        elements.filter.addEventListener('change', (e) => {
+            loadHighlights(e.target.value);
+        });
+    }
 
     // التحميل الأولي
     await loadHighlights();
