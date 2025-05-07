@@ -1,51 +1,59 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ملخصات المباريات - Football Highlights</title>
-    <link rel="stylesheet" href="assets/css/footer.css">
+    <title>Football Matches Tracker - Highlights</title>
+    <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/highlights.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="assets/images/favicon.icon">
 </head>
 <body>
-    <header class="highlights-header">
+    <header>
         <div class="container">
-            <h1><i class="fas fa-play-circle"></i> ملخصات المباريات</h1>
-            <div class="league-filter">
-                <select id="league-select">
-                    <option value="all">جميع الدوريات</option>
-                    <option value="champions">دوري أبطال أوروبا</option>
-                    <option value="premier">الدوري الإنجليزي</option>
-                    <option value="laliga">الدوري الإسباني</option>
-                    <option value="bundesliga">الدوري الألماني</option>
-                    <option value="seriea">الدوري الإيطالي</option>
-                    <option value="ligue1">الدوري الفرنسي</option>
-                    <option value="saudi">الدوري السعودي</option>
-                    <option value="egypt">الدوري المصري</option>
-                    <option value="morocco">الدوري المغربي</option>
-                </select>
-            </div>
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.png" alt="Football Matches Tracker">
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="matches.html">Matches</a></li>
+                    <li><a href="highlights.html" class="active">Highlights</a></li>
+                    <li><a href="news.html">News</a></li>
+                    <li><a href="watch.html">Watch</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
     <main class="container">
-       <div id="loading">
-    <div class="spinner"></div>
-    <p>جارٍ تحميل الملخصات...</p>
-</div>
-
-<div id="error-container" style="display: none"></div>
-
-<div id="highlights-grid" class="highlights-grid"></div>
+        <h1>Football Highlights</h1>
+        
+        <select id="league-filter">
+            <option value="">All Leagues</option>
+            <option value="Champions League">UEFA Champions League</option>
+            <option value="La Liga">La Liga (Spain)</option>
+            <option value="Serie A">Serie A (Italy)</option>
+            <option value="Ligue 1">Ligue 1 (France)</option>
+            <option value="Saudi Professional League">Saudi Pro League</option>
+            <option value="Europa Conference League">UEFA Conference League</option>
+            <option value="AFC Champions League">AFC Champions League</option>
+        </select>
+        
+        <div id="loading-indicator">
+            <div class="spinner"></div>
+            <p>Loading highlights...</p>
+        </div>
+        
+        <div id="highlights-container"></div>
     </main>
 
-    <footer class="highlights-footer">
+    <footer>
         <div class="container">
-            <p>جميع حقوق النشر محفوظة &copy; <span id="year"></span></p>
+            <p>&copy; 2025 Football Matches Tracker. All rights reserved.</p>
         </div>
     </footer>
-     <script src="assets/js/highlights.js"></script>
+
+    <script type="module" src="assets/js/highlights.js"></script>
 </body>
 </html>
