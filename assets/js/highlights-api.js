@@ -1,4 +1,4 @@
-const fetchHighlights = async (league = '') => {
+const fetchHighlights = async (league = '2, 140, 135, 78, 61, 450, 307, 1, 659, 660, 17, 415') => {
     const options = {
         method: 'GET',
         headers: {
