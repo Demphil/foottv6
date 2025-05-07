@@ -8,37 +8,66 @@ const fetchHighlights = async (league = '') => {
     };
 
     try {
-        // استخدام النقطة النهائية الصحيحة حسب وثائق API
+        // بناء URL مع المعلمات الأساسية فقط
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        url.searchParams.append('limit', '50');
-        url.searchParams.append('timezone', 'Europe/London');
         
-        if (league) {
-            url.searchParams.append('competition', league);
+        // المعلمات الأساسية المطلوبة
+        const basicParams = {
+            timezone: 'Europe/London',
+            limit: '10' // تقليل العدد للاختبار
+        };
+
+        // إضافة المعلمات الأساسية
+        Object.keys(basicParams).forEach(key => {
+            url.searchParams.append(key, basicParams[key]);
+        });
+
+        // إضافة فلتر الدوري إذا كان موجوداً
+        if (league && league.trim() !== '') {
+            url.searchParams.append('competition_name', league.trim());
         }
 
-        console.log('Requesting URL:', url.toString());
-        
+        console.log('Final Request URL:', url.toString());
+
         const response = await fetch(url, options);
         
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API Error Details:', errorData);
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+            // محاولة قراءة رسالة الخطأ من الاستجابة
+            let errorMsg = `HTTP Error: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMsg += ` - ${errorData.message || JSON.stringify(errorData)}`;
+            } catch (e) {
+                console.warn('Could not parse error response:', e);
+            }
+            throw new Error(errorMsg);
         }
 
         const data = await response.json();
-        console.log('API Response Data:', data);
         
-        // تعديل هذا حسب هيكل الاستجابة الفعلي للAPI
-        if (!data || !Array.isArray(data)) {
-            throw new Error('Invalid data structure received from API');
+        // التحقق من هيكل البيانات
+        if (!data || !Array.isArray(data.matches)) {
+            console.warn('Unexpected API response structure:', data);
+            return [];
         }
 
-        return data;
+        return data.matches.map(match => ({
+            id: match.id,
+            title: match.title,
+            embed: match.embed_url,
+            date: match.date,
+            competition: match.competition_name,
+            homeTeam: match.home_team,
+            awayTeam: match.away_team,
+            thumbnail: match.thumbnail_url
+        }));
+
     } catch (error) {
-        console.error('Full API Error:', error);
-        throw new Error(`Failed to fetch highlights: ${error.message}`);
+        console.error('API Request Failed:', {
+            error: error.message,
+            stack: error.stack
+        });
+        throw new Error(`Could not retrieve highlights: ${error.message}`);
     }
 };
 
