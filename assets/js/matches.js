@@ -38,7 +38,7 @@ const CONFIG = {
    'bein-sports-hd1': 'bein SPORTS HD5',
    'bein-sports-hd1': 'bein SPORTS HD6',
     'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-    'ssc1-hd': 'SSC1 HD',
+     'SSC-HD1': 'SSC HD1',
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
@@ -600,10 +600,10 @@ window.watchMatch = function(matchId, channelName) {
     'bein SPORTS HD4': 'bein-sports-hd4',
     'bein SPORTS HD5': 'bein-sports-hd5',
     'bein SPORTS HD6': 'bein-sports-hd6',
-       'SSC 1 HD': 'ssc1-hd',
-    'SSC EXTRA 2': 'ssc-extra2',
-    'SSC EXTRA 1': 'ssc-extra1',
-    'SSC EXTRA 3': 'ssc-extra3',
+    'SSC HD1': 'ssc-hd1',
+    'SSC EXTRA2': 'ssc-extra2',
+    'SSC EXTRA1': 'ssc-extra1',
+    'SSC EXTRA3': 'ssc-extra3',
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
