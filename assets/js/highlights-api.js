@@ -8,18 +8,18 @@ const fetchHighlights = async (league = '') => {
     };
 
     try {
-        // بناء URL مع المعلمات الأساسية فقط
+        // بناء URL مع معلمات إلزامية
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
         
-        // المعلمات الأساسية المطلوبة
-        const basicParams = {
-            timezone: 'Europe/London',
-            limit: '10' // تقليل العدد للاختبار
+        // المعلمات الإلزامية حسب وثائق API
+        const mandatoryParams = {
+            date: new Date().toISOString().split('T')[0], // تاريخ اليوم
+            limit: '10'
         };
 
-        // إضافة المعلمات الأساسية
-        Object.keys(basicParams).forEach(key => {
-            url.searchParams.append(key, basicParams[key]);
+        // إضافة المعلمات الإلزامية
+        Object.keys(mandatoryParams).forEach(key => {
+            url.searchParams.append(key, mandatoryParams[key]);
         });
 
         // إضافة فلتر الدوري إذا كان موجوداً
@@ -27,48 +27,62 @@ const fetchHighlights = async (league = '') => {
             url.searchParams.append('competition_name', league.trim());
         }
 
-        console.log('Final Request URL:', url.toString());
-
+        console.log('Request URL:', url.toString());
         const response = await fetch(url, options);
         
         if (!response.ok) {
-            // محاولة قراءة رسالة الخطأ من الاستجابة
-            let errorMsg = `HTTP Error: ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorMsg += ` - ${errorData.message || JSON.stringify(errorData)}`;
-            } catch (e) {
-                console.warn('Could not parse error response:', e);
-            }
-            throw new Error(errorMsg);
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP Error: ${response.status}`);
         }
 
         const data = await response.json();
-        
-        // التحقق من هيكل البيانات
-        if (!data || !Array.isArray(data.matches)) {
-            console.warn('Unexpected API response structure:', data);
-            return [];
-        }
-
-        return data.matches.map(match => ({
-            id: match.id,
-            title: match.title,
-            embed: match.embed_url,
-            date: match.date,
-            competition: match.competition_name,
-            homeTeam: match.home_team,
-            awayTeam: match.away_team,
-            thumbnail: match.thumbnail_url
-        }));
+        return data.matches || [];
 
     } catch (error) {
-        console.error('API Request Failed:', {
-            error: error.message,
-            stack: error.stack
-        });
-        throw new Error(`Could not retrieve highlights: ${error.message}`);
+        console.error('API Error:', error.message);
+        throw error;
     }
 };
 
-export { fetchHighlights };
+// دالة للحصول على بيانات وهمية
+const getMockHighlights = (league = '') => {
+    const mockData = {
+        'Champions League': [
+            {
+                id: 'mock-1',
+                title: 'Champions League Highlights',
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                date: new Date().toISOString(),
+                competition: 'UEFA Champions League',
+                homeTeam: 'Real Madrid',
+                awayTeam: 'Manchester City'
+            }
+        ],
+        'La Liga': [
+            {
+                id: 'mock-2',
+                title: 'La Liga Highlights',
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                date: new Date().toISOString(),
+                competition: 'La Liga',
+                homeTeam: 'Barcelona',
+                awayTeam: 'Real Madrid'
+            }
+        ],
+        'default': [
+            {
+                id: 'mock-3',
+                title: 'Latest Football Highlights',
+                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                date: new Date().toISOString(),
+                competition: 'Premier League',
+                homeTeam: 'Liverpool',
+                awayTeam: 'Chelsea'
+            }
+        ]
+    };
+
+    return league ? mockData[league] || mockData.default : mockData.default;
+};
+
+export { fetchHighlights, getMockHighlights };
