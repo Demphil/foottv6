@@ -292,10 +292,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
             'Arryadia-SD/HD': 'ARRYADIA-SD/HD',
-                 'SSC 1 HD': 'ssc1-hd',
-    'SSC EXTRA 2': 'ssc-extra2',
-    'SSC EXTRA 1': 'ssc-extra1',
-    'SSC EXTRA 3': 'ssc-extra3',
+                 'SSC 1HD': 'ssc1-hd',
+    'SSC EXTRA2': 'ssc-extra2',
+    'SSC EXTRA1': 'ssc-extra1',
+    'SSC EXTRA3': 'ssc-extra3',
         };
 
         return broadcastData
@@ -317,10 +317,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein SPORTS HD2': 'bein-sports-hd2',
             'bein SPORTS HD3': 'bein-sports-hd3',
             'AD SPORTS PREMIUM1': 'ad-sports-premium1'
-                 'SSC 1 HD': 'ssc1-hd',
-    'SSC EXTRA 2': 'ssc-extra2',
-    'SSC EXTRA 1': 'ssc-extra1',
-    'SSC EXTRA 3': 'ssc-extra3',
+                 'SSC 1HD': 'ssc1-hd',
+    'SSC EXTRA2': 'ssc-extra2',
+    'SSC EXTRA1': 'ssc-extra1',
+    'SSC EXTRA3': 'ssc-extra3',
         };
         return ARABIC_CHANNELS[channelName] || '';
     }
