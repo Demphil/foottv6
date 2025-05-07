@@ -227,14 +227,14 @@ function formatDuration(duration) {
 
 function getDefaultThumbnail(league) {
     const leagueThumbnails = {
-        'Champions League': '/assets/thumbnails/champions.jpg',
+        'Champions League': '/assets/images/champions.jpg',
         'Premier League': '/assets/thumbnails/premier.jpg',
-        'La Liga': '/assets/thumbnails/laliga.jpg',
-        'Bundesliga': '/assets/thumbnails/bundesliga.jpg',
-        'Serie A': '/assets/thumbnails/seriea.jpg',
-        'Ligue 1': '/assets/thumbnails/ligue1.jpg'
+        'La Liga': '/assets/images/laliga.jpg',
+        'Bundesliga': '/assets/images/bundesliga.jpg',
+        'Serie A': '/assets/images/seriea.jpg',
+        'Ligue 1': '/assets/images/ligue1.jpg'
     };
-    return leagueThumbnails[league] || '/assets/thumbnails/default.jpg';
+    return leagueThumbnails[league] || '/assets/images/default.jpg';
 }
 
 function calculateImportance(match) {
