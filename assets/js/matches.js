@@ -16,17 +16,17 @@ const CONFIG = {
     {
       homeTeam: "Al-Raed",
       awayTeam: "Al-Hilal Saudi FC",
-      channels: ["ssc extra1"]
+      channels: ["SSC EXTRA 1"]
     },
     {
       homeTeam: "Al-Ahli Jeddah",
       awayTeam: "Al Taawon",
-      channels: ["ssc extra2"]
+      channels: ["SSC EXTRA 2 "]
     },
     {
       homeTeam: "Al-Nassr",
       awayTeam: "Al-Ittihad FC",
-      channels: ["ssc1 hd "]
+      channels: ["SSC 1 HD"]
     }
      
   ],
@@ -600,6 +600,10 @@ window.watchMatch = function(matchId, channelName) {
     'bein SPORTS HD4': 'bein-sports-hd4',
     'bein SPORTS HD5': 'bein-sports-hd5',
     'bein SPORTS HD6': 'bein-sports-hd6',
+       'ssc1-hd': 'SSC1 HD',
+    'ssc-extra2': 'SSC EXTRA2',
+    'ssc-extra1': 'SSC EXTRA1',
+    'ssc-extra3': 'SSC EXTRA3',
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
