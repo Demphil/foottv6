@@ -15,7 +15,7 @@ const CONFIG = {
     },
     {
       homeTeam: "Al-Raed",
-      awayTeam: "Al-Hilal Saidi FC",
+      awayTeam: "Al-Hilal Saudi FC",
       channels: ["SSC EXTRA1"]
     },
     {
@@ -43,8 +43,9 @@ const CONFIG = {
    'bein-sports-hd1': 'bein SPORTS HD6',
     'ad-sports-premium1': 'AD SPORTS PREMIUM1',
     'ssc1-hd': 'SSC1 HD',
-        'ssc-extra2': 'SSC EXTRA2',
+    'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
+    'ssc-extra3': 'SSC EXTRA3',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
