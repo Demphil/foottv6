@@ -1,4 +1,3 @@
-// js/highlights-api.js
 const fetchHighlights = async (league = '') => {
     const options = {
         method: 'GET',
@@ -10,34 +9,35 @@ const fetchHighlights = async (league = '') => {
     };
 
     try {
-        // Base URL with required parameters
-        let url = new URL('https://football-highlights-api.p.rapidapi.com/highlights');
+        // استخدام URL صحيح مع مسار API الدقيق
+        const url = new URL('https://football-highlights-api.p.rapidapi.com/api/v3/highlights');
         url.searchParams.append('limit', '50');
-        url.searchParams.append('timezone', 'Etc/UTC');
+        url.searchParams.append('timezone', 'Europe/London'); // تغيير المنطقة الزمنية
         
-        // Add league filter if specified
         if (league) {
-            url.searchParams.append('leagueName', league);
+            url.searchParams.append('competitionName', league); // تغيير المعلمة إلى ما يتوقعه API
         }
+
+        // إضافة console.log لتصحيح الأخطاء
+        console.log('Request URL:', url.toString());
 
         const response = await fetch(url, options);
         
-        // Check if response is OK
         if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('API Response:', data); // تسجيل الاستجابة للتصحيح
         
-        // Check if data is valid
-        if (!data || !Array.isArray(data)) {
-            throw new Error('Invalid data received from API');
+        if (!data || !data.response || !Array.isArray(data.response)) {
+            throw new Error('Invalid data structure from API');
         }
 
-        return data;
+        return data.response; // تعديل حسب هيكل الاستجابة الفعلي
     } catch (error) {
-        console.error('Error fetching highlights:', error);
-        throw error; // Re-throw to be handled by the calling function
+        console.error('API Error:', error);
+        throw error;
     }
 };
 
