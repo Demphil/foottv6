@@ -4,7 +4,6 @@ const API_HOST = 'api-football-v1.p.rapidapi.com';
 
 const leagues = [
     { id: 2, name: 'دوري أبطال أوروبا' },
-    { id: 17, name: 'كأس العالم للأندية' },
     { id: 39, name: 'الدوري الإنجليزي' },
     { id: 140, name: 'الدوري الإسباني' },
     { id: 135, name: 'الدوري الإيطالي' },
@@ -13,7 +12,8 @@ const leagues = [
     { id: 200, name: 'البطولة المغربية الإحترافية إنوي القسم الأول' },
     { id: 233, name: 'الدوري المصري الممتاز' },
     { id: 307, name: 'دوري روشن السعودي' },
-    { id: 245, name: 'الدوري الأوروبي' },
+    { id: 3, name: 'الدوري الأوروبي' },
+    { id: 848, name: 'UEFA Conference League' },
     
 
 ];
