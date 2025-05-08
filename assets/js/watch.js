@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd5': 'bein SPORTS HD5',
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-            'arryadia-SD/HD': 'ARRYADIA SD/HD',
+            'arryadia-hd1': 'ARRYADIA HD1',
             'SSC-HD1': 'ssc hd1',
             'SSC-EXTRA2': 'ssc extra2',
             'SSC-EXTRA1': 'ssc extra1',
@@ -322,8 +322,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC EXTRA2': 'ssc-extra2',
             'SSC EXTRA1': 'ssc-extra1',
             'SSC EXTRA3': 'ssc-extra3',
-            'arryadia sd/hd': 'ARRYADIA-SD/HD',
-            'AL MAGHRIBIA' : 'al-maghribia',
+            'arryadia hd1': 'ARRYADIA-HD1',
+            'almaghribia' : 'ALMAGHRIIA',
 
         };
         return ARABIC_CHANNELS[channelName] || '';
