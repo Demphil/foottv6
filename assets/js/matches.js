@@ -31,12 +31,12 @@ const CONFIG = {
     {
       homeTeam: "Raja Casablanca",
       awayTeam: "Difaa EL Jadida",
-      channels: ["Arryadia SD/HD"]
+      channels: ["ARRYADIA SD/HD"]
     },
     {
       homeTeam: "Riadi Salmi",
       awayTeam: "Wydad AC",
-      channels: ["Al Maghribia"]
+      channels: ["Al MAGHRIBIA"]
     },
      
   ],
