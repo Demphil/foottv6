@@ -227,8 +227,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             'Arryadia-HD': 'https://www.youtube.com/embed/NBi3iszVxB8',
             
-             'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
+            'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
             
+            'one-time-sports1' : 'https://www.elahmad.com/tv/mobiletv/glarb.php?id=on_sport',
+
+        
         };
 
         const streamUrl = CHANNEL_URLS[channel] || CHANNEL_URLS['bein-sports-hd1'];
@@ -310,6 +313,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC-EXTRA1': 'ssc extra1',
             'SSC-EXTRA3': 'ssc extra3',
             'Almaghribia': 'Almaghribia',
+            'one-time-sports1' : 'one time sports1',
+
         };
 
         return broadcastData
@@ -337,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC EXTRA3': 'ssc-extra3',
             'Arryadia HD': 'Arryadia-HD',
             'Almaghribia' : 'Almaghribia',
-
+            'one time sports1' : 'one-time-sports1',
         };
         return ARABIC_CHANNELS[channelName] || '';
     }
