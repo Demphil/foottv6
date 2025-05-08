@@ -202,19 +202,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setupLiveStream(channel) {
         const CHANNEL_URLS = {
             'bein-sports-hd1': 'https://z.alkoora.live/albaplayer/on-time-sport-1/',
+            
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
+            
             'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
+            
             'bein-sports-hd4': 'https://yallateri.com/albaplayer/yalla-live-4/',
+            
             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5',
+            
             'bein-sports-hd6': 'https://yallateri.com/albaplayer/yalla-live-6/',
+            
             'ad-sports-premium1': 'https://yallateri.com/albaplayer/yalla-live-7',
+            
             'ssc-hd1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
+            
             'ssc-hd2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
+            
             'ssc-extra1': 'https://hegazy-iptv5.ddns.net:443/amro8577/amro8577/49.ts',
+            
             'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
+            
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
-            'arryadia-HD1': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
-             'almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
+            
+            'Arryadia-HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
+            
+             'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
             
         };
 
@@ -291,12 +304,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             'bein-sports-hd5': 'bein SPORTS HD5',
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-            'arryadia-hd1': 'ARRYADIA HD1',
+            'Arryadia-HD': 'Arryadia HD',
             'SSC-HD1': 'ssc hd1',
             'SSC-EXTRA2': 'ssc extra2',
             'SSC-EXTRA1': 'ssc extra1',
             'SSC-EXTRA3': 'ssc extra3',
-            'almaghribia': 'ALMAGHRIBIA',
+            'Almaghribia': 'Almaghribia',
         };
 
         return broadcastData
@@ -322,8 +335,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC EXTRA2': 'ssc-extra2',
             'SSC EXTRA1': 'ssc-extra1',
             'SSC EXTRA3': 'ssc-extra3',
-            'arryadia hd1': 'ARRYADIA-HD1',
-            'almaghribia' : 'ALMAGHRIIA',
+            'Arryadia HD': 'Arryadia-HD',
+            'Almaghribia' : 'Almaghribia',
 
         };
         return ARABIC_CHANNELS[channelName] || '';
