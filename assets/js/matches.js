@@ -6,7 +6,7 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 6,
+  MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
       homeTeam: "Manchester United",
@@ -31,13 +31,13 @@ const CONFIG = {
     {
       homeTeam: "Raja Casablanca",
       awayTeam: "Difaa EL Jadida",
-      channels: ["ARRYADIA HD1"]
+      channels: ["Arryadia HD"]
     },
     {
       homeTeam: "Riadi Salmi",
       awayTeam: "Wydad AC",
-      channels: ["AlMAGHRIBIA"]
-    },
+      channels: ["Almaghribia"]
+    }
      
   ],
   ARABIC_CHANNELS: {
@@ -52,8 +52,8 @@ const CONFIG = {
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
-    'arryadia-hd1': 'Arryadia HD1',
-    'almaghribia' : 'ALMAGHRIBIA',
+    'Arryadia-HD': 'Arryadia HD',
+    'Almaghribia' : 'Almaghribia',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -616,8 +616,8 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA2': 'ssc-extra2',
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
-    'ARRYADIA HD1': 'arryadia-hd1',
-    'ALMAGHRIBIA' : 'almaghribia',
+    'Arryadia HD': 'Arryadia-HD',
+    'Almaghribia' : 'Almaghribia',
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
