@@ -213,8 +213,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'ssc-extra1': 'https://hegazy-iptv5.ddns.net:443/amro8577/amro8577/49.ts',
             'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
-            'arryadia-SD/HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
-             'al-maghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
+            'arryadia-HD1': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
+             'almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
             
         };
 
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'SSC-EXTRA2': 'ssc extra2',
             'SSC-EXTRA1': 'ssc extra1',
             'SSC-EXTRA3': 'ssc extra3',
-            'al-maghribia': 'AL MAGHRIBIA',
+            'almaghribia': 'ALMAGHRIBIA',
         };
 
         return broadcastData
