@@ -614,6 +614,7 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA3': 'ssc-extra3',
     'Arryadia HD': 'Arryadia-HD',
     'Almaghribia' : 'Almaghribia',
+    'one time sports1' : 'one-time-sports1',
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
