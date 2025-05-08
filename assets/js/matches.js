@@ -31,7 +31,7 @@ const CONFIG = {
     {
       homeTeam: "Raja Casablanca",
       awayTeam: "Difaa EL Jadida",
-      channels: ["ARRYADIA SD/HD"]
+      channels: ["ARRYADIA HD1"]
     },
     {
       homeTeam: "Riadi Salmi",
@@ -52,8 +52,8 @@ const CONFIG = {
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
-    'arryadia-sd/hd': 'Arryadia SD/HD',
-    'al-maghribia' : 'AL MAGHRIBIA',
+    'arryadia-hd1': 'Arryadia HD1',
+    'almaghribia' : 'ALMAGHRIBIA',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -616,8 +616,8 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA2': 'ssc-extra2',
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
-    'ARRYADIA SD/HD': 'arryadia-sd/hd',
-    'AL MAGHRIBIA' : 'al-maghribia',
+    'ARRYADIA HD1': 'arryadia-hd1',
+    'ALMAGHRIBIA' : 'almaghribia',
 
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
