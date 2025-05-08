@@ -37,7 +37,7 @@ const CONFIG = {
       homeTeam: "Riadi Salmi",
       awayTeam: "Wydad AC",
       channels: ["Almaghribia"]
-    }
+    },
      
   ],
   ARABIC_CHANNELS: {
