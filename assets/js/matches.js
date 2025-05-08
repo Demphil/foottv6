@@ -53,6 +53,7 @@ const CONFIG = {
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
     'arryadia sd/hd': 'Arryadia SD/HD',
+    'AL-MAGHRIBIA' : 'al maghribia',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -616,6 +617,7 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
     'arryadia sd/hd': 'Arryadia SD/HD',
+    'AL-MAGHRIBIA' : 'al maghribia',
 
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
