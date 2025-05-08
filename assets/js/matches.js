@@ -6,37 +6,32 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 6,
+  MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Manchester United",
-      awayTeam: "Athletic Club",
-      channels: ["bein SPORTS HD1"]
-    },
-    {
-      homeTeam: "Bodo/Glimt",
-      awayTeam: "Tottenham",
-      channels: ["bein SPORTS HD2"]
-    },
-    {
-      homeTeam: "Chelsea",
-      awayTeam: "Djurgardens IF",
-      channels: ["bein SPORTS HD4"]
-    },
-    {
-      homeTeam: "Fiorentina",
-      awayTeam: "Real Betis",
+      homeTeam: "Las Palmas",
+      awayTeam: "Rayo Vallecano",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Raja Casablanca",
-      awayTeam: "Difaa EL Jadida",
-      channels: ["Arryadia HD"]
+      homeTeam: "AC Milan",
+      awayTeam: "Bologna",
+      channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Riadi Salmi",
-      awayTeam: "Wydad AC",
-      channels: ["Almaghribia"]
+      homeTeam: "VfL Wolfsburg",
+      awayTeam: "1899 Hoffenheim",
+      channels: ["bein SPORTS HD4"]
+    },
+    {
+      homeTeam: "Ceramica Cleopatra",
+      awayTeam: "Zamalek SC",
+      channels: ["one time sports1"]
+    },
+    {
+      homeTeam: "National Bank of Egypt",
+      awayTeam: "Pyramids FC",
+      channels: ["one time sports1"]
     },
      
   ],
@@ -54,6 +49,7 @@ const CONFIG = {
     'ssc-extra3': 'SSC EXTRA3',
     'Arryadia-HD': 'Arryadia HD',
     'Almaghribia' : 'Almaghribia',
+    'one-time-sports1' : 'one time sports1',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
