@@ -9,24 +9,34 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Paris Saint Germain",
-      awayTeam: "Arsenal",
+      homeTeam: "Manchester United",
+      awayTeam: "Athletic Club",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Al-Raed",
-      awayTeam: "Al-Hilal Saudi FC",
-      channels: ["SSC EXTRA1"]
+      homeTeam: "Bodo/Glimt",
+      awayTeam: "Tottenham",
+      channels: ["bein SPORTS HD2"]
     },
     {
-      homeTeam: "Al-Ahli Jeddah",
-      awayTeam: "Al Taawon",
-      channels: ["SSC EXTRA2"]
+      homeTeam: "Chelsea",
+      awayTeam: "Djurgardens IF",
+      channels: ["bein SPORTS HD4"]
     },
     {
-      homeTeam: "Al-Nassr",
-      awayTeam: "Al-Ittihad FC",
-      channels: ["SSC HD1"]
+      homeTeam: "Fiorentina",
+      awayTeam: "Real Betis",
+      channels: ["bein SPORTS HD3"]
+    },
+    {
+      homeTeam: "Raja Casablanca",
+      awayTeam: "Difaa EL Jadida",
+      channels: ["Arryadia SD/HD"]
+    },
+    {
+      homeTeam: "Riadi Salmi",
+      awayTeam: "Wydad AC",
+      channels: ["Al Maghribia HD"]
     },
      
   ],
@@ -42,6 +52,7 @@ const CONFIG = {
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
+    'arryadia sd/hd': 'Arryadia SD/HD',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -604,6 +615,8 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA2': 'ssc-extra2',
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
+    'arryadia sd/hd': 'Arryadia SD/HD',
+
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
