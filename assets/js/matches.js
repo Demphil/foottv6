@@ -37,7 +37,7 @@ const CONFIG = {
       homeTeam: "Riadi Salmi",
       awayTeam: "Wydad AC",
       channels: ["Al Maghribia HD"]
-    },
+    }
      
   ],
   ARABIC_CHANNELS: {
@@ -616,8 +616,8 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA2': 'ssc-extra2',
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
-    'arryadia sd/hd': 'Arryadia SD/HD',
-    'AL-MAGHRIBIA' : 'al maghribia',
+    'arryadia sd/hd': 'Arryadia-SD/HD',
+    'AL MAGHRIBIA' : 'al-maghribia',
 
 
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
