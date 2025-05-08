@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
             
-            'one-time-sports1' : 'https://www.elahmad.com/tv/mobiletv/glarb.php?id=on_sport',
+            'one-time-sports1': 'https://www.elahmad.com/tv/mobiletv/glarb.php?id=on_sport',
 
         
         };
