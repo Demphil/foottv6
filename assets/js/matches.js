@@ -4,7 +4,7 @@ import { fetchMatches } from './api.js';
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 hours
   CACHE_KEY: 'football-matches-cache-v5',
-  FEATURED_LEAGUES: [2, 39, 140, 17, 200, 307, 61, 78, 135, 245, 233], // Champions League, Premier League, La Liga, Serie A
+  FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
