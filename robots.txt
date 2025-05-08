@@ -15,6 +15,7 @@ Disallow: /*.php
 Sitemap: https://www.foottv.info/sitemap.xml
 Sitemap: https:/www.foottv.info/sitemap-matches.xml
 Sitemap: https://www.foottv.info/sitemap-leagues.xml
+sitemap: https://a435656.sitemaphosting7.com/4531982/sitemap_4531982.xml
 
 # تحسين لمحركات البحث الرئيسية
 User-agent: Googlebot
