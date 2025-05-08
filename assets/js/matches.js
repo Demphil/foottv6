@@ -36,7 +36,7 @@ const CONFIG = {
     {
       homeTeam: "Riadi Salmi",
       awayTeam: "Wydad AC",
-      channels: ["Al Maghribia HD"]
+      channels: ["Al Maghribia"]
     }
      
   ],
@@ -52,8 +52,8 @@ const CONFIG = {
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
-    'arryadia sd/hd': 'Arryadia SD/HD',
-    'AL-MAGHRIBIA' : 'al maghribia',
+    'arryadia-sd/hd': 'Arryadia SD/HD',
+    'al-maghribia' : 'AL MAGHRIBIA',
 
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
@@ -616,7 +616,7 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA2': 'ssc-extra2',
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
-    'arryadia sd/hd': 'Arryadia-SD/HD',
+    'ARRYADIA SD/HD': 'arryadia-sd/hd',
     'AL MAGHRIBIA' : 'al-maghribia',
 
 
