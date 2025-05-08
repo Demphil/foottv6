@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
             
-            'Arryadia-HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
+            'Arryadia-HD': 'https://www.youtube.com/embed/NBi3iszVxB8',
             
              'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
             
