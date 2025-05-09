@@ -13,111 +13,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- الهيدر المعدل -->
-    <header class="header">
-        <div class="container">
-            <a href="index.html" class="logo">
-                <img src="assets/images/logo.png" alt="شعار الموقع">
-            </a>
-            <button class="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </button>
-            <nav class="nav-menu">
-                <ul>
-                    <li><a href="index.html">الرئيسية</a></li>
-                    <li><a href="matches.html">المباريات</a></li>
-                    <li><a href="highlights.html" class="active">الملخصات</a></li>
-                    <li><a href="news.html">الأخبار</a></li>
-                    <li><a href="watch.html">مشاهدة</a></li>
-                </ul>
-            </nav>
-        </div>
+    <header>
+        <h1>📺 ملخصات أهم المباريات</h1>
     </header>
 
-    <!-- المحتوى الرئيسي -->
-    <main class="main-container">
-        <h1 class="page-title">ملخصات المباريات</h1>
-        
-        <div class="controls">
-            <select id="league-filter" class="filter-select">
-                <option value="">كل الدوريات</option>
-                <option value="Champions League">دوري الأبطال</option>
-                <option value="Premier League">الدوري الإنجليزي</option>
-                <option value="La Liga">الدوري الإسباني</option>
-                <option value="Bundesliga">الدوري الألماني</option>
-            </select>
-            
-            <button id="refresh-btn" class="refresh-btn">
-                <i class="fas fa-sync-alt"></i> تحديث
-            </button>
-        </div>
-
-        <!-- حاوية حالات التحميل والخطأ -->
-        <div id="loading-indicator" class="loading-state">
-            <div class="spinner"></div>
-            <p>جاري تحميل البيانات...</p>
-        </div>
-
-        <div id="error-display" class="error-state" style="display:none;"></div>
-
-        <!-- حاوية الملخصات -->
-        <div id="highlights-container" class="highlights-grid"></div>
+    <main id="highlightsContainer" class="container">
+        <!-- يتم إدراج البطاقات هنا -->
     </main>
 
     <footer>
-        <div class="container">
-            <p>&copy; <span id="current-year">2023</span> Football Matches Tracker</p>
-        </div>
+        <p>© 2025 موقعك الرياضي</p>
     </footer>
 
-    <!-- تأكد من صحة مسار الملف -->
     <script type="module" src="assets/js/highlights.js"></script>
-    
-    <script>
-        // كود مساعد للتأكد من أن الصفحة تعمل
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('الصفحة محملة!');
-            
-            // تحديث السنة تلقائياً
-            document.getElementById('current-year').textContent = new Date().getFullYear();
-            
-            // اختبار عرض بيانات وهمية
-            const testData = [{
-                id: 'test1',
-                homeTeam: 'النصر',
-                awayTeam: 'الهلال',
-                competition: 'الدوري السعودي',
-                date: new Date().toISOString(),
-                embed: 'https://www.youtube.com/embed/example'
-            }];
-            
-            // عرض البيانات الوهمية للاختبار
-            setTimeout(() => {
-                const container = document.getElementById('highlights-container');
-                if (container) {
-                    container.innerHTML = testData.map(item => `
-                        <div class="highlight-card">
-                            <div class="match-info">
-                                <h3>${item.homeTeam} vs ${item.awayTeam}</h3>
-                                <p>${item.competition}</p>
-                            </div>
-                            <div class="video-container">
-                                <iframe src="${item.embed}" frameborder="0" allowfullscreen></iframe>
-                            </div>
-                        </div>
-                    `).join('');
-                    
-                    console.log('تم عرض البيانات الوهمية بنجاح!');
-                }
-            }, 1000);
-        });
-    </script>
-    <script>
-if(typeof adsbygoogle === 'undefined') {
-    console.log("تم حظر الإعلانات، هذا لا يؤثر على وظيفة الموقع");
-}
-</script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXX"
-crossorigin="anonymous"></script>
 </body>
 </html>
