@@ -23,21 +23,34 @@ const setCachedData = (data) => {
 };
 
 const displayHighlights = async () => {
+    console.log("تشغيل displayHighlights ✅");
     const container = document.getElementById('highlightsContainer');
-    container.innerHTML = '';
-
-    let matches = getCachedData();
-    if (!matches) {
-        matches = await fetchHighlights();
-        setCachedData(matches);
-    }
-
-    if (!matches.length) {
-        container.innerHTML = '<p>لا توجد ملخصات متوفرة حالياً.</p>';
+    if (!container) {
+        console.error("❌ لم يتم العثور على العنصر #highlightsContainer");
         return;
     }
 
+    container.innerHTML = '...جاري التحميل';
+
+    let matches = getCachedData();
+    console.log("بيانات الكاش:", matches);
+
+    if (!matches) {
+        console.log("🚀 لا يوجد كاش - طلب جديد من API");
+        matches = await fetchHighlights();
+        console.log("📡 بيانات من API:", matches);
+        setCachedData(matches);
+    }
+
+    if (!matches || !matches.length) {
+        container.innerHTML = '<p>⚠️ لا توجد ملخصات متوفرة حالياً.</p>';
+        return;
+    }
+
+    container.innerHTML = ''; // امسح "جاري التحميل"
+
     matches.forEach(match => {
+        console.log("🎥 ملخص:", match);
         const card = document.createElement('div');
         card.className = 'highlight-card';
 
@@ -52,5 +65,6 @@ const displayHighlights = async () => {
         container.appendChild(card);
     });
 };
+
 
 document.addEventListener('DOMContentLoaded', displayHighlights);
