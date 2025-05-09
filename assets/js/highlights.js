@@ -33,7 +33,7 @@ const displayHighlights = async () => {
     container.innerHTML = '...جاري التحميل';
 
     let matches = getCachedData();
-    console.log("بيانات الكاش:", matches);
+    console.log("تشغيل displayHighlights ✅");
 
     if (!matches) {
         console.log("🚀 لا يوجد كاش - طلب جديد من API");
