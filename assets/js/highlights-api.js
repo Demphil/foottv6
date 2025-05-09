@@ -25,8 +25,8 @@ const fetchHighlights = async (league = '') => {
         // جرب هذه المعلمات البديلة حسب وثائق API
         if (league) {
             // جرب أحد هذه الخيارات:
-            url.searchParams.append('league', league); // الخيار الأول
-            // url.searchParams.append('competition', league); // الخيار الثاني
+          //  url.searchParams.append('league', league); // الخيار الأول
+            url.searchParams.append('competition', league); // الخيار الثاني
             // url.searchParams.append('comp_name', league); // الخيار الثالث
         }
 
