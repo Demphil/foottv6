@@ -4,6 +4,15 @@ const CACHE_KEY = 'cachedHighlights';
 const CACHE_TIME_KEY = 'cachedHighlightsTime';
 const CACHE_DURATION_MS = 6 * 60 * 60 * 1000; // 6 ساعات
 
+const LEAGUES = [
+    'Premier League',
+    'La Liga',
+    'Serie A',
+    'Ligue 1',
+    'Champions League',
+    'UEFA Europa Conference League'
+];
+
 const getCachedData = () => {
     const cached = localStorage.getItem(CACHE_KEY);
     const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
@@ -23,7 +32,6 @@ const setCachedData = (data) => {
 };
 
 const displayHighlights = async () => {
-    console.log("تشغيل displayHighlights ✅");
     const container = document.getElementById('highlightsContainer');
     if (!container) {
         console.error("❌ لم يتم العثور على العنصر #highlightsContainer");
@@ -32,25 +40,32 @@ const displayHighlights = async () => {
 
     container.innerHTML = '...جاري التحميل';
 
-    let matches = getCachedData();
-    console.log("تشغيل displayHighlights ✅");
+    let allMatches = getCachedData();
 
-    if (!matches) {
-        console.log("🚀 لا يوجد كاش - طلب جديد من API");
-        matches = await fetchHighlights();
-        console.log("📡 بيانات من API:", matches);
-        setCachedData(matches);
+    if (!allMatches) {
+        allMatches = [];
+
+        for (const league of LEAGUES) {
+            try {
+                const matches = await fetchHighlights(league);
+                console.log(`✅ بيانات ${league}:`, matches);
+                allMatches = allMatches.concat(matches);
+            } catch (error) {
+                console.error(`❌ خطأ في جلب ملخصات ${league}:`, error);
+            }
+        }
+
+        setCachedData(allMatches);
     }
 
-    if (!matches || !matches.length) {
+    if (!allMatches || !allMatches.length) {
         container.innerHTML = '<p>⚠️ لا توجد ملخصات متوفرة حالياً.</p>';
         return;
     }
 
-    container.innerHTML = ''; // امسح "جاري التحميل"
+    container.innerHTML = '';
 
-    matches.forEach(match => {
-        console.log("🎥 ملخص:", match);
+    allMatches.forEach(match => {
         const card = document.createElement('div');
         card.className = 'highlight-card';
 
@@ -65,6 +80,5 @@ const displayHighlights = async () => {
         container.appendChild(card);
     });
 };
-
 
 document.addEventListener('DOMContentLoaded', displayHighlights);
