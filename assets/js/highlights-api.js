@@ -40,6 +40,8 @@ const fetchHighlights = async (league = '') => {
         }
 
         const data = await response.json();
+        console.log("✅ محتوى البيانات:", data);
+
         return data.matches || data || [];
 
     } catch (error) {
