@@ -10,7 +10,7 @@ const LEAGUES = [
     'Serie A',
     'Ligue 1',
     'Champions League',
-    'UEFA Europa Conference League'
+    'UEFA Europa Conference League',
 ];
 
 const getCachedData = () => {
