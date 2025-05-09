@@ -1,85 +1,56 @@
 import { fetchHighlights } from './highlights-api.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const elements = {
-        container: document.getElementById('highlights-container'),
-        filter: document.getElementById('league-filter'),
-        loading: document.getElementById('loading-indicator'),
-        error: document.getElementById('error-display')
-    };
+const CACHE_KEY = 'cachedHighlights';
+const CACHE_TIME_KEY = 'cachedHighlightsTime';
+const CACHE_DURATION_MS = 6 * 60 * 60 * 1000; // 6 ساعات
 
-    const showElement = (el) => el && (el.style.display = 'block');
-    const hideElement = (el) => el && (el.style.display = 'none');
+const getCachedData = () => {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 
-    const displayHighlights = (highlights) => {
-        if (!elements.container || !highlights) return;
-
-        if (!highlights.length) {
-            elements.container.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-info-circle"></i>
-                    <p>لا توجد ملخصات متاحة حالياً</p>
-                </div>
-            `;
-            return;
+    if (cached && cachedTime) {
+        const now = Date.now();
+        if (now - parseInt(cachedTime) < CACHE_DURATION_MS) {
+            return JSON.parse(cached);
         }
+    }
+    return null;
+};
 
-        elements.container.innerHTML = highlights.map(match => `
-            <div class="highlight-card">
-                <div class="match-header">
-                    <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
-                    <div class="match-meta">
-                        <span>${match.competition || 'دوري غير معروف'}</span>
-                        <span>${match.date ? new Date(match.date).toLocaleDateString('ar-EG') : 'تاريخ غير معروف'}</span>
-                    </div>
-                </div>
-                <div class="video-container">
-                    <iframe src="${match.embed || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" 
-                            frameborder="0" 
-                            allowfullscreen></iframe>
-                </div>
-            </div>
-        `).join('');
-    };
+const setCachedData = (data) => {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+};
 
-    const loadHighlights = async (league = '') => {
-        try {
-            showElement(elements.loading);
-            hideElement(elements.error);
-            
-            const highlights = await fetchHighlights(league);
-            displayHighlights(highlights);
-            
-        } catch (error) {
-            console.error('Error:', error);
-            if (elements.error) {
-                elements.error.innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>حدث خطأ في جلب البيانات</p>
-                        <small>${error.message}</small>
-                        <button class="retry-btn">إعادة المحاولة</button>
-                    </div>
-                `;
-                showElement(elements.error);
-                
-                // إضافة معالج حدث للزر
-                elements.error.querySelector('.retry-btn').addEventListener('click', () => {
-                    loadHighlights(league);
-                });
-            }
-        } finally {
-            hideElement(elements.loading);
-        }
-    };
+const displayHighlights = async () => {
+    const container = document.getElementById('highlightsContainer');
+    container.innerHTML = '';
 
-    // معالجة تغيير الفلتر
-    if (elements.filter) {
-        elements.filter.addEventListener('change', (e) => {
-            loadHighlights(e.target.value);
-        });
+    let matches = getCachedData();
+    if (!matches) {
+        matches = await fetchHighlights();
+        setCachedData(matches);
     }
 
-    // التحميل الأولي
-    await loadHighlights();
-});
+    if (!matches.length) {
+        container.innerHTML = '<p>لا توجد ملخصات متوفرة حالياً.</p>';
+        return;
+    }
+
+    matches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'highlight-card';
+
+        card.innerHTML = `
+            <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
+            <p>${match.competition} - ${new Date(match.date).toLocaleString('ar-MA')}</p>
+            <div class="video-container">
+                <iframe src="${match.embed}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+};
+
+document.addEventListener('DOMContentLoaded', displayHighlights);
