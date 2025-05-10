@@ -16,10 +16,17 @@ function createHighlightCard(highlight) {
   return `
     <div class="highlight-card">
       <h4>${highlight.title}</h4>
-      <video controls src="${highlight.video_url}" preload="metadata"></video>
+      <iframe
+        width="100%"
+        height="200"
+        src="${highlight.embedUrl}"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
     </div>
   `;
 }
+
 
 function createLeagueSection(leagueName, highlights) {
   return `
