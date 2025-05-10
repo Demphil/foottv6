@@ -33,19 +33,18 @@ function createLeagueSection(competitionName, matches) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("leagues");
-  if (!container) {
-    console.error("عنصر العرض غير موجود");
-    return;
-  }
+
+  // ✅ توليد تاريخ اليوم
+  const today = new Date().toISOString().split("T")[0]; // مثال: "2025-05-10"
 
   try {
-    const data = await fetchHighlights();
-    const highlights = data?.response || [];
-
-    if (!highlights.length) {
-      container.innerHTML = "<p>لا توجد ملخصات حالياً.</p>";
-      return;
-    }
+    const data = await fetchHighlights(today); // مرره هنا
+    // تابع الكود لعرض الملخصات...
+  } catch (error) {
+    console.error("API Error:", error);
+    container.innerHTML = "<p>حدث خطأ أثناء تحميل الملخصات.</p>";
+  }
+});
 
     const filteredByLeague = idleagues.map((league) => {
       return {
