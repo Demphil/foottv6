@@ -20,10 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return new Date(dateString).toLocaleString('ar-MA', options);
     };
 
-    const displayHighlights = (highlights) => {
+    const displayHighlights = (matches) => {
         if (!elements.container) return;
 
-        if (!highlights || highlights.length === 0) {
+        if (!matches || matches.length === 0) {
             elements.container.innerHTML = `
                 <div class="no-results">
                     <i class="fas fa-info-circle"></i>
@@ -33,19 +33,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        elements.container.innerHTML = highlights.map(match => `
+        elements.container.innerHTML = matches.map(match => `
             <div class="highlight-card">
                 <div class="match-header">
                     <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
                     <div class="match-meta">
-                        <span>${match.competition || 'دوري غير معروف'}</span>
-                        <span>${formatDate(match.date)}</span>
+                        <span>${match.competition || match.league || 'دوري غير معروف'}</span>
+                        <span>${formatDate(match.date || match.matchDate)}</span>
                     </div>
                 </div>
                 <div class="video-container">
-                    <iframe src="${match.embed || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" 
+                    <iframe src="${match.embed || match.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" 
                             frameborder="0" 
-                            allowfullscreen></iframe>
+                            allowfullscreen
+                            loading="lazy"></iframe>
                 </div>
             </div>
         `).join('');
@@ -56,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (elements.loading) elements.loading.style.display = 'block';
             if (elements.error) elements.error.style.display = 'none';
             
-            // تحديد تاريخ 2025-05-10 كما طلبت
             const highlights = await fetchHighlights('2025-05-10');
             displayHighlights(highlights);
             
@@ -79,4 +79,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // التحميل الأولي
     await loadHighlights();
-});
+}, {passive: true}); // إضافة passive هنا
