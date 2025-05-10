@@ -6,34 +6,43 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 5,
+  MAX_BROADCAST_MATCHES: 7,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Las Palmas",
-      awayTeam: "Rayo Vallecano",
+      homeTeam: "Southampton",
+      awayTeam: "Manchester City",
+      channels: ["bein SPORTS HD1"]
+    },
+    {
+      homeTeam: "Atletico Madrid",
+      awayTeam: "Real Sociedad",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "AC Milan",
-      awayTeam: "Bologna",
+      homeTeam: "Lazio",
+      awayTeam: "Juventus",
       channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "VfL Wolfsburg",
-      awayTeam: "1899 Hoffenheim",
+      homeTeam: "Montpellier",
+      awayTeam: "Paris Saint Germain",
       channels: ["bein SPORTS HD4"]
     },
     {
-      homeTeam: "Ceramica Cleopatra",
-      awayTeam: "Zamalek SC",
-      channels: ["one time sports1"]
+      homeTeam: "Le Havre",
+      awayTeam: "Marseille",
+      channels: ["bein SPORTS HD1"]
     },
-    {
-      homeTeam: "National Bank of Egypt",
-      awayTeam: "Pyramids FC",
-      channels: ["one time sports1"]
+      {
+      homeTeam: "Stade Brestois 29",
+      awayTeam: "Lille",
+      channels: ["bein SPORTS HD2"]
     },
-     
+      {
+      homeTeam: "Monaco",
+      awayTeam: "Lyon",
+      channels: ["bein SPORTS HD5"]
+    },
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
