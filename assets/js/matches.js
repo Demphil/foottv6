@@ -9,19 +9,24 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 7,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Southampton",
-      awayTeam: "Manchester City",
+      homeTeam: "Barcelona",
+      awayTeam: "Real Madrid",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Atletico Madrid",
-      awayTeam: "Real Sociedad",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "Newcastle",
+      awayTeam: "Chelsea",
+      channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Lazio",
-      awayTeam: "Juventus",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Manchester United",
+      awayTeam: "West Ham",
+      channels: ["bein SPORTS HD2"]
+    },
+    {
+      homeTeam: "Nottingham Forest",
+      awayTeam: "Leicester",
+      channels: ["bein SPORTS HD6"]
     },
     {
       homeTeam: "Montpellier",
@@ -29,19 +34,29 @@ const CONFIG = {
       channels: ["bein SPORTS HD4"]
     },
     {
-      homeTeam: "Le Havre",
-      awayTeam: "Marseille",
-      channels: ["bein SPORTS HD1"]
-    },
-      {
-      homeTeam: "Stade Brestois 29",
-      awayTeam: "Lille",
+      homeTeam: "Liverpool",
+      awayTeam: "Arsenal",
       channels: ["bein SPORTS HD2"]
     },
       {
-      homeTeam: "Monaco",
-      awayTeam: "Lyon",
+      homeTeam: "Real Betis",
+      awayTeam: "Osasuna",
+      channels: ["bein SPORTS HD3"]
+    },
+    {
+      homeTeam: "Torino",
+      awayTeam: "Inter",
+      channels: ["AD SPORTS PREMIUM1"]
+    },
+    {
+      homeTeam: "Bayer Leverkusen",
+      awayTeam: "Borussia Dortmund",
       channels: ["bein SPORTS HD5"]
+    },
+    {
+      homeTeam: "Hassania Agadir",
+      awayTeam: "FAR Rabat",
+      channels: ["Arryadia HD"]
     },
   ],
   ARABIC_CHANNELS: {
