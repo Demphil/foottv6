@@ -10,88 +10,125 @@
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --transition: all 0.3s ease;
 }
+/* تنسيقات عربية */
 body {
-    font-family: 'Tajawal', sans-serif;
-    margin: 0;
-    background-color: #f9f9f9;
-    color: #222;
+    font-family: 'Tajawal', 'Segoe UI', sans-serif;
     direction: rtl;
+    text-align: right;
 }
 
-header {
-    background-color: #003366;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    font-size: 1.8rem;
-}
-
-.container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-}
-
-.league-section {
-    margin-bottom: 40px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 20px;
-}
-
-.league-section h2 {
-    color: #003366;
-    margin-bottom: 10px;
-    font-size: 1.6rem;
-}
-
-.highlights-wrapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
-}
-
+/* بطاقات الملخصات */
 .highlight-card {
-    background-color: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
 }
 
 .highlight-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.highlight-card h3 {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    color: #444;
+.match-header {
+    padding: 15px;
+    background: #2c3e50;
+    color: white;
 }
 
-.highlight-card p {
+.match-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.2rem;
+}
+
+.match-meta {
+    display: flex;
+    justify-content: space-between;
     font-size: 0.9rem;
-    color: #777;
+    color: #eee;
 }
 
-.highlight-card a {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 12px;
-    background-color: #0066cc;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: background-color 0.3s ease;
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
 }
 
-.highlight-card a:hover {
-    background-color: #004d99;
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
 }
 
-footer {
-    background-color: #003366;
-    color: white;
+.match-title {
+    padding: 10px 15px;
+    background: #f5f5f5;
+    font-size: 0.9rem;
+}
+
+/* رسائل الخطأ */
+.error-content {
     text-align: center;
-    padding: 15px 0;
-    font-size: 0.9rem;
+    padding: 20px;
+    background: #ffebee;
+    border-radius: 8px;
+    color: #c62828;
+    margin: 15px 0;
+}
+
+.error-content i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.retry-btn {
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.retry-btn:hover {
+    background: #1a252f;
+}
+
+/* التحميل */
+#loading-indicator {
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #2c3e50;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* نسق الهاتف */
+@media (max-width: 768px) {
+    .highlight-card {
+        margin-bottom: 15px;
+    }
+    
+    .match-header h3 {
+        font-size: 1.1rem;
+    }
 }
