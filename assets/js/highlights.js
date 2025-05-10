@@ -1,6 +1,6 @@
 import { fetchHighlights } from './highlights-api.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
+const initHighlights = async () => {
     const elements = {
         container: document.getElementById('highlights-container'),
         loading: document.getElementById('loading-indicator'),
@@ -38,15 +38,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="match-header">
                     <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
                     <div class="match-meta">
-                        <span>${match.competition || match.league || 'دوري غير معروف'}</span>
-                        <span>${formatDate(match.date || match.matchDate)}</span>
+                        <span>${match.competition || 'دوري غير معروف'}</span>
+                        <span>${formatDate(match.date)}</span>
                     </div>
                 </div>
                 <div class="video-container">
-                    <iframe src="${match.embed || match.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ'}" 
+                    <iframe src="${match.embed}" 
                             frameborder="0" 
                             allowfullscreen
-                            loading="lazy"></iframe>
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         `).join('');
@@ -67,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="error-message">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>حدث خطأ في جلب البيانات</p>
-                        <small>${error.message}</small>
+                        <button onclick="window.location.reload()">إعادة المحاولة</button>
                     </div>
                 `;
                 elements.error.style.display = 'block';
@@ -77,6 +78,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // التحميل الأولي
     await loadHighlights();
-}, {passive: true}); // إضافة passive هنا
+};
+
+// تهيئة الصفحة مع passive events
+document.addEventListener('DOMContentLoaded', initHighlights, {
+    passive: true,
+    capture: false
+});
