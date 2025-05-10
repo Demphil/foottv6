@@ -1,4 +1,4 @@
-const fetchHighlights = async (league = '') => {
+const fetchHighlights = async (league = '', date = '') => {
     const options = {
         method: 'GET',
         headers: {
@@ -10,24 +10,20 @@ const fetchHighlights = async (league = '') => {
     try {
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
         
-        // المعلمات الأساسية المطلوبة
+        // المعلمات الأساسية
         const params = {
-            date: new Date().toISOString().split('T')[0],
-            limit: '10',
-            timezone: 'Europe/London'
+            date: date || getCurrentWeekDates(), // تاريخ الأسبوع الحالي
+            limit: '20', // زيادة العدد ليشمل أسبوع كامل
+            timezone: 'Africa/Casablanca' // التوقيت المغربي
         };
 
-        // إضافة المعلمات
         Object.keys(params).forEach(key => {
             url.searchParams.append(key, params[key]);
         });
 
-        // جرب هذه المعلمات البديلة حسب وثائق API
+        // المعلمة الصحيحة حسب وثائق API (جربت league_name بدلاً من league)
         if (league) {
-            // جرب أحد هذه الخيارات:
-            url.searchParams.append('league', league); // الخيار الأول
-            // url.searchParams.append('competition', league); // الخيار الثاني
-            // url.searchParams.append('comp_name', league); // الخيار الثالث
+            url.searchParams.append('league_name', league); // التعديل هنا
         }
 
         console.log('Request URL:', url.toString());
@@ -39,52 +35,50 @@ const fetchHighlights = async (league = '') => {
             throw new Error(errorData.message || `HTTP Error: ${response.status}`);
         }
 
-        const data = await response.json();
-        return data.matches || data || [];
+        return await response.json();
 
     } catch (error) {
         console.error('API Error:', error);
-        // بيانات وهمية للطوارئ
         return getFallbackData(league);
     }
 };
 
-// بيانات احتياطية
+// دالة للحصول على تواريخ الأسبوع الحالي
+function getCurrentWeekDates() {
+    const now = new Date();
+    const start = new Date(now.setDate(now.getDate() - now.getDay())); // بداية الأسبوع
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6); // نهاية الأسبوع
+    
+    return `${start.toISOString().split('T')[0]},${end.toISOString().split('T')[0]}`;
+}
+
+// بيانات وهمية للطوارئ
 const getFallbackData = (league) => {
-    const fallbackMatches = {
+    const leagues = {
         'Champions League': [
             {
                 id: 'fallback-1',
-                homeTeam: 'ريال مدريد',
-                awayTeam: 'مانشستر سيتي',
+                homeTeam: 'الوداد البيضاوي',
+                awayTeam: 'الرجاء الرياضي',
                 competition: 'دوري الأبطال',
-                date: new Date().toISOString(),
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
-            }
-        ],
-        'Premier League': [
-            {
-                id: 'fallback-2',
-                homeTeam: 'ليفربول',
-                awayTeam: 'مانشستر يونايتد',
-                competition: 'الدوري الإنجليزي',
-                date: new Date().toISOString(),
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+                date: '2025-05-10T19:00:00Z',
+                embed: 'https://www.youtube.com/embed/example1'
             }
         ],
         'default': [
             {
-                id: 'fallback-3',
+                id: 'fallback-2',
                 homeTeam: 'النصر',
                 awayTeam: 'الهلال',
                 competition: 'الدوري السعودي',
-                date: new Date().toISOString(),
-                embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+                date: '2025-05-10T21:00:00Z',
+                embed: 'https://www.youtube.com/embed/example2'
             }
         ]
     };
-
-    return fallbackMatches[league] || fallbackMatches['default'];
+    
+    return leagues[league] || leagues['default'];
 };
 
 export { fetchHighlights };
