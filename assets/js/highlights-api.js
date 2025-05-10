@@ -15,7 +15,7 @@ export async function fetchHighlightsByLeague(leagueId) {
     method: 'GET',
     headers: {
       'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',  // استبدله بمفتاحك الخاص
-      'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
+      'X-RapidAPI-Host': 'https://football-highlights-api.p.rapidapi.com/highlights'
     }
   };
 
