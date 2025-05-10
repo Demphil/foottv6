@@ -1,4 +1,4 @@
-const fetchHighlights = async (date = '2025-05-08') => {
+const fetchHighlights = async (date = '2025-05-10') => {
     const options = {
         method: 'GET',
         headers: {
@@ -8,14 +8,11 @@ const fetchHighlights = async (date = '2025-05-08') => {
     };
 
     try {
-        // بناء URL صحيح بدون معلمة league
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
         url.searchParams.append('date', date);
         url.searchParams.append('limit', '20');
         url.searchParams.append('timezone', 'Africa/Casablanca');
 
-        console.log('Request URL:', url.toString());
-        
         const response = await fetch(url, options);
         
         if (!response.ok) {
@@ -23,42 +20,27 @@ const fetchHighlights = async (date = '2025-05-08') => {
             throw new Error(errorData.message || `HTTP Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const result = await response.json();
         
-        // التحقق من هيكل البيانات
-        if (!data || !Array.isArray(data)) {
-            console.warn('Unexpected API response structure:', data);
+        // التعامل مع الهيكل الجديد للبيانات
+        const matches = result.data || result.matches || result;
+        
+        if (!matches || !Array.isArray(matches)) {
+            console.warn('Unexpected API response structure:', result);
             return getFallbackData();
         }
 
-        return data;
+        return matches.map(match => ({
+            id: match.id || match.matchId,
+            homeTeam: match.homeTeam || match.home_team,
+            awayTeam: match.awayTeam || match.away_team,
+            competition: match.competition || match.league,
+            date: match.date || match.matchDate,
+            embed: match.embed || match.videoUrl
+        }));
 
     } catch (error) {
         console.error('API Error:', error);
         return getFallbackData();
     }
 };
-
-// بيانات وهمية للطوارئ
-const getFallbackData = () => {
-    return [
-        {
-            id: 'mock-1',
-            homeTeam: 'الرجاء الرياضي',
-            awayTeam: 'الوداد البيضاوي',
-            competition: 'البطولة المغربية',
-            date: '2025-05-10T19:00:00Z',
-            embed: 'https://www.youtube.com/embed/example1'
-        },
-        {
-            id: 'mock-2',
-            homeTeam: 'النصر',
-            awayTeam: 'الهلال',
-            competition: 'الدوري السعودي',
-            date: '2025-05-10T21:00:00Z',
-            embed: 'https://www.youtube.com/embed/example2'
-        }
-    ];
-};
-
-export { fetchHighlights };
