@@ -1,13 +1,19 @@
 import { fetchHighlightsByLeague } from './highlights-api.js';
 
 const leagues = [
-  { id: 2, name: 'UEFA Champions League' },  // Example ID
-  { id: 140, name: 'La Liga' },
-  { id: 39, name: 'Premier League' },
-  { id: 135, name: 'Serie A (Italy)' },
-  { id: 61, name: 'Ligue 1 (France)' },
-  { id: 307, name: 'Botola (Morocco)' },
-  { id: 307, name: 'Saudi Pro League' } // Use real ID
+    { id: 2, name: 'دوري أبطال أوروبا' },
+    { id: 39, name: 'الدوري الإنجليزي' },
+    { id: 140, name: 'الدوري الإسباني' },
+    { id: 135, name: 'الدوري الإيطالي' },
+    { id: 61, name: 'الدوري الفرنسي' },
+    { id: 78, name: 'الدوري الألماني' },
+    { id: 200, name: 'البطولة المغربية الإحترافية إنوي القسم الأول' },
+    { id: 233, name: 'الدوري المصري الممتاز' },
+    { id: 307, name: 'دوري روشن السعودي' },
+    { id: 3, name: 'الدوري الأوروبي' },
+    { id: 848, name: 'UEFA Conference League' },
+    
+
 ];
 
 const container = document.getElementById("highlights-container");
