@@ -9,6 +9,18 @@ const idleagues = {
   "دوري المؤتمر الأوروبي": "UEFA Europa Conference League"
 };
 
+function getWeekRange() {
+  const today = new Date();
+  const pastDate = new Date();
+  pastDate.setDate(today.getDate() - 6);
+
+  const format = (d) => d.toISOString().split("T")[0];
+  return {
+    from: format(pastDate),
+    to: format(today)
+  };
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("leagues");
 
@@ -17,19 +29,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const { from, to } = getWeekRange();
 
   try {
-    const data = await fetchHighlights(today);
+    const data = await fetchHighlights(from, to);
     if (!data || !data.matches) {
       container.innerHTML = "<p>لا توجد ملخصات متاحة حالياً.</p>";
       return;
     }
 
-    // عرض كل بطولة على حدة
     Object.entries(idleagues).forEach(([label, apiName]) => {
       const matches = data.matches.filter(match => match.competition === apiName);
-
       if (matches.length === 0) return;
 
       const section = document.createElement("section");
