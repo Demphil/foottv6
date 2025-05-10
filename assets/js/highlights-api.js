@@ -1,4 +1,4 @@
-const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233', date = '') => {
+const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233', date = '2025-05-09') => {
     const options = {
         method: 'GET',
         headers: {
