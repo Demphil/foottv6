@@ -1,50 +1,84 @@
-const API_URL = 'https://football-highlights-api.p.rapidapi.com/matches';
-const API_KEY = '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438'; // ضع مفتاحك هنا
+import { fetchHighlights } from './highlights-api.js';
 
-const TARGET_COMPETITIONS = [
+const CACHE_KEY = 'cachedHighlights';
+const CACHE_TIME_KEY = 'cachedHighlightsTime';
+const CACHE_DURATION_MS = 6 * 60 * 60 * 1000; // 6 ساعات
+
+const LEAGUES = [
     'Premier League',
     'La Liga',
     'Serie A',
     'Ligue 1',
-    'UEFA Champions League',
+    'Champions League',
     'UEFA Europa Conference League'
 ];
 
-export async function fetchHighlights() {
-    const date = new Date().toISOString().split('T')[0]; // اليوم الحالي بصيغة yyyy-mm-dd
-    const url = `${API_URL}?date=${date}&limit=50&timezone=Europe/London`;
+const getCachedData = () => {
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-RapidAPI-Key': API_KEY,
-                'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
+    if (cached && cachedTime) {
+        const now = Date.now();
+        if (now - parseInt(cachedTime) < CACHE_DURATION_MS) {
+            return JSON.parse(cached);
+        }
+    }
+    return null;
+};
+
+const setCachedData = (data) => {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+};
+
+const displayHighlights = async () => {
+    const container = document.getElementById('highlightsContainer');
+    if (!container) {
+        console.error("❌ لم يتم العثور على العنصر #highlightsContainer");
+        return;
+    }
+
+    container.innerHTML = '...جاري التحميل';
+
+    let allMatches = getCachedData();
+
+    if (!allMatches) {
+        allMatches = [];
+
+        for (const league of LEAGUES) {
+            try {
+                const matches = await fetchHighlights(league);
+                console.log(`✅ بيانات ${league}:`, matches);
+                allMatches = allMatches.concat(matches);
+            } catch (error) {
+                console.error(`❌ خطأ في جلب ملخصات ${league}:`, error);
             }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP Error ${response.status}`);
         }
 
-        const data = await response.json();
-
-        // فلترة البطولات المرغوبة فقط
-        const filtered = data.matches.filter(match =>
-            TARGET_COMPETITIONS.includes(match.competition)
-        );
-
-        // تحويل البيانات إلى الشكل المطلوب
-        return filtered.map(match => ({
-            homeTeam: match.home,
-            awayTeam: match.away,
-            competition: match.competition,
-            date: match.date,
-            embed: match.embed
-        }));
-
-    } catch (error) {
-        console.error("API Error:", error);
-        return [];
+        setCachedData(allMatches);
     }
-}
+
+    if (!allMatches || !allMatches.length) {
+        container.innerHTML = '<p>⚠️ لا توجد ملخصات متوفرة حالياً.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+
+    allMatches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'highlight-card';
+
+        card.innerHTML = `
+            <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
+            <p>${match.competition} - ${new Date(match.date).toLocaleString('ar-MA')}</p>
+            <div class="video-container">
+                <iframe src="${match.embed}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+};
+
+document.addEventListener('DOMContentLoaded', displayHighlights);
