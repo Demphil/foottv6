@@ -1,4 +1,4 @@
-const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233', date = '2025-05-09') => {
+const fetchHighlights = async (date = '2025-05-10') => {
     const options = {
         method: 'GET',
         headers: {
@@ -8,23 +8,11 @@ const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 8
     };
 
     try {
+        // بناء URL صحيح بدون معلمة league
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        
-        // المعلمات الأساسية
-        const params = {
-            date: date || getCurrentWeekDates(), // تاريخ الأسبوع الحالي
-            limit: '20', // زيادة العدد ليشمل أسبوع كامل
-            timezone: 'Africa/Casablanca' // التوقيت المغربي
-        };
-
-        Object.keys(params).forEach(key => {
-            url.searchParams.append(key, params[key]);
-        });
-
-        // المعلمة الصحيحة حسب وثائق API (جربت league_name بدلاً من league)
-        if (league) {
-            url.searchParams.append('league', league); // التعديل هنا
-        }
+        url.searchParams.append('date', date);
+        url.searchParams.append('limit', '20');
+        url.searchParams.append('timezone', 'Africa/Casablanca');
 
         console.log('Request URL:', url.toString());
         
@@ -35,50 +23,42 @@ const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 8
             throw new Error(errorData.message || `HTTP Error: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        
+        // التحقق من هيكل البيانات
+        if (!data || !Array.isArray(data)) {
+            console.warn('Unexpected API response structure:', data);
+            return getFallbackData();
+        }
+
+        return data;
 
     } catch (error) {
         console.error('API Error:', error);
-        return getFallbackData(league);
+        return getFallbackData();
     }
 };
 
-// دالة للحصول على تواريخ الأسبوع الحالي
-function getCurrentWeekDates() {
-    const now = new Date();
-    const start = new Date(now.setDate(now.getDate() - now.getDay())); // بداية الأسبوع
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6); // نهاية الأسبوع
-    
-    return `${start.toISOString().split('T')[0]},${end.toISOString().split('T')[0]}`;
-}
-
 // بيانات وهمية للطوارئ
-const getFallbackData = (league) => {
-    const leagues = {
-        'Champions League': [
-            {
-                id: 'fallback-1',
-                homeTeam: 'الوداد البيضاوي',
-                awayTeam: 'الرجاء الرياضي',
-                competition: 'دوري الأبطال',
-                date: '2025-05-10T19:00:00Z',
-                embed: 'https://www.youtube.com/embed/example1'
-            }
-        ],
-        'default': [
-            {
-                id: 'fallback-2',
-                homeTeam: 'النصر',
-                awayTeam: 'الهلال',
-                competition: 'الدوري السعودي',
-                date: '2025-05-10T21:00:00Z',
-                embed: 'https://www.youtube.com/embed/example2'
-            }
-        ]
-    };
-    
-    return leagues[league] || leagues['default'];
+const getFallbackData = () => {
+    return [
+        {
+            id: 'mock-1',
+            homeTeam: 'الرجاء الرياضي',
+            awayTeam: 'الوداد البيضاوي',
+            competition: 'البطولة المغربية',
+            date: '2025-05-10T19:00:00Z',
+            embed: 'https://www.youtube.com/embed/example1'
+        },
+        {
+            id: 'mock-2',
+            homeTeam: 'النصر',
+            awayTeam: 'الهلال',
+            competition: 'الدوري السعودي',
+            date: '2025-05-10T21:00:00Z',
+            embed: 'https://www.youtube.com/embed/example2'
+        }
+    ];
 };
 
 export { fetchHighlights };
