@@ -1,4 +1,4 @@
-const fetchHighlights = async (date = '2025-05-10') => {
+const fetchHighlights = async (date = '2025-05-8') => {
     const options = {
         method: 'GET',
         headers: {
