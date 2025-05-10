@@ -31,32 +31,56 @@ function createLeagueSection(competitionName, matches) {
     return section;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const container = document.getElementById('leagues');
-    const today = new Date().toISOString().split('T')[0];
+document.addEventListener("DOMContentLoaded", async () => {
+  const container = document.getElementById("leagues");
+  if (!container) {
+    console.error("عنصر العرض غير موجود");
+    return;
+  }
 
-    try {
-        const allHighlights = await fetchHighlights(today);
-        const filteredByLeague = {};
+  try {
+    const data = await fetchHighlights();
+    const highlights = data?.response || [];
 
-        for (const league in allowedCompetitions) {
-            filteredByLeague[league] = allHighlights.filter(
-                match => match.competition === league
-            );
-        }
-
-        for (const league in filteredByLeague) {
-            if (filteredByLeague[league].length > 0) {
-                const section = createLeagueSection(league, filteredByLeague[league]);
-                container.appendChild(section);
-            }
-        }
-
-        if (container.innerHTML.trim() === '') {
-            container.innerHTML = `<p style="text-align: center;">لا توجد ملخصات متوفرة حالياً.</p>`;
-        }
-    } catch (error) {
-        console.error('API Error:', error);
-        container.innerHTML = `<p style="text-align: center;">حدث خطأ أثناء جلب البيانات.</p>`;
+    if (!highlights.length) {
+      container.innerHTML = "<p>لا توجد ملخصات حالياً.</p>";
+      return;
     }
+
+    const filteredByLeague = idleagues.map((league) => {
+      return {
+        league,
+        matches: highlights.filter(match =>
+          match.competition?.toLowerCase().includes(league.toLowerCase())
+        )
+      };
+    });
+
+    container.innerHTML = ""; // نبدأ فارغاً
+
+    filteredByLeague.forEach(({ league, matches }) => {
+      if (!matches.length) return;
+
+      const section = document.createElement("section");
+      section.className = "league-section";
+
+      section.innerHTML = `
+        <h2>${league}</h2>
+        <div class="highlights-wrapper">
+          ${matches.map(match => `
+            <div class="highlight-card">
+              <h3>${match.title || "بدون عنوان"}</h3>
+              <p>${match.date || ""}</p>
+              <a href="${match.url}" target="_blank">شاهد الملخص</a>
+            </div>
+          `).join("")}
+        </div>
+      `;
+
+      container.appendChild(section);
+    });
+  } catch (error) {
+    console.error("API Error:", error);
+    container.innerHTML = "<p>فشل في تحميل الملخصات.</p>";
+  }
 });
