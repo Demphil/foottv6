@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 1511,
+  "results": 1519,
   "paging": {
     "current": 1,
     "total": 1
@@ -19,8 +19,8 @@
         "date": "2025-05-10T11:15:00+03:00",
         "timestamp": 1746864900,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746864900,
+          "second": 1746868500
         },
         "venue": {
           "id": 5331,
@@ -28,10 +28,10 @@
           "city": "Přeštice"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 2
         }
       },
       "league": {
@@ -49,27 +49,27 @@
           "id": 24197,
           "name": "TJ Přeštice",
           "logo": "https://media.api-sports.io/football/teams/24197.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 19432,
           "name": "Slavoj Český Krumlov",
           "logo": "https://media.api-sports.io/football/teams/19432.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-10T14:00:00+03:00",
         "timestamp": 1746874800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746874800,
+          "second": 1746878400
         },
         "venue": {
           "id": 8011,
@@ -98,9 +98,9 @@
           "city": "Torslanda"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 65,
           "extra": null
         }
       },
@@ -129,13 +129,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -154,12 +154,12 @@
     {
       "fixture": {
         "id": 1208807,
-        "referee": "Adrián Cordero",
+        "referee": "Adrian Cordero Vega, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T15:00:00+03:00",
         "timestamp": 1746878400,
         "periods": {
-          "first": null,
+          "first": 1746878400,
           "second": null
         },
         "venue": {
@@ -168,9 +168,9 @@
           "city": "Valencia"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "First Half",
+          "short": "1H",
+          "elapsed": 23,
           "extra": null
         }
       },
@@ -189,23 +189,23 @@
           "id": 532,
           "name": "Valencia",
           "logo": "https://media.api-sports.io/football/teams/532.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 546,
           "name": "Getafe",
           "logo": "https://media.api-sports.io/football/teams/546.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -224,7 +224,7 @@
     {
       "fixture": {
         "id": 1223946,
-        "referee": "F. Fourneau",
+        "referee": "Francesco Fourneau, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T16:00:00+03:00",
         "timestamp": 1746882000,
