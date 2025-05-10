@@ -1,37 +1,94 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="adblock-detector" content="no-adblock">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ملخصات المباريات</title>
-
-    <!-- الخطوط والأيقونات -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- ملفات التنسيق -->
+    <title>ملخصات المباريات - متتبع المباريات</title>
+    <!-- الروابط الأساسية -->
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/highlights.css">
     <link rel="icon" href="assets/images/favicon.icon">
+    <!-- خطوط وأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <h1>📺 ملخصات أهم المباريات</h1>
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.png" alt="متتبع المباريات">
+            </a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="matches.html">المباريات</a></li>
+                    <li><a href="highlights.html" class="active">الملخصات</a></li>
+                    <li><a href="news.html">الأخبار</a></li>
+                    <li><a href="watch.html">البث المباشر</a></li>
+                </ul>
+            </nav>
+            <button class="mobile-menu-btn" aria-label="قائمة الهاتف">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
     </header>
 
-   <main id="leagues" class="container">
-
-            <!-- سيتم إدراج الملخصات هنا عبر JavaScript -->
+    <main class="main-container">
+        <h1 class="page-title">ملخصات المباريات</h1>
+        
+        <!-- قسم الفلاتر والبحث -->
+        <div class="filter-section">
+            <select id="league-filter" class="league-filter">
+                <option value="">كل الدوريات</option>
+                <option value="Champions League">دوري أبطال أوروبا</option>
+                <option value="La Liga">الدوري الإسباني</option>
+                <option value="Serie A">الدوري الإيطالي</option>
+                <option value="Ligue 1">الدوري الفرنسي</option>
+                <option value="Saudi Professional League">الدوري السعودي</option>
+                <option value="Europa Conference League">دوري المؤتمر الأوروبي</option>
+                <option value="AFC Champions League">دوري أبطال آسيا</option>
+            </select>
+            
+            <button id="refresh-btn" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i> تحديث
+            </button>
+        </div>
+        
+        <!-- حالة التحميل -->
+        <div id="loading-indicator" class="loading-state">
+            <div class="spinner"></div>
+            <p>جاري تحميل الملخصات...</p>
+        </div>
+        
+        <!-- عرض الأخطاء -->
+        <div id="error-display" class="error-state" style="display: none;"></div>
+        
+        <!-- حاوية الملخصات -->
+        <div id="highlights-container" class="highlights-grid"></div>
+        
+        <!-- حالة عدم وجود نتائج -->
+        <div id="no-results" class="no-highlights" style="display: none;">
+            <i class="fas fa-info-circle"></i>
+            <p>لا توجد ملخصات متاحة حاليًا</p>
         </div>
     </main>
 
     <footer>
-        <p>© 2025 موقعك الرياضي</p>
+        <div class="container">
+            <p>&copy; <span id="current-year">2025</span> متتبع المباريات. جميع الحقوق محفوظة.</p>
+        </div>
     </footer>
 
-    <!-- سكريبت ملخصات -->
+    <!-- السكريبتات -->
     <script type="module" src="assets/js/highlights.js"></script>
+    <script>
+        // تحديث السنة تلقائياً
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // قائمة الهاتف المتحركة
+        document.querySelector('.mobile-menu-btn').addEventListener('click', () => {
+            document.querySelector('.nav-menu').classList.toggle('show');
+        });
+    </script>
 </body>
 </html>
