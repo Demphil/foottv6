@@ -6,7 +6,7 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 7,
+  MAX_BROADCAST_MATCHES: 10,
   MANUAL_BROADCAST_MATCHES: [
     {
       homeTeam: "Barcelona",
