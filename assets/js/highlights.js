@@ -1,8 +1,5 @@
-import { fetchHighlights } from './highlights-api.js';
-
 const API_URL = 'https://football-highlights-api.p.rapidapi.com/matches';
-
-
+const API_KEY = 'f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438'; // ضع  هنا 
 const TARGET_COMPETITIONS = [
     'Premier League',
     'La Liga',
