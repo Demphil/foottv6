@@ -1,4 +1,4 @@
-const fetchHighlights = async (league = '', date = '') => {
+const fetchHighlights = async (league = '2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233', date = '') => {
     const options = {
         method: 'GET',
         headers: {
@@ -23,7 +23,7 @@ const fetchHighlights = async (league = '', date = '') => {
 
         // المعلمة الصحيحة حسب وثائق API (جربت league_name بدلاً من league)
         if (league) {
-            url.searchParams.append('league_name', league); // التعديل هنا
+            url.searchParams.append('league', league); // التعديل هنا
         }
 
         console.log('Request URL:', url.toString());
