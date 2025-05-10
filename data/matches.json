@@ -98,10 +98,10 @@
           "city": "Torslanda"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 65,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 5
         }
       },
       "league": {
@@ -138,8 +138,8 @@
           "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -160,7 +160,7 @@
         "timestamp": 1746878400,
         "periods": {
           "first": 1746878400,
-          "second": null
+          "second": 1746882000
         },
         "venue": {
           "id": 1497,
@@ -168,10 +168,10 @@
           "city": "Valencia"
         },
         "status": {
-          "long": "First Half",
-          "short": "1H",
-          "elapsed": 23,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -199,17 +199,17 @@
         }
       },
       "goals": {
-        "home": 2,
+        "home": 3,
         "away": 0
       },
       "score": {
         "halftime": {
-          "home": 2,
+          "home": 3,
           "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -229,8 +229,8 @@
         "date": "2025-05-10T16:00:00+03:00",
         "timestamp": 1746882000,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746882000,
+          "second": 1746885600
         },
         "venue": {
           "id": 892,
@@ -238,10 +238,10 @@
           "city": "Como"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -259,27 +259,27 @@
           "id": 895,
           "name": "Como",
           "logo": "https://media.api-sports.io/football/teams/895.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 490,
           "name": "Cagliari",
           "logo": "https://media.api-sports.io/football/teams/490.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 3,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -294,13 +294,13 @@
     {
       "fixture": {
         "id": 1224267,
-        "referee": "B. Dankert",
+        "referee": "Bastian Dankert, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T16:30:00+03:00",
         "timestamp": 1746883800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746883800,
+          "second": 1746887400
         },
         "venue": {
           "id": 755,
@@ -308,10 +308,10 @@
           "city": "Bremen"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 5
         }
       },
       "league": {
@@ -339,17 +339,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -364,13 +364,13 @@
     {
       "fixture": {
         "id": 1224269,
-        "referee": "F. Badstübner",
+        "referee": "Florian Badstubner, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T16:30:00+03:00",
         "timestamp": 1746883800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746883800,
+          "second": 1746887400
         },
         "venue": {
           "id": 748,
@@ -378,10 +378,10 @@
           "city": "Berlin"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 4
         }
       },
       "league": {
@@ -399,27 +399,27 @@
           "id": 182,
           "name": "Union Berlin",
           "logo": "https://media.api-sports.io/football/teams/182.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 180,
           "name": "1. FC Heidenheim",
           "logo": "https://media.api-sports.io/football/teams/180.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 3
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 3
         },
         "extratime": {
           "home": null,
@@ -434,13 +434,13 @@
     {
       "fixture": {
         "id": 1224270,
-        "referee": "T. Stieler",
+        "referee": "Tobias Stieler, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T16:30:00+03:00",
         "timestamp": 1746883800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746883800,
+          "second": 1746887400
         },
         "venue": {
           "id": 751,
@@ -448,10 +448,10 @@
           "city": "Bochum"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 4
         }
       },
       "league": {
@@ -469,27 +469,27 @@
           "id": 176,
           "name": "VfL Bochum",
           "logo": "https://media.api-sports.io/football/teams/176.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 164,
           "name": "FSV Mainz 05",
           "logo": "https://media.api-sports.io/football/teams/164.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 4
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 4
         },
         "extratime": {
           "home": null,
@@ -504,13 +504,13 @@
     {
       "fixture": {
         "id": 1224271,
-        "referee": "R. Schröder",
+        "referee": "Robert Schröder, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T16:30:00+03:00",
         "timestamp": 1746883800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746883800,
+          "second": 1746887400
         },
         "venue": {
           "id": 725,
@@ -518,10 +518,10 @@
           "city": "Kiel"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 9
         }
       },
       "league": {
@@ -539,27 +539,27 @@
           "id": 191,
           "name": "Holstein Kiel",
           "logo": "https://media.api-sports.io/football/teams/191.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 160,
           "name": "SC Freiburg",
           "logo": "https://media.api-sports.io/football/teams/160.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -574,13 +574,13 @@
     {
       "fixture": {
         "id": 1208374,
-        "referee": "D. England",
+        "referee": "Darren England, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 535,
@@ -588,10 +588,10 @@
           "city": "London"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 11
         }
       },
       "league": {
@@ -609,27 +609,27 @@
           "id": 36,
           "name": "Fulham",
           "logo": "https://media.api-sports.io/football/teams/36.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 45,
           "name": "Everton",
           "logo": "https://media.api-sports.io/football/teams/45.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 3
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 3
         },
         "extratime": {
           "home": null,
@@ -644,13 +644,13 @@
     {
       "fixture": {
         "id": 1208375,
-        "referee": "S. Barrott",
+        "referee": "Samuel Barrott, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 545,
@@ -658,10 +658,10 @@
           "city": "Ipswich, Suffolk"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -679,27 +679,27 @@
           "id": 57,
           "name": "Ipswich",
           "logo": "https://media.api-sports.io/football/teams/57.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 55,
           "name": "Brentford",
           "logo": "https://media.api-sports.io/football/teams/55.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -714,13 +714,13 @@
     {
       "fixture": {
         "id": 1208380,
-        "referee": "T. Robinson",
+        "referee": "Tim Robinson, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 585,
@@ -728,10 +728,10 @@
           "city": "Southampton, Hampshire"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 8
         }
       },
       "league": {
@@ -759,17 +759,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -784,13 +784,13 @@
     {
       "fixture": {
         "id": 1208382,
-        "referee": "M. Oliver",
+        "referee": "Michael Oliver, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 600,
@@ -798,10 +798,10 @@
           "city": "Wolverhampton, West Midlands"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -819,27 +819,27 @@
           "id": 39,
           "name": "Wolves",
           "logo": "https://media.api-sports.io/football/teams/39.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 51,
           "name": "Brighton",
           "logo": "https://media.api-sports.io/football/teams/51.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -859,8 +859,8 @@
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 4874,
@@ -868,10 +868,10 @@
           "city": "Huskvarna"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 8
         }
       },
       "league": {
@@ -889,27 +889,27 @@
           "id": 6675,
           "name": "Husqvarna",
           "logo": "https://media.api-sports.io/football/teams/6675.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 6663,
           "name": "Eskilsminne",
           "logo": "https://media.api-sports.io/football/teams/6663.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -929,8 +929,8 @@
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 2844,
@@ -938,10 +938,10 @@
           "city": "Ljungskile"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -959,27 +959,27 @@
           "id": 2165,
           "name": "ljungSKile SK",
           "logo": "https://media.api-sports.io/football/teams/2165.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 6692,
           "name": "Oskarshamns AIK",
           "logo": "https://media.api-sports.io/football/teams/6692.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 3
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 3
         },
         "extratime": {
           "home": null,
@@ -999,8 +999,8 @@
         "date": "2025-05-10T17:00:00+03:00",
         "timestamp": 1746885600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746885600,
+          "second": 1746889200
         },
         "venue": {
           "id": 4894,
@@ -1008,10 +1008,10 @@
           "city": "Skövde"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 3
         }
       },
       "league": {
@@ -1039,17 +1039,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -1064,13 +1064,13 @@
     {
       "fixture": {
         "id": 1208803,
-        "referee": "Pablo González",
+        "referee": "Pablo Gonzalez Fuertes, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T17:15:00+03:00",
         "timestamp": 1746886500,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746886500,
+          "second": 1746890100
         },
         "venue": {
           "id": null,
@@ -1078,10 +1078,10 @@
           "city": "Vigo"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 9
         }
       },
       "league": {
@@ -1099,27 +1099,27 @@
           "id": 538,
           "name": "Celta Vigo",
           "logo": "https://media.api-sports.io/football/teams/538.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 536,
           "name": "Sevilla",
           "logo": "https://media.api-sports.io/football/teams/536.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 3,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -1139,8 +1139,8 @@
         "date": "2025-05-10T18:00:00+03:00",
         "timestamp": 1746889200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746889200,
+          "second": 1746892800
         },
         "venue": {
           "id": 18766,
@@ -1148,10 +1148,10 @@
           "city": "Plzeň"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 2
         }
       },
       "league": {
@@ -1179,17 +1179,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 2
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -1209,8 +1209,8 @@
         "date": "2025-05-10T18:00:00+03:00",
         "timestamp": 1746889200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746889200,
+          "second": 1746892800
         },
         "venue": {
           "id": 5349,
@@ -1218,10 +1218,10 @@
           "city": "Soběslav"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 3
         }
       },
       "league": {
@@ -1239,27 +1239,27 @@
           "id": 7360,
           "name": "Spartak Soběslav",
           "logo": "https://media.api-sports.io/football/teams/7360.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 7269,
           "name": "Aritma Praha",
           "logo": "https://media.api-sports.io/football/teams/7269.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -1279,8 +1279,8 @@
         "date": "2025-05-10T18:00:00+03:00",
         "timestamp": 1746889200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746889200,
+          "second": 1746892800
         },
         "venue": {
           "id": null,
@@ -1288,10 +1288,10 @@
           "city": "Vejprnice"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 5
         }
       },
       "league": {
@@ -1309,27 +1309,27 @@
           "id": 24196,
           "name": "Slavia Vejprnice",
           "logo": "https://media.api-sports.io/football/teams/24196.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 7312,
           "name": "Králův Dvůr",
           "logo": "https://media.api-sports.io/football/teams/7312.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 4
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 3
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 4
         },
         "extratime": {
           "home": null,
@@ -1349,8 +1349,8 @@
         "date": "2025-05-10T18:00:00+03:00",
         "timestamp": 1746889200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746889200,
+          "second": 1746892800
         },
         "venue": {
           "id": 5297,
@@ -1358,10 +1358,10 @@
           "city": "Hořovice"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -1379,27 +1379,27 @@
           "id": 7299,
           "name": "Hořovicko",
           "logo": "https://media.api-sports.io/football/teams/7299.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 7339,
           "name": "Rokycany",
           "logo": "https://media.api-sports.io/football/teams/7339.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -1414,13 +1414,13 @@
     {
       "fixture": {
         "id": 1223949,
-        "referee": "D. Massa",
+        "referee": "Davide Massa, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T19:00:00+03:00",
         "timestamp": 1746892800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746892800,
+          "second": 1746896400
         },
         "venue": {
           "id": 910,
@@ -1428,10 +1428,10 @@
           "city": "Roma"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 10
         }
       },
       "league": {
@@ -1459,17 +1459,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -1484,13 +1484,13 @@
     {
       "fixture": {
         "id": 1208373,
-        "referee": "S. Attwell",
+        "referee": "Stuart Attwell, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T19:30:00+03:00",
         "timestamp": 1746894600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746894600,
+          "second": 1746898200
         },
         "venue": {
           "id": 504,
@@ -1498,9 +1498,9 @@
           "city": "Bournemouth, Dorset"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 83,
           "extra": null
         }
       },
@@ -1519,23 +1519,23 @@
           "id": 35,
           "name": "Bournemouth",
           "logo": "https://media.api-sports.io/football/teams/35.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 66,
           "name": "Aston Villa",
           "logo": "https://media.api-sports.io/football/teams/66.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -1554,13 +1554,13 @@
     {
       "fixture": {
         "id": 1208804,
-        "referee": "Isidro Díaz de Mera",
+        "referee": "Isidro Diaz de Mera Escuderos, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T19:30:00+03:00",
         "timestamp": 1746894600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746894600,
+          "second": 1746898200
         },
         "venue": {
           "id": 1478,
@@ -1568,9 +1568,9 @@
           "city": "Girona"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 90,
           "extra": null
         }
       },
@@ -1589,23 +1589,23 @@
           "id": 547,
           "name": "Girona",
           "logo": "https://media.api-sports.io/football/teams/547.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 533,
           "name": "Villarreal",
           "logo": "https://media.api-sports.io/football/teams/533.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -1624,13 +1624,13 @@
     {
       "fixture": {
         "id": 1208805,
-        "referee": "Juan Pulido",
+        "referee": "Juan Luis Pulido Santana, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T19:30:00+03:00",
         "timestamp": 1746894600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746894600,
+          "second": 1746898200
         },
         "venue": {
           "id": 19940,
@@ -1638,9 +1638,9 @@
           "city": "Palma de Mallorca"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 88,
           "extra": null
         }
       },
@@ -1659,23 +1659,23 @@
           "id": 798,
           "name": "Mallorca",
           "logo": "https://media.api-sports.io/football/teams/798.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 720,
           "name": "Valladolid",
           "logo": "https://media.api-sports.io/football/teams/720.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -1694,13 +1694,13 @@
     {
       "fixture": {
         "id": 1224265,
-        "referee": "S. Jablonski",
+        "referee": "Sven Jablonski, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-10T19:30:00+03:00",
         "timestamp": 1746894600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1746894600,
+          "second": 1746898200
         },
         "venue": {
           "id": 700,
@@ -1708,9 +1708,9 @@
           "city": "München"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 90,
           "extra": null
         }
       },
@@ -1729,23 +1729,23 @@
           "id": 157,
           "name": "Bayern München",
           "logo": "https://media.api-sports.io/football/teams/157.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 163,
           "name": "Borussia Mönchengladbach",
           "logo": "https://media.api-sports.io/football/teams/163.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
           "home": null,
