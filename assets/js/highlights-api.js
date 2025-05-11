@@ -1,12 +1,12 @@
+// في ملف highlights-api.js
 const fetchHighlights = async () => {
     try {
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
+        url.searchParams.append('date', new Date().toISOString().split('T')[0]);
         
-        url.searchParams.append('date', formattedDate);
-        url.searchParams.append('limit', '10');
-        url.searchParams.append('timezone', 'Africa/Casablanca');
+        // إضافة معلمات إضافية قد تحتوي على الفيديو
+        url.searchParams.append('include', 'videos,highlights');
+        url.searchParams.append('media', 'true');
 
         const response = await fetch(url, {
             headers: {
@@ -15,35 +15,27 @@ const fetchHighlights = async () => {
             }
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const data = await response.json();
+        console.log('Raw API Response:', data); // هذا السطر مهم للتحقق
         
-        // تحسين معالجة البيانات مع تسجيل أكثر تفصيلاً
-        console.log('API Response:', data);
-        
-        const matches = data.data || data.matches || [];
-        
-        return matches.map(item => {
-            const processedItem = {
-                homeTeam: item.homeTeam || item.home_team || 'فريق 1',
-                awayTeam: item.awayTeam || item.away_team || 'فريق 2',
-                embed: item.embed || item.videoUrl || '',
-                competition: item.competition || item.league || ''
+        // معالجة متقدمة للبيانات
+        return (data.matches || []).map(match => {
+            // البحث عن رابط الفيديو في الهيكل المختلف
+            const videoUrl = 
+                match.videos?.[0]?.embed || 
+                match.highlights?.[0]?.url ||
+                match.media?.videos?.[0]?.embed ||
+                '';
+                
+            return {
+                homeTeam: match.home_team?.name || 'فريق غير معروف',
+                awayTeam: match.away_team?.name || 'فريق غير معروف',
+                embed: videoUrl,
+                competition: match.competition?.name || ''
             };
-            
-            console.log('Processed Match:', processedItem);
-            return processedItem;
         });
-
     } catch (error) {
-        console.error('API Error Details:', {
-            message: error.message,
-            stack: error.stack,
-            timestamp: new Date().toISOString()
-        });
+        console.error('API Error Details:', error);
         return [];
     }
 };
