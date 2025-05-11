@@ -4,23 +4,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('highlights-container');
     
     if (!container) {
-        console.error('عنصر highlights-container غير موجود في الصفحة');
+        console.error('Container element not found');
         return;
     }
 
-    // عرض حالة التحميل
-    container.innerHTML = '<div class="loading">جاري تحميل الملخصات...</div>';
+    container.innerHTML = '<div class="loading">جاري تحميل البيانات...</div>';
 
     try {
         const highlights = await fetchHighlights();
         
-        if (!highlights || !Array.isArray(highlights)) {
-            throw new Error('تلقينا بيانات غير صالحة من السيرفر');
-        }
-
-        if (highlights.length === 0) {
+        if (!highlights || highlights.length === 0) {
             container.innerHTML = `
-                <div class="no-highlights">
+                <div class="no-data">
                     <i class="fas fa-info-circle"></i>
                     <p>لا توجد ملخصات متاحة حالياً</p>
                 </div>
@@ -28,34 +23,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // عرض الملخصات
-        container.innerHTML = highlights.map(match => {
-            // التحقق من وجود البيانات المطلوبة
-            if (!match.embed || !match.homeTeam || !match.awayTeam) {
-                console.warn('بيانات ناقصة للمباراة:', match);
-                return '';
-            }
-            
-            return `
-                <div class="highlight-card">
-                    <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
-                    <div class="video-container">
-                        <iframe src="${match.embed}"
-                                frameborder="0"
-                                allowfullscreen
-                                loading="lazy"></iframe>
-                    </div>
+        container.innerHTML = highlights.map(match => `
+            <div class="highlight-card">
+                <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
+                <div class="video-container">
+                    <iframe src="${match.embed}" 
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                            loading="lazy"></iframe>
                 </div>
-            `;
-        }).join('');
+            </div>
+        `).join('');
 
     } catch (error) {
-        console.error('حدث خطأ:', error);
+        console.error('Error:', error);
         container.innerHTML = `
             <div class="error">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>حدث خطأ في تحميل الملخصات</p>
-                <small>${error.message}</small>
+                <p>حدث خطأ في تحميل البيانات</p>
+                <button onclick="window.location.reload()">إعادة المحاولة</button>
             </div>
         `;
     }
