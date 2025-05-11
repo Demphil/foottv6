@@ -13,23 +13,34 @@ const fetchHighlights = async () => {
         url.searchParams.append('limit', '10');
         url.searchParams.append('timezone', 'Africa/Casablanca');
 
-        console.log('Sending request to:', url.toString());
-        
         const response = await fetch(url, options);
-        console.log('Response status:', response.status);
         
-        const data = await response.json();
-        console.log('API Response Data:', data); // <-- هذا السطر سيظهر البيانات المستلمة
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('Full API Response:', result);
+
+        // استخراج البيانات من الحقل data إذا وجد
+        const matches = result.data || result.matches || result;
         
-        if (!data || !Array.isArray(data)) {
-            console.warn('Unexpected data structure:', data);
+        if (!matches || !Array.isArray(matches)) {
+            console.warn('Unexpected data structure:', result);
             return [];
         }
 
-        return data;
+        return matches.map(match => ({
+            id: match.id,
+            homeTeam: match.homeTeam || match.home_team,
+            awayTeam: match.awayTeam || match.away_team,
+            competition: match.competition || match.league,
+            date: match.date || match.matchDate,
+            embed: match.embed || match.videoUrl
+        }));
 
     } catch (error) {
-        console.error('Full API Error:', error);
+        console.error('API Error:', error);
         return [];
     }
 };
