@@ -1,7 +1,10 @@
 const fetchHighlights = async () => {
     try {
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        url.searchParams.append('date', new Date().toISOString().split('T')[0]);
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        
+        url.searchParams.append('date', formattedDate);
         url.searchParams.append('limit', '10');
         url.searchParams.append('timezone', 'Africa/Casablanca');
 
@@ -12,18 +15,35 @@ const fetchHighlights = async () => {
             }
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         
-        // معالجة البيانات لضمان هيكل صحيح
-        return (data.data || data.matches || []).map(item => ({
-            homeTeam: item.homeTeam || item.home_team || 'فريق 1',
-            awayTeam: item.awayTeam || item.away_team || 'فريق 2',
-            embed: item.embed || item.videoUrl || '',
-            competition: item.competition || item.league || ''
-        }));
+        // تحسين معالجة البيانات مع تسجيل أكثر تفصيلاً
+        console.log('API Response:', data);
+        
+        const matches = data.data || data.matches || [];
+        
+        return matches.map(item => {
+            const processedItem = {
+                homeTeam: item.homeTeam || item.home_team || 'فريق 1',
+                awayTeam: item.awayTeam || item.away_team || 'فريق 2',
+                embed: item.embed || item.videoUrl || '',
+                competition: item.competition || item.league || ''
+            };
+            
+            console.log('Processed Match:', processedItem);
+            return processedItem;
+        });
 
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            timestamp: new Date().toISOString()
+        });
         return [];
     }
 };
