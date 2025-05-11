@@ -1,49 +1,36 @@
-import fetchHighlights from './highlights-api.js';
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const container = document.getElementById('highlights-container');
-    
-    if (!container) {
-        console.error('Container element not found');
-        return;
-    }
-
-    container.innerHTML = '<div class="loading">جاري تحميل البيانات...</div>';
+const fetchHighlights = async () => {
+    const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
+    url.searchParams.append('date', '2025-05-10');
+    url.searchParams.append('limit', '10');
+    url.searchParams.append('timezone', 'Africa/Casablanca');
 
     try {
-        const highlights = await fetchHighlights();
-        
-        if (!highlights || highlights.length === 0) {
-            container.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-info-circle"></i>
-                    <p>لا توجد ملخصات متاحة حالياً</p>
-                </div>
-            `;
-            return;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
+                'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
+            },
+            mode: 'cors'
+        });
+
+        if (!response.ok) {
+            throw new Error(`خطأ في السيرفر: ${response.status}`);
         }
 
-        container.innerHTML = highlights.map(match => `
-            <div class="highlight-card">
-                <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
-                <div class="video-container">
-                    <iframe src="${match.embed}" 
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen
-                            loading="lazy"></iframe>
-                </div>
-            </div>
-        `).join('');
-
+        const data = await response.json();
+        return data.data || data.matches || [];
+        
     } catch (error) {
-        console.error('Error:', error);
-        container.innerHTML = `
-            <div class="error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>حدث خطأ في تحميل البيانات</p>
-                <button onclick="window.location.reload()">إعادة المحاولة</button>
-            </div>
-        `;
+        console.error('فشل جلب البيانات:', error);
+        // بيانات تجريبية للطوارئ
+        return [{
+            homeTeam: 'النصر',
+            awayTeam: 'الهلال',
+            competition: 'الدوري السعودي',
+            embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+        }];
     }
-});
+};
+
+export default fetchHighlights;
