@@ -1,67 +1,57 @@
 import fetchHighlights from './highlights-api.js';
 
-const createVideoEmbed = (url) => {
-    if (!url) return null;
+const createVideoFrame = (url) => {
+    if (!url) return '<p class="no-video-message">لا يتوفر فيديو للمباراة</p>';
     
-    // تحويل روابط يوتيوب لتنسيق embed إذا لزم الأمر
-    if (url.includes('youtube.com/watch')) {
-        const videoId = url.split('v=')[1].split('&')[0];
-        return `https://www.youtube.com/embed/${videoId}`;
+    try {
+        new URL(url); // التحقق من أن الرابط صحيح
+        return `
+            <div class="video-container">
+                <iframe src="${url}" 
+                        frameborder="0"
+                        allowfullscreen
+                        loading="lazy"></iframe>
+            </div>
+        `;
+    } catch (e) {
+        console.warn('رابط الفيديو غير صالح:', url);
+        return '<p class="invalid-video">رابط الفيديو غير صالح</p>';
     }
-    
-    // إضافة تحويلات أخرى لمواقع الفيديو هنا
-    return url;
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('highlights-container');
-    if (!container) return;
+    if (!container) {
+        console.error('عنصر العرض غير موجود في الصفحة');
+        return;
+    }
 
     container.innerHTML = '<div class="loading">جاري تحميل المقاطع...</div>';
 
     try {
         const highlights = await fetchHighlights();
-        console.log('Processed Highlights:', highlights);
+        console.log('البيانات المستلمة:', highlights);
         
-        if (!highlights.length) {
+        if (!highlights || !highlights.length) {
             container.innerHTML = '<div class="no-data">لا توجد مباريات متاحة اليوم</div>';
             return;
         }
 
-        container.innerHTML = highlights.map(match => {
-            const embedUrl = createVideoEmbed(match.embed);
-            
-            if (!embedUrl) {
-                return `
-                    <div class="no-video">
-                        <p>${match.homeTeam} vs ${match.awayTeam}</p>
-                        <p>لا يتوفر رابط فيديو للمباراة</p>
-                        ${match.competition ? `<p>${match.competition}</p>` : ''}
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="highlight-card">
-                    <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
-                    ${match.competition ? `<p class="competition">${match.competition}</p>` : ''}
-                    <div class="video-container">
-                        <iframe src="${embedUrl}" 
-                                frameborder="0"
-                                allowfullscreen
-                                loading="lazy"></iframe>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = highlights.map(match => `
+            <div class="match-card">
+                <h3>${match.homeTeam} vs ${match.awayTeam}</h3>
+                ${match.competition ? `<p class="competition">${match.competition}</p>` : ''}
+                ${createVideoFrame(match.embed)}
+            </div>
+        `).join('');
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('حدث خطأ:', error);
         container.innerHTML = `
             <div class="error">
-                <p>حدث خطأ في تحميل المقاطع</p>
+                <p>فشل في تحميل البيانات</p>
                 <p>${error.message}</p>
-                <button onclick="location.reload()">إعادة المحاولة</button>
+                <button class="retry-btn" onclick="window.location.reload()">إعادة المحاولة</button>
             </div>
         `;
     }
