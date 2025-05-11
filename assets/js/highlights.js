@@ -1,24 +1,46 @@
 import fetchHighlights from './highlights-api.js';
 
+// دالة محسنة للتحقق من الروابط
+const validateUrl = (url) => {
+    if (!url) {
+        console.warn('الرابط غير موجود');
+        return false;
+    }
+    
+    if (typeof url !== 'string') {
+        console.warn('نوع الرابط غير صحيح:', typeof url);
+        return false;
+    }
+    
+    if (url.includes('undefined') || !url.startsWith('http')) {
+        console.warn('صيغة الرابط غير صالحة:', url);
+        return false;
+    }
+    
+    return true;
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('highlights-container');
     if (!container) return;
 
-    // التحقق من جميع الروابط قبل استخدامها
-    const validateUrl = (url) => {
-        if (!url || url.includes('undefined')) {
-            console.error('رابط غير صالح:', url);
-            return false;
-        }
-        return true;
-    };
-
     try {
         const highlights = await fetchHighlights();
         
+        if (!highlights || !Array.isArray(highlights)) {
+            throw new Error('تلقينا بيانات غير صالحة من السيرفر');
+        }
+
         container.innerHTML = highlights.map(match => {
-            if (!validateUrl(match.embed)) {
-                return `<div class="error">رابط الفيديو غير متاح</div>`;
+            // معالجة حالة عدم وجود رابط الفيديو
+            if (!match.embed || !validateUrl(match.embed)) {
+                return `
+                    <div class="no-video">
+                        <i class="fas fa-video-slash"></i>
+                        <p>لا يتوفر رابط فيديو للمباراة</p>
+                        <p>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</p>
+                    </div>
+                `;
             }
             
             return `
@@ -36,6 +58,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
         console.error('Error:', error);
-        container.innerHTML = `<div class="error">حدث خطأ في تحميل البيانات</div>`;
+        container.innerHTML = `
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>حدث خطأ في تحميل البيانات</p>
+                <small>${error.message}</small>
+            </div>
+        `;
     }
 });
