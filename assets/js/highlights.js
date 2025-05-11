@@ -33,4 +33,4 @@ const fetchHighlights = async () => {
     }
 };
 
-export default fetchHighlights;
+import default fetchHighlights;
