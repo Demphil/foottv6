@@ -48,3 +48,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
     }
 });
+const fetchHighlights = async () => {
+    try {
+        const response = await fetch('https://football-highlights-api.p.rapidapi.com/matches', {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
+                'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`خطأ في API: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.data || []; // تأكد من إرجاع مصفوفة
+
+    } catch (error) {
+        console.error('خطأ في جلب البيانات:', error);
+        return []; // إرجاع مصفوفة فارغة بدلاً من undefined
+    }
+};
+
+export default fetchHighlights;
