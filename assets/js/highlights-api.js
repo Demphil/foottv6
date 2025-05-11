@@ -1,7 +1,7 @@
 const fetchHighlights = async () => {
     try {
         // 1. إنشاء URL صحيح بدون معلمات غير مدعومة
-        const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
+        const url = new URL('https://football-highlights-api.p.rapidapi.com/highlihts');
         
         // 2. إضافة المعلمات الأساسية فقط (التاريخ والحد الزمني)
         const today = new Date();
