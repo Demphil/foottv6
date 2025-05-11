@@ -13,10 +13,14 @@ const fetchHighlights = async () => {
         });
 
         const data = await response.json();
-        return data.data?.map(item => ({
-            ...item,
-            embed: item.embed || '' // تأكيد وجود قيمة افتراضية
-        })) || [];
+        
+        // معالجة البيانات لضمان هيكل صحيح
+        return (data.data || data.matches || []).map(item => ({
+            homeTeam: item.homeTeam || item.home_team || 'فريق 1',
+            awayTeam: item.awayTeam || item.away_team || 'فريق 2',
+            embed: item.embed || item.videoUrl || '',
+            competition: item.competition || item.league || ''
+        }));
 
     } catch (error) {
         console.error('API Error:', error);
