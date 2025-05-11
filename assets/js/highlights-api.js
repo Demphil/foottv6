@@ -1,41 +1,68 @@
-// في ملف highlights-api.js
 const fetchHighlights = async () => {
     try {
+        // 1. إنشاء URL صحيح بدون معلمات غير مدعومة
         const url = new URL('https://football-highlights-api.p.rapidapi.com/matches');
-        url.searchParams.append('date', new Date().toISOString().split('T')[0]);
         
-        // إضافة معلمات إضافية قد تحتوي على الفيديو
-        url.searchParams.append('include', 'videos,highlights');
-        url.searchParams.append('media', 'true');
+        // 2. إضافة المعلمات الأساسية فقط (التاريخ والحد الزمني)
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        url.searchParams.append('date', formattedDate);
+        url.searchParams.append('limit', '10');
+        
+        console.log('Request URL:', url.toString()); // تسجيل URL للتحقق
 
+        // 3. إرسال الطلب مع الرؤوس المطلوبة فقط
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
                 'X-RapidAPI-Key': '795f377634msh4be097ebbb6dce3p1bf238jsn583f1b9cf438',
                 'X-RapidAPI-Host': 'football-highlights-api.p.rapidapi.com'
             }
         });
 
+        // 4. التحقق من حالة الاستجابة
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API Error Response:', errorData);
+            throw new Error(`خطأ في API: ${response.status} - ${errorData.message || 'لا توجد تفاصيل'}`);
+        }
+
+        // 5. معالجة البيانات
         const data = await response.json();
-        console.log('Raw API Response:', data); // هذا السطر مهم للتحقق
+        console.log('API Success Response:', data);
         
-        // معالجة متقدمة للبيانات
-        return (data.matches || []).map(match => {
-            // البحث عن رابط الفيديو في الهيكل المختلف
-            const videoUrl = 
-                match.videos?.[0]?.embed || 
-                match.highlights?.[0]?.url ||
-                match.media?.videos?.[0]?.embed ||
-                '';
-                
+        // 6. التحقق من وجود البيانات
+        if (!data || (!data.matches && !Array.isArray(data))) {
+            console.warn('البيانات المستلمة غير متوقعة:', data);
+            return [];
+        }
+
+        // 7. استخراج المباريات (تختلف حسب هيكل الAPI)
+        const matches = data.matches || data;
+        
+        // 8. معالجة كل مباراة
+        return matches.map(match => {
+            // البحث عن رابط الفيديو في الهياكل المختلفة
+            const videoUrl = match.embed || 
+                           match.video_url || 
+                           match.video || 
+                           match.media?.video_url || 
+                           '';
+            
             return {
-                homeTeam: match.home_team?.name || 'فريق غير معروف',
-                awayTeam: match.away_team?.name || 'فريق غير معروف',
+                homeTeam: match.home_team || match.homeTeam || 'فريق 1',
+                awayTeam: match.away_team || match.awayTeam || 'فريق 2',
                 embed: videoUrl,
-                competition: match.competition?.name || ''
+                competition: match.competition || match.league || ''
             };
         });
+
     } catch (error) {
-        console.error('API Error Details:', error);
+        console.error('حدث خطأ جسيم:', {
+            error: error.message,
+            stack: error.stack,
+            time: new Date().toISOString()
+        });
         return [];
     }
 };
