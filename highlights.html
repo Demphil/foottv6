@@ -1,28 +1,21 @@
-
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta http-equiv="Content-Security-Policy" 
-      content="default-src 'self';
-               connect-src 'self' https://football-highlights-api.p.rapidapi.com;
-               frame-src 'self' https://www.youtube.com;
-               script-src 'self' 'unsafe-inline';
-               style-src 'self' 'unsafe-inline'">
+    <!-- سياسة الأمان الجديدة -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self';
+                   connect-src 'self' https://*.rapidapi.com;
+                   frame-src 'self' https://*.youtube.com;
+                   script-src 'self' 'unsafe-inline';
+                   style-src 'self' 'unsafe-inline'">
+    
     <title>ملخصات المباريات</title>
-    
-    <!-- تأكد من صحة مسارات الملفات -->
     <link rel="stylesheet" href="assets/css/highlights.css">
-    <link rel="icon" href="assets/images/favicon.icon" type="image/x-icon">
-    
-    <!-- إضافة سياسة الأمان للوسائط -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src *; media-src *; script-src 'self'">
 </head>
 <body>
     <div id="highlights-container"></div>
-    
-    <!-- تأكد من صحة مسار الملف -->
     <script type="module" src="assets/js/highlights.js"></script>
 </body>
 </html>
