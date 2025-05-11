@@ -1,54 +1,49 @@
 import fetchHighlights from './highlights-api.js';
 
+// تأكد من أن جميع عناصر DOM موجودة قبل استخدامها
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('highlights-container');
-    
+    if (!container) return;
+
     // عرض حالة التحميل
-    container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>جاري تحميل الملخصات...</p></div>';
-    
+    container.innerHTML = '<div class="loading">جاري التحميل...</div>';
+
     try {
-        console.log('جاري جلب البيانات...');
         const highlights = await fetchHighlights();
-        console.log('البيانات المستلمة:', highlights);
         
-        if (!highlights || highlights.length === 0) {
-            container.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-info-circle"></i>
-                    <p>لا توجد ملخصات متاحة لليوم</p>
-                    <small>جرب تاريخًا آخر أو تحقق لاحقًا</small>
-                </div>
-            `;
-            return;
+        // التحقق من وجود البيانات
+        if (!highlights || !Array.isArray(highlights) {
+            throw new Error('هيكل بيانات غير صحيح من API');
         }
-        
+
         // عرض البيانات
-        container.innerHTML = highlights.map(match => `
-            <div class="highlight-card">
-                <div class="match-header">
+        container.innerHTML = highlights.map(match => {
+            // التحقق من وجود رابط الفيديو
+            const videoUrl = match.embed || match.videoUrl;
+            if (!videoUrl) {
+                console.warn('مباراة بدون رابط فيديو:', match);
+                return '';
+            }
+
+            return `
+                <div class="match-card">
                     <h3>${match.homeTeam || 'فريق 1'} vs ${match.awayTeam || 'فريق 2'}</h3>
-                    <div class="match-meta">
-                        <span>${match.competition || 'دوري غير معروف'}</span>
-                        <span>${new Date(match.date).toLocaleString('ar-MA')}</span>
+                    <div class="video-container">
+                        <iframe src="${videoUrl}" 
+                                frameborder="0"
+                                allowfullscreen
+                                loading="lazy"></iframe>
                     </div>
                 </div>
-                <div class="video-container">
-                    <iframe src="${match.embed}" 
-                            frameborder="0" 
-                            allowfullscreen
-                            loading="lazy"></iframe>
-                </div>
-            </div>
-        `).join('');
-        
+            `;
+        }).join('');
+
     } catch (error) {
-        console.error('Error:', error);
+        console.error('حدث خطأ:', error);
         container.innerHTML = `
-            <div class="error-state">
+            <div class="error">
                 <i class="fas fa-exclamation-triangle"></i>
-                <h3>حدث خطأ</h3>
-                <p>${error.message || 'تعذر تحميل البيانات'}</p>
-                <button onclick="window.location.reload()">إعادة المحاولة</button>
+                <p>حدث خطأ في تحميل البيانات</p>
             </div>
         `;
     }
