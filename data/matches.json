@@ -14,24 +14,24 @@
     {
       "fixture": {
         "id": 1223954,
-        "referee": "M. Marchetti",
+        "referee": "Matteo Marchetti, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-12T19:30:00+03:00",
         "timestamp": 1747067400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747067400,
+          "second": 1747071000
         },
         "venue": {
           "id": null,
           "name": "Stadio Pier Luigi Penzo",
-          "city": "Venezia"
+          "city": "Venice"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 90,
+          "extra": 1
         }
       },
       "league": {
@@ -49,23 +49,23 @@
           "id": 517,
           "name": "Venezia",
           "logo": "https://media.api-sports.io/football/teams/517.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 502,
           "name": "Fiorentina",
           "logo": "https://media.api-sports.io/football/teams/502.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -84,7 +84,7 @@
     {
       "fixture": {
         "id": 1223945,
-        "referee": "S. Sozza",
+        "referee": "Simone Sozza, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-12T21:45:00+03:00",
         "timestamp": 1747075500,
