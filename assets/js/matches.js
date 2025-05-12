@@ -9,55 +9,31 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 10,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Barcelona",
-      awayTeam: "Real Madrid",
-      channels: ["bein SPORTS HD1"]
-    },
-    {
-      homeTeam: "Newcastle",
-      awayTeam: "Chelsea",
-      channels: ["bein SPORTS HD1"]
-    },
-    {
-      homeTeam: "Manchester United",
-      awayTeam: "West Ham",
-      channels: ["bein SPORTS HD2"]
-    },
-    {
-      homeTeam: "Nottingham Forest",
-      awayTeam: "Leicester",
-      channels: ["bein SPORTS HD6"]
-    },
-    {
-      homeTeam: "Montpellier",
-      awayTeam: "Paris Saint Germain",
-      channels: ["bein SPORTS HD4"]
-    },
-    {
-      homeTeam: "Liverpool",
-      awayTeam: "Arsenal",
-      channels: ["bein SPORTS HD2"]
-    },
-      {
-      homeTeam: "Real Betis",
-      awayTeam: "Osasuna",
-      channels: ["bein SPORTS HD3"]
-    },
-    {
-      homeTeam: "Torino",
-      awayTeam: "Inter",
+      homeTeam: "Venezia",
+      awayTeam: "Fiorentina",
       channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Bayer Leverkusen",
-      awayTeam: "Borussia Dortmund",
-      channels: ["bein SPORTS HD5"]
+      homeTeam: "Atalanta",
+      awayTeam: "AS Roma",
+      channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Hassania Agadir",
-      awayTeam: "FAR Rabat",
+      homeTeam: "Chabab Mohammédia",
+      awayTeam: "Raja Casablanca",
       channels: ["Arryadia HD"]
     },
+    {
+      homeTeam: "Al-Hilal Saudi FC",
+      awayTeam: "Al Orubah",
+      channels: ["bein SPORTS HD6"]
+    },
+    {
+      homeTeam: "Al Akhdoud",
+      awayTeam: "Al-Nassr",
+      channels: ["bein SPORTS HD4"]
+    },
+    
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
