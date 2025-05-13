@@ -6,33 +6,19 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 10,
+  MAX_BROADCAST_MATCHES: 3,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Venezia",
-      awayTeam: "Fiorentina",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Real Sociedad",
+      awayTeam: "Celta Vigo",
+      channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Atalanta",
-      awayTeam: "AS Roma",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Sevilla",
+      awayTeam: "Las Palmas",
+      channels: ["bein SPORTS HD1"]
     },
-    {
-      homeTeam: "Chabab Mohammédia",
-      awayTeam: "Raja Casablanca",
-      channels: ["Arryadia HD"]
-    },
-    {
-      homeTeam: "Al-Hilal Saudi FC",
-      awayTeam: "Al Orubah",
-      channels: ["bein SPORTS HD6"]
-    },
-    {
-      homeTeam: "Al Akhdoud",
-      awayTeam: "Al-Nassr",
-      channels: ["bein SPORTS HD4"]
-    },
+    
     
   ],
   ARABIC_CHANNELS: {
