@@ -1,11 +1,11 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-12",
+    "date": "2025-05-13",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 194,
+  "results": 127,
   "paging": {
     "current": 1,
     "total": 1
@@ -13,59 +13,59 @@
   "response": [
     {
       "fixture": {
-        "id": 1223954,
-        "referee": "Matteo Marchetti, Italy",
+        "id": 1208814,
+        "referee": "Alejandro Quintero",
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-12T19:30:00+03:00",
-        "timestamp": 1747067400,
+        "date": "2025-05-13T20:00:00+03:00",
+        "timestamp": 1747155600,
         "periods": {
-          "first": 1747067400,
-          "second": 1747071000
+          "first": null,
+          "second": null
         },
         "venue": {
-          "id": null,
-          "name": "Stadio Pier Luigi Penzo",
-          "city": "Venice"
+          "id": 1492,
+          "name": "Estadio Municipal José Zorrilla",
+          "city": "Valladolid"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 90,
-          "extra": 1
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
         }
       },
       "league": {
-        "id": 135,
-        "name": "Serie A",
-        "country": "Italy",
-        "logo": "https://media.api-sports.io/football/leagues/135.png",
-        "flag": "https://media.api-sports.io/flags/it.svg",
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
         "season": 2024,
         "round": "Regular Season - 36",
         "standings": true
       },
       "teams": {
         "home": {
-          "id": 517,
-          "name": "Venezia",
-          "logo": "https://media.api-sports.io/football/teams/517.png",
-          "winner": true
+          "id": 720,
+          "name": "Valladolid",
+          "logo": "https://media.api-sports.io/football/teams/720.png",
+          "winner": null
         },
         "away": {
-          "id": 502,
-          "name": "Fiorentina",
-          "logo": "https://media.api-sports.io/football/teams/502.png",
-          "winner": false
+          "id": 547,
+          "name": "Girona",
+          "logo": "https://media.api-sports.io/football/teams/547.png",
+          "winner": null
         }
       },
       "goals": {
-        "home": 2,
-        "away": 1
+        "home": null,
+        "away": null
       },
       "score": {
         "halftime": {
-          "home": 0,
-          "away": 0
+          "home": null,
+          "away": null
         },
         "fulltime": {
           "home": null,
@@ -83,19 +83,19 @@
     },
     {
       "fixture": {
-        "id": 1223945,
-        "referee": "Simone Sozza, Italy",
+        "id": 1208813,
+        "referee": "Víctor García",
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-12T21:45:00+03:00",
-        "timestamp": 1747075500,
+        "date": "2025-05-13T21:00:00+03:00",
+        "timestamp": 1747159200,
         "periods": {
           "first": null,
           "second": null
         },
         "venue": {
-          "id": 879,
-          "name": "Gewiss Stadium",
-          "city": "Bergamo"
+          "id": 1491,
+          "name": "Reale Arena",
+          "city": "Donostia-San Sebastián"
         },
         "status": {
           "long": "Not Started",
@@ -105,26 +105,96 @@
         }
       },
       "league": {
-        "id": 135,
-        "name": "Serie A",
-        "country": "Italy",
-        "logo": "https://media.api-sports.io/football/leagues/135.png",
-        "flag": "https://media.api-sports.io/flags/it.svg",
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
         "season": 2024,
         "round": "Regular Season - 36",
         "standings": true
       },
       "teams": {
         "home": {
-          "id": 499,
-          "name": "Atalanta",
-          "logo": "https://media.api-sports.io/football/teams/499.png",
+          "id": 548,
+          "name": "Real Sociedad",
+          "logo": "https://media.api-sports.io/football/teams/548.png",
           "winner": null
         },
         "away": {
-          "id": 497,
-          "name": "AS Roma",
-          "logo": "https://media.api-sports.io/football/teams/497.png",
+          "id": 538,
+          "name": "Celta Vigo",
+          "logo": "https://media.api-sports.io/football/teams/538.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208816,
+        "referee": "Juan Martínez",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-13T22:30:00+03:00",
+        "timestamp": 1747164600,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1494,
+          "name": "Estadio Ramón Sánchez Pizjuán",
+          "city": "Sevilla"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 36",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 536,
+          "name": "Sevilla",
+          "logo": "https://media.api-sports.io/football/teams/536.png",
+          "winner": null
+        },
+        "away": {
+          "id": 534,
+          "name": "Las Palmas",
+          "logo": "https://media.api-sports.io/football/teams/534.png",
           "winner": null
         }
       },
