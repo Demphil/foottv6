@@ -14,13 +14,13 @@
     {
       "fixture": {
         "id": 1208814,
-        "referee": "Alejandro Quintero",
+        "referee": "Alejandro Quintero Gonzalez, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-13T20:00:00+03:00",
         "timestamp": 1747155600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747155600,
+          "second": 1747159200
         },
         "venue": {
           "id": 1492,
@@ -28,9 +28,9 @@
           "city": "Valladolid"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 61,
           "extra": null
         }
       },
@@ -59,13 +59,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -84,12 +84,12 @@
     {
       "fixture": {
         "id": 1208813,
-        "referee": "Víctor García",
+        "referee": "Victor Garcia Verdura, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-13T21:00:00+03:00",
         "timestamp": 1747159200,
         "periods": {
-          "first": null,
+          "first": 1747159200,
           "second": null
         },
         "venue": {
@@ -98,9 +98,9 @@
           "city": "Donostia-San Sebastián"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "First Half",
+          "short": "1H",
+          "elapsed": 20,
           "extra": null
         }
       },
@@ -129,13 +129,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
