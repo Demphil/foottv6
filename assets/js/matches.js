@@ -9,13 +9,18 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 3,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Real Sociedad",
-      awayTeam: "Celta Vigo",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "Villarreal",
+      awayTeam: "Leganes",
+      channels: ["bein SPORTS HD4"]
     },
     {
-      homeTeam: "Sevilla",
-      awayTeam: "Las Palmas",
+      homeTeam: "Alaves",
+      awayTeam: "Valencia",
+      channels: ["bein SPORTS HD3"]
+    },
+     {
+      homeTeam: "Real Madrid",
+      awayTeam: "Mallorca",
       channels: ["bein SPORTS HD1"]
     },
     
