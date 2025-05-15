@@ -14,13 +14,13 @@
     {
       "fixture": {
         "id": 1208811,
-        "referee": "Mario Melero",
+        "referee": "Mario Melero Lopez, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-15T20:00:00+03:00",
         "timestamp": 1747328400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747328400,
+          "second": 1747332000
         },
         "venue": {
           "id": 1486,
@@ -28,9 +28,9 @@
           "city": "Iruñea"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 63,
           "extra": null
         }
       },
@@ -49,23 +49,23 @@
           "id": 727,
           "name": "Osasuna",
           "logo": "https://media.api-sports.io/football/teams/727.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 530,
           "name": "Atletico Madrid",
           "logo": "https://media.api-sports.io/football/teams/530.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -84,13 +84,13 @@
     {
       "fixture": {
         "id": 1208812,
-        "referee": "Pablo González",
+        "referee": "Pablo Gonzalez Fuertes, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-15T20:00:00+03:00",
         "timestamp": 1747328400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747328400,
+          "second": 1747332000
         },
         "venue": {
           "id": 1488,
@@ -98,9 +98,9 @@
           "city": "Madrid"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 54,
           "extra": null
         }
       },
@@ -119,23 +119,23 @@
           "id": 728,
           "name": "Rayo Vallecano",
           "logo": "https://media.api-sports.io/football/teams/728.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 543,
           "name": "Real Betis",
           "logo": "https://media.api-sports.io/football/teams/543.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "fulltime": {
           "home": null,
