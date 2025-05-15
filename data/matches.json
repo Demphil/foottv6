@@ -1,11 +1,11 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-14",
+    "date": "2025-05-15",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 320,
+  "results": 196,
   "paging": {
     "current": 1,
     "total": 1
@@ -13,158 +13,88 @@
   "response": [
     {
       "fixture": {
-        "id": 1208809,
-        "referee": "Jesus Gil Manzano, Spain",
+        "id": 1208811,
+        "referee": "Mario Melero",
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-14T20:00:00+03:00",
-        "timestamp": 1747242000,
-        "periods": {
-          "first": 1747242000,
-          "second": 1747245600
-        },
-        "venue": {
-          "id": 1470,
-          "name": "Estadio de Mendizorroza",
-          "city": "Vitoria-Gasteiz"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 62,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 140,
-        "name": "La Liga",
-        "country": "Spain",
-        "logo": "https://media.api-sports.io/football/leagues/140.png",
-        "flag": "https://media.api-sports.io/flags/es.svg",
-        "season": 2024,
-        "round": "Regular Season - 36",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 542,
-          "name": "Alaves",
-          "logo": "https://media.api-sports.io/football/teams/542.png",
-          "winner": null
-        },
-        "away": {
-          "id": 532,
-          "name": "Valencia",
-          "logo": "https://media.api-sports.io/football/teams/532.png",
-          "winner": null
-        }
-      },
-      "goals": {
-        "home": 0,
-        "away": 0
-      },
-      "score": {
-        "halftime": {
-          "home": 0,
-          "away": 0
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1208817,
-        "referee": "Ricardo De Burgos Bengoetxea, Spain",
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-14T20:00:00+03:00",
-        "timestamp": 1747242000,
-        "periods": {
-          "first": 1747242000,
-          "second": 1747245600
-        },
-        "venue": {
-          "id": 1498,
-          "name": "Estadio de la Cerámica",
-          "city": "Villarreal"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 61,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 140,
-        "name": "La Liga",
-        "country": "Spain",
-        "logo": "https://media.api-sports.io/football/leagues/140.png",
-        "flag": "https://media.api-sports.io/flags/es.svg",
-        "season": 2024,
-        "round": "Regular Season - 36",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 533,
-          "name": "Villarreal",
-          "logo": "https://media.api-sports.io/football/teams/533.png",
-          "winner": true
-        },
-        "away": {
-          "id": 537,
-          "name": "Leganes",
-          "logo": "https://media.api-sports.io/football/teams/537.png",
-          "winner": false
-        }
-      },
-      "goals": {
-        "home": 3,
-        "away": 0
-      },
-      "score": {
-        "halftime": {
-          "home": 3,
-          "away": 0
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1208815,
-        "referee": "Javier Alberola",
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-14T22:30:00+03:00",
-        "timestamp": 1747251000,
+        "date": "2025-05-15T20:00:00+03:00",
+        "timestamp": 1747328400,
         "periods": {
           "first": null,
           "second": null
         },
         "venue": {
-          "id": 1456,
-          "name": "Estadio Santiago Bernabéu",
+          "id": 1486,
+          "name": "Estadio El Sadar",
+          "city": "Iruñea"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 36",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 727,
+          "name": "Osasuna",
+          "logo": "https://media.api-sports.io/football/teams/727.png",
+          "winner": null
+        },
+        "away": {
+          "id": 530,
+          "name": "Atletico Madrid",
+          "logo": "https://media.api-sports.io/football/teams/530.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208812,
+        "referee": "Pablo González",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-15T20:00:00+03:00",
+        "timestamp": 1747328400,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1488,
+          "name": "Estadio de Vallecas",
           "city": "Madrid"
         },
         "status": {
@@ -186,15 +116,155 @@
       },
       "teams": {
         "home": {
-          "id": 541,
-          "name": "Real Madrid",
-          "logo": "https://media.api-sports.io/football/teams/541.png",
+          "id": 728,
+          "name": "Rayo Vallecano",
+          "logo": "https://media.api-sports.io/football/teams/728.png",
           "winner": null
         },
         "away": {
-          "id": 798,
-          "name": "Mallorca",
-          "logo": "https://media.api-sports.io/football/teams/798.png",
+          "id": 543,
+          "name": "Real Betis",
+          "logo": "https://media.api-sports.io/football/teams/543.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208810,
+        "referee": "Guillermo Cuadra",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-15T22:30:00+03:00",
+        "timestamp": 1747337400,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 20422,
+          "name": "Estadio Coliseum",
+          "city": "Getafe"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 36",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 546,
+          "name": "Getafe",
+          "logo": "https://media.api-sports.io/football/teams/546.png",
+          "winner": null
+        },
+        "away": {
+          "id": 531,
+          "name": "Athletic Club",
+          "logo": "https://media.api-sports.io/football/teams/531.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1212945,
+        "referee": "César Soto",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-15T22:30:00+03:00",
+        "timestamp": 1747337400,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1474,
+          "name": "RCDE Stadium",
+          "city": "Cornella de Llobregat"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 36",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 540,
+          "name": "Espanyol",
+          "logo": "https://media.api-sports.io/football/teams/540.png",
+          "winner": null
+        },
+        "away": {
+          "id": 529,
+          "name": "Barcelona",
+          "logo": "https://media.api-sports.io/football/teams/529.png",
           "winner": null
         }
       },
