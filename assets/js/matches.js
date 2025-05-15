@@ -6,22 +6,27 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 3,
+  MAX_BROADCAST_MATCHES: 4,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Villarreal",
-      awayTeam: "Leganes",
-      channels: ["bein SPORTS HD4"]
+      homeTeam: "Espanyol",
+      awayTeam: "Barcelona",
+      channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Alaves",
-      awayTeam: "Valencia",
+      homeTeam: "Osasuna",
+      awayTeam: "Atletico Madrid",
       channels: ["bein SPORTS HD3"]
     },
      {
-      homeTeam: "Real Madrid",
-      awayTeam: "Mallorca",
-      channels: ["bein SPORTS HD1"]
+      homeTeam: "Rayo Vallecano",
+      awayTeam: "Real Betis",
+      channels: ["bein SPORTS HD2"]
+    },
+      {
+      homeTeam: "Getafe",
+      awayTeam: "Athletic Club",
+      channels: ["bein SPORTS HD3"]
     },
     
     
