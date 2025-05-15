@@ -21,7 +21,7 @@ const CONFIG = {
      {
       homeTeam: "Rayo Vallecano",
       awayTeam: "Real Betis",
-      channels: ["bein SPORTS HD2"]
+      channels: ["bein SPORTS HD6"]
     },
       {
       homeTeam: "Getafe",
