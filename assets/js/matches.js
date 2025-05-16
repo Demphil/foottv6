@@ -9,26 +9,26 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 4,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Espanyol",
-      awayTeam: "Barcelona",
+      homeTeam: "Chelsea",
+      awayTeam: "Manchester United",
       channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Osasuna",
-      awayTeam: "Atletico Madrid",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "Aston Villa",
+      awayTeam: "Tottenham",
+      channels: ["bein SPORTS HD2"]
     },
      {
-      homeTeam: "Rayo Vallecano",
-      awayTeam: "Real Betis",
-      channels: ["bein SPORTS HD6"]
+      homeTeam: "Al-Fateh",
+      awayTeam: "Al-Hilal Saudi FC",
+      channels: ["SSC EXTRA1"]
     },
-      {
-      homeTeam: "Getafe",
-      awayTeam: "Athletic Club",
-      channels: ["bein SPORTS HD3"]
+    {
+      homeTeam: "Al-Nassr",
+      awayTeam: "Al Taawon",
+      channels: ["SSC HD1"]
     },
-    
+  
     
   ],
   ARABIC_CHANNELS: {
