@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 468,
+  "results": 467,
   "paging": {
     "current": 1,
     "total": 1
@@ -19,8 +19,8 @@
         "date": "2025-05-16T19:00:00+03:00",
         "timestamp": 1747411200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747411200,
+          "second": 1747414800
         },
         "venue": {
           "id": 5309,
@@ -28,10 +28,10 @@
           "city": "Králuv Dvůr"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 2
         }
       },
       "league": {
@@ -49,27 +49,27 @@
           "id": 7312,
           "name": "Králův Dvůr",
           "logo": "https://media.api-sports.io/football/teams/7312.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 7303,
           "name": "Jindřichův Hradec",
           "logo": "https://media.api-sports.io/football/teams/7303.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 3,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-16T19:00:00+03:00",
         "timestamp": 1747411200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747411200,
+          "second": 1747414800
         },
         "venue": {
           "id": 5333,
@@ -98,10 +98,10 @@
           "city": "Rokycany"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 1
         }
       },
       "league": {
@@ -119,27 +119,27 @@
           "id": 7339,
           "name": "Rokycany",
           "logo": "https://media.api-sports.io/football/teams/7339.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 24196,
           "name": "Slavia Vejprnice",
           "logo": "https://media.api-sports.io/football/teams/24196.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 4,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 4,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -159,8 +159,8 @@
         "date": "2025-05-16T20:00:00+03:00",
         "timestamp": 1747414800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747414800,
+          "second": 1747418400
         },
         "venue": {
           "id": 4894,
@@ -168,9 +168,9 @@
           "city": "Skövde"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 62,
           "extra": null
         }
       },
@@ -189,23 +189,23 @@
           "id": 16605,
           "name": "IFK Skövde",
           "logo": "https://media.api-sports.io/football/teams/16605.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 6675,
           "name": "Husqvarna",
           "logo": "https://media.api-sports.io/football/teams/6675.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -229,8 +229,8 @@
         "date": "2025-05-16T20:00:00+03:00",
         "timestamp": 1747414800,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747414800,
+          "second": 1747418400
         },
         "venue": {
           "id": 1507,
@@ -238,9 +238,9 @@
           "city": "Borås"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 64,
           "extra": null
         }
       },
@@ -269,13 +269,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -294,7 +294,7 @@
     {
       "fixture": {
         "id": 1208384,
-        "referee": "P. Bankes",
+        "referee": "Peter Bankes, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-16T21:30:00+03:00",
         "timestamp": 1747420200,
