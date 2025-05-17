@@ -6,17 +6,22 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233, 20, 12], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 4,
+  MAX_BROADCAST_MATCHES: 7,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Genoa",
-      awayTeam: "Atalanta",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Renaissance Berkane",
+      awayTeam: "Simba",
+      channels: ["bein SPORTS HD3"]
     },
     {
       homeTeam: "Paris Saint Germain",
       awayTeam: "Auxerre",
       channels: ["bein SPORTS HD2"]
+    },
+     {
+      homeTeam: "Genoa",
+      awayTeam: "Atalanta",
+      channels: ["AD SPORTS PREMIUM1"]
     },
      {
       homeTeam: "Marseille",
@@ -32,11 +37,6 @@ const CONFIG = {
       homeTeam: "FSV Mainz 05",
       awayTeam: "Bayer Leverkusen",
       channels: ["bein SPORTS HD6"]
-    },
-    {
-      homeTeam: "1899 Hoffenheim",
-      awayTeam: "Bayern München",
-      channels: ["bein SPORTS HD5"]
     },
 
     {
