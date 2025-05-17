@@ -14,7 +14,8 @@ const leagues = [
     { id: 307, name: 'دوري روشن السعودي' },
     { id: 3, name: 'الدوري الأوروبي' },
     { id: 848, name: 'UEFA Conference League' },
-    
+    { id: 223, name: 'CAF Champions League' },
+    { id: 224, name: 'CAF Confederations Cup' },
 
 ];
 
