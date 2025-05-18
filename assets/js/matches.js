@@ -9,40 +9,39 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 7,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Renaissance Berkane",
-      awayTeam: "Simba",
+      homeTeam: "Arsenal",
+      awayTeam: "Newcastle",
+      channels: ["bein SPORTS HD2"]
+    },
+    {
+      homeTeam: "Leicester",
+      awayTeam: "Ipswich",
+      channels: ["bein SPORTS HD3"]
+    },
+     {
+      homeTeam: "AS Roma",
+      awayTeam: "AC Milan",
+      channels: ["'AD SPORTS PREMIUM1"]
+    },
+     {
+      homeTeam: "Barcelona",
+      awayTeam: "Villarreal",
+      channels: ["bein SPORTS HD1"]
+    },
+     {
+      homeTeam: "Sevilla",
+      awayTeam: "Real Madrid",
       channels: ["bein SPORTS HD3"]
     },
     {
-      homeTeam: "Paris Saint Germain",
-      awayTeam: "Auxerre",
-      channels: ["bein SPORTS HD2"]
-    },
-     {
-      homeTeam: "Genoa",
-      awayTeam: "Atalanta",
-      channels: ["AD SPORTS PREMIUM1"]
-    },
-     {
-      homeTeam: "Marseille",
-      awayTeam: "Rennes",
+      homeTeam: "Atletico Madrid",
+      awayTeam: "Real Betis",
       channels: ["bein SPORTS HD4"]
     },
-    {
-      homeTeam: "Lens",
-      awayTeam: "Monaco",
-      channels: ["bein SPORTS HD5"]
-    },
      {
-      homeTeam: "FSV Mainz 05",
-      awayTeam: "Bayer Leverkusen",
-      channels: ["bein SPORTS HD6"]
-    },
-
-    {
-      homeTeam: "Al Ahly",
-      awayTeam: "National Bank of Egypt",
-      channels: ["one time sports1"]
+      homeTeam: "Inter",
+      awayTeam: "Lazio",
+      channels: ["'AD SPORTS PREMIUM1"]
     },
     
   ],
