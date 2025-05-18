@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 1024,
+  "results": 1036,
   "paging": {
     "current": 1,
     "total": 1
@@ -14,13 +14,13 @@
     {
       "fixture": {
         "id": 1208389,
-        "referee": "M. Oliver",
+        "referee": "Michael Oliver, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-18T14:00:00+03:00",
         "timestamp": 1747566000,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747566000,
+          "second": 1747569600
         },
         "venue": {
           "id": 8560,
@@ -28,9 +28,9 @@
           "city": "Liverpool"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 66,
           "extra": null
         }
       },
@@ -49,23 +49,23 @@
           "id": 45,
           "name": "Everton",
           "logo": "https://media.api-sports.io/football/teams/45.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 41,
           "name": "Southampton",
           "logo": "https://media.api-sports.io/football/teams/41.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "fulltime": {
           "home": null,
