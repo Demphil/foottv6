@@ -21,7 +21,7 @@ const CONFIG = {
      {
       homeTeam: "AS Roma",
       awayTeam: "AC Milan",
-      channels: ["'AD SPORTS PREMIUM1"]
+      channels: ["AD SPORTS PREMIUM1"]
     },
      {
       homeTeam: "Barcelona",
@@ -41,7 +41,7 @@ const CONFIG = {
      {
       homeTeam: "Inter",
       awayTeam: "Lazio",
-      channels: ["'AD SPORTS PREMIUM1"]
+      channels: ["AD SPORTS PREMIUM1"]
     },
     
   ],
