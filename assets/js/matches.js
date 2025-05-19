@@ -6,43 +6,24 @@ const CONFIG = {
   CACHE_KEY: 'football-matches-cache-v5',
   FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233, 20, 12], // Champions League, Premier League, La Liga, Serie A
   SLIDER_INTERVAL: 20000, // 20 seconds
-  MAX_BROADCAST_MATCHES: 7,
+  MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Arsenal",
-      awayTeam: "Newcastle",
-      channels: ["bein SPORTS HD2"]
-    },
-    {
-      homeTeam: "Leicester",
-      awayTeam: "Ipswich",
-      channels: ["bein SPORTS HD3"]
-    },
-     {
-      homeTeam: "AS Roma",
-      awayTeam: "AC Milan",
-      channels: ["AD SPORTS PREMIUM1"]
-    },
-     {
-      homeTeam: "Barcelona",
-      awayTeam: "Villarreal",
+      homeTeam: "Brighton",
+      awayTeam: "Liverpool",
       channels: ["bein SPORTS HD1"]
     },
      {
-      homeTeam: "Sevilla",
-      awayTeam: "Real Madrid",
-      channels: ["bein SPORTS HD3"]
-    },
-    {
-      homeTeam: "Atletico Madrid",
-      awayTeam: "Real Betis",
-      channels: ["bein SPORTS HD4"]
+      homeTeam: "",
+      awayTeam: "",
+      channels: [""]
     },
      {
-      homeTeam: "Inter",
-      awayTeam: "Lazio",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "",
+      awayTeam: "",
+      channels: [""]
     },
+   
     
   ],
   ARABIC_CHANNELS: {
