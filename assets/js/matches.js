@@ -13,16 +13,7 @@ const CONFIG = {
       awayTeam: "Liverpool",
       channels: ["bein SPORTS HD1"]
     },
-     {
-      homeTeam: "",
-      awayTeam: "",
-      channels: [""]
-    },
-     {
-      homeTeam: "",
-      awayTeam: "",
-      channels: [""]
-    },
+     
    
     
   ],
