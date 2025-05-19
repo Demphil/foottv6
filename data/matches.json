@@ -19,8 +19,8 @@
         "date": "2025-05-19T19:30:00+03:00",
         "timestamp": 1747672200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1747672200,
+          "second": 1747675800
         },
         "venue": {
           "id": 7996,
@@ -28,9 +28,9 @@
           "city": "Malmö"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 89,
           "extra": null
         }
       },
@@ -59,13 +59,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -84,7 +84,7 @@
     {
       "fixture": {
         "id": 1208386,
-        "referee": "A. Madley",
+        "referee": "Andy Madley, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-19T22:00:00+03:00",
         "timestamp": 1747681200,
