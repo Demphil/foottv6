@@ -9,11 +9,20 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Brighton",
-      awayTeam: "Liverpool",
+      homeTeam: "Tottenham",
+      awayTeam: "Manchester United",
       channels: ["bein SPORTS HD1"]
     },
-     
+    {
+      homeTeam: "Al-Nassr",
+      awayTeam: "Al Khaleej Saihat",
+      channels: ["bein SPORTS HD1"]
+    },
+      {
+      homeTeam: "Al Wehda Club",
+      awayTeam: "Al-Hilal Saudi FC",
+      channels: ["bein SPORTS HD1"]
+    },
    
     
   ],
