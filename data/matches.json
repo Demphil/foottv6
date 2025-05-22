@@ -1,11 +1,11 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-21",
+    "date": "2025-05-22",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 273,
+  "results": 192,
   "paging": {
     "current": 1,
     "total": 1
@@ -13,59 +13,59 @@
   "response": [
     {
       "fixture": {
-        "id": 1375858,
-        "referee": "Hakim Ben el Salem Hadj, France",
+        "id": 1375862,
+        "referee": "S. Jablonski",
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-21T21:00:00+03:00",
-        "timestamp": 1747850400,
+        "date": "2025-05-22T21:30:00+03:00",
+        "timestamp": 1747938600,
         "periods": {
-          "first": 1747850400,
+          "first": null,
           "second": null
         },
         "venue": {
-          "id": 658,
-          "name": "Stade Saint-Symphorien",
-          "city": "Longeville-lès-Metz"
+          "id": 723,
+          "name": "Voith-Arena",
+          "city": "Heidenheim an der Brenz"
         },
         "status": {
-          "long": "First Half",
-          "short": "1H",
-          "elapsed": 21,
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
           "extra": null
         }
       },
       "league": {
-        "id": 61,
-        "name": "Ligue 1",
-        "country": "France",
-        "logo": "https://media.api-sports.io/football/leagues/61.png",
-        "flag": "https://media.api-sports.io/flags/fr.svg",
+        "id": 78,
+        "name": "Bundesliga",
+        "country": "Germany",
+        "logo": "https://media.api-sports.io/football/leagues/78.png",
+        "flag": "https://media.api-sports.io/flags/de.svg",
         "season": 2024,
         "round": "Relegation Round",
         "standings": true
       },
       "teams": {
         "home": {
-          "id": 112,
-          "name": "Metz",
-          "logo": "https://media.api-sports.io/football/teams/112.png",
+          "id": 180,
+          "name": "1. FC Heidenheim",
+          "logo": "https://media.api-sports.io/football/teams/180.png",
           "winner": null
         },
         "away": {
-          "id": 93,
-          "name": "Reims",
-          "logo": "https://media.api-sports.io/football/teams/93.png",
+          "id": 1660,
+          "name": "SV Elversberg",
+          "logo": "https://media.api-sports.io/football/teams/1660.png",
           "winner": null
         }
       },
       "goals": {
-        "home": 0,
-        "away": 0
+        "home": null,
+        "away": null
       },
       "score": {
         "halftime": {
-          "home": 0,
-          "away": 0
+          "home": null,
+          "away": null
         },
         "fulltime": {
           "home": null,
