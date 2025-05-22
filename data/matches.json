@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 194,
+  "results": 191,
   "paging": {
     "current": 1,
     "total": 1
@@ -14,7 +14,7 @@
     {
       "fixture": {
         "id": 1375862,
-        "referee": "S. Jablonski",
+        "referee": "Sven Jablonski, Germany",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-22T21:30:00+03:00",
         "timestamp": 1747938600,
