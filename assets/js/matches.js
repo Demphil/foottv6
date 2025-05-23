@@ -15,7 +15,7 @@ const CONFIG = {
     },
     {
       homeTeam: "Como",
-      awayTeam: "Intert",
+      awayTeam: "Inter",
       channels: ["AD SPORTS PREMIUM1"]
     },
       {
