@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 1223,
+  "results": 1224,
   "paging": {
     "current": 1,
     "total": 1
@@ -19,8 +19,8 @@
         "date": "2025-05-24T14:00:00+03:00",
         "timestamp": 1748084400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748084400,
+          "second": 1748088000
         },
         "venue": {
           "id": 7996,
@@ -28,9 +28,9 @@
           "city": "Malmö"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 65,
           "extra": null
         }
       },
@@ -59,13 +59,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-24T14:00:00+03:00",
         "timestamp": 1748084400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748084400,
+          "second": 1748088000
         },
         "venue": {
           "id": 4875,
@@ -98,9 +98,9 @@
           "city": "Hässleholm"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 68,
           "extra": null
         }
       },
@@ -119,23 +119,23 @@
           "id": 6676,
           "name": "Hässleholms IF",
           "logo": "https://media.api-sports.io/football/teams/6676.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 6692,
           "name": "Oskarshamns AIK",
           "logo": "https://media.api-sports.io/football/teams/6692.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -159,8 +159,8 @@
         "date": "2025-05-24T14:00:00+03:00",
         "timestamp": 1748084400,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748084400,
+          "second": 1748088000
         },
         "venue": {
           "id": 4894,
@@ -168,9 +168,9 @@
           "city": "Skövde"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 68,
           "extra": null
         }
       },
@@ -189,23 +189,23 @@
           "id": 16605,
           "name": "IFK Skövde",
           "logo": "https://media.api-sports.io/football/teams/16605.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 2173,
           "name": "Norrby IF",
           "logo": "https://media.api-sports.io/football/teams/2173.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
           "home": null,
