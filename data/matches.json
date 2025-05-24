@@ -1,11 +1,11 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-23",
+    "date": "2025-05-24",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 364,
+  "results": 1224,
   "paging": {
     "current": 1,
     "total": 1
@@ -13,94 +13,24 @@
   "response": [
     {
       "fixture": {
-        "id": 1317023,
+        "id": 1342864,
         "referee": null,
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T20:00:00+03:00",
-        "timestamp": 1748019600,
+        "date": "2025-05-24T14:00:00+03:00",
+        "timestamp": 1748084400,
         "periods": {
-          "first": 1748019600,
-          "second": 1748023200
+          "first": null,
+          "second": null
         },
         "venue": {
-          "id": null,
-          "name": "Zimní Stadion Hluboká",
-          "city": "Hluboká nad Vltavou"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 62,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 350,
-        "name": "4. liga - Divizie A",
-        "country": "Czech-Republic",
-        "logo": "https://media.api-sports.io/football/leagues/350.png",
-        "flag": "https://media.api-sports.io/flags/cz.svg",
-        "season": 2024,
-        "round": "Division A - 27",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 21982,
-          "name": "Hluboka nad Vltavou",
-          "logo": "https://media.api-sports.io/football/teams/21982.png",
-          "winner": false
-        },
-        "away": {
-          "id": 7312,
-          "name": "Králův Dvůr",
-          "logo": "https://media.api-sports.io/football/teams/7312.png",
-          "winner": true
-        }
-      },
-      "goals": {
-        "home": 1,
-        "away": 3
-      },
-      "score": {
-        "halftime": {
-          "home": 1,
-          "away": 2
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1342862,
-        "referee": null,
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T20:00:00+03:00",
-        "timestamp": 1748019600,
-        "periods": {
-          "first": 1748019600,
-          "second": 1748023200
-        },
-        "venue": {
-          "id": null,
-          "name": "Rosengårds IP",
+          "id": 7996,
+          "name": "Lindängens IP",
           "city": "Malmö"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 64,
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
           "extra": null
         }
       },
@@ -116,26 +46,26 @@
       },
       "teams": {
         "home": {
-          "id": 6694,
-          "name": "Rosengård",
-          "logo": "https://media.api-sports.io/football/teams/6694.png",
-          "winner": false
+          "id": 12601,
+          "name": "Olympic",
+          "logo": "https://media.api-sports.io/football/teams/12601.png",
+          "winner": null
         },
         "away": {
-          "id": 6687,
-          "name": "Lund",
-          "logo": "https://media.api-sports.io/football/teams/6687.png",
-          "winner": true
+          "id": 6663,
+          "name": "Eskilsminne",
+          "logo": "https://media.api-sports.io/football/teams/6663.png",
+          "winner": null
         }
       },
       "goals": {
-        "home": 0,
-        "away": 1
+        "home": null,
+        "away": null
       },
       "score": {
         "halftime": {
-          "home": 0,
-          "away": 1
+          "home": null,
+          "away": null
         },
         "fulltime": {
           "home": null,
@@ -153,24 +83,24 @@
     },
     {
       "fixture": {
-        "id": 1342863,
+        "id": 1342865,
         "referee": null,
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T20:00:00+03:00",
-        "timestamp": 1748019600,
+        "date": "2025-05-24T14:00:00+03:00",
+        "timestamp": 1748084400,
         "periods": {
-          "first": 1748019600,
-          "second": 1748023200
+          "first": null,
+          "second": null
         },
         "venue": {
-          "id": 8011,
-          "name": "Torslandavallen",
-          "city": "Torslanda"
+          "id": 4875,
+          "name": "Österås IP",
+          "city": "Hässleholm"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 62,
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
           "extra": null
         }
       },
@@ -186,85 +116,15 @@
       },
       "teams": {
         "home": {
-          "id": 12620,
-          "name": "Torslanda",
-          "logo": "https://media.api-sports.io/football/teams/12620.png",
-          "winner": true
-        },
-        "away": {
-          "id": 6702,
-          "name": "Trollhättan",
-          "logo": "https://media.api-sports.io/football/teams/6702.png",
-          "winner": false
-        }
-      },
-      "goals": {
-        "home": 3,
-        "away": 1
-      },
-      "score": {
-        "halftime": {
-          "home": 3,
-          "away": 0
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1223967,
-        "referee": "Davide Massa, Italy",
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T21:45:00+03:00",
-        "timestamp": 1748025900,
-        "periods": {
-          "first": null,
-          "second": null
-        },
-        "venue": {
-          "id": 892,
-          "name": "Stadio Giuseppe Sinigaglia",
-          "city": "Como"
-        },
-        "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 135,
-        "name": "Serie A",
-        "country": "Italy",
-        "logo": "https://media.api-sports.io/football/leagues/135.png",
-        "flag": "https://media.api-sports.io/flags/it.svg",
-        "season": 2024,
-        "round": "Regular Season - 38",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 895,
-          "name": "Como",
-          "logo": "https://media.api-sports.io/football/teams/895.png",
+          "id": 6676,
+          "name": "Hässleholms IF",
+          "logo": "https://media.api-sports.io/football/teams/6676.png",
           "winner": null
         },
         "away": {
-          "id": 505,
-          "name": "Inter",
-          "logo": "https://media.api-sports.io/football/teams/505.png",
+          "id": 6692,
+          "name": "Oskarshamns AIK",
+          "logo": "https://media.api-sports.io/football/teams/6692.png",
           "winner": null
         }
       },
@@ -293,19 +153,19 @@
     },
     {
       "fixture": {
-        "id": 1223971,
-        "referee": "Federico La Penna, Italy",
+        "id": 1342866,
+        "referee": null,
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T21:45:00+03:00",
-        "timestamp": 1748025900,
+        "date": "2025-05-24T14:00:00+03:00",
+        "timestamp": 1748084400,
         "periods": {
           "first": null,
           "second": null
         },
         "venue": {
-          "id": 11904,
-          "name": "Stadio Diego Armando Maradona",
-          "city": "Napoli"
+          "id": 4894,
+          "name": "Södermalms IP",
+          "city": "Skövde"
         },
         "status": {
           "long": "Not Started",
@@ -315,26 +175,26 @@
         }
       },
       "league": {
-        "id": 135,
-        "name": "Serie A",
-        "country": "Italy",
-        "logo": "https://media.api-sports.io/football/leagues/135.png",
-        "flag": "https://media.api-sports.io/flags/it.svg",
-        "season": 2024,
-        "round": "Regular Season - 38",
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 9",
         "standings": true
       },
       "teams": {
         "home": {
-          "id": 492,
-          "name": "Napoli",
-          "logo": "https://media.api-sports.io/football/teams/492.png",
+          "id": 16605,
+          "name": "IFK Skövde",
+          "logo": "https://media.api-sports.io/football/teams/16605.png",
           "winner": null
         },
         "away": {
-          "id": 490,
-          "name": "Cagliari",
-          "logo": "https://media.api-sports.io/football/teams/490.png",
+          "id": 2173,
+          "name": "Norrby IF",
+          "logo": "https://media.api-sports.io/football/teams/2173.png",
           "winner": null
         }
       },
@@ -363,19 +223,229 @@
     },
     {
       "fixture": {
-        "id": 1208828,
-        "referee": "Victor Garcia Verdura, Spain",
+        "id": 1342867,
+        "referee": null,
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-23T22:00:00+03:00",
-        "timestamp": 1748026800,
+        "date": "2025-05-24T17:00:00+03:00",
+        "timestamp": 1748095200,
         "periods": {
           "first": null,
           "second": null
         },
         "venue": {
-          "id": 1489,
-          "name": "Estadio Benito Villamarín",
-          "city": "Sevilla"
+          "id": 7998,
+          "name": "Malmö Stadion",
+          "city": "Malmö"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 9",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 21435,
+          "name": "Ariana",
+          "logo": "https://media.api-sports.io/football/teams/21435.png",
+          "winner": null
+        },
+        "away": {
+          "id": 2165,
+          "name": "ljungSKile SK",
+          "logo": "https://media.api-sports.io/football/teams/2165.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1342868,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T17:00:00+03:00",
+        "timestamp": 1748095200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 4874,
+          "name": "Vapenvallen",
+          "city": "Huskvarna"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 9",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 6675,
+          "name": "Husqvarna",
+          "logo": "https://media.api-sports.io/football/teams/6675.png",
+          "winner": null
+        },
+        "away": {
+          "id": 764,
+          "name": "Jonkopings Sodra",
+          "logo": "https://media.api-sports.io/football/teams/764.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1342869,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T17:00:00+03:00",
+        "timestamp": 1748095200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 2845,
+          "name": "Änglavallen",
+          "city": "Ängelholm"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 9",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 2168,
+          "name": "Angelholms FF",
+          "logo": "https://media.api-sports.io/football/teams/2168.png",
+          "winner": null
+        },
+        "away": {
+          "id": 6698,
+          "name": "Skövde AIK",
+          "logo": "https://media.api-sports.io/football/teams/6698.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208829,
+        "referee": "Mario Melero",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T17:15:00+03:00",
+        "timestamp": 1748096100,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1456,
+          "name": "Estadio Santiago Bernabéu",
+          "city": "Madrid"
         },
         "status": {
           "long": "Not Started",
@@ -396,15 +466,925 @@
       },
       "teams": {
         "home": {
-          "id": 543,
-          "name": "Real Betis",
-          "logo": "https://media.api-sports.io/football/teams/543.png",
+          "id": 541,
+          "name": "Real Madrid",
+          "logo": "https://media.api-sports.io/football/teams/541.png",
           "winner": null
         },
         "away": {
-          "id": 532,
-          "name": "Valencia",
-          "logo": "https://media.api-sports.io/football/teams/532.png",
+          "id": 548,
+          "name": "Real Sociedad",
+          "logo": "https://media.api-sports.io/football/teams/548.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317017,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 5284,
+          "name": "Sportovni areal v Chrastecke ulice",
+          "city": "Plzeň"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 7285,
+          "name": "Doubravka",
+          "logo": "https://media.api-sports.io/football/teams/7285.png",
+          "winner": null
+        },
+        "away": {
+          "id": 8617,
+          "name": "Příbram II",
+          "logo": "https://media.api-sports.io/football/teams/8617.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317018,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 18766,
+          "name": "Velodrome Plzeň hřiště 3",
+          "city": "Plzeň"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 24224,
+          "name": "Petřín Plzeň II",
+          "logo": "https://media.api-sports.io/football/teams/24224.png",
+          "winner": null
+        },
+        "away": {
+          "id": 24195,
+          "name": "Milin",
+          "logo": "https://media.api-sports.io/football/teams/24195.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317020,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 5349,
+          "name": "Fotbalové hřiště TJ Spartak Soběslav",
+          "city": "Soběslav"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 7360,
+          "name": "Spartak Soběslav",
+          "logo": "https://media.api-sports.io/football/teams/7360.png",
+          "winner": null
+        },
+        "away": {
+          "id": 7310,
+          "name": "Komárov",
+          "logo": "https://media.api-sports.io/football/teams/7310.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317021,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Stadion Slavia Vejprnice",
+          "city": "Vejprnice"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 24196,
+          "name": "Slavia Vejprnice",
+          "logo": "https://media.api-sports.io/football/teams/24196.png",
+          "winner": null
+        },
+        "away": {
+          "id": 19432,
+          "name": "Slavoj Český Krumlov",
+          "logo": "https://media.api-sports.io/football/teams/19432.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317022,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 5302,
+          "name": "Stadion Střelnice",
+          "city": "Domažlice"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 19639,
+          "name": "Jiskra Domažlice II",
+          "logo": "https://media.api-sports.io/football/teams/19639.png",
+          "winner": null
+        },
+        "away": {
+          "id": 7269,
+          "name": "Aritma Praha",
+          "logo": "https://media.api-sports.io/football/teams/7269.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1317024,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T18:00:00+03:00",
+        "timestamp": 1748098800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 5297,
+          "name": "Mestský stadion",
+          "city": "Hořovice"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 350,
+        "name": "4. liga - Divizie A",
+        "country": "Czech-Republic",
+        "logo": "https://media.api-sports.io/football/leagues/350.png",
+        "flag": "https://media.api-sports.io/flags/cz.svg",
+        "season": 2024,
+        "round": "Division A - 27",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 7299,
+          "name": "Hořovicko",
+          "logo": "https://media.api-sports.io/football/teams/7299.png",
+          "winner": null
+        },
+        "away": {
+          "id": 24197,
+          "name": "TJ Přeštice",
+          "logo": "https://media.api-sports.io/football/teams/24197.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1223966,
+        "referee": "M. Monaldi",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T19:00:00+03:00",
+        "timestamp": 1748102400,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 881,
+          "name": "Stadio Renato Dall'Ara",
+          "city": "Bologna"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 135,
+        "name": "Serie A",
+        "country": "Italy",
+        "logo": "https://media.api-sports.io/football/leagues/135.png",
+        "flag": "https://media.api-sports.io/flags/it.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 500,
+          "name": "Bologna",
+          "logo": "https://media.api-sports.io/football/teams/500.png",
+          "winner": null
+        },
+        "away": {
+          "id": 495,
+          "name": "Genoa",
+          "logo": "https://media.api-sports.io/football/teams/495.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208831,
+        "referee": "César Soto",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T19:30:00+03:00",
+        "timestamp": 1748104200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1464,
+          "name": "Estadio Municipal de Butarque",
+          "city": "Leganés"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 537,
+          "name": "Leganes",
+          "logo": "https://media.api-sports.io/football/teams/537.png",
+          "winner": null
+        },
+        "away": {
+          "id": 720,
+          "name": "Valladolid",
+          "logo": "https://media.api-sports.io/football/teams/720.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1212947,
+        "referee": "Alejandro Muñiz",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T19:30:00+03:00",
+        "timestamp": 1748104200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1474,
+          "name": "RCDE Stadium",
+          "city": "Cornella de Llobregat"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 540,
+          "name": "Espanyol",
+          "logo": "https://media.api-sports.io/football/teams/540.png",
+          "winner": null
+        },
+        "away": {
+          "id": 534,
+          "name": "Las Palmas",
+          "logo": "https://media.api-sports.io/football/teams/534.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1223970,
+        "referee": "D. Rutella",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T21:45:00+03:00",
+        "timestamp": 1748112300,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 907,
+          "name": "Stadio Giuseppe Meazza",
+          "city": "Milano"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 135,
+        "name": "Serie A",
+        "country": "Italy",
+        "logo": "https://media.api-sports.io/football/leagues/135.png",
+        "flag": "https://media.api-sports.io/flags/it.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 489,
+          "name": "AC Milan",
+          "logo": "https://media.api-sports.io/football/teams/489.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1579,
+          "name": "Monza",
+          "logo": "https://media.api-sports.io/football/teams/1579.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208830,
+        "referee": "Guillermo Cuadra",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T22:00:00+03:00",
+        "timestamp": 1748113200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1470,
+          "name": "Estadio de Mendizorroza",
+          "city": "Vitoria-Gasteiz"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 542,
+          "name": "Alaves",
+          "logo": "https://media.api-sports.io/football/teams/542.png",
+          "winner": null
+        },
+        "away": {
+          "id": 727,
+          "name": "Osasuna",
+          "logo": "https://media.api-sports.io/football/teams/727.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208833,
+        "referee": "Juan Martínez",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T22:00:00+03:00",
+        "timestamp": 1748113200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 20422,
+          "name": "Estadio Coliseum",
+          "city": "Getafe"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 546,
+          "name": "Getafe",
+          "logo": "https://media.api-sports.io/football/teams/546.png",
+          "winner": null
+        },
+        "away": {
+          "id": 538,
+          "name": "Celta Vigo",
+          "logo": "https://media.api-sports.io/football/teams/538.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1208834,
+        "referee": "Ricardo De Burgos",
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-24T22:00:00+03:00",
+        "timestamp": 1748113200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1488,
+          "name": "Estadio de Vallecas",
+          "city": "Madrid"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 140,
+        "name": "La Liga",
+        "country": "Spain",
+        "logo": "https://media.api-sports.io/football/leagues/140.png",
+        "flag": "https://media.api-sports.io/flags/es.svg",
+        "season": 2024,
+        "round": "Regular Season - 38",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 728,
+          "name": "Rayo Vallecano",
+          "logo": "https://media.api-sports.io/football/teams/728.png",
+          "winner": null
+        },
+        "away": {
+          "id": 798,
+          "name": "Mallorca",
+          "logo": "https://media.api-sports.io/football/teams/798.png",
           "winner": null
         }
       },
