@@ -9,19 +9,19 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Real Betis",
-      awayTeam: "Valencia",
-      channels: ["bein SPORTS HD3"]
+      homeTeam: "AC Milan",
+      awayTeam: "Monza",
+      channels: ["AD SPORTS PREMIUM1"]
     },
     {
-      homeTeam: "Como",
-      awayTeam: "Inter",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Rayo Vallecano",
+      awayTeam: "Mallorca",
+      channels: ["bein SPORTS HD5"]
     },
       {
-      homeTeam: "Napoli",
-      awayTeam: "Cagliari",
-      channels: ["AD SPORTS PREMIUM1"]
+      homeTeam: "Getafe",
+      awayTeam: "Celta Vigo",
+      channels: ["bein SPORTS HD3"]
     },
    
     
