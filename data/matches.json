@@ -5,7 +5,7 @@
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 883,
+  "results": 890,
   "paging": {
     "current": 1,
     "total": 1
@@ -14,12 +14,12 @@
     {
       "fixture": {
         "id": 1208832,
-        "referee": "Gil Manzano",
+        "referee": "Jesus Gil Manzano, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T15:00:00+03:00",
         "timestamp": 1748174400,
         "periods": {
-          "first": null,
+          "first": 1748174400,
           "second": null
         },
         "venue": {
@@ -28,9 +28,9 @@
           "city": "Girona"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "First Half",
+          "short": "1H",
+          "elapsed": 27,
           "extra": null
         }
       },
@@ -59,13 +59,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
           "home": null,
