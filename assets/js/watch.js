@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function setupLiveStream(channel) {
         const CHANNEL_URLS = {
-            'bein-sports-hd1': 'https://demphil.github.io/beinsports1/',
+            'bein-sports-hd1': 'https://stream.sainaertebat.com/hls2/bein1.m3u8',
             
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
             
