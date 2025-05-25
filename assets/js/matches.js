@@ -11,12 +11,12 @@ const CONFIG = {
     {
       homeTeam: "Manchester United",
       awayTeam: "Aston Villa",
-      channels: ["bein SPORTS HD2"]
+      channels: ["bein SPORTS HD4"]
     },
     {
       homeTeam: "Bournemouth",
       awayTeam: "Leicester",
-      channels: ["bein SPORTS HD1"]
+      channels: ["bein SPORTS HD2"]
     },
       {
       homeTeam: "Liverpool",
