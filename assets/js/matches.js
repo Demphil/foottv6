@@ -9,29 +9,19 @@ const CONFIG = {
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
-      homeTeam: "Manchester United",
-      awayTeam: "Aston Villa",
-      channels: ["bein SPORTS HD4"]
+      homeTeam: "Paris Saint Germain",
+      awayTeam: "Inter",
+      channels: ["bein SPORTS HD1"]
     },
     {
-      homeTeam: "Bournemouth",
-      awayTeam: "Leicester",
-      channels: ["bein SPORTS HD2"]
+      homeTeam: "Real Betis",
+      awayTeam: "Chelsea",
+      channels: ["bein SPORTS HD1"]
     },
       {
-      homeTeam: "Liverpool",
-      awayTeam: "Crystal Palace",
+      homeTeam: "Pyramids FC",
+      awayTeam: "Mamelodi Sundowns",
       channels: ["bein SPORTS HD1"]
-    },
-    {
-      homeTeam: "Athletic Club",
-      awayTeam: "Barcelona",
-      channels: ["bein SPORTS HD1"]
-    },
-     {
-      homeTeam: "Simba",
-      awayTeam: "Renaissance Berkane",
-      channels: ["bein SPORTS HD6"]
     },
     
   ],
