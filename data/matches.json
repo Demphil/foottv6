@@ -20,7 +20,7 @@
         "timestamp": 1748174400,
         "periods": {
           "first": 1748174400,
-          "second": null
+          "second": 1748178000
         },
         "venue": {
           "id": 1478,
@@ -28,10 +28,10 @@
           "city": "Girona"
         },
         "status": {
-          "long": "First Half",
-          "short": "1H",
-          "elapsed": 27,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 3
         }
       },
       "league": {
@@ -49,18 +49,18 @@
           "id": 547,
           "name": "Girona",
           "logo": "https://media.api-sports.io/football/teams/547.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 530,
           "name": "Atletico Madrid",
           "logo": "https://media.api-sports.io/football/teams/530.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
         "home": 0,
-        "away": 0
+        "away": 4
       },
       "score": {
         "halftime": {
@@ -68,8 +68,8 @@
           "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 4
         },
         "extratime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-25T17:00:00+03:00",
         "timestamp": 1748181600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748181600,
+          "second": 1748185200
         },
         "venue": {
           "id": 5301,
@@ -98,10 +98,10 @@
           "city": "Jindřichův Hradec"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 3
         }
       },
       "league": {
@@ -119,27 +119,27 @@
           "id": 7303,
           "name": "Jindřichův Hradec",
           "logo": "https://media.api-sports.io/football/teams/7303.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 7339,
           "name": "Rokycany",
           "logo": "https://media.api-sports.io/football/teams/7339.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -154,13 +154,13 @@
     {
       "fixture": {
         "id": 1208835,
-        "referee": "Javier Alberola",
+        "referee": "Javier Alberola Rojas, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T17:15:00+03:00",
         "timestamp": 1748182500,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748182500,
+          "second": 1748186100
         },
         "venue": {
           "id": 1498,
@@ -168,10 +168,10 @@
           "city": "Villarreal"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 3
         }
       },
       "league": {
@@ -189,27 +189,27 @@
           "id": 533,
           "name": "Villarreal",
           "logo": "https://media.api-sports.io/football/teams/533.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 536,
           "name": "Sevilla",
           "logo": "https://media.api-sports.io/football/teams/536.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 4,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 3,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 4,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -224,13 +224,13 @@
     {
       "fixture": {
         "id": 1208393,
-        "referee": "L. Smith",
+        "referee": "Lewis Smith, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 504,
@@ -238,10 +238,10 @@
           "city": "Bournemouth, Dorset"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -259,27 +259,27 @@
           "id": 35,
           "name": "Bournemouth",
           "logo": "https://media.api-sports.io/football/teams/35.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 46,
           "name": "Leicester",
           "logo": "https://media.api-sports.io/football/teams/46.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -294,13 +294,13 @@
     {
       "fixture": {
         "id": 1208394,
-        "referee": "A. Madley",
+        "referee": "Andy Madley, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 535,
@@ -308,10 +308,10 @@
           "city": "London"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -329,27 +329,27 @@
           "id": 36,
           "name": "Fulham",
           "logo": "https://media.api-sports.io/football/teams/36.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 50,
           "name": "Manchester City",
           "logo": "https://media.api-sports.io/football/teams/50.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -364,13 +364,13 @@
     {
       "fixture": {
         "id": 1208395,
-        "referee": "T. Robinson",
+        "referee": "Tim Robinson, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 545,
@@ -378,10 +378,10 @@
           "city": "Ipswich, Suffolk"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 8
         }
       },
       "league": {
@@ -399,27 +399,27 @@
           "id": 57,
           "name": "Ipswich",
           "logo": "https://media.api-sports.io/football/teams/57.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 48,
           "name": "West Ham",
           "logo": "https://media.api-sports.io/football/teams/48.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 3
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 3
         },
         "extratime": {
           "home": null,
@@ -434,13 +434,13 @@
     {
       "fixture": {
         "id": 1208396,
-        "referee": "D. England",
+        "referee": "Darren England, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 550,
@@ -448,10 +448,10 @@
           "city": "Liverpool"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 6
         }
       },
       "league": {
@@ -479,17 +479,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -504,13 +504,13 @@
     {
       "fixture": {
         "id": 1208397,
-        "referee": "T. Bramall",
+        "referee": "Thomas Bramall, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 556,
@@ -518,10 +518,10 @@
           "city": "Manchester"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 8
         }
       },
       "league": {
@@ -539,27 +539,27 @@
           "id": 33,
           "name": "Manchester United",
           "logo": "https://media.api-sports.io/football/teams/33.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 66,
           "name": "Aston Villa",
           "logo": "https://media.api-sports.io/football/teams/66.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "extratime": {
           "home": null,
@@ -574,13 +574,13 @@
     {
       "fixture": {
         "id": 1208398,
-        "referee": "T. Harrington",
+        "referee": "Tony Harrington, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 562,
@@ -588,10 +588,10 @@
           "city": "Newcastle upon Tyne"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -609,27 +609,27 @@
           "id": 34,
           "name": "Newcastle",
           "logo": "https://media.api-sports.io/football/teams/34.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 45,
           "name": "Everton",
           "logo": "https://media.api-sports.io/football/teams/45.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -644,13 +644,13 @@
     {
       "fixture": {
         "id": 1208399,
-        "referee": "A. Taylor",
+        "referee": "Anthony Taylor, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 566,
@@ -658,10 +658,10 @@
           "city": "Nottingham, Nottinghamshire"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 9
         }
       },
       "league": {
@@ -679,27 +679,27 @@
           "id": 65,
           "name": "Nottingham Forest",
           "logo": "https://media.api-sports.io/football/teams/65.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 49,
           "name": "Chelsea",
           "logo": "https://media.api-sports.io/football/teams/49.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -714,13 +714,13 @@
     {
       "fixture": {
         "id": 1208400,
-        "referee": "D. Bond",
+        "referee": "Darren Bond, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 585,
@@ -728,10 +728,10 @@
           "city": "Southampton, Hampshire"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 10
         }
       },
       "league": {
@@ -749,27 +749,27 @@
           "id": 41,
           "name": "Southampton",
           "logo": "https://media.api-sports.io/football/teams/41.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 42,
           "name": "Arsenal",
           "logo": "https://media.api-sports.io/football/teams/42.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 2
         },
         "extratime": {
           "home": null,
@@ -784,13 +784,13 @@
     {
       "fixture": {
         "id": 1208401,
-        "referee": "R. Jones",
+        "referee": "Robert Jones, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 593,
@@ -798,10 +798,10 @@
           "city": "London"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 7
         }
       },
       "league": {
@@ -819,27 +819,27 @@
           "id": 47,
           "name": "Tottenham",
           "logo": "https://media.api-sports.io/football/teams/47.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 51,
           "name": "Brighton",
           "logo": "https://media.api-sports.io/football/teams/51.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 4
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 0
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 4
         },
         "extratime": {
           "home": null,
@@ -854,13 +854,13 @@
     {
       "fixture": {
         "id": 1208402,
-        "referee": "C. Pawson",
+        "referee": "Craig Pawson, England",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T18:00:00+03:00",
         "timestamp": 1748185200,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748185200,
+          "second": 1748188800
         },
         "venue": {
           "id": 600,
@@ -868,10 +868,10 @@
           "city": "Wolverhampton, West Midlands"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
+          "long": "Match Finished",
+          "short": "FT",
+          "elapsed": 90,
+          "extra": 5
         }
       },
       "league": {
@@ -899,17 +899,17 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 1,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
-          "home": null,
-          "away": null
+          "home": 1,
+          "away": 1
         },
         "extratime": {
           "home": null,
@@ -924,7 +924,7 @@
     {
       "fixture": {
         "id": 1223965,
-        "referee": "L. Marinelli",
+        "referee": "Livio Marinelli, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -994,7 +994,7 @@
     {
       "fixture": {
         "id": 1223968,
-        "referee": "D. Doveri",
+        "referee": "Daniele Doveri, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -1064,7 +1064,7 @@
     {
       "fixture": {
         "id": 1223969,
-        "referee": "M. Fabbri",
+        "referee": "Michael Fabbri, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -1134,7 +1134,7 @@
     {
       "fixture": {
         "id": 1223972,
-        "referee": "M. Di Bello",
+        "referee": "Marco Di Bello, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -1204,7 +1204,7 @@
     {
       "fixture": {
         "id": 1223973,
-        "referee": "M. Marcenaro",
+        "referee": "Matteo Marcenaro, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -1274,7 +1274,7 @@
     {
       "fixture": {
         "id": 1223974,
-        "referee": "A. Colombo",
+        "referee": "Andrea Colombo, Italy",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T21:45:00+03:00",
         "timestamp": 1748198700,
@@ -1285,7 +1285,7 @@
         "venue": {
           "id": null,
           "name": "Stadio Pier Luigi Penzo",
-          "city": "Venezia"
+          "city": "Venice"
         },
         "status": {
           "long": "Not Started",
@@ -1344,7 +1344,7 @@
     {
       "fixture": {
         "id": 1208827,
-        "referee": "Pablo González",
+        "referee": "Pablo Gonzalez Fuertes, Spain",
         "timezone": "Asia/Riyadh",
         "date": "2025-05-25T22:00:00+03:00",
         "timestamp": 1748199600,
