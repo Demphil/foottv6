@@ -220,6 +220,7 @@ body {
 /* مشغل الفيديو */
 .video-container {
   width: 100%;
+  height: 300px;
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -229,7 +230,7 @@ body {
 .hls-video {
       width: 100%;
   border-radius: 15px;
-  height: auto;
+  height: 300px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   margin-bottom: 30px;
