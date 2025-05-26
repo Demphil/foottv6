@@ -227,7 +227,7 @@ body {
   margin-bottom: 30px;
   background: #000;
 }
-hls-video {
+#hls-video {
    width:100%;
   border-radius: 15px;
   height: 550px;
