@@ -239,7 +239,7 @@ body {
   }
 
 .live-stream {
-  width: auto;
+  width: 100%;
   height: auto;
   border: none;
 }
