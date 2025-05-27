@@ -1,85 +1,14 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-26",
+    "date": "2025-05-27",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 191,
+  "results": 102,
   "paging": {
     "current": 1,
     "total": 1
   },
-  "response": [
-    {
-      "fixture": {
-        "id": 1375863,
-        "referee": "Sascha Stegemann, Germany",
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-26T21:30:00+03:00",
-        "timestamp": 1748284200,
-        "periods": {
-          "first": null,
-          "second": null
-        },
-        "venue": {
-          "id": 710,
-          "name": "URSAPHARM-Arena an der Kaiserlinde",
-          "city": "Spiesen-Elversberg"
-        },
-        "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 78,
-        "name": "Bundesliga",
-        "country": "Germany",
-        "logo": "https://media.api-sports.io/football/leagues/78.png",
-        "flag": "https://media.api-sports.io/flags/de.svg",
-        "season": 2024,
-        "round": "Relegation Round",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 1660,
-          "name": "SV Elversberg",
-          "logo": "https://media.api-sports.io/football/teams/1660.png",
-          "winner": null
-        },
-        "away": {
-          "id": 180,
-          "name": "1. FC Heidenheim",
-          "logo": "https://media.api-sports.io/football/teams/180.png",
-          "winner": null
-        }
-      },
-      "goals": {
-        "home": null,
-        "away": null
-      },
-      "score": {
-        "halftime": {
-          "home": null,
-          "away": null
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    }
-  ]
+  "response": []
 }
