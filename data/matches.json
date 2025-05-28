@@ -19,8 +19,8 @@
         "date": "2025-05-28T20:00:00+03:00",
         "timestamp": 1748451600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748451600,
+          "second": 1748455200
         },
         "venue": {
           "id": 1516,
@@ -28,9 +28,9 @@
           "city": "Jönköping"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 64,
           "extra": null
         }
       },
@@ -49,23 +49,23 @@
           "id": 764,
           "name": "Jonkopings Sodra",
           "logo": "https://media.api-sports.io/football/teams/764.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 6676,
           "name": "Hässleholms IF",
           "logo": "https://media.api-sports.io/football/teams/6676.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -89,8 +89,8 @@
         "date": "2025-05-28T20:00:00+03:00",
         "timestamp": 1748451600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748451600,
+          "second": 1748455200
         },
         "venue": {
           "id": 2844,
@@ -98,9 +98,9 @@
           "city": "Ljungskile"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 53,
           "extra": null
         }
       },
@@ -119,23 +119,23 @@
           "id": 2165,
           "name": "ljungSKile SK",
           "logo": "https://media.api-sports.io/football/teams/2165.png",
-          "winner": null
+          "winner": true
         },
         "away": {
           "id": 16605,
           "name": "IFK Skövde",
           "logo": "https://media.api-sports.io/football/teams/16605.png",
-          "winner": null
+          "winner": false
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 7,
+        "away": 0
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 6,
+          "away": 0
         },
         "fulltime": {
           "home": null,
@@ -159,8 +159,8 @@
         "date": "2025-05-28T20:00:00+03:00",
         "timestamp": 1748451600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748451600,
+          "second": 1748455200
         },
         "venue": {
           "id": 4883,
@@ -168,9 +168,9 @@
           "city": "Lund"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 63,
           "extra": null
         }
       },
@@ -189,23 +189,23 @@
           "id": 6687,
           "name": "Lund",
           "logo": "https://media.api-sports.io/football/teams/6687.png",
-          "winner": null
+          "winner": false
         },
         "away": {
           "id": 6663,
           "name": "Eskilsminne",
           "logo": "https://media.api-sports.io/football/teams/6663.png",
-          "winner": null
+          "winner": true
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 0,
+        "away": 1
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 0,
+          "away": 1
         },
         "fulltime": {
           "home": null,
@@ -229,8 +229,8 @@
         "date": "2025-05-28T20:00:00+03:00",
         "timestamp": 1748451600,
         "periods": {
-          "first": null,
-          "second": null
+          "first": 1748451600,
+          "second": 1748455200
         },
         "venue": {
           "id": 4894,
@@ -238,9 +238,9 @@
           "city": "Skövde"
         },
         "status": {
-          "long": "Not Started",
-          "short": "NS",
-          "elapsed": null,
+          "long": "Second Half",
+          "short": "2H",
+          "elapsed": 62,
           "extra": null
         }
       },
@@ -269,13 +269,13 @@
         }
       },
       "goals": {
-        "home": null,
-        "away": null
+        "home": 2,
+        "away": 2
       },
       "score": {
         "halftime": {
-          "home": null,
-          "away": null
+          "home": 2,
+          "away": 1
         },
         "fulltime": {
           "home": null,
