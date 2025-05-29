@@ -1,11 +1,11 @@
 {
   "get": "fixtures",
   "parameters": {
-    "date": "2025-05-28",
+    "date": "2025-05-29",
     "timezone": "Asia/Riyadh"
   },
   "errors": [],
-  "results": 236,
+  "results": 260,
   "paging": {
     "current": 1,
     "total": 1
@@ -13,24 +13,24 @@
   "response": [
     {
       "fixture": {
-        "id": 1342870,
+        "id": 1342874,
         "referee": null,
         "timezone": "Asia/Riyadh",
-        "date": "2025-05-28T20:00:00+03:00",
-        "timestamp": 1748451600,
+        "date": "2025-05-29T14:00:00+03:00",
+        "timestamp": 1748516400,
         "periods": {
-          "first": 1748451600,
-          "second": 1748455200
+          "first": null,
+          "second": null
         },
         "venue": {
-          "id": 1516,
-          "name": "Stadsparksvallen",
-          "city": "Jönköping"
+          "id": 8011,
+          "name": "Torslandavallen",
+          "city": "Torslanda"
         },
         "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 64,
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
           "extra": null
         }
       },
@@ -46,236 +46,306 @@
       },
       "teams": {
         "home": {
-          "id": 764,
-          "name": "Jonkopings Sodra",
-          "logo": "https://media.api-sports.io/football/teams/764.png",
-          "winner": true
-        },
-        "away": {
-          "id": 6676,
-          "name": "Hässleholms IF",
-          "logo": "https://media.api-sports.io/football/teams/6676.png",
-          "winner": false
-        }
-      },
-      "goals": {
-        "home": 2,
-        "away": 0
-      },
-      "score": {
-        "halftime": {
-          "home": 2,
-          "away": 0
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1342871,
-        "referee": null,
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-28T20:00:00+03:00",
-        "timestamp": 1748451600,
-        "periods": {
-          "first": 1748451600,
-          "second": 1748455200
-        },
-        "venue": {
-          "id": 2844,
-          "name": "Uddevalla Arena",
-          "city": "Ljungskile"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 53,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 564,
-        "name": "Ettan - Södra",
-        "country": "Sweden",
-        "logo": "https://media.api-sports.io/football/leagues/564.png",
-        "flag": "https://media.api-sports.io/flags/se.svg",
-        "season": 2025,
-        "round": "Södra - 10",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 2165,
-          "name": "ljungSKile SK",
-          "logo": "https://media.api-sports.io/football/teams/2165.png",
-          "winner": true
-        },
-        "away": {
-          "id": 16605,
-          "name": "IFK Skövde",
-          "logo": "https://media.api-sports.io/football/teams/16605.png",
-          "winner": false
-        }
-      },
-      "goals": {
-        "home": 7,
-        "away": 0
-      },
-      "score": {
-        "halftime": {
-          "home": 6,
-          "away": 0
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1342872,
-        "referee": null,
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-28T20:00:00+03:00",
-        "timestamp": 1748451600,
-        "periods": {
-          "first": 1748451600,
-          "second": 1748455200
-        },
-        "venue": {
-          "id": 4883,
-          "name": "Klostergårdens IP",
-          "city": "Lund"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 63,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 564,
-        "name": "Ettan - Södra",
-        "country": "Sweden",
-        "logo": "https://media.api-sports.io/football/leagues/564.png",
-        "flag": "https://media.api-sports.io/flags/se.svg",
-        "season": 2025,
-        "round": "Södra - 10",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 6687,
-          "name": "Lund",
-          "logo": "https://media.api-sports.io/football/teams/6687.png",
-          "winner": false
-        },
-        "away": {
-          "id": 6663,
-          "name": "Eskilsminne",
-          "logo": "https://media.api-sports.io/football/teams/6663.png",
-          "winner": true
-        }
-      },
-      "goals": {
-        "home": 0,
-        "away": 1
-      },
-      "score": {
-        "halftime": {
-          "home": 0,
-          "away": 1
-        },
-        "fulltime": {
-          "home": null,
-          "away": null
-        },
-        "extratime": {
-          "home": null,
-          "away": null
-        },
-        "penalty": {
-          "home": null,
-          "away": null
-        }
-      }
-    },
-    {
-      "fixture": {
-        "id": 1342873,
-        "referee": null,
-        "timezone": "Asia/Riyadh",
-        "date": "2025-05-28T20:00:00+03:00",
-        "timestamp": 1748451600,
-        "periods": {
-          "first": 1748451600,
-          "second": 1748455200
-        },
-        "venue": {
-          "id": 4894,
-          "name": "Södermalms IP",
-          "city": "Skövde"
-        },
-        "status": {
-          "long": "Second Half",
-          "short": "2H",
-          "elapsed": 62,
-          "extra": null
-        }
-      },
-      "league": {
-        "id": 564,
-        "name": "Ettan - Södra",
-        "country": "Sweden",
-        "logo": "https://media.api-sports.io/football/leagues/564.png",
-        "flag": "https://media.api-sports.io/flags/se.svg",
-        "season": 2025,
-        "round": "Södra - 10",
-        "standings": true
-      },
-      "teams": {
-        "home": {
-          "id": 6698,
-          "name": "Skövde AIK",
-          "logo": "https://media.api-sports.io/football/teams/6698.png",
+          "id": 12620,
+          "name": "Torslanda",
+          "logo": "https://media.api-sports.io/football/teams/12620.png",
           "winner": null
         },
         "away": {
-          "id": 6675,
-          "name": "Husqvarna",
-          "logo": "https://media.api-sports.io/football/teams/6675.png",
+          "id": 21435,
+          "name": "Ariana",
+          "logo": "https://media.api-sports.io/football/teams/21435.png",
           "winner": null
         }
       },
       "goals": {
-        "home": 2,
-        "away": 2
+        "home": null,
+        "away": null
       },
       "score": {
         "halftime": {
-          "home": 2,
-          "away": 1
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1342875,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-29T17:00:00+03:00",
+        "timestamp": 1748527200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 4898,
+          "name": "Edsborgs IP",
+          "city": "Trollhättan"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 10",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 6702,
+          "name": "Trollhättan",
+          "logo": "https://media.api-sports.io/football/teams/6702.png",
+          "winner": null
+        },
+        "away": {
+          "id": 12601,
+          "name": "Olympic",
+          "logo": "https://media.api-sports.io/football/teams/12601.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1342876,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-29T17:00:00+03:00",
+        "timestamp": 1748527200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 1507,
+          "name": "Borås Arena",
+          "city": "Borås"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 10",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 2173,
+          "name": "Norrby IF",
+          "logo": "https://media.api-sports.io/football/teams/2173.png",
+          "winner": null
+        },
+        "away": {
+          "id": 2168,
+          "name": "Angelholms FF",
+          "logo": "https://media.api-sports.io/football/teams/2168.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1342877,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-29T17:00:00+03:00",
+        "timestamp": 1748527200,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": 4888,
+          "name": "Arena Oskarshamn",
+          "city": "Oskarshamn"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 564,
+        "name": "Ettan - Södra",
+        "country": "Sweden",
+        "logo": "https://media.api-sports.io/football/leagues/564.png",
+        "flag": "https://media.api-sports.io/flags/se.svg",
+        "season": 2025,
+        "round": "Södra - 10",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 6692,
+          "name": "Oskarshamns AIK",
+          "logo": "https://media.api-sports.io/football/teams/6692.png",
+          "winner": null
+        },
+        "away": {
+          "id": 6694,
+          "name": "Rosengård",
+          "logo": "https://media.api-sports.io/football/teams/6694.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1375859,
+        "referee": null,
+        "timezone": "Asia/Riyadh",
+        "date": "2025-05-29T21:30:00+03:00",
+        "timestamp": 1748543400,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Stade Auguste-Delaune",
+          "city": "Reims"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 61,
+        "name": "Ligue 1",
+        "country": "France",
+        "logo": "https://media.api-sports.io/football/leagues/61.png",
+        "flag": "https://media.api-sports.io/flags/fr.svg",
+        "season": 2024,
+        "round": "Relegation Round",
+        "standings": true
+      },
+      "teams": {
+        "home": {
+          "id": 93,
+          "name": "Reims",
+          "logo": "https://media.api-sports.io/football/teams/93.png",
+          "winner": null
+        },
+        "away": {
+          "id": 112,
+          "name": "Metz",
+          "logo": "https://media.api-sports.io/football/teams/112.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
         },
         "fulltime": {
           "home": null,
