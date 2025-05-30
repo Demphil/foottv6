@@ -1,5 +1,5 @@
 const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
-const API_KEY = '3677c62bbcmshe54df743c38f9f5p13b6b9jsn4e20f3d12556'; // ⚠️ استخدم .env في بيئة الإنتاج
+const API_KEY = '87d94edcc52e1daa3afd5c967f668d4e'; // ⚠️ استخدم .env في بيئة الإنتاج
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
 const leagues = [
