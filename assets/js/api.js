@@ -2,7 +2,6 @@ const API_BASE_URL = 'https://api.football-data.org/v4';
 const API_KEY = '05d80048cd36476dab51f63b97a91bc7'; // ⚠️ استخدم .env في بيئة الإنتاج
 const CACHE_EXPIRY_HOURS = 12; // صلاحية الكاش 12 ساعة
 
-// معرفات البطولات محدثة
 const leagues = [
     { id: 2000, name: 'دوري أبطال أوروبا' },
     { id: 2021, name: 'الدوري الإنجليزي' },
@@ -42,21 +41,30 @@ const cache = {
     }
 };
 
-// حل CORS باستخدام Proxy مع إمكانية التبديل للخادم الخلفي
+// حل CORS باستخدام Proxy شخصي أو خادم خلفي
 const fetchWithProxy = async (url) => {
-    // اختر أحد الخيارات:
-    const PROXY_URL = 'https://cors-anywhere.herokuapp.com/'; // 1. خدمة عامة
-    // const PROXY_URL = 'https://your-backend.com/proxy/'; // 2. خادمك الخلفي
+    // اختر أحد الخيارات التالية:
     
-    const response = await fetch(`${PROXY_URL}${url}`, {
-        headers: {
-            'X-Auth-Token': API_KEY,
-            'Content-Type': 'application/json'
-        }
-    });
+    // 1. استخدام خادمك الخلفي (الأفضل للإنتاج)
+    // const PROXY_URL = 'https://your-backend.com/proxy/';
     
-    if (!response.ok) throw new Error(`طلب API فاشل: ${response.status}`);
-    return response;
+    // 2. استخدام proxy بديل (للاختبار فقط)
+    const PROXY_URL = 'https://api.allorigins.win/raw?url=';
+    
+    try {
+        const response = await fetch(`${PROXY_URL}${encodeURIComponent(url)}`, {
+            headers: {
+                'X-Auth-Token': API_KEY,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) throw new Error(`طلب API فاشل: ${response.status}`);
+        return response;
+    } catch (error) {
+        console.error('خطأ في طلب الـ Proxy:', error);
+        throw error;
+    }
 };
 
 // توليد مفتاح فريد للتخزين المؤقت
@@ -64,14 +72,16 @@ const generateCacheKey = (leagueId, from, to) =>
     `matches_${leagueId}_${from}_${to}`;
 
 export const fetchMatches = async () => {
+    let from, to; // تعريف المتغيرات في بداية الدالة
+    
     try {
         const today = new Date();
         const season = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
-        const from = today.toISOString().split('T')[0];
-        const to = nextWeek.toISOString().split('T')[0];
+        from = today.toISOString().split('T')[0];
+        to = nextWeek.toISOString().split('T')[0];
 
         console.log(`📅 جلب المباريات من ${from} إلى ${to}`);
 
@@ -79,7 +89,6 @@ export const fetchMatches = async () => {
             const cacheKey = generateCacheKey(league.id, from, to);
             const cachedData = cache.get(cacheKey);
             
-            // إذا وجدنا بيانات في الكاش ولم تنته صلاحيتها
             if (cachedData) {
                 console.log(`♻️ استخدام البيانات المخزنة لبطولة ${league.name}`);
                 return cachedData;
@@ -107,7 +116,6 @@ export const fetchMatches = async () => {
                         }
                     }));
 
-                    // تخزين النتائج في الكاش لمدة 12 ساعة
                     cache.set(cacheKey, matchesWithArabicName, CACHE_EXPIRY_HOURS);
                     console.log(`✅ تم تحديث الكاش لبطولة ${league.name}`);
                     
@@ -133,11 +141,13 @@ export const fetchMatches = async () => {
         
         // محاولة استخدام آخر بيانات متاحة من الكاش في حالة الخطأ
         const fallbackData = [];
-        leagues.forEach(league => {
-            const cacheKey = generateCacheKey(league.id, from, to);
-            const cached = cache.get(cacheKey);
-            if (cached) fallbackData.push(...cached);
-        });
+        if (from && to) { // التحقق من وجود المتغيرات
+            leagues.forEach(league => {
+                const cacheKey = generateCacheKey(league.id, from, to);
+                const cached = cache.get(cacheKey);
+                if (cached) fallbackData.push(...cached);
+            });
+        }
         
         if (fallbackData.length > 0) {
             console.warn('⚡ استخدام بيانات قديمة بسبب خطأ في الاتصال');
