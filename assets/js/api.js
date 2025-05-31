@@ -1,4 +1,4 @@
-const API_URL = 'https://api-football-v1.p.rapidapi.com/v3/fixtures';
+const API_URL = 'http://api.football-data.org/v4/competitions';
 const API_KEY = '05d80048cd36476dab51f63b97a91bc7'; // ⚠️ استخدم .env في بيئة الإنتاج
 const API_HOST = 'api-football-v1.p.rapidapi.com';
 
