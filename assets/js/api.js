@@ -1,78 +1,81 @@
-const API_URL = 'http://api.football-data.org/v4/competitions';
+const API_BASE_URL = 'https://api.football-data.org/v4';
 const API_KEY = '05d80048cd36476dab51f63b97a91bc7'; // ⚠️ استخدم .env في بيئة الإنتاج
-const API_HOST = 'api-football-v1.p.rapidapi.com';
 
-const leagues = [
-    { id: 2, name: 'دوري أبطال أوروبا' },
-    { id: 39, name: 'الدوري الإنجليزي' },
-    { id: 140, name: 'الدوري الإسباني' },
-    { id: 135, name: 'الدوري الإيطالي' },
-    { id: 61, name: 'الدوري الفرنسي' },
-    { id: 78, name: 'الدوري الألماني' },
-    { id: 200, name: 'البطولة المغربية الإحترافية إنوي القسم الأول' },
-    { id: 233, name: 'الدوري المصري الممتاز' },
-    { id: 307, name: 'دوري روشن السعودي' },
-    { id: 3, name: 'الدوري الأوروبي' },
-    { id: 848, name: 'UEFA Conference League' },
-    { id: 12, name: 'CAF Champions League' },
-    { id: 20, name: 'CAF Confederations Cup' },
-
+const competitions = [
+    { id: 2000, name: 'دوري أبطال أوروبا' }, // UCL
+    { id: 2021, name: 'الدوري الإنجليزي' }, // Premier League
+    { id: 2014, name: 'الدوري الإسباني' }, // La Liga
+    { id: 2019, name: 'الدوري الإيطالي' }, // Serie A
+    { id: 2015, name: 'الدوري الفرنسي' }, // Ligue 1
+    { id: 2002, name: 'الدوري الألماني' }, // Bundesliga
+    { id: 503, name: 'البطولة المغربية' }, // Botola Pro
+    { id: 521, name: 'الدوري المصري' }, // Egyptian Premier League
+    { id: 632, name: 'دوري روشن السعودي' }, // Saudi Pro League
+    { id: 2001, name: 'الدوري الأوروبي' }, // Europa League
+    { id: 2003, name: 'UEFA Conference League' },
+    { id: 2004, name: 'CAF Champions League' },
+    { id: 2005, name: 'CAF Confederations Cup' },
 ];
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
 
-export const fetchMatches = async () => {
+/**
+ * جلب المباريات القادمة للبطولات المحددة
+ * @param {number} days - عدد الأيام القادمة لجلب المباريات
+ * @returns {Promise<Array>} - مصفوفة من المباريات
+ */
+export const fetchMatches = async (days = 7) => {
     try {
         const today = new Date();
-        const season = today.getMonth() >= 6 ? today.getFullYear() : today.getFullYear() - 1;
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 7);
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + days);
 
-        const from = today.toISOString().split('T')[0];
-        const to = nextWeek.toISOString().split('T')[0];
+        const dateFrom = today.toISOString().split('T')[0];
+        const dateTo = endDate.toISOString().split('T')[0];
 
-        console.log(`📅 جلب المباريات من ${from} إلى ${to} لموسم ${season}`);
+        console.log(`📅 جلب المباريات من ${dateFrom} إلى ${dateTo}`);
 
-        const requests = leagues.map(async (league) => {
+        const requests = competitions.map(async (comp) => {
             let retries = 0;
             let lastError = null;
 
             while (retries < MAX_RETRIES) {
                 try {
                     const response = await fetch(
-                        `${API_URL}?league=${league.id}&season=${season}&from=${from}&to=${to}&timezone=Africa/Casablanca`, 
+                        `${API_BASE_URL}/competitions/${comp.id}/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`,
                         {
                             method: 'GET',
                             headers: {
-                                'X-RapidAPI-Key': API_KEY,
-                                'X-RapidAPI-Host': API_HOST,
-                            },
+                                'X-Auth-Token': API_KEY,
+                                'Content-Type': 'application/json'
+                            }
                         }
                     );
 
                     if (!response.ok) {
-                        throw new Error(`❌ خطأ في الشبكة: ${response.status} لبطولة ${league.name}`);
+                        throw new Error(`❌ خطأ في الشبكة: ${response.status} لبطولة ${comp.name}`);
                     }
 
                     const data = await response.json();
 
-                    if (!Array.isArray(data.response) || data.response.length === 0) {
-                        console.warn(`⚠️ لا توجد مباريات لبطولة ${league.name}`);
+                    if (!data.matches || data.matches.length === 0) {
+                        console.warn(`⚠️ لا توجد مباريات لبطولة ${comp.name}`);
                         return [];
                     }
 
-                    return data.response.map(match => ({
+                    // إضافة اسم البولة بالعربية لكل مباراة
+                    return data.matches.map(match => ({
                         ...match,
-                        league: {
-                            ...match.league,
-                            name_ar: league.name // 🔁 فقط نضيف الاسم العربي هنا
+                        competition: {
+                            ...match.competition,
+                            name_ar: comp.name
                         }
                     }));
                 } catch (error) {
                     lastError = error;
                     retries++;
-                    console.warn(`🔁 محاولة ${retries} فشلت لبطولة ${league.name}:`, error.message);
+                    console.warn(`🔁 محاولة ${retries} فشلت لبطولة ${comp.name}:`, error.message);
                     await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
                 }
             }
@@ -88,5 +91,54 @@ export const fetchMatches = async () => {
     } catch (error) {
         console.error('🚨 فشل جلب المباريات:', error);
         throw new Error('تعذر جلب بيانات المباريات. الرجاء المحاولة لاحقاً.');
+    }
+};
+
+/**
+ * جلب معلومات فريق معين
+ * @param {number} teamId - معرف الفريق
+ * @returns {Promise<Object>} - بيانات الفريق
+ */
+export const fetchTeam = async (teamId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/teams/${teamId}`, {
+            headers: {
+                'X-Auth-Token': API_KEY
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`خطأ في جلب بيانات الفريق: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('🚨 فشل جلب بيانات الفريق:', error);
+        throw error;
+    }
+};
+
+/**
+ * جلب ترتيب الفرق في بطولة معينة
+ * @param {number} competitionId - معرف البطولة
+ * @returns {Promise<Array>} - ترتيب الفرق
+ */
+export const fetchStandings = async (competitionId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/competitions/${competitionId}/standings`, {
+            headers: {
+                'X-Auth-Token': API_KEY
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`خطأ في جلب الترتيب: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.standings?.[0]?.table || [];
+    } catch (error) {
+        console.error('🚨 فشل جلب الترتيب:', error);
+        throw error;
     }
 };
