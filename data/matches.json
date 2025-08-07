@@ -1,22 +1,24 @@
-{
-  "response": [
-    {
-      "league": {
-        "id": 564,
-        "name": "الدوري السعودي (بيانات محلية)"
-      },
-      "teams": {
-        "home": {
-          "name": "الهلال"
-        },
-        "away": {
-          "name": "النصر"
-        }
-      },
-      "goals": {
-        "home": 0,
-        "away": 0
-      }
-    }
-  ]
-}
+[
+  {
+    "id": "match-123",
+    "homeTeam": {
+      "name": "الهلال",
+      "logo": "url-to-logo.png"
+    },
+    "awayTeam": {
+      "name": "النصر",
+      "logo": "url-to-logo.png"
+    },
+    "score": "2-1",
+    "time": "21:00",
+    "date": "2023-12-25T21:00:00Z",
+    "league": {
+      "id": 564,
+      "name": "الدوري السعودي"
+    },
+    "broadcast": [
+      {"name": "bein SPORTS HD1"}
+    ],
+    "manualChannels": ["bein SPORTS HD1"]
+  }
+]
