@@ -30,11 +30,9 @@ jobs:
       - name: Install Dependencies
         run: npm install axios cheerio --no-package-lock --no-save
 
-      - name: Fetch and Process Matches
-        env:
-          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+      - name: Create Scraper Script
         run: |
-          node -e "
+          cat > scrape.js << 'EOF'
           const axios = require('axios');
           const cheerio = require('cheerio');
           const fs = require('fs');
@@ -45,16 +43,16 @@ jobs:
               const targetUrl = 'https://www.livescore.com/';
               const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
               
+              console.log('Fetching data from:', apiUrl);
               const response = await axios.get(apiUrl);
               const $ = cheerio.load(response.data);
               
               const matches = [];
               const IMPORTANT_LEAGUES = ['الدوري السعودي', 'الدوري الإنجليزي', 'الدوري الإسباني', 'الدوري الألماني', 'الدوري الإيطالي', 'الدوري الفرنسي'];
               
-              // استخراج المباريات من الصفحة
               $('.match').each((i, element) => {
                 const match = $(element);
-                const leagueName = match.closest('.league')?.find('.name')?.text()?.trim();
+                const leagueName = match.closest('.league')?.find('.name')?.text()?.trim() || '';
                 
                 if (!IMPORTANT_LEAGUES.some(league => leagueName.includes(league))) {
                   return;
@@ -79,17 +77,16 @@ jobs:
                   date: new Date().toISOString(),
                   league: {
                     id: generateLeagueId(leagueName),
-                    name: leagueName || 'بطولة غير معروفة'
+                    name: leagueName
                   },
                   venue: match.find('.venue')?.text()?.trim() || 'ملعب غير معروف',
                   broadcast: extractBroadcastInfo(match)
                 });
               });
               
-              // حفظ البيانات
               const outputPath = path.join('assets', 'data', 'matches.json');
               fs.writeFileSync(outputPath, JSON.stringify(matches, null, 2));
-              console.log('✅ تم حفظ', matches.length, 'مباراة بنجاح');
+              console.log(`✅ تم حفظ ${matches.length} مباراة بنجاح`);
               
             } catch (error) {
               console.error('❌ فشل في جلب البيانات:', error.message);
@@ -106,17 +103,14 @@ jobs:
               'الدوري الإيطالي': 135,
               'الدوري الفرنسي': 61
             };
-            
             return leagueMap[leagueName] || Math.floor(Math.random() * 1000);
           }
           
           function extractBroadcastInfo(match) {
             const broadcastText = match.find('.broadcast')?.text()?.trim();
-            if (!broadcastText) return [];
-            
-            return broadcastText.split(',').map(channel => ({
+            return broadcastText ? broadcastText.split(',').map(channel => ({
               name: channel.trim()
-            }));
+            })) : [];
           }
           
           function createFallbackData() {
@@ -141,7 +135,12 @@ jobs:
           }
           
           scrapeLiveScore();
-          "
+          EOF
+
+      - name: Run Scraper
+        env:
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+        run: node scrape.js
 
       - name: Commit and Push Changes
         run: |
