@@ -50,7 +50,7 @@ jobs:
 
           async function scrapeMatches() {
             try {
-              const targetUrl = 'https://www.livescore.com/';
+              const targetUrl = 'https://www.kooora.com/';
               const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
               
               console.log('🔍 جاري جلب البيانات من:', targetUrl);
