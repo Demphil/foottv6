@@ -3,8 +3,8 @@ import { fetchMatches } from './api.js';
 // 1. App Settings
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 hours
-  CACHE_KEY: 'football-matches-cache-v5',
-  FEATURED_LEAGUES: [2, 39, 140, 3, 200, 307, 61, 78, 135, 848, 233, 20, 12], // Champions League, Premier League, La Liga, Serie A
+  CACHE_KEY: 'football-matches-cache-v6',
+  FEATURED_LEAGUES: [2000, 2021, 2014, 2001, 503, 632, 2015, 2002, 2019, 2003, 521, 2005, 2004], // Updated IDs for football-data.org
   SLIDER_INTERVAL: 20000, // 20 seconds
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
@@ -18,29 +18,27 @@ const CONFIG = {
       awayTeam: "Chelsea",
       channels: ["bein SPORTS HD1"]
     },
-      {
+    {
       homeTeam: "Pyramids FC",
       awayTeam: "Mamelodi Sundowns",
       channels: ["bein SPORTS HD1"]
     },
-    
   ],
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
     'bein-sports-hd2': 'bein SPORTS HD2',
     'bein-sports-hd3': 'bein SPORTS HD3',
-   'bein-sports-hd1': 'bein SPORTS HD4',
-   'bein-sports-hd1': 'bein SPORTS HD5',
-   'bein-sports-hd1': 'bein SPORTS HD6',
+    'bein-sports-hd4': 'bein SPORTS HD4',
+    'bein-sports-hd5': 'bein SPORTS HD5',
+    'bein-sports-hd6': 'bein SPORTS HD6',
     'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-     'SSC-HD1': 'SSC HD1',
+    'SSC-HD1': 'SSC HD1',
     'ssc-extra2': 'SSC EXTRA2',
     'ssc-extra1': 'SSC EXTRA1',
     'ssc-extra3': 'SSC EXTRA3',
     'Arryadia-HD': 'Arryadia HD',
-    'Almaghribia' : 'Almaghribia',
-    'one-time-sports1' : 'one time sports1',
-
+    'Almaghribia': 'Almaghribia',
+    'one-time-sports1': 'one time sports1',
   },
   TIMEZONE: 'Africa/Casablanca' // Morocco Time
 };
@@ -147,8 +145,8 @@ function categorizeMatches(matches) {
   return {
     today: filterByDate(matches, today),
     tomorrow: filterByDate(matches, tomorrow),
-    upcoming: matches.filter(m => new Date(m.fixture.date) > tomorrow),
-    featured: matches.filter(m => CONFIG.FEATURED_LEAGUES.includes(m.league.id)),
+    upcoming: matches.filter(m => new Date(m.utcDate) > tomorrow),
+    featured: matches.filter(m => CONFIG.FEATURED_LEAGUES.includes(m.competition.id)),
     all: matches
   };
 }
@@ -156,7 +154,7 @@ function categorizeMatches(matches) {
 function filterByDate(matches, date) {
   const dateStr = date.toDateString();
   return matches.filter(m => 
-    new Date(m.fixture.date).toDateString() === dateStr
+    new Date(m.utcDate).toDateString() === dateStr
   );
 }
 
@@ -241,12 +239,11 @@ function getManualBroadcastMatches(allMatches) {
   
   for (const criteria of CONFIG.MANUAL_BROADCAST_MATCHES) {
     let foundMatch = allMatches.find(m => 
-      m.teams.home.name.toLowerCase().includes(criteria.homeTeam.toLowerCase()) && 
-      m.teams.away.name.toLowerCase().includes(criteria.awayTeam.toLowerCase())
+      m.homeTeam.name.toLowerCase().includes(criteria.homeTeam.toLowerCase()) && 
+      m.awayTeam.name.toLowerCase().includes(criteria.awayTeam.toLowerCase())
     );
     
     if (foundMatch) {
-      // حفظ القنوات المخصصة في بيانات المباراة
       foundMatch.manualChannels = criteria.channels;
       selectedMatches.push(foundMatch);
       if (selectedMatches.length >= CONFIG.MAX_BROADCAST_MATCHES) break;
@@ -254,38 +251,6 @@ function getManualBroadcastMatches(allMatches) {
   }
   
   return selectedMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
-}
-
-function getManualBroadcastChannels(match) {
-  return match.manualChannels || null;
-}
-
-function getBroadcastStatus(broadcast, match) {
-  // التحقق أولاً من وجود قنوات يدوية
-  const manualChannels = getManualBroadcastChannels(match);
-  if (manualChannels) {
-    return {
-      available: true,
-      channel: manualChannels[0],
-      allChannels: manualChannels,
-      noData: false,
-      buttonText: 'Watch'
-    };
-  }
-
-  // إذا لم توجد قنوات يدوية، استخدم القنوات من API
-  const arabicBroadcasters = getArabicBroadcasters(broadcast || []);
-  const hasBroadcastData = broadcast?.length > 0;
-  const hasArabicBroadcast = arabicBroadcasters.length > 0;
-  
-  return {
-    available: hasArabicBroadcast,
-    channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
-    allChannels: arabicBroadcasters,
-    noData: !hasBroadcastData,
-    buttonText: hasArabicBroadcast ? 'Watch' : 
-               hasBroadcastData ? 'Not available' : 'No broadcast'
-  };
 }
 
 function renderBroadcastMatches(matches) {
@@ -301,17 +266,15 @@ function renderBroadcastMatches(matches) {
   }
 
   broadcastContainer.innerHTML = matches.map(match => {
-    const { fixture, teams, league, broadcast } = match;
-    const homeTeam = teams.home;
-    const awayTeam = teams.away;
+    const { homeTeam, awayTeam, competition, utcDate, venue } = match;
     
-    const broadcastStatus = getBroadcastStatus(broadcast, match);
+    const broadcastStatus = getBroadcastStatus(match);
     
     return `
-      <div class="broadcast-card" data-id="${fixture.id}" tabindex="0">
+      <div class="broadcast-card" data-id="${match.id}" tabindex="0">
         <div class="teams">
           <div class="team">
-            <img src="${homeTeam.logo}" 
+            <img src="${homeTeam.crest}" 
                  alt="${homeTeam.name}" 
                  onerror="this.src='assets/images/default-team.png'"
                  loading="lazy">
@@ -319,10 +282,10 @@ function renderBroadcastMatches(matches) {
           </div>
           <div class="match-time">
             <span class="vs">VS</span>
-            <time datetime="${fixture.date}">${formatKickoffTime(fixture.date)}</time>
+            <time datetime="${utcDate}">${formatKickoffTime(utcDate)}</time>
           </div>
           <div class="team">
-            <img src="${awayTeam.logo}" 
+            <img src="${awayTeam.crest}" 
                  alt="${awayTeam.name}" 
                  onerror="this.src='assets/images/default-team.png'"
                  loading="lazy">
@@ -334,18 +297,18 @@ function renderBroadcastMatches(matches) {
         
         <div class="match-info">
           <span class="league-info">
-            <img src="${league.logo || 'assets/images/default-league.png'}" 
-                 alt="${league.name}"
+            <img src="${competition.emblem || 'assets/images/default-league.png'}" 
+                 alt="${competition.name}"
                  onerror="this.src='assets/images/default-league.png'">
-            ${league.name}
+            ${competition.name_ar || competition.name}
           </span>
           <span class="match-venue">
             <i class="fas fa-map-marker-alt"></i>
-            ${fixture.venue?.name || 'Unknown venue'}
+            ${venue || 'Unknown venue'}
           </span>
         </div>
         <button class="watch-btn" 
-                data-match-id="${fixture.id}"
+                data-match-id="${match.id}"
                 data-channel="${broadcastStatus.channel || ''}"
                 ${broadcastStatus.available ? '' : 'disabled'}
                 aria-label="Watch match ${homeTeam.name} vs ${awayTeam.name}">
@@ -353,6 +316,16 @@ function renderBroadcastMatches(matches) {
         </button>
       </div>`;
   }).join('');
+}
+
+function getBroadcastStatus(match) {
+  return {
+    available: !!match.manualChannels,
+    channel: match.manualChannels?.[0] || null,
+    allChannels: match.manualChannels || [],
+    noData: !match.manualChannels,
+    buttonText: match.manualChannels ? 'Watch' : 'No broadcast'
+  };
 }
 
 function renderBroadcastInfo(status) {
@@ -379,28 +352,6 @@ function renderBroadcastInfo(status) {
     </div>`;
 }
 
-function getArabicBroadcasters(broadcastData) {
-  if (!broadcastData?.length) return [];
-  
-  return broadcastData
-    .filter(b => b && b.name)
-    .map(b => {
-      const cleanName = b.name
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/_/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
-      
-      const matchedKey = Object.keys(CONFIG.ARABIC_CHANNELS).find(key => 
-        cleanName.includes(key.toLowerCase())
-      );
-      
-      return matchedKey ? CONFIG.ARABIC_CHANNELS[matchedKey] : null;
-    })
-    .filter(Boolean)
-    .filter((value, index, self) => self.indexOf(value) === index);
-}
-
 function renderAllMatches({ today, tomorrow, upcoming }) {
   DOM.todayContainer.innerHTML = renderMatchList(today, 'Today');
   DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'Tomorrow');
@@ -416,50 +367,50 @@ function renderMatchList(matches, title) {
 // 8. Card Templates
 function createFeaturedCard(match) {
   return `
-    <div class="featured-card" data-id="${match.fixture.id}">
+    <div class="featured-card" data-id="${match.id}">
       <div class="league-info">
-        <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
-        <span>${match.league.name}</span>
+        <img src="${match.competition.emblem}" alt="${match.competition.name}" onerror="this.style.display='none'">
+        <span>${match.competition.name_ar || match.competition.name}</span>
       </div>
       <div class="teams">
         <div class="team">
-          <img src="${match.teams.home.logo}" alt="${match.teams.home.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.home.name}</span>
+          <img src="${match.homeTeam.crest}" alt="${match.homeTeam.name}" onerror="this.src='assets/images/default-team.png'">
+          <span>${match.homeTeam.name}</span>
         </div>
         <div class="vs">VS</div>
         <div class="team">
-          <img src="${match.teams.away.logo}" alt="${match.teams.away.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.away.name}</span>
+          <img src="${match.awayTeam.crest}" alt="${match.awayTeam.name}" onerror="this.src='assets/images/default-team.png'">
+          <span>${match.awayTeam.name}</span>
         </div>
       </div>
       <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
+        <span><i class="fas fa-clock"></i> ${formatDate(match.utcDate)}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'Unknown'}</span>
       </div>
     </div>`;
 }
 
 function createMatchCard(match) {
   return `
-    <div class="match-card" data-id="${match.fixture.id}">
+    <div class="match-card" data-id="${match.id}">
       <div class="league-info">
-        <img src="${match.league.logo}" alt="${match.league.name}" onerror="this.style.display='none'">
-        <span>${match.league.name}</span>
+        <img src="${match.competition.emblem}" alt="${match.competition.name}" onerror="this.style.display='none'">
+        <span>${match.competition.name_ar || match.competition.name}</span>
       </div>
       <div class="teams">
         <div class="team">
-          <img src="${match.teams.home.logo}" alt="${match.teams.home.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.home.name}</span>
+          <img src="${match.homeTeam.crest}" alt="${match.homeTeam.name}" onerror="this.src='assets/images/default-team.png'">
+          <span>${match.homeTeam.name}</span>
         </div>
         <div class="vs">VS</div>
         <div class="team">
-          <img src="${match.teams.away.logo}" alt="${match.teams.away.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.teams.away.name}</span>
+          <img src="${match.awayTeam.crest}" alt="${match.awayTeam.name}" onerror="this.src='assets/images/default-team.png'">
+          <span>${match.awayTeam.name}</span>
         </div>
       </div>
       <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.fixture.date)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.fixture.venue?.name || 'Unknown'}</span>
+        <span><i class="fas fa-clock"></i> ${formatDate(match.utcDate)}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'Unknown'}</span>
       </div>
     </div>`;
 }
@@ -551,7 +502,7 @@ function showMatchDetails(matchId) {
 }
 
 function findMatchById(matchId) {
-  return appState.matchesData?.find(m => m.fixture.id == matchId);
+  return appState.matchesData?.find(m => m.id == matchId);
 }
 
 // 10. UI Controls
@@ -603,9 +554,8 @@ window.watchMatch = function(matchId, channelName) {
     'SSC EXTRA1': 'ssc-extra1',
     'SSC EXTRA3': 'ssc-extra3',
     'Arryadia HD': 'Arryadia-HD',
-    'Almaghribia' : 'Almaghribia',
-    'one time sports1' : 'one-time-sports1',
-
+    'Almaghribia': 'Almaghribia',
+    'one time sports1': 'one-time-sports1',
     'AD SPORTS PREMIUM1': 'ad-sports-premium1',
   };
   
