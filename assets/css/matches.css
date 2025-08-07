@@ -46,7 +46,6 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  position: 50%;
 }
 
 .header .logo img {
@@ -62,6 +61,7 @@ body {
   font-weight: 700;
   color: var(--light-color);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  left: 50%;
 }
 
 .nav ul {
