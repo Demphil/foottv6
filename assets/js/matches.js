@@ -1,11 +1,11 @@
-import { fetchMatches } from './api.js';
+import { getTodayMatches } from './api.js';
 
-// 1. App Settings
+// 1. إعدادات التطبيق
 const CONFIG = {
-  CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 hours
-  CACHE_KEY: 'football-matches-cache-v6',
-  FEATURED_LEAGUES: [2000, 2021, 2014, 2001, 503, 632, 2015, 2002, 2019, 2003, 521, 2005, 2004], // Updated IDs for football-data.org
-  SLIDER_INTERVAL: 20000, // 20 seconds
+  CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
+  CACHE_KEY: 'football-matches-cache-v8',
+  FEATURED_LEAGUES: [2000, 2021, 2014, 2001, 503, 632, 2015, 2002, 2019, 2003, 521, 2005, 2004],
+  SLIDER_INTERVAL: 20000, // 20 ثانية
   MAX_BROADCAST_MATCHES: 5,
   MANUAL_BROADCAST_MATCHES: [
     {
@@ -40,10 +40,10 @@ const CONFIG = {
     'Almaghribia': 'Almaghribia',
     'one-time-sports1': 'one time sports1',
   },
-  TIMEZONE: 'Africa/Casablanca' // Morocco Time
+  TIMEZONE: 'Africa/Casablanca'
 };
 
-// 2. DOM Elements
+// 2. عناصر DOM
 const DOM = {
   loading: document.getElementById('loading'),
   errorContainer: document.getElementById('error-container'),
@@ -59,7 +59,7 @@ const DOM = {
   toastContainer: document.getElementById('toast-container')
 };
 
-// 3. App State
+// 3. حالة التطبيق
 let appState = {
   currentTab: 'today',
   sliderInterval: null,
@@ -67,12 +67,11 @@ let appState = {
   matchesData: null
 };
 
-// 4. Initialize Page
+// 4. التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     showLoading();
     
-    // Get data with caching
     appState.matchesData = await getMatchesData();
     const categorized = categorizeMatches(appState.matchesData);
     
@@ -85,25 +84,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     
   } catch (error) {
     console.error('Initialization error:', error);
-    showError('Error loading data. Showing last available data...');
+    showError('حدث خطأ في تحميل البيانات. جاري عرض آخر بيانات متاحة...');
     tryFallbackCache();
   } finally {
     hideLoading();
   }
 });
 
-// 5. Cache System
+// 5. نظام التخزين المؤقت
 async function getMatchesData() {
-  // Try cache first
   const cachedData = getValidCache();
-  if (cachedData) return cachedData;
+  if (cachedData) {
+    showToast('جاري استخدام البيانات المخزنة مؤقتاً', 'info');
+    return cachedData;
+  }
   
-  // Fetch fresh data from API
-  const freshData = await fetchMatches();
-  
-  // Cache new data
+  const freshData = await getTodayMatches();
   setCache(freshData);
-  
+  showToast('تم تحديث بيانات المباريات بنجاح', 'success');
   return freshData;
 }
 
@@ -136,7 +134,7 @@ function tryFallbackCache() {
   }
 }
 
-// 6. Data Processing
+// 6. معالجة البيانات
 function categorizeMatches(matches) {
   const today = new Date();
   const tomorrow = new Date(today);
@@ -145,8 +143,8 @@ function categorizeMatches(matches) {
   return {
     today: filterByDate(matches, today),
     tomorrow: filterByDate(matches, tomorrow),
-    upcoming: matches.filter(m => new Date(m.utcDate) > tomorrow),
-    featured: matches.filter(m => CONFIG.FEATURED_LEAGUES.includes(m.competition.id)),
+    upcoming: matches.filter(m => new Date(m.date) > tomorrow),
+    featured: matches.filter(m => CONFIG.FEATURED_LEAGUES.includes(m.league?.id)),
     all: matches
   };
 }
@@ -154,18 +152,17 @@ function categorizeMatches(matches) {
 function filterByDate(matches, date) {
   const dateStr = date.toDateString();
   return matches.filter(m => 
-    new Date(m.utcDate).toDateString() === dateStr
+    new Date(m.date).toDateString() === dateStr
   );
 }
 
-// 7. Rendering Functions
+// 7. عرض المباريات
 function renderFeaturedMatches(matches) {
   if (!matches?.length) {
-    DOM.featuredContainer.innerHTML = '<p class="no-matches">No featured matches today</p>';
+    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
     return;
   }
 
-  // Group into sets of 4 matches
   const groupedMatches = [];
   for (let i = 0; i < matches.length; i += 4) {
     groupedMatches.push(matches.slice(i, i + 4));
@@ -179,7 +176,29 @@ function initSlider(groups) {
   
   function showSlide(index) {
     currentIndex = index;
-    DOM.featuredContainer.innerHTML = groups[index].map(createFeaturedCard).join('');
+    DOM.featuredContainer.innerHTML = groups[index].map(match => `
+      <div class="featured-card" data-id="${match.id}">
+        <div class="league-info">
+          <img src="${match.league?.logo || 'default-league.png'}" alt="${match.league?.name || 'بطولة غير معروفة'}">
+          <span>${match.league?.name || 'بطولة غير معروفة'}</span>
+        </div>
+        <div class="teams">
+          <div class="team">
+            <img src="${match.homeTeam.logo || 'default-team.png'}" alt="${match.homeTeam.name}">
+            <span>${match.homeTeam.name}</span>
+          </div>
+          <div class="vs">VS</div>
+          <div class="team">
+            <img src="${match.awayTeam.logo || 'default-team.png'}" alt="${match.awayTeam.name}">
+            <span>${match.awayTeam.name}</span>
+          </div>
+        </div>
+        <div class="match-info">
+          <span><i class="fas fa-clock"></i> ${formatDate(match.date)}</span>
+          <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
+        </div>
+      </div>
+    `).join('');
     updateSliderDots(index);
   }
 
@@ -190,12 +209,10 @@ function initSlider(groups) {
     });
   }
 
-  // Create dots
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
     `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
-  // Event listeners
   DOM.prevBtn.addEventListener('click', () => {
     clearInterval(appState.sliderInterval);
     currentIndex = (currentIndex - 1 + groups.length) % groups.length;
@@ -225,7 +242,6 @@ function initSlider(groups) {
     }, CONFIG.SLIDER_INTERVAL);
   }
 
-  // Initial display
   showSlide(0);
   startSliderInterval();
 }
@@ -250,46 +266,40 @@ function getManualBroadcastMatches(allMatches) {
     }
   }
   
-  return selectedMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
+  return selectedMatches.length > 0 ? selectedMatches : allMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
 }
 
 function renderBroadcastMatches(matches) {
-  const { broadcastContainer } = DOM;
-  
   if (!matches?.length) {
-    broadcastContainer.innerHTML = 
-      `<div class="no-matches">
+    DOM.broadcastContainer.innerHTML = `
+      <div class="no-matches">
         <i class="fas fa-tv"></i>
-        <p>No broadcast matches available</p>
+        <p>لا توجد مباريات مذاعة اليوم</p>
       </div>`;
     return;
   }
 
-  broadcastContainer.innerHTML = matches.map(match => {
-    const { homeTeam, awayTeam, competition, utcDate, venue } = match;
-    
-    const broadcastStatus = getBroadcastStatus(match);
+  DOM.broadcastContainer.innerHTML = matches.map(match => {
+    const broadcastStatus = getBroadcastStatus(match.broadcast || [], match);
     
     return `
       <div class="broadcast-card" data-id="${match.id}" tabindex="0">
         <div class="teams">
           <div class="team">
-            <img src="${homeTeam.crest}" 
-                 alt="${homeTeam.name}" 
-                 onerror="this.src='assets/images/default-team.png'"
-                 loading="lazy">
-            <span class="team-name">${homeTeam.name}</span>
+            <img src="${match.homeTeam.logo || 'default-team.png'}" 
+                 alt="${match.homeTeam.name}" 
+                 onerror="this.src='default-team.png'">
+            <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-time">
             <span class="vs">VS</span>
-            <time datetime="${utcDate}">${formatKickoffTime(utcDate)}</time>
+            <time datetime="${match.date}">${formatKickoffTime(match.date)}</time>
           </div>
           <div class="team">
-            <img src="${awayTeam.crest}" 
-                 alt="${awayTeam.name}" 
-                 onerror="this.src='assets/images/default-team.png'"
-                 loading="lazy">
-            <span class="team-name">${awayTeam.name}</span>
+            <img src="${match.awayTeam.logo || 'default-team.png'}" 
+                 alt="${match.awayTeam.name}" 
+                 onerror="this.src='default-team.png'">
+            <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
         
@@ -297,35 +307,55 @@ function renderBroadcastMatches(matches) {
         
         <div class="match-info">
           <span class="league-info">
-            <img src="${competition.emblem || 'assets/images/default-league.png'}" 
-                 alt="${competition.name}"
-                 onerror="this.src='assets/images/default-league.png'">
-            ${competition.name_ar || competition.name}
+            <img src="${match.league?.logo || 'default-league.png'}" 
+                 alt="${match.league?.name || 'بطولة غير معروفة'}"
+                 onerror="this.src='default-league.png'">
+            ${match.league?.name || 'بطولة غير معروفة'}
           </span>
           <span class="match-venue">
             <i class="fas fa-map-marker-alt"></i>
-            ${venue || 'Unknown venue'}
+            ${match.venue || 'ملعب غير معروف'}
           </span>
         </div>
         <button class="watch-btn" 
                 data-match-id="${match.id}"
                 data-channel="${broadcastStatus.channel || ''}"
                 ${broadcastStatus.available ? '' : 'disabled'}
-                aria-label="Watch match ${homeTeam.name} vs ${awayTeam.name}">
+                aria-label="مشاهدة مباراة ${match.homeTeam.name} ضد ${match.awayTeam.name}">
           <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
         </button>
       </div>`;
   }).join('');
 }
 
-function getBroadcastStatus(match) {
+function getBroadcastStatus(broadcast, match) {
+  const manualChannels = getManualBroadcastChannels(match);
+  if (manualChannels) {
+    return {
+      available: true,
+      channel: manualChannels[0],
+      allChannels: manualChannels,
+      noData: false,
+      buttonText: 'مشاهدة'
+    };
+  }
+
+  const arabicBroadcasters = getArabicBroadcasters(broadcast);
+  const hasBroadcastData = broadcast?.length > 0;
+  const hasArabicBroadcast = arabicBroadcasters.length > 0;
+  
   return {
-    available: !!match.manualChannels,
-    channel: match.manualChannels?.[0] || null,
-    allChannels: match.manualChannels || [],
-    noData: !match.manualChannels,
-    buttonText: match.manualChannels ? 'Watch' : 'No broadcast'
+    available: hasArabicBroadcast,
+    channel: hasArabicBroadcast ? arabicBroadcasters[0] : null,
+    allChannels: arabicBroadcasters,
+    noData: !hasBroadcastData,
+    buttonText: hasArabicBroadcast ? 'مشاهدة' : 
+               hasBroadcastData ? 'غير متاح' : 'لا يوجد بث'
   };
+}
+
+function getManualBroadcastChannels(match) {
+  return match.manualChannels || null;
 }
 
 function renderBroadcastInfo(status) {
@@ -333,7 +363,7 @@ function renderBroadcastInfo(status) {
     return `
       <div class="broadcast-info no-data">
         <i class="fas fa-info-circle"></i>
-        <span>No broadcast data</span>
+        <span>لا توجد بيانات بث</span>
       </div>`;
   }
   
@@ -348,74 +378,73 @@ function renderBroadcastInfo(status) {
   return `
     <div class="broadcast-info not-available">
       <i class="fas fa-exclamation-triangle"></i>
-      <span>Not available on Arabic channels</span>
+      <span>غير متاح على القنوات العربية</span>
     </div>`;
 }
 
+function getArabicBroadcasters(broadcastData) {
+  if (!broadcastData?.length) return [];
+  
+  return broadcastData
+    .filter(b => b && b.name)
+    .map(b => {
+      const cleanName = b.name
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/_/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      
+      const matchedKey = Object.keys(CONFIG.ARABIC_CHANNELS).find(key => 
+        cleanName.includes(key.toLowerCase())
+      );
+      
+      return matchedKey ? CONFIG.ARABIC_CHANNELS[matchedKey] : null;
+    })
+    .filter(Boolean)
+    .filter((value, index, self) => self.indexOf(value) === index);
+}
+
 function renderAllMatches({ today, tomorrow, upcoming }) {
-  DOM.todayContainer.innerHTML = renderMatchList(today, 'Today');
-  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'Tomorrow');
-  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'Upcoming');
+  DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
+  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
+  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
 }
 
 function renderMatchList(matches, title) {
   return matches?.length
-    ? matches.map(createMatchCard).join('')
-    : `<p class="no-matches">No ${title.toLowerCase()} matches</p>`;
+    ? matches.map(match => `
+        <div class="match-card" data-id="${match.id}">
+          <div class="league-info">
+            <img src="${match.league?.logo || 'default-league.png'}" 
+                 alt="${match.league?.name || 'بطولة غير معروفة'}"
+                 onerror="this.src='default-league.png'">
+            <span>${match.league?.name || 'بطولة غير معروفة'}</span>
+          </div>
+          <div class="teams">
+            <div class="team">
+              <img src="${match.homeTeam.logo || 'default-team.png'}" 
+                   alt="${match.homeTeam.name}"
+                   onerror="this.src='default-team.png'">
+              <span>${match.homeTeam.name}</span>
+            </div>
+            <div class="vs">VS</div>
+            <div class="team">
+              <img src="${match.awayTeam.logo || 'default-team.png'}" 
+                   alt="${match.awayTeam.name}"
+                   onerror="this.src='default-team.png'">
+              <span>${match.awayTeam.name}</span>
+            </div>
+          </div>
+          <div class="match-info">
+            <span><i class="fas fa-clock"></i> ${formatDate(match.date)}</span>
+            <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
+          </div>
+        </div>
+      `).join('')
+    : `<p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>`;
 }
 
-// 8. Card Templates
-function createFeaturedCard(match) {
-  return `
-    <div class="featured-card" data-id="${match.id}">
-      <div class="league-info">
-        <img src="${match.competition.emblem}" alt="${match.competition.name}" onerror="this.style.display='none'">
-        <span>${match.competition.name_ar || match.competition.name}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img src="${match.homeTeam.crest}" alt="${match.homeTeam.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.homeTeam.name}</span>
-        </div>
-        <div class="vs">VS</div>
-        <div class="team">
-          <img src="${match.awayTeam.crest}" alt="${match.awayTeam.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.awayTeam.name}</span>
-        </div>
-      </div>
-      <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.utcDate)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'Unknown'}</span>
-      </div>
-    </div>`;
-}
-
-function createMatchCard(match) {
-  return `
-    <div class="match-card" data-id="${match.id}">
-      <div class="league-info">
-        <img src="${match.competition.emblem}" alt="${match.competition.name}" onerror="this.style.display='none'">
-        <span>${match.competition.name_ar || match.competition.name}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img src="${match.homeTeam.crest}" alt="${match.homeTeam.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.homeTeam.name}</span>
-        </div>
-        <div class="vs">VS</div>
-        <div class="team">
-          <img src="${match.awayTeam.crest}" alt="${match.awayTeam.name}" onerror="this.src='assets/images/default-team.png'">
-          <span>${match.awayTeam.name}</span>
-        </div>
-      </div>
-      <div class="match-info">
-        <span><i class="fas fa-clock"></i> ${formatDate(match.utcDate)}</span>
-        <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'Unknown'}</span>
-      </div>
-    </div>`;
-}
-
-// 9. Helper Functions
+// 8. دوال مساعدة
 function formatDate(dateStr) {
   const options = { 
     weekday: 'long', 
@@ -423,28 +452,23 @@ function formatDate(dateStr) {
     month: 'long', 
     hour: '2-digit', 
     minute: '2-digit',
-    timeZone: CONFIG.TIMEZONE,
-    numberingSystem: 'latn'
+    timeZone: CONFIG.TIMEZONE
   };
   
-  let dateText = new Date(dateStr).toLocaleString('en-MA', options);
-  return dateText;
+  return new Date(dateStr).toLocaleString('ar-MA', options);
 }
 
 function formatKickoffTime(dateString) {
   const options = { 
     hour: '2-digit', 
     minute: '2-digit',
-    timeZone: CONFIG.TIMEZONE,
-    numberingSystem: 'latn'
+    timeZone: CONFIG.TIMEZONE
   };
   
-  let timeText = new Date(dateString).toLocaleTimeString('en-MA', options);
-  return timeText;
+  return new Date(dateString).toLocaleTimeString('ar-MA', options);
 }
 
 function setupEventListeners() {
-  // Tab navigation
   DOM.tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       DOM.tabButtons.forEach(b => b.classList.remove('active'));
@@ -460,7 +484,6 @@ function setupEventListeners() {
 }
 
 function setupMatchCards() {
-  // Watch button events
   document.querySelectorAll('.watch-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -470,7 +493,6 @@ function setupMatchCards() {
     });
   });
 
-  // Card click events
   document.querySelectorAll('.broadcast-card').forEach(card => {
     card.addEventListener('click', handleCardClick);
     card.addEventListener('keydown', handleCardKeyPress);
@@ -497,7 +519,8 @@ function handleCardKeyPress(event) {
 function showMatchDetails(matchId) {
   const match = findMatchById(matchId);
   if (match) {
-    console.log('Showing match details:', match);
+    console.log('عرض تفاصيل المباراة:', match);
+    // يمكنك إضافة منطق عرض التفاصيل هنا
   }
 }
 
@@ -505,7 +528,7 @@ function findMatchById(matchId) {
   return appState.matchesData?.find(m => m.id == matchId);
 }
 
-// 10. UI Controls
+// 9. عناصر التحكم في الواجهة
 function showLoading() {
   if (DOM.loading) DOM.loading.style.display = 'flex';
 }
@@ -535,10 +558,10 @@ function showToast(message, type = 'info') {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// 11. Public Functions
+// 10. دوال عامة
 window.watchMatch = function(matchId, channelName) {
   if (!channelName) {
-    showToast('No Arabic channel available for this match', 'error');
+    showToast('لا توجد قناة عربية متاحة لهذه المباراة', 'error');
     return;
   }
   
@@ -565,7 +588,7 @@ window.watchMatch = function(matchId, channelName) {
     logMatchView(matchId, channelName);
     window.location.href = `watch.html?id=${matchId}&channel=${channelFile}`;
   } else {
-    showToast('This channel support is coming soon', 'info');
+    showToast('دعم هذه القناة قريباً', 'info');
   }
 };
 
@@ -581,6 +604,6 @@ function logMatchView(matchId, channel) {
 
 window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
-  showToast('Cache cleared successfully', 'success');
+  showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
   setTimeout(() => location.reload(), 1000);
 };
