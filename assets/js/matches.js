@@ -1,6 +1,6 @@
 import { getTodayMatches } from './api.js';
 
-// 1. إعدادات التطبيق المعدلة
+// 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
   CACHE_KEY: 'football-matches-cache-v9',
@@ -31,7 +31,7 @@ const CONFIG = {
   DEFAULT_LEAGUE_LOGO: 'assets/images/default-league.png'
 };
 
-// 2. عناصر DOM مع تحسينات
+// 2. عناصر DOM
 const DOM = {
   loading: document.getElementById('loading'),
   errorContainer: document.getElementById('error-container'),
@@ -47,7 +47,7 @@ const DOM = {
   toastContainer: document.getElementById('toast-container')
 };
 
-// 3. تحسينات حالة التطبيق
+// 3. حالة التطبيق
 const appState = {
   currentTab: 'today',
   sliderInterval: null,
@@ -56,14 +56,13 @@ const appState = {
   isInitialized: false
 };
 
-// 4. التهيئة الرئيسية المعدلة
+// 4. التهيئة الرئيسية
 document.addEventListener('DOMContentLoaded', async () => {
   if (appState.isInitialized) return;
   
   try {
     showLoading();
     
-    // جلب البيانات مع التحقق من الصحة
     const data = await getMatchesData();
     if (!data || !Array.isArray(data)) {
       throw new Error('Invalid data format');
@@ -90,9 +89,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// 5. نظام التخزين المؤقت المحسن
+// 5. نظام التخزين المؤقت
 async function getMatchesData() {
-  // محاولة جلب البيانات المخزنة
   const cached = localStorage.getItem(CONFIG.CACHE_KEY);
   if (cached) {
     try {
@@ -106,7 +104,6 @@ async function getMatchesData() {
     }
   }
   
-  // جلب بيانات جديدة
   try {
     const freshData = await getTodayMatches();
     if (!freshData) throw new Error('No data received');
@@ -124,33 +121,64 @@ async function getMatchesData() {
   }
 }
 
-// 6. تحسينات عرض المباريات
-function renderBroadcastMatches(matches) {
+// 6. معالجة البيانات
+function categorizeMatches(matches) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  
+  return {
+    today: filterByDate(matches, today),
+    tomorrow: filterByDate(matches, tomorrow),
+    upcoming: matches.filter(m => new Date(m.date) > tomorrow),
+    featured: matches.filter(m => CONFIG.FEATURED_LEAGUES.includes(m.league?.id)),
+    all: matches
+  };
+}
+
+function filterByDate(matches, date) {
+  const dateStr = date.toDateString();
+  return matches.filter(m => 
+    new Date(m.date).toDateString() === dateStr
+  );
+}
+
+// 7. عرض المباريات
+function renderFeaturedMatches(matches) {
   if (!matches?.length) {
-    DOM.broadcastContainer.innerHTML = `
-      <div class="no-matches">
-        <i class="fas fa-tv"></i>
-        <p>لا توجد مباريات مذاعة اليوم</p>
-      </div>`;
+    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
     return;
   }
 
-  DOM.broadcastContainer.innerHTML = matches.map(match => {
-    const broadcastStatus = getBroadcastStatus(match.broadcast || [], match);
-    
-    return `
-      <div class="broadcast-card" data-id="${match.id}">
+  const groupedMatches = [];
+  for (let i = 0; i < matches.length; i += 4) {
+    groupedMatches.push(matches.slice(i, i + 4));
+  }
+
+  initSlider(groupedMatches);
+}
+
+function initSlider(groups) {
+  let currentIndex = 0;
+  
+  function showSlide(index) {
+    currentIndex = index;
+    DOM.featuredContainer.innerHTML = groups[index].map(match => `
+      <div class="featured-card" data-id="${match.id}">
+        <div class="league-info">
+          <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
+               alt="${match.league?.name || 'بطولة غير معروفة'}"
+               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
+          <span>${match.league?.name || 'بطولة غير معروفة'}</span>
+        </div>
         <div class="teams">
           <div class="team">
             <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-                 alt="${match.homeTeam.name}" 
+                 alt="${match.homeTeam.name}"
                  onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
             <span>${match.homeTeam.name}</span>
           </div>
-          <div class="match-info">
-            <span class="score">${match.score || 'VS'}</span>
-            <span class="time">${match.time || formatKickoffTime(match.date)}</span>
-          </div>
+          <div class="vs">VS</div>
           <div class="team">
             <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
                  alt="${match.awayTeam.name}"
@@ -158,51 +186,14 @@ function renderBroadcastMatches(matches) {
             <span>${match.awayTeam.name}</span>
           </div>
         </div>
-        ${renderBroadcastInfo(broadcastStatus)}
-        <button class="watch-btn" data-match-id="${match.id}" data-channel="${broadcastStatus.channel || ''}">
-          <i class="fas fa-play"></i> ${broadcastStatus.buttonText}
-        </button>
-      </div>`;
-  }).join('');
-}
-
-// 7. تحسينات أخرى
-function renderMatchList(matches, title) {
-  if (!matches?.length) {
-    return `<div class="no-matches">لا توجد مباريات ${title.toLowerCase()}</div>`;
+        <div class="match-info">
+          <span><i class="fas fa-clock"></i> ${formatDate(match.date)}</span>
+          <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
+        </div>
+      </div>
+    `).join('');
+    updateSliderDots(index);
   }
-
-  return matches.map(match => `
-    <div class="match-card" data-id="${match.id}">
-      <div class="league-info">
-        <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
-             alt="${match.league?.name || 'بطولة غير معروفة'}"
-             onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
-        <span>${match.league?.name || 'بطولة غير معروفة'}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.homeTeam.name}"
-               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-          <span>${match.homeTeam.name}</span>
-        </div>
-        <div class="score">${match.score || 'VS'}</div>
-        <div class="team">
-          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.awayTeam.name}"
-               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-          <span>${match.awayTeam.name}</span>
-        </div>
-      </div>
-      <div class="match-time">
-        <i class="fas fa-clock"></i> ${match.time || formatKickoffTime(match.date)}
-      </div>
-    </div>
-  `).join('');
-}
-
-// ... (بقية الدوال تبقى كما هي مع تطبيق نفس التحسينات)
 
   function updateSliderDots(index) {
     const dots = DOM.sliderDots.querySelectorAll('.dot');
@@ -246,7 +237,7 @@ function renderMatchList(matches, title) {
 
   showSlide(0);
   startSliderInterval();
-
+}
 
 function getManualBroadcastMatches(allMatches) {
   if (!CONFIG.MANUAL_BROADCAST_MATCHES.length) {
@@ -288,9 +279,9 @@ function renderBroadcastMatches(matches) {
       <div class="broadcast-card" data-id="${match.id}" tabindex="0">
         <div class="teams">
           <div class="team">
-            <img src="${match.homeTeam.logo || 'default-team.png'}" 
+            <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
                  alt="${match.homeTeam.name}" 
-                 onerror="this.src='default-team.png'">
+                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
             <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-time">
@@ -298,9 +289,9 @@ function renderBroadcastMatches(matches) {
             <time datetime="${match.date}">${formatKickoffTime(match.date)}</time>
           </div>
           <div class="team">
-            <img src="${match.awayTeam.logo || 'default-team.png'}" 
+            <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
                  alt="${match.awayTeam.name}" 
-                 onerror="this.src='default-team.png'">
+                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
@@ -309,9 +300,9 @@ function renderBroadcastMatches(matches) {
         
         <div class="match-info">
           <span class="league-info">
-            <img src="${match.league?.logo || 'default-league.png'}" 
+            <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
                  alt="${match.league?.name || 'بطولة غير معروفة'}"
-                 onerror="this.src='default-league.png'">
+                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
             ${match.league?.name || 'بطولة غير معروفة'}
           </span>
           <span class="match-venue">
@@ -417,23 +408,23 @@ function renderMatchList(matches, title) {
     ? matches.map(match => `
         <div class="match-card" data-id="${match.id}">
           <div class="league-info">
-            <img src="${match.league?.logo || 'default-league.png'}" 
+            <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
                  alt="${match.league?.name || 'بطولة غير معروفة'}"
-                 onerror="this.src='default-league.png'">
+                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
             <span>${match.league?.name || 'بطولة غير معروفة'}</span>
           </div>
           <div class="teams">
             <div class="team">
-              <img src="${match.homeTeam.logo || 'default-team.png'}" 
+              <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
                    alt="${match.homeTeam.name}"
-                   onerror="this.src='default-team.png'">
+                   onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
               <span>${match.homeTeam.name}</span>
             </div>
-            <div class="vs">VS</div>
+            <div class="score">${match.score || 'VS'}</div>
             <div class="team">
-              <img src="${match.awayTeam.logo || 'default-team.png'}" 
+              <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
                    alt="${match.awayTeam.name}"
-                   onerror="this.src='default-team.png'">
+                   onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
               <span>${match.awayTeam.name}</span>
             </div>
           </div>
@@ -609,3 +600,13 @@ window.clearMatchesCache = function() {
   showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
   setTimeout(() => location.reload(), 1000);
 };
+
+function tryFallbackCache() {
+  const cachedData = getValidCache();
+  if (cachedData) {
+    appState.matchesData = cachedData;
+    const categorized = categorizeMatches(cachedData);
+    renderFeaturedMatches(categorized.featured);
+    renderAllMatches(categorized);
+  }
+}
