@@ -246,7 +246,7 @@ function renderMatchList(matches, title) {
 
   showSlide(0);
   startSliderInterval();
-}
+
 
 function getManualBroadcastMatches(allMatches) {
   if (!CONFIG.MANUAL_BROADCAST_MATCHES.length) {
