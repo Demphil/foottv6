@@ -20,100 +20,107 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-
-      - name: Initialize Project
-        run: |
-          mkdir -p assets/data
-          echo '{"private":true}' > package.json
+          node-version: '20'
 
       - name: Install Dependencies
-        run: npm install axios cheerio --no-package-lock --no-save
+        run: |
+          npm install axios@1.6.7 cheerio@1.0.0-rc.12 https@latest --no-package-lock --global-style --no-save
 
-      - name: Create Scraper Script
+      - name: Create and Run Scraper
+        env:
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: |
           cat > scrape.js << 'EOF'
-          const axios = require('axios');
+          const axios = require('axios').create({
+            httpsAgent: require('https').Agent({ keepAlive: true })
+          });
           const cheerio = require('cheerio');
           const fs = require('fs');
           const path = require('path');
 
-          async function scrapeLiveScore() {
+          // قائمة البطولات المهمة
+          const IMPORTANT_LEAGUES = {
+            'الدوري السعودي': 564,
+            'الدوري الإنجليزي': 39,
+            'الدوري الإسباني': 140,
+            'الدوري الألماني': 78,
+            'الدوري الإيطالي': 135,
+            'الدوري الفرنسي': 61
+          };
+
+          async function scrapeMatches() {
             try {
               const targetUrl = 'https://www.livescore.com/';
               const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
               
-              console.log('Fetching data from:', apiUrl);
-              const response = await axios.get(apiUrl);
+              console.log('🔍 جاري جلب البيانات من:', targetUrl);
+              const response = await axios.get(apiUrl, {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                timeout: 30000
+              });
+
               const $ = cheerio.load(response.data);
-              
               const matches = [];
-              const IMPORTANT_LEAGUES = ['الدوري السعودي', 'الدوري الإنجليزي', 'الدوري الإسباني', 'الدوري الألماني', 'الدوري الإيطالي', 'الدوري الفرنسي'];
-              
+
+              // استخراج المباريات
               $('.match').each((i, element) => {
                 const match = $(element);
                 const leagueName = match.closest('.league')?.find('.name')?.text()?.trim() || '';
                 
-                if (!IMPORTANT_LEAGUES.some(league => leagueName.includes(league))) {
-                  return;
-                }
-                
+                // تصفية البطولات غير المهمة
+                if (!Object.keys(IMPORTANT_LEAGUES).some(name => leagueName.includes(name))) return;
+
                 const homeTeam = {
                   name: match.find('.home .name')?.text()?.trim() || 'فريق غير معروف',
                   logo: match.find('.home .logo')?.attr('src') || ''
                 };
-                
+
                 const awayTeam = {
                   name: match.find('.away .name')?.text()?.trim() || 'فريق غير معروف',
                   logo: match.find('.away .logo')?.attr('src') || ''
                 };
-                
+
                 matches.push({
-                  id: match.attr('data-id') || Date.now().toString(),
+                  id: match.attr('data-id') || `match-${Date.now()}-${i}`,
                   homeTeam,
                   awayTeam,
                   score: match.find('.score')?.text()?.trim() || 'vs',
                   time: match.find('.time')?.text()?.trim() || 'الآن',
                   date: new Date().toISOString(),
                   league: {
-                    id: generateLeagueId(leagueName),
+                    id: IMPORTANT_LEAGUES[Object.keys(IMPORTANT_LEAGUES).find(name => leagueName.includes(name))] || 0,
                     name: leagueName
                   },
                   venue: match.find('.venue')?.text()?.trim() || 'ملعب غير معروف',
-                  broadcast: extractBroadcastInfo(match)
+                  broadcast: extractBroadcastInfo(match),
+                  manualChannels: leagueName.includes('السعودي') ? ['bein SPORTS HD1'] : []
                 });
               });
-              
+
+              // حفظ البيانات
               const outputPath = path.join('assets', 'data', 'matches.json');
               fs.writeFileSync(outputPath, JSON.stringify(matches, null, 2));
-              console.log(`✅ تم حفظ ${matches.length} مباراة بنجاح`);
-              
+              console.log(`✅ تم حفظ ${matches.length} مباراة بنجاح في ${outputPath}`);
+
             } catch (error) {
               console.error('❌ فشل في جلب البيانات:', error.message);
               createFallbackData();
             }
           }
-          
-          function generateLeagueId(leagueName) {
-            const leagueMap = {
-              'الدوري السعودي': 564,
-              'الدوري الإنجليزي': 39,
-              'الدوري الإسباني': 140,
-              'الدوري الألماني': 78,
-              'الدوري الإيطالي': 135,
-              'الدوري الفرنسي': 61
-            };
-            return leagueMap[leagueName] || Math.floor(Math.random() * 1000);
-          }
-          
+
           function extractBroadcastInfo(match) {
             const broadcastText = match.find('.broadcast')?.text()?.trim();
-            return broadcastText ? broadcastText.split(',').map(channel => ({
-              name: channel.trim()
-            })) : [];
+            if (!broadcastText) return [];
+            
+            return broadcastText.split(',')
+              .map(channel => ({ name: channel.trim() }))
+              .filter(ch => ch.name.includes('SPORTS') || ch.name.includes('HD'));
           }
-          
+
           function createFallbackData() {
+            console.log('⚠️ إنشاء بيانات احتياطية...');
             const fallbackMatches = [
               {
                 id: 'fallback-1',
@@ -131,21 +138,24 @@ jobs:
             
             const outputPath = path.join('assets', 'data', 'matches.json');
             fs.writeFileSync(outputPath, JSON.stringify(fallbackMatches, null, 2));
-            console.log('⚠️ تم استخدام بيانات احتياطية');
+            console.log('✅ تم حفظ البيانات الاحتياطية');
           }
-          
-          scrapeLiveScore();
+
+          scrapeMatches();
           EOF
 
-      - name: Run Scraper
-        env:
-          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
-        run: node scrape.js
+          node scrape.js
+
+      - name: Verify Data
+        run: |
+          echo "📄 محتوى ملف المباريات:"
+          cat assets/data/matches.json
+          echo ""
+          echo "عدد المباريات: $(jq length assets/data/matches.json)"
 
       - name: Commit and Push Changes
         run: |
-          git config --global user.name "GitHub Bot"
-          git config --global user.email "actions@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
           git add assets/data/matches.json
-          git diff --cached --quiet || git commit -m "🔄 تحديث بيانات المباريات عبر ScraperAPI"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main
+          git diff --cached --quiet || (git commit -m "🔄 تحديث تلقائي لبيانات المباريات [skip ci]" && git push)
