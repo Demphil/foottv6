@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ----- الدوال المساعدة ----- //
 
     async function getMatchesData() {
-        const CACHE_KEY = 'football-matches-cache-v5';
+        const CACHE_KEY = 'football-matches-cache-v8';
         const cached = localStorage.getItem(CACHE_KEY);
         
         if (cached) {
@@ -66,47 +66,66 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { data } = JSON.parse(cached);
                 return data;
             } catch {
-                return await fetchMatches();
+                return await fetchFreshMatches();
             }
         }
-        return await fetchMatches();
+        return await fetchFreshMatches();
+    }
+
+    async function fetchFreshMatches() {
+        try {
+            const response = await fetch('assets/data/matches.json');
+            if (!response.ok) throw new Error('Failed to fetch matches');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching matches:', error);
+            throw error;
+        }
     }
 
     function findMatchById(matches, id) {
-        return matches.find(m => m.fixture.id == id);
+        return matches.find(m => m.id == id);
     }
 
     function getOtherMatches(matches, currentMatchId, count) {
         return matches
-            .filter(m => m.fixture.id != currentMatchId)
+            .filter(m => m.id != currentMatchId)
             .sort(() => 0.5 - Math.random())
             .slice(0, count);
     }
 
     function renderMatchDetails(match, selectedChannel, otherMatches) {
-        const { fixture, teams, league } = match;
+        const { homeTeam, awayTeam, league, date, venue, score, time } = match;
         
         // عرض معلومات المباراة الرئيسية
         DOM.matchInfo.innerHTML = `
             <div class="match-header">
                 <div class="league-info">
-                    <img src="${league.logo}" alt="${league.name}" class="league-logo">
-                    <h2>${league.name}</h2>
+                    <img src="${league?.logo || 'default-league.png'}" 
+                         alt="${league?.name || 'بطولة غير معروفة'}" 
+                         class="league-logo"
+                         onerror="this.src='default-league.png'">
+                    <h2>${league?.name || 'بطولة غير معروفة'}</h2>
                 </div>
                 <div class="teams">
                     <div class="team">
-                        <img src="${teams.home.logo}" alt="${teams.home.name}">
-                        <h3>${teams.home.name}</h3>
+                        <img src="${homeTeam.logo || 'default-team.png'}" 
+                             alt="${homeTeam.name}"
+                             onerror="this.src='default-team.png'">
+                        <h3>${homeTeam.name}</h3>
                     </div>
-                    <div class="vs">VS</div>
+                    <div class="vs">${score || 'VS'}</div>
                     <div class="team">
-                        <img src="${teams.away.logo}" alt="${teams.away.name}">
-                        <h3>${teams.away.name}</h3>
+                        <img src="${awayTeam.logo || 'default-team.png'}" 
+                             alt="${awayTeam.name}"
+                             onerror="this.src='default-team.png'">
+                        <h3>${awayTeam.name}</h3>
                     </div>
                 </div>
                 <div class="match-meta">
-                    <p><i class="fas fa-calendar-alt"></i> ${formatDate(fixture.date)}</p>
-                    <p><i class="fas fa-map-marker-alt"></i> ${fixture.venue?.name || 'ملعب غير معروف'}</p>
+                    <p><i class="fas fa-calendar-alt"></i> ${formatDate(date)}</p>
+                    <p><i class="fas fa-clock"></i> ${time || formatTime(date)}</p>
+                    ${venue ? `<p><i class="fas fa-map-marker-alt"></i> ${venue}</p>` : ''}
                 </div>
             </div>
         `;
@@ -119,15 +138,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderChannels(match, selectedChannel) {
-        const channels = getArabicBroadcasters(match.broadcast || []);
+        const channels = getAvailableChannels(match);
         if (channels.length > 0) {
             DOM.channelList.innerHTML = `
                 <h3 class="section-title">القنوات الناقلة:</h3>
                 <div class="channels-container">
                     ${channels.map(c => `
-                        <button class="channel-btn ${c === selectedChannel ? 'active' : ''}" 
-                                data-channel="${getChannelKey(c)}">
-                            ${c}
+                        <button class="channel-btn ${c.key === selectedChannel ? 'active' : ''}" 
+                                data-channel="${c.key}">
+                            ${c.name}
                         </button>
                     `).join('')}
                 </div>
@@ -141,6 +160,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             });
         }
+    }
+
+    function getAvailableChannels(match) {
+        // 1. التحقق من القنوات اليدوية أولاً
+        if (match.manualChannels) {
+            return match.manualChannels.map(name => ({
+                name,
+                key: getChannelKey(name)
+            }));
+        }
+        
+        // 2. التحقق من القنوات في بيانات المباراة
+        const channels = [];
+        if (match.broadcast) {
+            match.broadcast.forEach(b => {
+                const channelName = getArabicChannelName(b.name);
+                if (channelName) {
+                    channels.push({
+                        name: channelName,
+                        key: getChannelKey(channelName)
+                    });
+                }
+            });
+        }
+        
+        // 3. إزالة التكرارات
+        return channels.filter((c, i, a) => 
+            a.findIndex(cc => cc.key === c.key) === i
+        );
     }
 
     function renderOtherMatches(matches) {
@@ -166,33 +214,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function createMatchCard(match) {
-        const { fixture, teams, league } = match;
-        const channels = getArabicBroadcasters(match.broadcast || []);
-        const mainChannel = channels.length > 0 ? getChannelKey(channels[0]) : '';
+        const { id, homeTeam, awayTeam, league, date, time, score } = match;
+        const channels = getAvailableChannels(match);
+        const mainChannel = channels.length > 0 ? channels[0].key : '';
         
         return `
-            <div class="match-card" data-id="${fixture.id}" data-channel="${mainChannel}">
+            <div class="match-card" data-id="${id}" data-channel="${mainChannel}">
                 <div class="card-header">
-                    <img src="${league.logo}" alt="${league.name}" class="league-logo">
-                    <span class="league-name">${league.name}</span>
+                    <img src="${league?.logo || 'default-league.png'}" 
+                         alt="${league?.name || 'بطولة غير معروفة'}" 
+                         class="league-logo"
+                         onerror="this.src='default-league.png'">
+                    <span class="league-name">${league?.name || 'بطولة غير معروفة'}</span>
                 </div>
                 <div class="teams">
                     <div class="team">
-                        <img src="${teams.home.logo}" alt="${teams.home.name}">
-                        <span class="team-name">${teams.home.name}</span>
+                        <img src="${homeTeam.logo || 'default-team.png'}" 
+                             alt="${homeTeam.name}"
+                             onerror="this.src='default-team.png'">
+                        <span class="team-name">${homeTeam.name}</span>
                     </div>
-                    <div class="vs">VS</div>
+                    <div class="vs">${score || 'VS'}</div>
                     <div class="team">
-                        <img src="${teams.away.logo}" alt="${teams.away.name}">
-                        <span class="team-name">${teams.away.name}</span>
+                        <img src="${awayTeam.logo || 'default-team.png'}" 
+                             alt="${awayTeam.name}"
+                             onerror="this.src='default-team.png'">
+                        <span class="team-name">${awayTeam.name}</span>
                     </div>
                 </div>
                 <div class="match-time">
-                    <i class="fas fa-clock"></i> ${formatKickoffTime(fixture.date)}
+                    <i class="fas fa-clock"></i> ${time || formatTime(date)}
                 </div>
                 ${channels.length > 0 ? `
                     <div class="match-channel">
-                        <i class="fas fa-tv"></i> ${channels[0]}
+                        <i class="fas fa-tv"></i> ${channels[0].name}
                     </div>
                 ` : ''}
             </div>
@@ -202,36 +257,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setupLiveStream(channel) {
         const CHANNEL_URLS = {
             'bein-sports-hd1': 'https://stream.sainaertebat.com/hls2/bein1.m3u8',
-            
             'bein-sports-hd2': 'https://z.alkoora.live/albaplayer/on-time-sport-2/',
-            
             'bein-sports-hd3': 'https://z.alkoora.live/albaplayer/on-time-sport-3/',
-            
             'bein-sports-hd4': 'https://yallateri.com/albaplayer/yalla-live-4/',
-            
             'bein-sports-hd5': 'https://12.naba24.net/albaplayer/bn5',
-            
             'bein-sports-hd6': 'https://yallateri.com/albaplayer/yalla-live-6/',
-            
             'ad-sports-premium1': 'https://yallateri.com/albaplayer/yalla-live-7',
-            
             'ssc-hd1': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC1',
-            
             'ssc-hd2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC2',
-            
             'ssc-extra1': 'https://hegazy-iptv5.ddns.net:443/amro8577/amro8577/49.ts',
-            
             'ssc-extra2': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA2',
-            
             'ssc-extra3': 'https://watch.3rbcafee.com/2024/10/sscnew-prem.html?id=SSC_EXTRA3',
-            
             'Arryadia-HD': 'https://snrt.player.easybroadcast.io/events/73_arryadia_k2tgcj0',
-            
-            'Almaghribia':  'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
-            
-            'one-time-sports1': 'https://www.youtube.com/embed/s3VHPNVxmqk',
-
-        
+            'Almaghribia': 'https://snrt.player.easybroadcast.io/events/73_almaghribia_83tz85q',
+            'one-time-sports1': 'https://www.youtube.com/embed/s3VHPNVxmqk'
         };
 
         const streamUrl = CHANNEL_URLS[channel] || CHANNEL_URLS['bein-sports-hd1'];
@@ -299,52 +338,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function getArabicBroadcasters(broadcastData) {
+    function getArabicChannelName(broadcasterName) {
         const ARABIC_CHANNELS = {
             'bein-sports-hd1': 'bein SPORTS HD1',
             'bein-sports-hd2': 'bein SPORTS HD2',
             'bein-sports-hd3': 'bein SPORTS HD3',
+            'bein-sports-hd4': 'bein SPORTS HD4',
             'bein-sports-hd5': 'bein SPORTS HD5',
             'bein-sports-hd6': 'bein SPORTS HD6',
             'ad-sports-premium1': 'AD SPORTS PREMIUM1',
+            'SSC-HD1': 'SSC HD1',
+            'SSC-EXTRA2': 'SSC EXTRA2',
+            'SSC-EXTRA1': 'SSC EXTRA1',
+            'SSC-EXTRA3': 'SSC EXTRA3',
             'Arryadia-HD': 'Arryadia HD',
-            'SSC-HD1': 'ssc hd1',
-            'SSC-EXTRA2': 'ssc extra2',
-            'SSC-EXTRA1': 'ssc extra1',
-            'SSC-EXTRA3': 'ssc extra3',
             'Almaghribia': 'Almaghribia',
-            'one-time-sports1' : 'one time sports1',
-
+            'one-time-sports1': 'one time sports1'
         };
 
-        return broadcastData
-            ?.filter(b => b && b.name)
-            ?.map(b => {
-                const cleanName = b.name.toLowerCase().replace(/\s+/g, '-');
-                const matchedKey = Object.keys(ARABIC_CHANNELS).find(key => 
-                    cleanName.includes(key.toLowerCase())
-                );
-                return matchedKey ? ARABIC_CHANNELS[matchedKey] : null;
-            })
-            ?.filter(Boolean)
-            ?.filter((v, i, a) => a.indexOf(v) === i) || [];
+        if (!broadcasterName) return null;
+        
+        const cleanName = broadcasterName
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/_/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+        
+        const matchedKey = Object.keys(ARABIC_CHANNELS).find(key => 
+            cleanName.includes(key.toLowerCase())
+        );
+        
+        return matchedKey ? ARABIC_CHANNELS[matchedKey] : null;
     }
 
     function getChannelKey(channelName) {
-        const ARABIC_CHANNELS = {
+        const CHANNEL_MAP = {
             'bein SPORTS HD1': 'bein-sports-hd1',
             'bein SPORTS HD2': 'bein-sports-hd2',
             'bein SPORTS HD3': 'bein-sports-hd3',
+            'bein SPORTS HD4': 'bein-sports-hd4',
+            'bein SPORTS HD5': 'bein-sports-hd5',
+            'bein SPORTS HD6': 'bein-sports-hd6',
             'AD SPORTS PREMIUM1': 'ad-sports-premium1',
             'SSC HD1': 'ssc-hd1',
             'SSC EXTRA2': 'ssc-extra2',
             'SSC EXTRA1': 'ssc-extra1',
             'SSC EXTRA3': 'ssc-extra3',
             'Arryadia HD': 'Arryadia-HD',
-            'Almaghribia' : 'Almaghribia',
-            'one time sports1' : 'one-time-sports1',
+            'Almaghribia': 'Almaghribia',
+            'one time sports1': 'one-time-sports1'
         };
-        return ARABIC_CHANNELS[channelName] || '';
+        return CHANNEL_MAP[channelName] || '';
     }
 
     function formatDate(dateStr) {
@@ -360,13 +404,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         return new Date(dateStr).toLocaleDateString('ar-MA', options);
     }
 
-    function formatKickoffTime(dateString) {
+    function formatTime(dateStr) {
         const options = { 
             hour: '2-digit', 
             minute: '2-digit',
             timeZone: 'Africa/Casablanca'
         };
-        return new Date(dateString).toLocaleTimeString('ar-MA', options);
+        return new Date(dateStr).toLocaleTimeString('ar-MA', options);
     }
 
     function showLoading() {
