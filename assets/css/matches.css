@@ -454,56 +454,7 @@ body {
   font-size: 16px;
 }
 
-/* الفوتر */
-.footer {
-  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
-  color: var(--light-color);
-  padding: 20px;
-  text-align: center;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--footer-height);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
 
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.footer-logo .logo-text {
-  color: var(--light-color);
-  font-weight: bold;
-  font-size: 1.2rem;
-  text-decoration: none;
-}
-
-.footer-links {
-  display: flex;
-  gap: 15px;
-}
-
-.footer-links a {
-  color: var(--light-color);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.copyright {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
 
 /* التجاوب مع الشاشات الصغيرة */
 @media (max-width: 768px) {
@@ -552,18 +503,4 @@ body {
     grid-template-columns: 1fr;
   }
   
-  .footer {
-    height: auto;
-    padding: 15px;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .footer-links {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-}
+ 
