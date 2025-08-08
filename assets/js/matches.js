@@ -3,7 +3,7 @@ import { getTodayMatches } from './api.js';
 // 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v11',
+  CACHE_KEY: 'football-matches-cache-v12',
   FEATURED_LEAGUES: [2000, 2021, 2014, 2001, 503, 632, 2015, 2002, 2019, 2003, 521, 2005, 2004],
   FRIENDLY_LEAGUES: [999],
   FRIENDLY_TEAMS: ["Team A", "Team B"],
@@ -33,24 +33,24 @@ const CONFIG = {
   DEFAULT_LEAGUE_LOGO: 'assets/images/default-league.png'
 };
 
-// 2. عناصر DOM مع التحقق
+// 2. عناصر DOM مع نظام المرونة
 const DOM = {
-  loading: document.getElementById('loading'),
-  errorContainer: document.getElementById('error-container'),
-  featuredContainer: document.getElementById('featured-matches'),
-  broadcastContainer: document.getElementById('broadcast-matches'),
-  todayContainer: document.getElementById('today-matches'),
-  tomorrowContainer: document.getElementById('tomorrow-matches'),
-  upcomingContainer: document.getElementById('upcoming-matches'),
-  friendlyContainer: document.getElementById('friendly-matches'),
-  tabButtons: document.querySelectorAll('.tab-btn'),
-  sliderDots: document.querySelector('.slider-dots'),
-  prevBtn: document.querySelector('.slider-prev'),
-  nextBtn: document.querySelector('.slider-next'),
-  toastContainer: document.getElementById('toast-container')
+  get loading() { return getElementWithFallback('loading', 'div') },
+  get errorContainer() { return getElementWithFallback('error-container', 'div') },
+  get featuredContainer() { return getElementWithFallback('featured-matches', 'div') },
+  get broadcastContainer() { return getElementWithFallback('broadcast-matches', 'div') },
+  get todayContainer() { return getElementWithFallback('today-matches', 'div') },
+  get tomorrowContainer() { return getElementWithFallback('tomorrow-matches', 'div') },
+  get upcomingContainer() { return getElementWithFallback('upcoming-matches', 'div') },
+  get friendlyContainer() { return getElementWithFallback('friendly-matches', 'div') },
+  get toastContainer() { return getElementWithFallback('toast-container', 'div') },
+  get tabButtons() { return document.querySelectorAll('.tab-btn') || [] },
+  get sliderDots() { return document.querySelector('.slider-dots') || createPlaceholder('slider-dots', 'div') },
+  get prevBtn() { return document.querySelector('.slider-prev') || createPlaceholder('slider-prev', 'button') },
+  get nextBtn() { return document.querySelector('.slider-next') || createPlaceholder('slider-next', 'button') }
 };
 
-// 3. حالة التطبيق مع تحسينات
+// 3. حالة التطبيق
 const appState = {
   currentTab: 'today',
   sliderInterval: null,
@@ -60,18 +60,56 @@ const appState = {
   debugMode: true
 };
 
-// 4. التهيئة الرئيسية مع التحقق الكامل
-document.addEventListener('DOMContentLoaded', async () => {
+// 4. دوال مساعدة للـ DOM
+function getElementWithFallback(id, tag = 'div') {
+  const element = document.getElementById(id);
+  if (!element) {
+    console.warn(`[DOM Fallback] إنشاء عنصر نائب لـ ${id}`);
+    return createPlaceholder(id, tag);
+  }
+  return element;
+}
+
+function createPlaceholder(id, tag) {
+  const el = document.createElement(tag);
+  el.id = id;
+  el.className = 'dom-placeholder';
+  el.innerHTML = `<span>عنصر ${id} مؤقت</span>`;
+  document.body.appendChild(el);
+  return el;
+}
+
+function verifyEssentialDOM() {
+  const requiredElements = [
+    'loading',
+    'featured-matches',
+    'broadcast-matches',
+    'today-matches',
+    'tomorrow-matches',
+    'upcoming-matches',
+    'toast-container'
+  ];
+
+  requiredElements.forEach(id => {
+    if (!document.getElementById(id)) {
+      console.warn(`[DOM Check] العنصر ${id} غير موجود، جاري إنشائه...`);
+      createPlaceholder(id, 'div');
+    }
+  });
+}
+
+// 5. التهيئة الرئيسية
+async function initializeApp() {
   if (appState.isInitialized) {
     logDebug("التطبيق مهيأ مسبقاً، تخطي التهيئة");
     return;
   }
-  
+
   try {
     showLoading();
     logDebug("بدء تهيئة التطبيق...");
     
-    // التحقق من عناصر DOM الأساسية
+    // التحقق من عناصر DOM
     verifyEssentialDOM();
     
     // جلب البيانات
@@ -87,13 +125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // تصنيف وعرض البيانات
     const categorized = categorizeMatches(data);
-    logDebug("تم تصنيف المباريات:", {
-      today: categorized.today.length,
-      tomorrow: categorized.tomorrow.length,
-      featured: categorized.featured.length,
-      friendly: categorized.friendly.length
-    });
-    
     renderFeaturedMatches(categorized.featured);
     renderBroadcastMatches(getManualBroadcastMatches(data));
     renderAllMatches(categorized);
@@ -112,96 +143,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     tryFallbackCache();
   } finally {
     hideLoading();
-    runFinalChecks();
-  }
-});
-
-// 5. دوال التحقق والصيانة
-function verifyEssentialDOM() {
-  const requiredElements = [
-    'loading', 'featuredContainer', 'broadcastContainer', 
-    'todayContainer', 'tomorrowContainer', 'upcomingContainer'
-  ];
-  
-  requiredElements.forEach(id => {
-    if (!document.getElementById(id)) {
-      throw new Error(`عنصر DOM مطلوب غير موجود: ${id}`);
-    }
-  });
-  
-  logDebug("تم التحقق من عناصر DOM الأساسية بنجاح");
-}
-
-function isValidMatchesData(data) {
-  if (!data || !Array.isArray(data)) {
-    logDebug("بيانات غير صالحة: ليس مصفوفة أو غير موجودة");
-    return false;
-  }
-  
-  if (data.length > 0) {
-    const sampleMatch = data[0];
-    if (!sampleMatch.id || !sampleMatch.homeTeam || !sampleMatch.awayTeam) {
-      logDebug("بيانات غير صالحة: مفقود حقول أساسية");
-      return false;
-    }
-  }
-  
-  return true;
-}
-
-function runFinalChecks() {
-  // اختبار JavaScript الأساسي
-  const testElement = document.createElement('div');
-  testElement.id = "js-test-element";
-  testElement.style.cssText = `
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: red;
-    color: white;
-    padding: 10px;
-    z-index: 9999;
-    display: none;
-  `;
-  testElement.textContent = "اختبار JavaScript - يعمل";
-  document.body.appendChild(testElement);
-  
-  // التحقق من أن عناصر العرض تم تعبئتها
-  setTimeout(() => {
-    const containers = [
-      DOM.featuredContainer,
-      DOM.broadcastContainer,
-      DOM.todayContainer
-    ];
-    
-    containers.forEach(container => {
-      if (container && container.children.length === 0) {
-        console.warn(`⚠️ الحاوية ${container.id} فارغة`);
-      }
-    });
-    
-    // إظهار عنصر الاختبار مؤقتاً
-    testElement.style.display = 'block';
-    setTimeout(() => testElement.remove(), 3000);
-  }, 500);
-}
-
-function logDebug(...args) {
-  if (appState.debugMode) {
-    console.log("🐞 [DEBUG]", ...args);
   }
 }
 
-// 6. نظام التخزين المؤقت المحسن
+// 6. نظام التخزين المؤقت
 async function getMatchesData() {
-  logDebug("التحقق من التخزين المؤقت...");
-  
-  // محاولة استخدام البيانات المخزنة
-  const cached = tryGetValidCache();
-  if (cached) return cached;
-  
-  // جلب بيانات جديدة من API
   try {
+    // محاولة استخدام البيانات المخزنة
+    const cachedData = tryGetValidCache();
+    if (cachedData) return cachedData;
+    
+    // جلب بيانات جديدة من API
     logDebug("جلب بيانات جديدة من API...");
     const freshData = await getTodayMatches();
     
@@ -215,7 +167,6 @@ async function getMatchesData() {
       timestamp: Date.now()
     }));
     
-    logDebug("تم تخزين البيانات الجديدة في الذاكرة المؤقتة");
     return freshData;
   } catch (error) {
     console.error("❌ فشل في جلب البيانات:", error);
@@ -271,15 +222,13 @@ function filterByDate(matches, date) {
   );
 }
 
-// 8. دوال العرض الرئيسية
+// 8. دوال العرض
 function renderFeaturedMatches(matches) {
   if (!matches?.length) {
-    logDebug("لا توجد مباريات مميزة لعرضها");
     DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
     return;
   }
 
-  logDebug(`عرض ${matches.length} مباراة مميزة`);
   const groupedMatches = [];
   for (let i = 0; i < matches.length; i += 4) {
     groupedMatches.push(matches.slice(i, i + 4));
@@ -293,8 +242,7 @@ function initSlider(groups) {
   
   function showSlide(index) {
     currentIndex = index;
-    const slidesHTML = groups[index].map(match => createFeaturedMatchCard(match)).join('');
-    DOM.featuredContainer.innerHTML = slidesHTML;
+    DOM.featuredContainer.innerHTML = groups[index].map(match => createFeaturedMatchCard(match)).join('');
     updateSliderDots(index);
   }
 
@@ -305,44 +253,10 @@ function initSlider(groups) {
     });
   }
 
-  function createFeaturedMatchCard(match) {
-    return `
-      <div class="featured-card" data-id="${match.id}">
-        <div class="league-info">
-          <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
-               alt="${match.league?.name || 'بطولة غير معروفة'}"
-               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
-          <span>${match.league?.name || 'بطولة غير معروفة'}</span>
-        </div>
-        <div class="teams">
-          <div class="team">
-            <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-                 alt="${match.homeTeam.name}"
-                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-            <span>${match.homeTeam.name}</span>
-          </div>
-          <div class="vs">VS</div>
-          <div class="team">
-            <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-                 alt="${match.awayTeam.name}"
-                 onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-            <span>${match.awayTeam.name}</span>
-          </div>
-        </div>
-        <div class="match-info">
-          <span><i class="fas fa-clock"></i> ${formatDate(match.date)}</span>
-          <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  // إعداد نقاط السلايدر
   DOM.sliderDots.innerHTML = groups.map((_, i) => 
     `<span class="dot ${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
   ).join('');
 
-  // أحداث السلايدر
   DOM.prevBtn.addEventListener('click', () => {
     clearInterval(appState.sliderInterval);
     currentIndex = (currentIndex - 1 + groups.length) % groups.length;
@@ -378,7 +292,6 @@ function initSlider(groups) {
 
 function renderBroadcastMatches(matches) {
   if (!matches?.length) {
-    logDebug("لا توجد مباريات مذاعة لعرضها");
     DOM.broadcastContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-tv"></i>
@@ -387,8 +300,50 @@ function renderBroadcastMatches(matches) {
     return;
   }
 
-  logDebug(`عرض ${matches.length} مباراة مذاعة`);
   DOM.broadcastContainer.innerHTML = matches.map(match => createBroadcastMatchCard(match)).join('');
+}
+
+function renderAllMatches({ today, tomorrow, upcoming, friendly }) {
+  DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
+  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
+  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
+  
+  if (DOM.friendlyContainer && friendly?.length > 0) {
+    DOM.friendlyContainer.innerHTML = renderMatchList(friendly, 'ودية');
+  }
+}
+
+// 9. دوال إنشاء البطاقات
+function createFeaturedMatchCard(match) {
+  return `
+    <div class="featured-card" data-id="${match.id}">
+      <div class="league-info">
+        <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
+             alt="${match.league?.name || 'بطولة غير معروفة'}"
+             onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
+        <span>${match.league?.name || 'بطولة غير معروفة'}</span>
+      </div>
+      <div class="teams">
+        <div class="team">
+          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.homeTeam.name}"
+               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+          <span>${match.homeTeam.name}</span>
+        </div>
+        <div class="vs">VS</div>
+        <div class="team">
+          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.awayTeam.name}"
+               onerror="this.onerror=null;this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+          <span>${match.awayTeam.name}</span>
+        </div>
+      </div>
+      <div class="match-info">
+        <span><i class="fas fa-clock"></i> ${formatDate(match.date)}</span>
+        <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
+      </div>
+    </div>
+  `;
 }
 
 function createBroadcastMatchCard(match) {
@@ -439,28 +394,12 @@ function createBroadcastMatchCard(match) {
     </div>`;
 }
 
-function renderAllMatches({ today, tomorrow, upcoming, friendly }) {
-  DOM.todayContainer.innerHTML = renderMatchList(today, 'اليوم');
-  DOM.tomorrowContainer.innerHTML = renderMatchList(tomorrow, 'غداً');
-  DOM.upcomingContainer.innerHTML = renderMatchList(upcoming, 'القادمة');
-  
-  if (DOM.friendlyContainer && friendly?.length > 0) {
-    DOM.friendlyContainer.innerHTML = renderMatchList(friendly, 'ودية');
-  }
-}
-
 function renderMatchList(matches, title) {
   if (!matches?.length) {
-    logDebug(`لا توجد مباريات ${title.toLowerCase()}`);
     return `<p class="no-matches">لا توجد مباريات ${title.toLowerCase()}</p>`;
   }
 
-  logDebug(`عرض ${matches.length} مباراة ${title.toLowerCase()}`);
-  return matches.map(match => createMatchCard(match)).join('');
-}
-
-function createMatchCard(match) {
-  return `
+  return matches.map(match => `
     <div class="match-card" data-id="${match.id}">
       <div class="league-info">
         <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
@@ -488,10 +427,10 @@ function createMatchCard(match) {
         <span><i class="fas fa-map-marker-alt"></i> ${match.venue || 'ملعب غير معروف'}</span>
       </div>
     </div>
-  `;
+  `).join('');
 }
 
-// 9. دوال البث
+// 10. دوال البث
 function getBroadcastStatus(broadcast, match) {
   const manualChannels = getManualBroadcastChannels(match);
   if (manualChannels) {
@@ -518,56 +457,6 @@ function getBroadcastStatus(broadcast, match) {
   };
 }
 
-function getManualBroadcastChannels(match) {
-  return match.manualChannels || null;
-}
-
-function renderBroadcastInfo(status) {
-  if (status.noData) {
-    return `
-      <div class="broadcast-info no-data">
-        <i class="fas fa-info-circle"></i>
-        <span>لا توجد بيانات بث</span>
-      </div>`;
-  }
-  
-  if (status.available) {
-    return `
-      <div class="broadcast-info available">
-        <i class="fas fa-satellite-dish"></i>
-        <span>${status.allChannels.join(' - ')}</span>
-      </div>`;
-  }
-  
-  return `
-    <div class="broadcast-info not-available">
-      <i class="fas fa-exclamation-triangle"></i>
-      <span>غير متاح على القنوات العربية</span>
-    </div>`;
-}
-
-function getArabicBroadcasters(broadcastData) {
-  if (!broadcastData?.length) return [];
-  
-  return broadcastData
-    .filter(b => b && b.name)
-    .map(b => {
-      const cleanName = b.name
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/_/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
-      
-      const matchedKey = Object.keys(CONFIG.ARABIC_CHANNELS).find(key => 
-        cleanName.includes(key.toLowerCase())
-      );
-      
-      return matchedKey ? CONFIG.ARABIC_CHANNELS[matchedKey] : null;
-    })
-    .filter(Boolean)
-    .filter((value, index, self) => self.indexOf(value) === index);
-}
-
 function getManualBroadcastMatches(allMatches) {
   if (!CONFIG.MANUAL_BROADCAST_MATCHES.length) {
     return allMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
@@ -591,19 +480,13 @@ function getManualBroadcastMatches(allMatches) {
   return selectedMatches.length > 0 ? selectedMatches : allMatches.slice(0, CONFIG.MAX_BROADCAST_MATCHES);
 }
 
-// 10. دوال التحكم في الواجهة
+// 11. دوال التحكم في الواجهة
 function showLoading() {
-  if (DOM.loading) {
-    DOM.loading.style.display = 'flex';
-    logDebug("عرض شاشة التحميل");
-  }
+  if (DOM.loading) DOM.loading.style.display = 'flex';
 }
 
 function hideLoading() {
-  if (DOM.loading) {
-    DOM.loading.style.display = 'none';
-    logDebug("إخفاء شاشة التحميل");
-  }
+  if (DOM.loading) DOM.loading.style.display = 'none';
 }
 
 function showError(message) {
@@ -613,7 +496,7 @@ function showError(message) {
         <i class="fas fa-exclamation-circle"></i>
         <span>${message}</span>
       </div>`;
-    logDebug("عرض رسالة الخطأ:", message);
+    DOM.errorContainer.style.display = 'block';
   }
 }
 
@@ -626,10 +509,9 @@ function showToast(message, type = 'info') {
   DOM.toastContainer.appendChild(toast);
   
   setTimeout(() => toast.remove(), 3000);
-  logDebug(`عرض Toast [${type}]:`, message);
 }
 
-// 11. إعدادات واجهة المستخدم
+// 12. إعدادات واجهة المستخدم
 function setupEventListeners() {
   // تبويبات الصفحة
   DOM.tabButtons.forEach(btn => {
@@ -642,13 +524,8 @@ function setupEventListeners() {
         content.classList.remove('active');
       });
       document.getElementById(`${appState.currentTab}-matches`).classList.add('active');
-      
-      logDebug("تم تغيير التبويب إلى:", appState.currentTab);
     });
   });
-  
-  // بطاقات المباريات
-  setupMatchCards();
 }
 
 function setupMatchCards() {
@@ -658,7 +535,6 @@ function setupMatchCards() {
       e.stopPropagation();
       const matchId = btn.dataset.matchId;
       const channel = btn.dataset.channel;
-      logDebug("النقر على مشاهدة المباراة:", matchId);
       watchMatch(matchId, channel);
     });
   });
@@ -670,38 +546,7 @@ function setupMatchCards() {
   });
 }
 
-function handleCardClick(event) {
-  const card = event.currentTarget;
-  if (!event.target.closest('.watch-btn')) {
-    const matchId = card.dataset.id;
-    logDebug("النقر على بطاقة المباراة:", matchId);
-    showMatchDetails(matchId);
-  }
-}
-
-function handleCardKeyPress(event) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    const card = event.currentTarget;
-    const matchId = card.dataset.id;
-    logDebug("الضغط على بطاقة المباراة:", matchId);
-    showMatchDetails(matchId);
-  }
-}
-
-function showMatchDetails(matchId) {
-  const match = findMatchById(matchId);
-  if (match) {
-    logDebug("عرض تفاصيل المباراة:", matchId);
-    // يمكنك إضافة منطق عرض التفاصيل هنا
-  }
-}
-
-function findMatchById(matchId) {
-  return appState.matchesData?.find(m => m.id == matchId);
-}
-
-// 12. دوال مساعدة
+// 13. دوال مساعدة
 function formatDate(dateStr) {
   try {
     const options = { 
@@ -729,7 +574,17 @@ function formatKickoffTime(dateString) {
   return new Date(dateString).toLocaleTimeString('ar-MA', options);
 }
 
-// 13. دوال النظام
+function logDebug(...args) {
+  if (appState.debugMode) {
+    console.log("🐞 [DEBUG]", ...args);
+  }
+}
+
+function isValidMatchesData(data) {
+  return data && Array.isArray(data);
+}
+
+// 14. دوال النظام
 function tryFallbackCache() {
   const cachedData = tryGetValidCache();
   if (cachedData) {
@@ -738,12 +593,11 @@ function tryFallbackCache() {
     renderFeaturedMatches(categorized.featured);
     renderAllMatches(categorized);
     showToast("تم استخدام البيانات المخزنة مؤقتاً", "info");
-  } else {
-    showToast("لا توجد بيانات متاحة", "error");
   }
 }
 
-window.watchMatch = function(matchId, channelName) {
+// 15. دوال المشاهدة
+function watchMatch(matchId, channelName) {
   if (!channelName) {
     showToast('لا توجد قناة عربية متاحة لهذه المباراة', 'error');
     return;
@@ -765,7 +619,7 @@ window.watchMatch = function(matchId, channelName) {
   } else {
     showToast('دعم هذه القناة قريباً', 'info');
   }
-};
+}
 
 function logMatchView(matchId, channel) {
   const history = JSON.parse(localStorage.getItem('matchViews') || '[]');
@@ -775,22 +629,17 @@ function logMatchView(matchId, channel) {
     timestamp: new Date().toISOString()
   });
   localStorage.setItem('matchViews', JSON.stringify(history));
-  logDebug("تسجيل مشاهدة المباراة:", matchId, "على", channel);
 }
 
 window.clearMatchesCache = function() {
   localStorage.removeItem(CONFIG.CACHE_KEY);
   showToast('تم مسح الذاكرة المؤقتة بنجاح', 'success');
-  logDebug("مسح الذاكرة المؤقتة للمباريات");
   setTimeout(() => location.reload(), 1000);
 };
 
-// 14. التصدير للاستخدام العام
-window.debugAppState = () => {
-  console.log("حالة التطبيق:", appState);
-  console.log("آخر بيانات المباريات:", appState.matchesData);
-  return appState;
-};
+// 16. بدء التطبيق
+document.addEventListener('DOMContentLoaded', initializeApp);
+window.watchMatch = watchMatch;
+window.debugAppState = () => appState;
 
-// بدء التشغيل
 console.log("✅ matches.js جاهز للعمل");
