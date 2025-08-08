@@ -198,17 +198,17 @@ function getFallbackMatches() {
       id: 'fallback-1',
       homeTeam: { 
         name: 'النصر', 
-        logo: 'https://www.kooora.com/images/teams/alnassr.png' 
+        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/teams/alnassr.png' 
       },
       awayTeam: { 
         name: 'الهلال', 
-        logo: 'https://www.kooora.com/images/teams/alhilal.png' 
+        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/teams/alhilal.png' 
       },
       score: 'VS',
       time: '21:00',
       league: { 
         name: 'الدوري السعودي', 
-        logo: 'https://www.kooora.com/images/leagues/spl.png' 
+        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/leagues/spl.png' 
       },
       channels: ['KSA Sports'],
       status: 'قادم',
