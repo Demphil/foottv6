@@ -89,6 +89,27 @@ body {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
+/* في ملف matches.css */
+[id$="-matches"] {
+    min-height: 200px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin: 10px 0;
+    padding: 20px;
+}
+
+#loading, #error-container, #toast-container {
+    position: fixed;
+    z-index: 9999;
+}
+
+/* تنسيق العناصر النائبة */
+.placeholder {
+    color: #666;
+    text-align: center;
+    padding: 20px;
+    font-size: 16px;
+}
 
 .placeholder-message {
     text-align: center;
