@@ -68,7 +68,7 @@
 
     <main class="matches-main">
         <!-- شاشة التحميل -->
-        <div class="loader-container" id="loading" style="display: none;">    
+        <div id="loading" class="loader-container" style="display: none;">    
             <div class="loader"></div>
         </div>
         
@@ -82,8 +82,9 @@
             <!-- القسم الأيسر - المباريات المميزة -->
             <section class="featured-section">
                 <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
-                <div class="featured-slider" id="featured-matches">
-                    <div class="placeholder-message">
+                <div id="featured-matches" class="featured-slider">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل المباريات المميزة...</p>
                     </div>
@@ -98,8 +99,9 @@
             <!-- القسم الأيمن - المباريات المنقولة -->
             <section class="broadcast-section">
                 <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
-                <div class="broadcast-list" id="broadcast-matches">
-                    <div class="placeholder-message">
+                <div id="broadcast-matches" class="broadcast-list">
+                    <!-- سيتم ملؤه بواسطة JavaScript -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل المباريات المنقولة...</p>
                     </div>
@@ -117,29 +119,33 @@
             </div>
             
             <div class="matches-grid">
-                <div class="tab-content active" id="today-matches">
-                    <div class="placeholder-message">
+                <div id="today-matches" class="tab-content active">
+                    <!-- مباريات اليوم -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل مباريات اليوم...</p>
                     </div>
                 </div>
                 
-                <div class="tab-content" id="tomorrow-matches">
-                    <div class="placeholder-message">
+                <div id="tomorrow-matches" class="tab-content">
+                    <!-- مباريات الغد -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل مباريات الغد...</p>
                     </div>
                 </div>
                 
-                <div class="tab-content" id="upcoming-matches">
-                    <div class="placeholder-message">
+                <div id="upcoming-matches" class="tab-content">
+                    <!-- المباريات القادمة -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل المباريات القادمة...</p>
                     </div>
                 </div>
                 
-                <div class="tab-content" id="friendly-matches">
-                    <div class="placeholder-message">
+                <div id="friendly-matches" class="tab-content">
+                    <!-- المباريات الودية -->
+                    <div class="loading-placeholder">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>جاري تحميل المباريات الودية...</p>
                     </div>
