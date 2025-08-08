@@ -90,6 +90,22 @@ body {
   transform: translateY(-2px);
 }
 
+.placeholder-message {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.placeholder-message i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.placeholder-message p {
+    margin: 0;
+}
+
 .menu-toggle {
   display: none;
   color: var(--light-color);
