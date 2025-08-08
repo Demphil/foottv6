@@ -3,7 +3,7 @@ const SCRAPER_API_KEY = '1f7befa6374a1d3832ce47ff2ddc44c7'; // استخدم مف
 
 export async function getTodayMatches() {
   try {
-    const targetUrl = 'https://www.livescore.com/';
+    const targetUrl = 'https://www.kooora.com/';
     const apiUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
     
     const response = await fetch(apiUrl);
