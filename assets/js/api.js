@@ -14,7 +14,7 @@ export async function getTodayMatches() {
   if (cachedData) return filterByLeagues(cachedData);
 
   try {
-    const targetUrl = 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/?show=matchs';
+    const targetUrl = 'https://kooora.live-kooora.com/?show=matchs';
     const apiUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&wait_for=3000`;
     
     const response = await fetch(apiUrl);
@@ -56,7 +56,7 @@ function parseKoooraMatches(html) {
       const leagueElement = match.closest('.league-section')?.querySelector('.league-name, .competition');
       
       // معالجة الروابط النسبية للصور
-      const baseUrl = 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85';
+      const baseUrl = 'https://kooora.live-kooora.com';
       const homeLogo = homeTeam.logo?.startsWith('/') ? baseUrl + homeTeam.logo : homeTeam.logo;
       const awayLogo = awayTeam.logo?.startsWith('/') ? baseUrl + awayTeam.logo : awayTeam.logo;
       const leagueLogo = leagueElement?.querySelector('img')?.src;
@@ -198,17 +198,17 @@ function getFallbackMatches() {
       id: 'fallback-1',
       homeTeam: { 
         name: 'النصر', 
-        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/teams/alnassr.png' 
+        logo: 'https://kooora.live-kooora.com/images/teams/alnassr.png' 
       },
       awayTeam: { 
         name: 'الهلال', 
-        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/teams/alhilal.png' 
+        logo: 'https://kooora.live-kooora.com/images/teams/alhilal.png' 
       },
       score: 'VS',
       time: '21:00',
       league: { 
         name: 'الدوري السعودي', 
-        logo: 'https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85/images/leagues/spl.png' 
+        logo: 'https://kooora.live-kooora.com/images/leagues/spl.png' 
       },
       channels: ['KSA Sports'],
       status: 'قادم',
