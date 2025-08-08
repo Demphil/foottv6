@@ -91,32 +91,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 5. نظام التخزين المؤقت
 async function getMatchesData() {
-  const cached = localStorage.getItem(CONFIG.CACHE_KEY);
-  if (cached) {
-    try {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CONFIG.CACHE_DURATION) {
-        showToast('جاري استخدام البيانات المخزنة مؤقتاً', 'info');
-        return data;
-      }
-    } catch (e) {
-      console.warn('Failed to parse cache', e);
-    }
-  }
-  
   try {
     const freshData = await getTodayMatches();
-    if (!freshData) throw new Error('No data received');
+    console.log("Raw API Data:", JSON.stringify(freshData, null, 2)); // عرض البيانات الخام
+    
+    if (!freshData) {
+      console.warn("No data received from API");
+      return [];
+    }
     
     localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify({
       data: freshData,
       timestamp: Date.now()
     }));
     
-    showToast('تم تحديث بيانات المباريات بنجاح', 'success');
     return freshData;
   } catch (error) {
-    console.error('Error fetching fresh data:', error);
+    console.error("API Error Details:", {
+      error: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 }
