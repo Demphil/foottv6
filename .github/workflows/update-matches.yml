@@ -2,16 +2,13 @@ name: Update Matches Data
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # Runs every 3 hours
+    - cron: '0 */3 * * *'  # كل 3 ساعات
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   update-matches:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
@@ -22,146 +19,51 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Prepare Environment
+      - name: Create Matches Data
         run: |
           mkdir -p assets/data
-          npm install axios cheerio --no-package-lock --no-save
-
-      - name: Run Scraper
-        env:
-          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
-        run: |
-          cat << 'EOF' > scrape.js
-          const axios = require('axios');
-          const cheerio = require('cheerio');
-          const fs = require('fs');
-          const path = require('path');
-
-          const BASE_URL = 'https://www.kooora.com';
-          const TARGET_URLS = [
-            `${BASE_URL}/?show=matchs`,    // Today's matches
-            `${BASE_URL}/?show=matchs&d=1` // Tomorrow's matches
-          ];
-
-          async function scrapeMatches() {
-            try {
-              let allMatches = [];
-              
-              for (const url of TARGET_URLS) {
-                const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true`;
-                
-                console.log(`Fetching data from: ${url}`);
-                const response = await axios.get(apiUrl, {
-                  timeout: 30000,
-                  headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-                  }
-                });
-
-                const $ = cheerio.load(response.data);
-                const matches = [];
-
-                // Extract matches data
-                $('.match-item, .match-card').each((i, element) => {
-                  const match = $(element);
-                  const leagueElement = match.closest('.league-section');
-                  
-                  const homeTeam = {
-                    name: match.find('.home-team, .team-home').text().trim() || 'Unknown Team',
-                    logo: match.find('.home-team img, .team-home img').attr('src') || ''
-                  };
-
-                  const awayTeam = {
-                    name: match.find('.away-team, .team-away').text().trim() || 'Unknown Team',
-                    logo: match.find('.away-team img, .team-away img').attr('src') || ''
-                  };
-
-                  const league = {
-                    name: leagueElement.find('.league-name').text().trim() || 'Unknown League',
-                    logo: leagueElement.find('img').attr('src') || ''
-                  };
-
-                  const channels = [];
-                  match.find('.channels img, .broadcasters img').each((i, el) => {
-                    channels.push($(el).attr('alt') || $(el).attr('title') || 'Unknown Channel');
-                  });
-
-                  matches.push({
-                    id: match.attr('id') || `match-${Date.now()}-${i}`,
-                    homeTeam,
-                    awayTeam,
-                    score: match.find('.sc, .score').text().trim() || 'VS',
-                    time: match.find('.match-time, .time').text().trim() || '--:--',
-                    date: new Date().toISOString(),
-                    league,
-                    channels: channels.length ? channels : ['Unknown'],
-                    status: match.hasClass('live') ? 'Live' : 
-                           match.hasClass('finished') ? 'Finished' : 'Upcoming'
-                  });
-                });
-
-                allMatches = [...allMatches, ...matches];
+          cat << 'EOF' > assets/data/matches.json
+          {
+            "today": [
+              {
+                "id": "match-1",
+                "homeTeam": {
+                  "name": "الهلال",
+                  "logo": "https://www.kooora.com/logos/alhilal.png"
+                },
+                "awayTeam": {
+                  "name": "النصر", 
+                  "logo": "https://www.kooora.com/logos/alnassr.png"
+                },
+                "score": "VS",
+                "time": "21:00",
+                "date": "$(date -u +'%Y-%m-%dT21:00:00Z')",
+                "league": {
+                  "name": "الدوري السعودي",
+                  "logo": "https://www.kooora.com/logos/spl.png"
+                },
+                "channels": ["bein SPORTS HD1"],
+                "status": "قادم",
+                "isFeatured": true
               }
-
-              // Categorize matches by date
-              const today = new Date().toISOString().split('T')[0];
-              const result = {
-                today: allMatches.filter(m => m.date.includes(today)),
-                tomorrow: allMatches.filter(m => !m.date.includes(today)),
-                updatedAt: new Date().toISOString()
-              };
-
-              fs.writeFileSync('assets/data/matches.json', JSON.stringify(result, null, 2));
-              console.log(`Successfully saved ${allMatches.length} matches`);
-
-            } catch (error) {
-              console.error('Scraping failed:', error.message);
-              createFallbackData();
-            }
+            ],
+            "tomorrow": [],
+            "updatedAt": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
           }
-
-          function createFallbackData() {
-            const fallbackData = {
-              today: [
-                {
-                  id: 'fallback-1',
-                  homeTeam: { name: 'Al Hilal', logo: '' },
-                  awayTeam: { name: 'Al Nassr', logo: '' },
-                  score: 'VS',
-                  time: '21:00',
-                  date: new Date().toISOString(),
-                  league: { name: 'Saudi League', logo: '' },
-                  channels: ['bein SPORTS HD1'],
-                  status: 'Upcoming'
-                }
-              ],
-              tomorrow: [],
-              updatedAt: new Date().toISOString()
-            };
-
-            if (!fs.existsSync('assets/data')) {
-              fs.mkdirSync('assets/data', { recursive: true });
-            }
-            
-            fs.writeFileSync('assets/data/matches.json', JSON.stringify(fallbackData, null, 2));
-            console.log('Created fallback data');
-          }
-
-          scrapeMatches();
           EOF
-
-          node scrape.js
 
       - name: Verify Data
         run: |
-          echo "Data verification:"
-          echo "Today's matches: $(jq '.today | length' assets/data/matches.json)"
-          echo "Tomorrow's matches: $(jq '.tomorrow | length' assets/data/matches.json)"
-          echo "Last updated: $(jq -r '.updatedAt' assets/data/matches.json)"
+          echo "📂 محتوى ملف matches.json:"
+          cat assets/data/matches.json
+          echo ""
+          echo "🔄 عدد مباريات اليوم: $(jq '.today | length' assets/data/matches.json)"
+          echo "⏱ وقت التحديث: $(jq -r '.updatedAt' assets/data/matches.json)"
 
-      - name: Commit and Push Changes
+      - name: Commit & Push Changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add assets/data/matches.json
-          git diff --cached --quiet || (git commit -m "🔄 Auto-update matches data [skip ci]" && git push)
+          git commit -m "🔄 تحديث بيانات المباريات [skip ci]" || echo "لا يوجد تغييرات جديدة"
+          git push
