@@ -1,1 +1,28 @@
-[]
+{
+  "today": [
+    {
+      "id": "fallback-1",
+      "homeTeam": {
+        "name": "Al Hilal",
+        "logo": ""
+      },
+      "awayTeam": {
+        "name": "Al Nassr",
+        "logo": ""
+      },
+      "score": "VS",
+      "time": "21:00",
+      "date": "2025-08-09T00:24:13.702Z",
+      "league": {
+        "name": "Saudi League",
+        "logo": ""
+      },
+      "channels": [
+        "bein SPORTS HD1"
+      ],
+      "status": "Upcoming"
+    }
+  ],
+  "tomorrow": [],
+  "updatedAt": "2025-08-09T00:24:13.702Z"
+}
