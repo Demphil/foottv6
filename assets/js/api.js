@@ -39,17 +39,21 @@ export async function getTomorrowMatches() {
 
 async function fetchWithProxy(url) {
   try {
-    // محاولة استخدام CORS Anywhere كبروكسي
-    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-    const response = await fetch(proxyUrl, {
+    // المحاولة الأولى: استخدام proxy محلي
+    const localProxyResponse = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+    if (localProxyResponse.ok) return localProxyResponse;
+    
+    // المحاولة الثانية: استخدام CORS Anywhere البديل
+    const corsAnywhereAlt = 'https://cors-anywhere.herokuapp.com/corsdemo/' + url;
+    const altResponse = await fetch(corsAnywhereAlt, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'User-Agent': 'Mozilla/5.0'
+        'Origin': window.location.origin
       }
     });
     
-    if (!response.ok) throw new Error('فشل في جلب البيانات عبر البروكسي');
-    return response;
+    if (!altResponse.ok) throw new Error('فشل في جلب البيانات عبر البروكسي');
+    return altResponse;
   } catch (error) {
     console.error('Error with proxy:', error);
     throw error;
@@ -61,10 +65,10 @@ function parseMatches(html, type) {
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   
-  // هيكل الموقع الجديد
-  const matchBlocks = doc.querySelectorAll('.match-block, .match-item');
+  // استهداف العناصر حسب هيكل الموقع الجديد
+  const matchElements = doc.querySelectorAll('.match-item, .match-row, .match-card');
   
-  matchBlocks.forEach(match => {
+  matchElements.forEach(match => {
     try {
       const leagueInfo = match.closest('.league-section') || match.closest('.panel');
       const leagueName = leagueInfo?.querySelector('.league-title, .panel-heading')?.textContent?.trim() || 'بطولة غير معروفة';
