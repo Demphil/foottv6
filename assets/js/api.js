@@ -1,218 +1,88 @@
 // /assets/js/api.js
-const SCRAPER_API_KEY = '1f7befa6374a1d3832ce47ff2ddc44c7';
+const TARGET_URL = 'https://kooora.live-kooora.com/?show=matchs'; // أو أي موقع تريده
 const CACHE_DURATION = 15 * 60 * 1000; // 15 دقيقة تخزين مؤقت
 
-// قائمة الدوريات المطلوبة مع معرفاتها أو أسمائها
-const TARGET_LEAGUES = {
-  'الدوري السعودي': ['رسمي', 'Saudi League'],
-  'الدوري الإنجليزي': ['Premier League', 'الدوري الإنجليزي'],
-  'دوري أبطال أوروبا': ['Champions League', 'دوري الأبطال']
-};
-
-export async function getTodayMatches() {
+export async function getMatches() {
+  // جلب البيانات المخزنة مؤقتًا إذا كانت حديثة
   const cachedData = getCachedMatches();
-  if (cachedData) return filterByLeagues(cachedData);
+  if (cachedData) return cachedData;
 
   try {
-    const targetUrl = 'https://kooora.live-kooora.com/?show=matchs';
-    const apiUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&wait_for=3000`;
-    
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error(`فشل الجلب مع حالة: ${response.status}`);
-    
+    // 1. جلب HTML من الموقع المستهدف
+    const response = await fetchWithCORSProxy(TARGET_URL);
     const html = await response.text();
-    const matches = parseKoooraMatches(html);
+
+    // 2. استخراج جميع المباريات بدون تصفية
+    const matches = extractAllMatches(html);
     
-    if (!matches || matches.length === 0) {
-      throw new Error('لا توجد مباريات مستلمة');
-    }
-    
+    // 3. تخزين البيانات مؤقتًا
     cacheMatches(matches);
-    return filterByLeagues(matches);
-    
+    return matches;
+
   } catch (error) {
-    console.error('حدث خطأ أثناء جلب المباريات:', error);
-    return filterByLeagues(cachedData || getFallbackMatches());
+    console.error('حدث خطأ:', error);
+    return getCachedMatches() || getFallbackData();
   }
 }
 
-function parseKoooraMatches(html) {
+// دالة الجلب باستخدام CORS Proxy (بدون ScraperAPI)
+async function fetchWithCORSProxy(url) {
+  // استخدم أي خدمة بروكسي مجانية
+  const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+  return await fetch(proxyUrl);
+}
+
+// استخراج جميع المباريات من HTML
+function extractAllMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
-  
-  // العناصر الرئيسية للمباريات في Kooora (يجب تحديثها حسب الهيكل الحالي)
-  const matchElements = doc.querySelectorAll('.match-list > div, .match-card, .match-item');
-  
+
+  // حدد العناصر التي تحتوي على المباريات (يجب تعديلها حسب الموقع)
+  const matchElements = doc.querySelectorAll('.match-item, .match');
+
   matchElements.forEach(match => {
     try {
-      // استخراج بيانات الفريقين
-      const homeTeam = extractTeamData(match, 'home');
-      const awayTeam = extractTeamData(match, 'away');
-      
-      // استخراج بيانات المباراة
-      const scoreElement = match.querySelector('.sc, .score, .match-score');
-      const timeElement = match.querySelector('.match-time, .time, .mt');
-      const leagueElement = match.closest('.league-section')?.querySelector('.league-name, .competition');
-      
-      // معالجة الروابط النسبية للصور
-      const baseUrl = 'https://kooora.live-kooora.com';
-      const homeLogo = homeTeam.logo?.startsWith('/') ? baseUrl + homeTeam.logo : homeTeam.logo;
-      const awayLogo = awayTeam.logo?.startsWith('/') ? baseUrl + awayTeam.logo : awayTeam.logo;
-      const leagueLogo = leagueElement?.querySelector('img')?.src;
-      
-      const matchData = {
-        id: match.id || generateUniqueId(),
-        homeTeam: {
-          name: homeTeam.name || 'فريق غير معروف',
-          logo: homeLogo || getDefaultTeamLogo()
-        },
-        awayTeam: {
-          name: awayTeam.name || 'فريق غير معروف',
-          logo: awayLogo || getDefaultTeamLogo()
-        },
-        score: processScore(scoreElement?.textContent),
-        time: processTime(timeElement?.textContent),
-        date: new Date().toISOString(),
-        league: {
-          name: leagueElement?.textContent?.trim() || 'بطولة غير معروفة',
-          logo: leagueLogo?.startsWith('/') ? baseUrl + leagueLogo : leagueLogo || getDefaultLeagueLogo()
-        },
-        channels: extractChannels(match),
-        status: getMatchStatus(match, scoreElement),
-        isFeatured: checkIfFeatured(leagueElement?.textContent)
-      };
-      
-      if (isValidMatch(matchData)) {
-        matches.push(matchData);
-      }
+      matches.push({
+        homeTeam: match.querySelector('.home-team')?.textContent?.trim() || 'فريق 1',
+        awayTeam: match.querySelector('.away-team')?.textContent?.trim() || 'فريق 2',
+        score: match.querySelector('.score')?.textContent?.trim() || '-',
+        time: match.querySelector('.time')?.textContent?.trim() || '--:--',
+        league: match.closest('.league')?.querySelector('.name')?.textContent?.trim() || 'دوري'
+      });
     } catch (e) {
-      console.error('خطأ في تحليل بيانات المباراة:', e);
+      console.error('خطأ في استخراج مباراة:', e);
     }
   });
-  
+
   return matches;
 }
 
-// دعم إضافي لاستخراج البيانات
-function extractTeamData(matchElement, type) {
-  const teamElement = matchElement.querySelector(`.${type}-team, .team-${type}`);
-  return {
-    name: teamElement?.textContent?.trim(),
-    logo: teamElement?.querySelector('img')?.src
-  };
-}
-
-function extractChannels(matchElement) {
-  const channels = [];
-  const channelElements = matchElement.querySelectorAll('.channels img, .broadcasters img');
-  
-  channelElements.forEach(img => {
-    const channelName = img.alt || img.title || img.dataset.name;
-    if (channelName) {
-      channels.push(channelName);
-    }
-  });
-  
-  return channels.length > 0 ? channels : ['غير معروف'];
-}
-
-function processScore(scoreText) {
-  if (!scoreText) return 'VS';
-  return scoreText.trim().replace(/\s+/g, ' ');
-}
-
-function processTime(timeText) {
-  if (!timeText) return '--:--';
-  return timeText.trim().replace(/\s+/g, ' ');
-}
-
-function getMatchStatus(matchElement, scoreElement) {
-  if (matchElement.classList.contains('live')) return 'مباشر';
-  if (matchElement.classList.contains('finished')) return 'منتهي';
-  if (scoreElement?.textContent?.match(/\d+\s*-\s*\d+/)) return 'منتهي';
-  return 'قادم';
-}
-
-function checkIfFeatured(leagueName) {
-  if (!leagueName) return false;
-  return Object.values(TARGET_LEAGUES).some(leagueNames => 
-    leagueNames.some(name => leagueName.includes(name))
-  );
-}
-
-function filterByLeagues(matches) {
-  return matches.filter(match => {
-    return Object.values(TARGET_LEAGUES).some(leagueNames => 
-      leagueNames.some(name => match.league.name.includes(name))
-    );
-  });
-}
-
-function isValidMatch(match) {
-  return match.homeTeam.name && 
-         match.awayTeam.name && 
-         match.homeTeam.name !== match.awayTeam.name;
-}
-
-// نظام التخزين المؤقت
-function cacheMatches(matches) {
-  try {
-    localStorage.setItem('koooraMatches', JSON.stringify({
-      data: matches,
-      timestamp: Date.now()
-    }));
-  } catch (e) {
-    console.warn('فشل التخزين المؤقت:', e);
-  }
+// نظام التخزين المؤقت البسيط
+function cacheMatches(data) {
+  localStorage.setItem('matchesData', JSON.stringify({
+    data,
+    timestamp: Date.now()
+  }));
 }
 
 function getCachedMatches() {
-  try {
-    const cached = JSON.parse(localStorage.getItem('koooraMatches'));
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached.data;
-    }
-  } catch (e) {
-    console.warn('فشل قراءة التخزين المؤقت:', e);
+  const cached = JSON.parse(localStorage.getItem('matchesData'));
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
   }
   return null;
 }
 
-// أدوات مساعدة
-function generateUniqueId() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
-function getDefaultTeamLogo() {
-  return 'https://via.placeholder.com/50x50.png?text=Team';
-}
-
-function getDefaultLeagueLogo() {
-  return 'https://via.placeholder.com/30x30.png?text=League';
-}
-
-function getFallbackMatches() {
+// بيانات افتراضية عند الفشل
+function getFallbackData() {
   return [
     {
-      id: 'fallback-1',
-      homeTeam: { 
-        name: 'النصر', 
-        logo: 'https://kooora.live-kooora.com/images/teams/alnassr.png' 
-      },
-      awayTeam: { 
-        name: 'الهلال', 
-        logo: 'https://kooora.live-kooora.com/images/teams/alhilal.png' 
-      },
-      score: 'VS',
-      time: '21:00',
-      league: { 
-        name: 'الدوري السعودي', 
-        logo: 'https://kooora.live-kooora.com/images/leagues/spl.png' 
-      },
-      channels: ['KSA Sports'],
-      status: 'قادم',
-      isFeatured: true
+      homeTeam: "فريق أ",
+      awayTeam: "فريق ب",
+      score: "0-0",
+      time: "20:00",
+      league: "الدوري الافتراضي"
     }
   ];
 }
