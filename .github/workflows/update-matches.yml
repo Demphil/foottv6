@@ -21,26 +21,26 @@ jobs:
 
       - name: Create Matches Data
         run: |
-          mkdir -p assets/data
-          cat << 'EOF' > assets/data/matches.json
+          mkdir -p data
+          cat << 'EOF' > data/matches.json
           {
             "today": [
               {
                 "id": "match-1",
                 "homeTeam": {
                   "name": "الهلال",
-                  "logo": "https://www.kooora.com/logos/alhilal.png"
+                  "logo": "https://kooora.live-kooora.com//logos/alhilal.png"
                 },
                 "awayTeam": {
                   "name": "النصر", 
-                  "logo": "https://www.kooora.com/logos/alnassr.png"
+                  "logo": "https://kooora.live-kooora.com//logos/alnassr.png"
                 },
                 "score": "VS",
                 "time": "21:00",
                 "date": "$(date -u +'%Y-%m-%dT21:00:00Z')",
                 "league": {
                   "name": "الدوري السعودي",
-                  "logo": "https://www.kooora.com/logos/spl.png"
+                  "logo": "https://kooora.live-kooora.com//logos/spl.png"
                 },
                 "channels": ["bein SPORTS HD1"],
                 "status": "قادم",
