@@ -3,7 +3,7 @@ import { getTodayMatches, getTomorrowMatches } from './api.js';
 // 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v3',
+  CACHE_KEY: 'football-matches-cache-v4',
   MAJOR_LEAGUES: [
     'الدوري السعودي',
     'الدوري الإنجليزي',
@@ -14,7 +14,6 @@ const CONFIG = {
     'الدوري الفرنسي'
   ],
   SLIDER_INTERVAL: 20000,
-  MAX_BROADCAST_MATCHES: 10,
   ARABIC_CHANNELS: {
     'bein-sports-hd1': 'bein SPORTS HD1',
     'bein-sports-hd2': 'bein SPORTS HD2',
@@ -30,9 +29,14 @@ const CONFIG = {
 const DOM = {
   get loading() { return document.getElementById('loading') },
   get errorContainer() { return document.getElementById('error-container') },
-  get featuredContainer() { return document.getElementById('featured-section') },
-  get broadcastContainer() { return document.getElementById('broadcast-section') },
-  get allMatchesContainer() { return document.getElementById('all-matches') },
+  get featuredContainer() { return document.getElementById('featured-matches') },
+  get broadcastContainer() { return document.getElementById('broadcast-matches') },
+  get todayContainer() { return document.getElementById('today-matches') },
+  get tomorrowContainer() { return document.getElementById('tomorrow-matches') },
+  get upcomingContainer() { return document.getElementById('upcoming-matches') },
+  get friendlyContainer() { return document.getElementById('friendly-matches') },
+  get toastContainer() { return document.getElementById('toast-container') },
+  get tabButtons() { return document.querySelectorAll('.tab-btn') || [] },
   get sliderDots() { return document.querySelector('.slider-dots') },
   get prevBtn() { return document.querySelector('.slider-prev') },
   get nextBtn() { return document.querySelector('.slider-next') }
@@ -40,8 +44,9 @@ const DOM = {
 
 // 3. حالة التطبيق
 const appState = {
-  currentSlide: 0,
+  currentTab: 'today',
   sliderInterval: null,
+  currentSlide: 0,
   matchesData: { today: [], tomorrow: [], all: [] },
   isInitialized: false
 };
@@ -71,7 +76,7 @@ async function initializeApp() {
     
   } catch (error) {
     console.error("Error initializing app:", error);
-    showError('Failed to load matches data');
+    showError('حدث خطأ في تحميل البيانات. يرجى المحاولة لاحقاً');
     tryFallbackCache();
   } finally {
     hideLoading();
@@ -83,41 +88,47 @@ function categorizeMatches() {
   const { today, tomorrow, all } = appState.matchesData;
   
   return {
-    broadcast: today,
+    broadcast: today, // كل مباريات اليوم في قسم البث
     featured: all.filter(match => 
       CONFIG.MAJOR_LEAGUES.some(league => 
         match.league?.name?.includes(league)
-      )
     ),
-    allMatches: [...today, ...tomorrow]
+    today,
+    tomorrow,
+    upcoming: [], // يمكن ملؤه لاحقاً إذا لزم الأمر
+    friendly: []  // يمكن ملؤه لاحقاً إذا لزم الأمر
   };
 }
 
 // 6. عرض الأقسام
 function renderAllSections() {
-  const { broadcast, featured, allMatches } = categorizeMatches();
+  const { broadcast, featured, today, tomorrow } = categorizeMatches();
   
   renderBroadcastSection(broadcast);
   renderFeaturedSection(featured);
-  renderAllMatchesSection(allMatches);
+  renderTodayMatches(today);
+  renderTomorrowMatches(tomorrow);
 }
 
 function renderBroadcastSection(matches) {
+  if (!DOM.broadcastContainer) return;
+  
   if (!matches?.length) {
     DOM.broadcastContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-tv"></i>
-        <p>لا توجد مباريات اليوم</p>
+        <p>لا توجد مباريات منقولة اليوم</p>
       </div>`;
     return;
   }
 
   DOM.broadcastContainer.innerHTML = matches.map(match => `
-    <div class="broadcast-match">
+    <div class="broadcast-match" data-id="${match.id}">
       <div class="teams">
         <div class="team">
           <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.homeTeam.name}">
+               alt="${match.homeTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
           <span>${match.homeTeam.name}</span>
         </div>
         <div class="match-info">
@@ -126,7 +137,8 @@ function renderBroadcastSection(matches) {
         </div>
         <div class="team">
           <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.awayTeam.name}">
+               alt="${match.awayTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
           <span>${match.awayTeam.name}</span>
         </div>
       </div>
@@ -140,12 +152,13 @@ function renderBroadcastSection(matches) {
 }
 
 function renderFeaturedSection(matches) {
+  if (!DOM.featuredContainer) return;
+  
   if (!matches?.length) {
-    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة</p>';
+    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
     return;
   }
 
-  // تقسيم المباريات إلى مجموعات للسلايدر
   const groupedMatches = [];
   for (let i = 0; i < matches.length; i += 4) {
     groupedMatches.push(matches.slice(i, i + 4));
@@ -160,16 +173,18 @@ function initFeaturedSlider(groups) {
   function showSlide(index) {
     currentIndex = index;
     DOM.featuredContainer.innerHTML = groups[index].map(match => `
-      <div class="featured-match">
+      <div class="featured-match" data-id="${match.id}">
         <div class="league-info">
           <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
-               alt="${match.league?.name || 'بطولة'}">
+               alt="${match.league?.name || 'بطولة'}"
+               onerror="this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
           <span>${match.league?.name || 'بطولة'}</span>
         </div>
         <div class="teams">
           <div class="team">
             <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-                 alt="${match.homeTeam.name}">
+                 alt="${match.homeTeam.name}"
+                 onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
             <span>${match.homeTeam.name}</span>
           </div>
           <div class="match-info">
@@ -178,7 +193,8 @@ function initFeaturedSlider(groups) {
           </div>
           <div class="team">
             <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-                 alt="${match.awayTeam.name}">
+                 alt="${match.awayTeam.name}"
+                 onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
             <span>${match.awayTeam.name}</span>
           </div>
         </div>
@@ -196,7 +212,6 @@ function initFeaturedSlider(groups) {
     }
   }
 
-  // الأزرار والتأثيرات
   if (DOM.prevBtn && DOM.nextBtn) {
     DOM.prevBtn.addEventListener('click', () => {
       clearInterval(appState.sliderInterval);
@@ -227,24 +242,28 @@ function initFeaturedSlider(groups) {
   startSlider();
 }
 
-function renderAllMatchesSection(matches) {
+function renderTodayMatches(matches) {
+  if (!DOM.todayContainer) return;
+  
   if (!matches?.length) {
-    DOM.allMatchesContainer.innerHTML = '<p class="no-matches">لا توجد مباريات</p>';
+    DOM.todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات اليوم</p>';
     return;
   }
 
-  DOM.allMatchesContainer.innerHTML = matches.map(match => `
-    <div class="match-card">
+  DOM.todayContainer.innerHTML = matches.map(match => `
+    <div class="match-card" data-id="${match.id}">
       <div class="league-info">
         <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
-             alt="${match.league?.name || 'بطولة'}">
+             alt="${match.league?.name || 'بطولة'}"
+             onerror="this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
         <span>${match.league?.name || 'بطولة'}</span>
       </div>
       <div class="match-details">
         <div class="team home">
           <span>${match.homeTeam.name}</span>
           <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.homeTeam.name}">
+               alt="${match.homeTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
         </div>
         <div class="match-info">
           <span class="score">${match.score || 'VS'}</span>
@@ -252,7 +271,8 @@ function renderAllMatchesSection(matches) {
         </div>
         <div class="team away">
           <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.awayTeam.name}">
+               alt="${match.awayTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
           <span>${match.awayTeam.name}</span>
         </div>
       </div>
@@ -265,7 +285,48 @@ function renderAllMatchesSection(matches) {
   `).join('');
 }
 
-// 7. دوال مساعدة
+function renderTomorrowMatches(matches) {
+  if (!DOM.tomorrowContainer) return;
+  
+  if (!matches?.length) {
+    DOM.tomorrowContainer.innerHTML = '<p class="no-matches">لا توجد مباريات غداً</p>';
+    return;
+  }
+
+  DOM.tomorrowContainer.innerHTML = matches.map(match => `
+    <!-- نفس هيكل بطاقات اليوم -->
+    <div class="match-card" data-id="${match.id}">
+      <!-- محتوى البطاقة -->
+    </div>
+  `).join('');
+}
+
+// 7. إعداد واجهة المستخدم
+function setupEventListeners() {
+  // تغيير التبويبات
+  if (DOM.tabButtons) {
+    DOM.tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        appState.currentTab = tab;
+        
+        // إخفاء كل المحتويات
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // إزالة التنشيط من كل الأزرار
+        DOM.tabButtons.forEach(b => b.classList.remove('active'));
+        
+        // تنشيط الزر الحالي والمحتوى المرتبط به
+        btn.classList.add('active');
+        document.getElementById(`${tab}-matches`).classList.add('active');
+      });
+    });
+  }
+}
+
+// 8. دوال مساعدة
 function showLoading() {
   if (DOM.loading) DOM.loading.style.display = 'flex';
 }
@@ -285,6 +346,17 @@ function showError(message) {
   }
 }
 
+function showToast(message, type = 'info') {
+  if (!DOM.toastContainer) return;
+  
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${message}</span>`;
+  DOM.toastContainer.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
+}
+
 function tryFallbackCache() {
   try {
     const cached = JSON.parse(localStorage.getItem(CONFIG.CACHE_KEY));
@@ -297,26 +369,5 @@ function tryFallbackCache() {
   }
 }
 
-function setupEventListeners() {
-  // نقاط السلايدر
-  if (DOM.sliderDots) {
-    DOM.sliderDots.addEventListener('click', (e) => {
-      if (e.target.classList.contains('dot')) {
-        const index = parseInt(e.target.dataset.index);
-        clearInterval(appState.sliderInterval);
-        appState.currentSlide = index;
-        showSlide(index);
-        startSlider();
-      }
-    });
-  }
-}
-
 // بدء التطبيق
 document.addEventListener('DOMContentLoaded', initializeApp);
-
-// للاستخدام في وحدة التحكم
-window.debugApp = {
-  reloadData: initializeApp,
-  getState: () => appState
-};
