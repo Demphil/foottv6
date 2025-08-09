@@ -38,35 +38,32 @@ export async function getTomorrowMatches() {
 }
 
 async function fetchWithProxy(url) {
-  // قائمة بخوادم البروكسي الاحتياطية
-  const PROXY_SERVERS = [
+  console.log(`محاولة جلب: ${url}`);
+  const PROXIES = [
     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
     `https://thingproxy.freeboard.io/fetch/${url}`
   ];
 
-  for (const proxyUrl of PROXY_SERVERS) {
+  for (const [index, proxyUrl] of PROXIES.entries()) {
     try {
+      console.log(`المحاولة ${index + 1} مع: ${proxyUrl}`);
       const response = await fetch(proxyUrl);
+      console.log("حالة الاستجابة:", response.status);
+      
       if (response.ok) {
-        if (proxyUrl.includes('allorigins.win')) {
-          const data = await response.json();
-          return new Response(data.contents);
-        }
-        return response;
+        const data = proxyUrl.includes('allorigins.win') 
+          ? await response.json() 
+          : { contents: await response.text() };
+        console.log("البيانات المستلمة بنجاح");
+        return new Response(data.contents);
       }
     } catch (e) {
-      console.warn(`Proxy failed: ${proxyUrl}`, e);
+      console.error(`فشل البروكسي ${index + 1}:`, e);
     }
   }
   throw new Error('فشل جميع خوادم البروكسي');
 }
-
-function parseMatches(html, type) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  const matches = [];
-  
   // استهداف العناصر حسب هيكل الموقع
   const matchElements = doc.querySelectorAll('.match-item, .match-row, .match-card');
   
@@ -194,3 +191,10 @@ function getFallbackMatches() {
     }
   ];
 }
+
+console.log("تم عرض الأقسام:", {
+  featured: document.querySelectorAll('.featured-match').length,
+  broadcast: document.querySelectorAll('.broadcast-match').length,
+  today: document.querySelectorAll('#today-matches .match-card').length,
+  tomorrow: document.querySelectorAll('#tomorrow-matches .match-card').length
+});
