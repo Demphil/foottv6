@@ -3,7 +3,7 @@ import { getTodayMatches, getTomorrowMatches } from './api.js';
 // 1. إعدادات التطبيق
 const CONFIG = {
   CACHE_DURATION: 12 * 60 * 60 * 1000, // 12 ساعة
-  CACHE_KEY: 'football-matches-cache-v4',
+  CACHE_KEY: 'football-matches-cache-v5',
   MAJOR_LEAGUES: [
     'الدوري السعودي',
     'الدوري الإنجليزي',
@@ -14,15 +14,10 @@ const CONFIG = {
     'الدوري الفرنسي'
   ],
   SLIDER_INTERVAL: 20000,
-  ARABIC_CHANNELS: {
-    'bein-sports-hd1': 'bein SPORTS HD1',
-    'bein-sports-hd2': 'bein SPORTS HD2',
-    'ad-sports-premium1': 'AD SPORTS PREMIUM1',
-    'ssc': 'SSC'
-  },
-  TIMEZONE: 'Africa/Casablanca',
+  TIMEZONE: 'Africa/Casablanca', // توقيت المغرب
   DEFAULT_TEAM_LOGO: 'assets/images/default-team.png',
-  DEFAULT_LEAGUE_LOGO: 'assets/images/default-league.png'
+  DEFAULT_LEAGUE_LOGO: 'assets/images/default-league.png',
+  EVENING_START_HOUR: 18 // بداية المساء الساعة 6 مساءً
 };
 
 // 2. عناصر DOM
@@ -53,17 +48,15 @@ const appState = {
 
 // 4. التهيئة الرئيسية
 async function initializeApp() {
+  if (appState.isInitialized) return;
+
   try {
-    console.log("بدء تحميل البيانات..."); // ✔️
+    showLoading();
+    
     const [todayMatches, tomorrowMatches] = await Promise.all([
       getTodayMatches(),
       getTomorrowMatches()
     ]);
-    
-    console.log("تم استلام البيانات:", { // ✔️
-      today: todayMatches?.length,
-      tomorrow: tomorrowMatches?.length
-    });
     
     appState.matchesData = {
       today: todayMatches || [],
@@ -71,32 +64,42 @@ async function initializeApp() {
       all: [...(todayMatches || []), ...(tomorrowMatches || [])]
     };
     
-    console.log("تصنيف المباريات..."); // ✔️
-    const categorized = categorizeMatches();
-    console.log("المباريات المصنفة:", { // ✔️
-      broadcast: categorized.broadcast.length,
-      featured: categorized.featured.length,
-      today: categorized.today.length,
-      tomorrow: categorized.tomorrow.length
-    });
-    
     renderAllSections();
-    // ... باقي الكود
+    setupEventListeners();
+    
+    appState.isInitialized = true;
+    
   } catch (error) {
-    console.error("فشل التهيئة:", error); // ✔️
+    console.error("Error initializing app:", error);
+    showError('حدث خطأ في تحميل البيانات. يرجى المحاولة لاحقاً');
+    tryFallbackCache();
+  } finally {
+    hideLoading();
   }
 }
-// 5. تصنيف المباريات
+
+// 5. تصنيف المباريات حسب التوقيت والدوريات
 function categorizeMatches() {
   const { today, tomorrow, all } = appState.matchesData;
+  const now = new Date();
+  const currentHour = now.getHours();
+  
+  // المباريات المسائية (بعد الساعة 6 مساءً حسب توقيت المغرب)
+  const eveningMatches = today.filter(match => {
+    const matchHour = match.time ? parseInt(match.time.split(':')[0]) : 0;
+    return matchHour >= CONFIG.EVENING_START_HOUR;
+  });
+  
+  // المباريات المميزة (الدوريات الكبرى)
+  const featuredMatches = all.filter(match => 
+    CONFIG.MAJOR_LEAGUES.some(league => 
+      match.league?.name?.includes(league)
+    )
+  );
   
   return {
-    broadcast: today,
-    featured: all.filter(match => 
-      CONFIG.MAJOR_LEAGUES.some(league => 
-        match.league?.name?.includes(league)
-      )
-    ),
+    broadcast: eveningMatches, // المباريات المسائية المنقولة
+    featured: featuredMatches, // المباريات المميزة من الدوريات الكبرى
     today,
     tomorrow,
     upcoming: [],
@@ -114,6 +117,7 @@ function renderAllSections() {
   renderTomorrowMatches(tomorrow);
 }
 
+// عرض قسم المباريات المنقولة (المسائية)
 function renderBroadcastSection(matches) {
   if (!DOM.broadcastContainer) return;
   
@@ -121,7 +125,7 @@ function renderBroadcastSection(matches) {
     DOM.broadcastContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-tv"></i>
-        <p>لا توجد مباريات منقولة اليوم</p>
+        <p>لا توجد مباريات منقولة مساء اليوم</p>
       </div>`;
     return;
   }
@@ -155,11 +159,16 @@ function renderBroadcastSection(matches) {
   `).join('');
 }
 
+// عرض قسم المباريات المميزة (الدوريات الكبرى)
 function renderFeaturedSection(matches) {
   if (!DOM.featuredContainer) return;
   
   if (!matches?.length) {
-    DOM.featuredContainer.innerHTML = '<p class="no-matches">لا توجد مباريات مميزة اليوم</p>';
+    DOM.featuredContainer.innerHTML = `
+      <div class="no-matches">
+        <i class="fas fa-star"></i>
+        <p>لا توجد مباريات مميزة اليوم</p>
+      </div>`;
     return;
   }
 
@@ -171,6 +180,103 @@ function renderFeaturedSection(matches) {
   initFeaturedSlider(groupedMatches);
 }
 
+// عرض قسم مباريات اليوم
+function renderTodayMatches(matches) {
+  if (!DOM.todayContainer) return;
+  
+  if (!matches?.length) {
+    DOM.todayContainer.innerHTML = `
+      <div class="no-matches">
+        <i class="fas fa-calendar-day"></i>
+        <p>لا توجد مباريات اليوم</p>
+      </div>`;
+    return;
+  }
+
+  DOM.todayContainer.innerHTML = matches.map(match => `
+    <div class="match-card" data-id="${match.id}">
+      <div class="league-info">
+        <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
+             alt="${match.league?.name || 'بطولة'}"
+             onerror="this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
+        <span>${match.league?.name || 'بطولة'}</span>
+      </div>
+      <div class="match-details">
+        <div class="team home">
+          <span>${match.homeTeam.name}</span>
+          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.homeTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+        </div>
+        <div class="match-info">
+          <span class="score">${match.score || 'VS'}</span>
+          <span class="time">${match.time || '--:--'}</span>
+        </div>
+        <div class="team away">
+          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.awayTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+          <span>${match.awayTeam.name}</span>
+        </div>
+      </div>
+      ${match.channels?.length ? `
+      <div class="match-channels">
+        <i class="fas fa-tv"></i>
+        ${match.channels.join('، ')}
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+// عرض قسم مباريات الغد
+function renderTomorrowMatches(matches) {
+  if (!DOM.tomorrowContainer) return;
+  
+  if (!matches?.length) {
+    DOM.tomorrowContainer.innerHTML = `
+      <div class="no-matches">
+        <i class="fas fa-calendar-alt"></i>
+        <p>لا توجد مباريات غداً</p>
+      </div>`;
+    return;
+  }
+
+  DOM.tomorrowContainer.innerHTML = matches.map(match => `
+    <div class="match-card" data-id="${match.id}">
+      <div class="league-info">
+        <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
+             alt="${match.league?.name || 'بطولة'}"
+             onerror="this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
+        <span>${match.league?.name || 'بطولة'}</span>
+      </div>
+      <div class="match-details">
+        <div class="team home">
+          <span>${match.homeTeam.name}</span>
+          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.homeTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+        </div>
+        <div class="match-info">
+          <span class="score">${match.score || 'VS'}</span>
+          <span class="time">${match.time || '--:--'}</span>
+        </div>
+        <div class="team away">
+          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+               alt="${match.awayTeam.name}"
+               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+          <span>${match.awayTeam.name}</span>
+        </div>
+      </div>
+      ${match.channels?.length ? `
+      <div class="match-channels">
+        <i class="fas fa-tv"></i>
+        ${match.channels.join('، ')}
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+// 7. إعداد السلايدر للمباريات المميزة
 function initFeaturedSlider(groups) {
   let currentIndex = 0;
   
@@ -246,66 +352,7 @@ function initFeaturedSlider(groups) {
   startSlider();
 }
 
-function renderTodayMatches(matches) {
-  if (!DOM.todayContainer) return;
-  
-  if (!matches?.length) {
-    DOM.todayContainer.innerHTML = '<p class="no-matches">لا توجد مباريات اليوم</p>';
-    return;
-  }
-
-  DOM.todayContainer.innerHTML = matches.map(match => `
-    <div class="match-card" data-id="${match.id}">
-      <div class="league-info">
-        <img src="${match.league?.logo || CONFIG.DEFAULT_LEAGUE_LOGO}" 
-             alt="${match.league?.name || 'بطولة'}"
-             onerror="this.src='${CONFIG.DEFAULT_LEAGUE_LOGO}'">
-        <span>${match.league?.name || 'بطولة'}</span>
-      </div>
-      <div class="match-details">
-        <div class="team home">
-          <span>${match.homeTeam.name}</span>
-          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.homeTeam.name}"
-               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-        </div>
-        <div class="match-info">
-          <span class="score">${match.score || 'VS'}</span>
-          <span class="time">${match.time || '--:--'}</span>
-        </div>
-        <div class="team away">
-          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.awayTeam.name}"
-               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-          <span>${match.awayTeam.name}</span>
-        </div>
-      </div>
-      ${match.channels?.length ? `
-      <div class="match-channels">
-        <i class="fas fa-tv"></i>
-        ${match.channels.join('، ')}
-      </div>` : ''}
-    </div>
-  `).join('');
-}
-
-function renderTomorrowMatches(matches) {
-  if (!DOM.tomorrowContainer) return;
-  
-  if (!matches?.length) {
-    DOM.tomorrowContainer.innerHTML = '<p class="no-matches">لا توجد مباريات غداً</p>';
-    return;
-  }
-
-  DOM.tomorrowContainer.innerHTML = matches.map(match => `
-    <!-- نفس هيكل بطاقات اليوم -->
-    <div class="match-card" data-id="${match.id}">
-      <!-- محتوى البطاقة -->
-    </div>
-  `).join('');
-}
-
-// 7. إعداد واجهة المستخدم
+// 8. إعداد واجهة المستخدم
 function setupEventListeners() {
   // تغيير التبويبات
   if (DOM.tabButtons) {
@@ -314,15 +361,12 @@ function setupEventListeners() {
         const tab = btn.dataset.tab;
         appState.currentTab = tab;
         
-        // إخفاء كل المحتويات
         document.querySelectorAll('.tab-content').forEach(content => {
           content.classList.remove('active');
         });
         
-        // إزالة التنشيط من كل الأزرار
         DOM.tabButtons.forEach(b => b.classList.remove('active'));
         
-        // تنشيط الزر الحالي والمحتوى المرتبط به
         btn.classList.add('active');
         document.getElementById(`${tab}-matches`).classList.add('active');
       });
@@ -330,7 +374,7 @@ function setupEventListeners() {
   }
 }
 
-// 8. دوال مساعدة
+// 9. دوال مساعدة
 function showLoading() {
   if (DOM.loading) DOM.loading.style.display = 'flex';
 }
@@ -367,6 +411,7 @@ function tryFallbackCache() {
     if (cached && cached.data) {
       appState.matchesData = cached.data;
       renderAllSections();
+      showToast('تم تحميل البيانات من الذاكرة المؤقتة', 'warning');
     }
   } catch (e) {
     console.error("Error loading cached data:", e);
