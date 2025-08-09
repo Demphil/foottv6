@@ -38,25 +38,28 @@ export async function getTomorrowMatches() {
 }
 
 async function fetchWithProxy(url) {
-  try {
-    // المحاولة الأولى: استخدام proxy محلي
-   const localProxyResponse = await fetch(`/assets/js/proxy.php?url=${encodeURIComponent(url)}`);
-    
-    // المحاولة الثانية: استخدام CORS Anywhere البديل
-    const corsAnywhereAlt = 'https://cors-anywhere.herokuapp.com/corsdemo/' + url;
-    const altResponse = await fetch(corsAnywhereAlt, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Origin': window.location.origin
+  // قائمة بخوادم البروكسي الاحتياطية
+  const PROXY_SERVERS = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://thingproxy.freeboard.io/fetch/${url}`
+  ];
+
+  for (const proxyUrl of PROXY_SERVERS) {
+    try {
+      const response = await fetch(proxyUrl);
+      if (response.ok) {
+        if (proxyUrl.includes('allorigins.win')) {
+          const data = await response.json();
+          return new Response(data.contents);
+        }
+        return response;
       }
-    });
-    
-    if (!altResponse.ok) throw new Error('فشل في جلب البيانات عبر البروكسي');
-    return altResponse;
-  } catch (error) {
-    console.error('Error with proxy:', error);
-    throw error;
+    } catch (e) {
+      console.warn(`Proxy failed: ${proxyUrl}`, e);
+    }
   }
+  throw new Error('فشل جميع خوادم البروكسي');
 }
 
 function parseMatches(html, type) {
@@ -64,7 +67,7 @@ function parseMatches(html, type) {
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   
-  // استهداف العناصر حسب هيكل الموقع الجديد
+  // استهداف العناصر حسب هيكل الموقع
   const matchElements = doc.querySelectorAll('.match-item, .match-row, .match-card');
   
   matchElements.forEach(match => {
@@ -118,24 +121,8 @@ function extractTime(matchElement, type) {
     return matchElement.querySelector('.match-time, .time')?.textContent?.trim() || '--:--';
   } else {
     const dateStr = matchElement.querySelector('.match-date, .date')?.textContent?.trim();
-    return dateStr ? formatTomorrowDate(dateStr) : '--:--';
+    return dateStr || '--:--';
   }
-}
-
-function formatTomorrowDate(dateStr) {
-  // تحويل التاريخ العربي إلى تنسيق معين
-  const arabicToEnglish = {
-    'يناير': '01', 'فبراير': '02', 'مارس': '03', 'أبريل': '04',
-    'مايو': '05', 'يونيو': '06', 'يوليو': '07', 'أغسطس': '08',
-    'سبتمبر': '09', 'أكتوبر': '10', 'نوفمبر': '11', 'ديسمبر': '12'
-  };
-  
-  for (const [ar, en] of Object.entries(arabicToEnglish)) {
-    if (dateStr.includes(ar)) {
-      return dateStr.replace(ar, en).replace(/[^0-9\/]/g, '');
-    }
-  }
-  return dateStr;
 }
 
 function extractChannels(matchElement) {
