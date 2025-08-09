@@ -88,15 +88,16 @@ function categorizeMatches() {
   const { today, tomorrow, all } = appState.matchesData;
   
   return {
-    broadcast: today, // كل مباريات اليوم في قسم البث
+    broadcast: today,
     featured: all.filter(match => 
       CONFIG.MAJOR_LEAGUES.some(league => 
         match.league?.name?.includes(league)
+      )
     ),
     today,
     tomorrow,
-    upcoming: [], // يمكن ملؤه لاحقاً إذا لزم الأمر
-    friendly: []  // يمكن ملؤه لاحقاً إذا لزم الأمر
+    upcoming: [],
+    friendly: []
   };
 }
 
