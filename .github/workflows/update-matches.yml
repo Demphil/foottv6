@@ -2,7 +2,7 @@ name: Update Matches Data
 
 on:
   schedule:
-    - cron: '0 */3 * * *'  # كل 3 ساعات
+    - cron: '0 */3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -26,25 +29,24 @@ jobs:
           {
             "today": [
               {
-                "id": "match-1",
+                "id": "match-$(date +%s)",
                 "homeTeam": {
                   "name": "الهلال",
-                  "logo": "https://kooora.live-kooora.com//logos/alhilal.png"
+                  "logo": "/images/teams/alhilal.png"
                 },
                 "awayTeam": {
-                  "name": "النصر", 
-                  "logo": "https://kooora.live-kooora.com//logos/alnassr.png"
+                  "name": "النصر",
+                  "logo": "/images/teams/alnassr.png"
                 },
                 "score": "VS",
                 "time": "21:00",
                 "date": "$(date -u +'%Y-%m-%dT21:00:00Z')",
                 "league": {
                   "name": "الدوري السعودي",
-                  "logo": "https://kooora.live-kooora.com//logos/spl.png"
+                  "logo": "/images/leagues/spl.png"
                 },
                 "channels": ["bein SPORTS HD1"],
-                "status": "قادم",
-                "isFeatured": true
+                "status": "قادم"
               }
             ],
             "tomorrow": [],
@@ -52,18 +54,8 @@ jobs:
           }
           EOF
 
-      - name: Verify Data
-        run: |
-          echo "📂 محتوى ملف matches.json:"
-          cat assets/data/matches.json
-          echo ""
-          echo "🔄 عدد مباريات اليوم: $(jq '.today | length' assets/data/matches.json)"
-          echo "⏱ وقت التحديث: $(jq -r '.updatedAt' assets/data/matches.json)"
-
       - name: Commit & Push Changes
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add assets/data/matches.json
-          git commit -m "🔄 تحديث بيانات المباريات [skip ci]" || echo "لا يوجد تغييرات جديدة"
+          git add data/matches.json
+          git diff --cached --quiet || (git commit -m "🔄 تحديث بيانات المباريات [auto]")
           git push
