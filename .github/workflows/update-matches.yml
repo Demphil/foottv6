@@ -2,7 +2,7 @@ name: Update Matches Data
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # كل 6 ساعات
+    - cron: '0 */3 * * *'  # كل 3 ساعات (بدلاً من 6)
   workflow_dispatch:
 
 permissions:
@@ -25,107 +25,126 @@ jobs:
       - name: Prepare Environment
         run: |
           mkdir -p assets/data
-          npm install axios@1.6.7 cheerio@1.0.0-rc.12 --no-package-lock --no-save
+          npm install axios cheerio --no-package-lock --no-save
 
       - name: Run Scraper
         env:
           SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: |
           cat << 'EOF' > scrape.js
-          const axios = require('axios').create({
-            httpsAgent: require('https').Agent({ keepAlive: true })
-          });
+          const axios = require('axios');
           const cheerio = require('cheerio');
           const fs = require('fs');
           const path = require('path');
-          
-          const IMPORTANT_LEAGUES = {
-            'الدوري السعودي': 564,
-            'الدوري الإنجليزي': 39,
-            'الدوري الإسباني': 140,
-            'الدوري الألماني': 78,
-            'الدوري الإيطالي': 135,
-            'الدوري الفرنسي': 61
-          };
+
+          const BASE_URL = 'https://www.kooora.com';
+          const TARGET_URLS = [
+            `${BASE_URL}/?show=matchs`,    # مباريات اليوم
+            `${BASE_URL}/?show=matchs&d=1` # مباريات الغد
+          ];
 
           async function scrapeMatches() {
             try {
-              const targetUrl = 'https://kooora.live-kooora.com/';
-              const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
+              let allMatches = [];
               
-              console.log('Fetching data from:', targetUrl);
-              const response = await axios.get(apiUrl, {
-                headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                },
-                timeout: 30000
-              });
-
-              const $ = cheerio.load(response.data);
-              const matches = [];
-
-              // استخراج المباريات - تحتاج لتعديل حسب هيكل موقع كوورة
-              $('.match-row').each((i, element) => {
-                const match = $(element);
-                const leagueName = match.closest('.league-container')?.find('.league-name')?.text()?.trim() || '';
+              for (const url of TARGET_URLS) {
+                const apiUrl = `https://api.scraperapi.com/?api_key=${process.env.SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true`;
                 
-                if (!Object.keys(IMPORTANT_LEAGUES).some(name => leagueName.includes(name))) return;
-
-                matches.push({
-                  id: match.attr('id') || `match-${Date.now()}-${i}`,
-                  homeTeam: {
-                    name: match.find('.team-home')?.text()?.trim() || 'فريق غير معروف',
-                    logo: match.find('.team-home img')?.attr('src') || ''
-                  },
-                  awayTeam: {
-                    name: match.find('.team-away')?.text()?.trim() || 'فريق غير معروف',
-                    logo: match.find('.team-away img')?.attr('src') || ''
-                  },
-                  score: match.find('.match-score')?.text()?.trim() || 'vs',
-                  time: match.find('.match-time')?.text()?.trim() || 'الآن',
-                  date: new Date().toISOString(),
-                  league: {
-                    id: IMPORTANT_LEAGUES[Object.keys(IMPORTANT_LEAGUES).find(name => leagueName.includes(name))] || 0,
-                    name: leagueName
-                  },
-                  venue: match.find('.match-venue')?.text()?.trim() || 'ملعب غير معروف',
-                  broadcast: [],
-                  manualChannels: leagueName.includes('السعودي') ? ['bein SPORTS HD1'] : []
+                console.log(`Fetching data from: ${url}`);
+                const response = await axios.get(apiUrl, {
+                  timeout: 30000,
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                  }
                 });
-              });
 
-              fs.writeFileSync('assets/data/matches.json', JSON.stringify(matches, null, 2));
-              console.log(`Successfully saved ${matches.length} matches`);
+                const $ = cheerio.load(response.data);
+                const matches = [];
+
+                // استخراج المباريات حسب الهيكل الجديد
+                $('.match-item, .match-card').each((i, element) => {
+                  const match = $(element);
+                  const leagueElement = match.closest('.league-section');
+                  
+                  const homeTeam = {
+                    name: match.find('.home-team, .team-home').text().trim() || 'فريق غير معروف',
+                    logo: match.find('.home-team img, .team-home img').attr('src') || ''
+                  };
+
+                  const awayTeam = {
+                    name: match.find('.away-team, .team-away').text().trim() || 'فريق غير معروف',
+                    logo: match.find('.away-team img, .team-away img').attr('src') || ''
+                  };
+
+                  const league = {
+                    name: leagueElement.find('.league-name').text().trim() || 'بطولة غير معروفة',
+                    logo: leagueElement.find('img').attr('src') || ''
+                  };
+
+                  const channels = [];
+                  match.find('.channels img, .broadcasters img').each((i, el) => {
+                    channels.push($(el).attr('alt') || $(el).attr('title') || 'قناة غير معروفة');
+                  });
+
+                  matches.push({
+                    id: match.attr('id') || `match-${Date.now()}-${i}`,
+                    homeTeam,
+                    awayTeam,
+                    score: match.find('.sc, .score').text().trim() || 'VS',
+                    time: match.find('.match-time, .time').text().trim() || '--:--',
+                    date: new Date().toISOString(),
+                    league,
+                    channels: channels.length ? channels : ['غير معروف'],
+                    status: match.hasClass('live') ? 'مباشر' : 
+                           match.hasClass('finished') ? 'منتهي' : 'قادم'
+                  });
+                });
+
+                allMatches = [...allMatches, ...matches];
+              }
+
+              // تصنيف المباريات حسب اليوم والغد
+              const today = new Date().toISOString().split('T')[0];
+              const result = {
+                today: allMatches.filter(m => m.date.includes(today)),
+                tomorrow: allMatches.filter(m => !m.date.includes(today)),
+                updatedAt: new Date().toISOString()
+              };
+
+              fs.writeFileSync('assets/data/matches.json', JSON.stringify(result, null, 2));
+              console.log(`✅ تم حفظ ${allMatches.length} مباراة بنجاح`);
 
             } catch (error) {
-              console.error('Scraping failed:', error.message);
+              console.error('❌ فشل في جلب البيانات:', error.message);
               createFallbackData();
             }
           }
 
           function createFallbackData() {
-            const fallbackMatches = [
-              {
-                id: 'fallback-1',
-                homeTeam: { name: 'الهلال', logo: '' },
-                awayTeam: { name: 'النصر', logo: '' },
-                score: 'vs',
-                time: '21:00',
-                date: new Date().toISOString(),
-                league: { id: 564, name: 'الدوري السعودي' },
-                venue: 'ملعب الملك فهد',
-                broadcast: [{ name: 'bein SPORTS HD1' }],
-                manualChannels: ['bein SPORTS HD1']
-              }
-            ];
-            
+            const fallbackData = {
+              today: [
+                {
+                  id: 'fallback-1',
+                  homeTeam: { name: 'الهلال', logo: '' },
+                  awayTeam: { name: 'النصر', logo: '' },
+                  score: 'VS',
+                  time: '21:00',
+                  date: new Date().toISOString(),
+                  league: { name: 'الدوري السعودي', logo: '' },
+                  channels: ['bein SPORTS HD1'],
+                  status: 'قادم'
+                }
+              ],
+              tomorrow: [],
+              updatedAt: new Date().toISOString()
+            };
+
             if (!fs.existsSync('assets/data')) {
               fs.mkdirSync('assets/data', { recursive: true });
             }
             
-            fs.writeFileSync('assets/data/matches.json', JSON.stringify(fallbackMatches, null, 2));
-            console.log('Fallback data created');
+            fs.writeFileSync('assets/data/matches.json', JSON.stringify(fallbackData, null, 2));
+            console.log('🔄 تم إنشاء بيانات احتياطية');
           }
 
           scrapeMatches();
@@ -135,14 +154,14 @@ jobs:
 
       - name: Verify Data
         run: |
-          echo "File content:"
-          cat assets/data/matches.json
-          echo ""
-          echo "Match count: $(jq length assets/data/matches.json)"
+          echo "تحقق من البيانات:"
+          echo "عدد مباريات اليوم: $(jq '.today | length' assets/data/matches.json)"
+          echo "عدد مباريات الغد: $(jq '.tomorrow | length' assets/data/matches.json)"
+          echo "آخر تحديث: $(jq -r '.updatedAt' assets/data/matches.json)"
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add assets/data/matches.json
-          git diff --cached --quiet || (git commit -m "🔄 Auto-update matches data [skip ci]" && git push)
+          git diff --cached --quiet || (git commit -m "🔄 تحديث تلقائي لبيانات المباريات [skip ci]" && git push)
