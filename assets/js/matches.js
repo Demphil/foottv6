@@ -53,15 +53,17 @@ const appState = {
 
 // 4. التهيئة الرئيسية
 async function initializeApp() {
-  if (appState.isInitialized) return;
-
   try {
-    showLoading();
-    
+    console.log("بدء تحميل البيانات..."); // ✔️
     const [todayMatches, tomorrowMatches] = await Promise.all([
       getTodayMatches(),
       getTomorrowMatches()
     ]);
+    
+    console.log("تم استلام البيانات:", { // ✔️
+      today: todayMatches?.length,
+      tomorrow: tomorrowMatches?.length
+    });
     
     appState.matchesData = {
       today: todayMatches || [],
@@ -69,20 +71,21 @@ async function initializeApp() {
       all: [...(todayMatches || []), ...(tomorrowMatches || [])]
     };
     
+    console.log("تصنيف المباريات..."); // ✔️
+    const categorized = categorizeMatches();
+    console.log("المباريات المصنفة:", { // ✔️
+      broadcast: categorized.broadcast.length,
+      featured: categorized.featured.length,
+      today: categorized.today.length,
+      tomorrow: categorized.tomorrow.length
+    });
+    
     renderAllSections();
-    setupEventListeners();
-    
-    appState.isInitialized = true;
-    
+    // ... باقي الكود
   } catch (error) {
-    console.error("Error initializing app:", error);
-    showError('حدث خطأ في تحميل البيانات. يرجى المحاولة لاحقاً');
-    tryFallbackCache();
-  } finally {
-    hideLoading();
+    console.error("فشل التهيئة:", error); // ✔️
   }
 }
-
 // 5. تصنيف المباريات
 function categorizeMatches() {
   const { today, tomorrow, all } = appState.matchesData;
