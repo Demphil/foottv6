@@ -40,8 +40,7 @@ export async function getTomorrowMatches() {
 async function fetchWithProxy(url) {
   try {
     // المحاولة الأولى: استخدام proxy محلي
-    const localProxyResponse = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
-    if (localProxyResponse.ok) return localProxyResponse;
+   const localProxyResponse = await fetch(`/assets/js/proxy.php?url=${encodeURIComponent(url)}`);
     
     // المحاولة الثانية: استخدام CORS Anywhere البديل
     const corsAnywhereAlt = 'https://cors-anywhere.herokuapp.com/corsdemo/' + url;
