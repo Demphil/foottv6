@@ -1,79 +1,103 @@
-// /assets/js/api.js
 const BASE_URL = 'https://kooora.live-kooora.com';
 const CACHE_DURATION = 15 * 60 * 1000; // 15 دقيقة تخزين مؤقت
 
 export async function getTodayMatches() {
-  const cachedData = getCachedMatches();
+  const cachedData = getCachedMatches('today');
   if (cachedData) return cachedData;
 
   try {
-    const todayUrl = `${BASE_URL}/?show=matchs`;
-    const response = await fetchWithProxy(todayUrl);
+    const response = await fetchWithProxy(`${BASE_URL}/?show=matchs`);
+    if (!response.ok) throw new Error('فشل جلب البيانات');
     const html = await response.text();
-    const matches = parseMatches(html);
+    const matches = parseMatches(html, 'today');
     
-    cacheMatches(matches);
+    cacheMatches(matches, 'today');
     return matches;
-    
   } catch (error) {
     console.error('حدث خطأ أثناء جلب المباريات:', error);
-    return getCachedMatches() || getFallbackMatches();
+    return getCachedMatches('today') || getFallbackMatches();
   }
 }
 
 export async function getTomorrowMatches() {
+  const cachedData = getCachedMatches('tomorrow');
+  if (cachedData) return cachedData;
+
   try {
-    const tomorrowUrl = `${BASE_URL}/?show=matchs&d=1`;
-    const response = await fetchWithProxy(tomorrowUrl);
+    const response = await fetchWithProxy(`${BASE_URL}/?show=matchs&d=1`);
+    if (!response.ok) throw new Error('فشل جلب البيانات');
     const html = await response.text();
-    return parseMatches(html);
+    const matches = parseMatches(html, 'tomorrow');
+    
+    cacheMatches(matches, 'tomorrow');
+    return matches;
   } catch (error) {
     console.error('حدث خطأ أثناء جلب مباريات الغد:', error);
-    return [];
+    return getCachedMatches('tomorrow') || [];
   }
 }
 
 async function fetchWithProxy(url) {
-  // يمكن استبدال هذا ببروكسي خاص بك إذا لزم الأمر
-  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const response = await fetch(proxyUrl);
-  const data = await response.json();
-  return new Response(data.contents);
+  try {
+    // محاولة استخدام CORS Anywhere كبروكسي
+    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+    const response = await fetch(proxyUrl, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0'
+      }
+    });
+    
+    if (!response.ok) throw new Error('فشل في جلب البيانات عبر البروكسي');
+    return response;
+  } catch (error) {
+    console.error('Error with proxy:', error);
+    throw error;
+  }
 }
 
-function parseMatches(html) {
+function parseMatches(html, type) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   
-  // تحديد العناصر حسب هيكل موقع Kooora الحالي
-  const matchElements = doc.querySelectorAll('.match-list .match-item, .match-card');
+  // هيكل الموقع الجديد
+  const matchBlocks = doc.querySelectorAll('.match-block, .match-item');
   
-  matchElements.forEach(match => {
+  matchBlocks.forEach(match => {
     try {
-      const homeTeam = extractTeamData(match, 'home');
-      const awayTeam = extractTeamData(match, 'away');
-      const score = match.querySelector('.sc, .score')?.textContent?.trim() || 'VS';
-      const time = match.querySelector('.match-time, .time')?.textContent?.trim() || '--:--';
-      const league = match.closest('.league-section')?.querySelector('.league-name')?.textContent?.trim() || 'بطولة غير معروفة';
-      const leagueLogo = match.closest('.league-section')?.querySelector('img')?.src || '';
+      const leagueInfo = match.closest('.league-section') || match.closest('.panel');
+      const leagueName = leagueInfo?.querySelector('.league-title, .panel-heading')?.textContent?.trim() || 'بطولة غير معروفة';
+      const leagueLogo = leagueInfo?.querySelector('img')?.src || '';
+      
+      const homeTeam = {
+        name: match.querySelector('.team-home, .home-team')?.textContent?.trim() || 'فريق غير معروف',
+        logo: match.querySelector('.team-home img, .home-team img')?.src || ''
+      };
+      
+      const awayTeam = {
+        name: match.querySelector('.team-away, .away-team')?.textContent?.trim() || 'فريق غير معروف',
+        logo: match.querySelector('.team-away img, .away-team img')?.src || ''
+      };
+      
+      const score = match.querySelector('.match-score, .score')?.textContent?.trim() || 'VS';
+      const time = extractTime(match, type);
       
       matches.push({
         id: match.id || generateUniqueId(),
         homeTeam: {
-          name: homeTeam.name || 'فريق غير معروف',
-          logo: convertToAbsoluteUrl(homeTeam.logo)
+          name: homeTeam.name,
+          logo: fixImageUrl(homeTeam.logo)
         },
         awayTeam: {
-          name: awayTeam.name || 'فريق غير معروف',
-          logo: convertToAbsoluteUrl(awayTeam.logo)
+          name: awayTeam.name,
+          logo: fixImageUrl(awayTeam.logo)
         },
         score: score,
         time: time,
-        date: new Date().toISOString(), // سيتم تصحيحه لاحقاً
         league: {
-          name: league,
-          logo: convertToAbsoluteUrl(leagueLogo)
+          name: leagueName,
+          logo: fixImageUrl(leagueLogo)
         },
         channels: extractChannels(match),
         status: getMatchStatus(match)
@@ -86,20 +110,38 @@ function parseMatches(html) {
   return matches;
 }
 
-function extractTeamData(matchElement, type) {
-  const teamElement = matchElement.querySelector(`.${type}-team, .team-${type}`);
-  return {
-    name: teamElement?.textContent?.trim(),
-    logo: teamElement?.querySelector('img')?.src
+function extractTime(matchElement, type) {
+  if (type === 'today') {
+    return matchElement.querySelector('.match-time, .time')?.textContent?.trim() || '--:--';
+  } else {
+    const dateStr = matchElement.querySelector('.match-date, .date')?.textContent?.trim();
+    return dateStr ? formatTomorrowDate(dateStr) : '--:--';
+  }
+}
+
+function formatTomorrowDate(dateStr) {
+  // تحويل التاريخ العربي إلى تنسيق معين
+  const arabicToEnglish = {
+    'يناير': '01', 'فبراير': '02', 'مارس': '03', 'أبريل': '04',
+    'مايو': '05', 'يونيو': '06', 'يوليو': '07', 'أغسطس': '08',
+    'سبتمبر': '09', 'أكتوبر': '10', 'نوفمبر': '11', 'ديسمبر': '12'
   };
+  
+  for (const [ar, en] of Object.entries(arabicToEnglish)) {
+    if (dateStr.includes(ar)) {
+      return dateStr.replace(ar, en).replace(/[^0-9\/]/g, '');
+    }
+  }
+  return dateStr;
 }
 
 function extractChannels(matchElement) {
   const channels = [];
-  const channelElements = matchElement.querySelectorAll('.channels img, .broadcasters img');
+  const channelElements = matchElement.querySelectorAll('.channel-logo, .broadcaster');
   
-  channelElements.forEach(img => {
-    channels.push(img.alt || img.title || 'قناة غير معروفة');
+  channelElements.forEach(el => {
+    const channelName = el.getAttribute('title') || el.alt || el.dataset.name;
+    if (channelName) channels.push(channelName);
   });
   
   return channels.length > 0 ? channels : ['غير معروف'];
@@ -107,25 +149,28 @@ function extractChannels(matchElement) {
 
 function getMatchStatus(matchElement) {
   if (matchElement.classList.contains('live')) return 'مباشر';
+  if (matchElement.querySelector('.live-icon')) return 'مباشر';
   if (matchElement.classList.contains('finished')) return 'منتهي';
   return 'قادم';
 }
 
-function convertToAbsoluteUrl(url) {
+function fixImageUrl(url) {
   if (!url) return '';
   return url.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 // نظام التخزين المؤقت
-function cacheMatches(matches) {
-  localStorage.setItem('koooraMatches', JSON.stringify({
+function cacheMatches(matches, type) {
+  const cacheKey = `kooora-matches-${type}`;
+  localStorage.setItem(cacheKey, JSON.stringify({
     data: matches,
     timestamp: Date.now()
   }));
 }
 
-function getCachedMatches() {
-  const cached = JSON.parse(localStorage.getItem('koooraMatches'));
+function getCachedMatches(type) {
+  const cacheKey = `kooora-matches-${type}`;
+  const cached = JSON.parse(localStorage.getItem(cacheKey));
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
@@ -133,7 +178,7 @@ function getCachedMatches() {
 }
 
 function generateUniqueId() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `match-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
 function getFallbackMatches() {
