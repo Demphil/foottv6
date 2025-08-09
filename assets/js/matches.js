@@ -49,6 +49,15 @@ const appState = {
 // 4. التهيئة الرئيسية
 async function initializeApp() {
   if (appState.isInitialized) return;
+  console.log("بدء تحميل البيانات...");
+const [todayMatches, tomorrowMatches] = await Promise.all([
+  getTodayMatches(),
+  getTomorrowMatches()
+]);
+console.log("تم استلام البيانات:", {
+  today: todayMatches?.length,
+  tomorrow: tomorrowMatches?.length
+});
 
   try {
     showLoading();
