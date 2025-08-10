@@ -1,4 +1,6 @@
 import { getTodayMatches, getTomorrowMatches } from './api.js';
+// استيراد قاعدة بيانات روابط Blogger الخاصة بك
+import { streamLinks } from './streams.js';
 
 // DOM elements mapping from index.html
 const DOM = {
@@ -19,7 +21,7 @@ function hideLoading() {
 }
 
 /**
- * Creates the HTML for a single, clickable match card that links externally.
+ * Creates the HTML for a single, intelligent match card.
  * @param {object} match The match data.
  * @returns {string} The HTML string for the match card.
  */
@@ -27,6 +29,19 @@ function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
 
+  // --- المنطق الذكي لتحديد الرابط الصحيح ---
+  
+  // 1. إنشاء مفتاح خاص بالمباراة (للخطة البديلة)
+  const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
+
+  // 2. البحث عن رابط البث:
+  //    أ. ابحث أولاً باستخدام اسم القناة القادم من المصدر.
+  //    ب. إذا فشلت، ابحث باستخدام المفتاح الخاص بأسماء الفرق.
+  const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+
+  // 3. تحديد ما إذا كانت البطاقة قابلة للنقر
+  const isClickable = watchUrl ? 'clickable' : 'not-clickable';
+  
   // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
     ${match.channel ? `
@@ -43,10 +58,12 @@ function renderMatch(match) {
     ` : ''}
   `;
 
-  // The entire card is now a link that opens in a new tab
+  // بناء بطاقة المباراة النهائية
   return `
-    <a href="${match.matchLink}" target="_blank" rel="noopener noreferrer" class="match-card-link">
-      <article class="match-card" aria-label="Match between ${match.homeTeam.name} and ${match.awayTeam.name}">
+    <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
+      <article class="match-card">
+        ${!watchUrl ? '<span class="no-stream-badge">البث غير متوفر</span>' : ''}
+        
         <div class="league-info">
             <span>${match.league}</span>
         </div>
@@ -60,7 +77,7 @@ function renderMatch(match) {
             <span class="time">${match.time}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets.images/default-logo.png';">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
@@ -72,9 +89,6 @@ function renderMatch(match) {
 
 /**
  * Renders a list of matches into a container or shows a "no matches" message.
- * @param {HTMLElement} container The container element.
- * @param {Array} matches The array of matches to render.
- * @param {string} message The message to show if there are no matches.
  */
 function renderSection(container, matches, message) {
     if (!container) return;
@@ -96,8 +110,7 @@ async function loadAndRenderMatches() {
   ]);
 
   hideLoading();
-
-  // Filter for featured matches (e.g., evening matches from today)
+  
   const featuredMatches = todayMatches.filter(match => {
     try {
       const [timePart, ampm] = match.time.split(' ');
@@ -111,12 +124,7 @@ async function loadAndRenderMatches() {
   });
   
   renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات مسائية اليوم.');
-  
-  // Render Today's Key Matches (Broadcast Section)
-  const keyTodayMatches = todayMatches.slice(0, 5);
-  renderSection(DOM.broadcastContainer, keyTodayMatches, 'لا توجد مباريات هامة اليوم.');
-
-  // Render Tabs for All Today's & Tomorrow's Matches
+  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 5), 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, todayMatches, 'لا توجد مباريات مجدولة اليوم.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'لا توجد مباريات مجدولة غداً.');
 }
