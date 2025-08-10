@@ -7,9 +7,15 @@ export const streamLinks = {
   // المفتاح: هو اسم القناة تمامًا كما يظهر في المصدر
   // القيمة: هو الرابط الكامل لصفحة Blogger الخاصة بهذه القناة
 
-  'beIN SPORTS HD 1': 'https://your-blog-name.blogspot.com/p/bein-1.html',
+  'beIN SPORTS HD 1': 'https://foot966.blogspot.com/p/bein3_10.html',
   'beIN SPORTS HD 2': 'https://your-blog-name.blogspot.com/p/bein-2.html',
+  'beIN SPORTS HD 3': 'https://foot966.blogspot.com/p/bein3_10.html',
+  'beIN SPORTS HD 4': 'https://foot966.blogspot.com/p/bein3_10.html',
+  'beIN SPORTS HD 5': 'https://foot966.blogspot.com/p/bein3_10.html',
+  'beIN SPORTS HD 6': 'https://foot966.blogspot.com/p/bein3_10.html',
   'SSC 1 HD': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
+  'SSC 2 HD': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
+  'SSC 3 HD': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
 
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
@@ -19,6 +25,6 @@ export const streamLinks = {
   
   'ريال مدريد-برشلونة': 'https://your-blog-name.blogspot.com/p/el-clasico.html',
   'الأهلي-الزمالك': 'https://your-blog-name.blogspot.com/p/cairo-derby.html',
-
+'اورلاندو سيتي -انتر ميامي': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
