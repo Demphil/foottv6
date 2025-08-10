@@ -122,10 +122,10 @@ function renderBroadcastSection(matches) {
     return;
   }
 
-  // عرض أهم مبارتين في القسم العلوي
-  const importantMatches = matches.filter(m => 
-    CONFIG.MAJOR_LEAGUES.some(league => m.league?.name?.includes(league))
-    .slice(0, 2);
+ // عرض أهم مبارتين في القسم العلوي
+const importantMatches = matches.filter(m => 
+  CONFIG.MAJOR_LEAGUES.some(league => m.league?.name?.includes(league))
+).slice(0, 2); // تم إغلاق الأقواس بشكل صحيح
 
   DOM.broadcastContainer.innerHTML = `
     ${importantMatches.map(match => `
