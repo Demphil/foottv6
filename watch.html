@@ -49,7 +49,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <ul>
         <li><a href="index.html">Matches</a></li>
         <li><a href="news.html" class="active">Football News</a></li>
-        <li><a href="highlights.html">Highlights</a></li>
       </ul>
     </nav>
     <div class="menu-toggle">
@@ -57,24 +56,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </header>
 <body>
-    <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات المباراة...
-    </div>
-
-    <div id="error-container"></div>
-
-    <div id="match-container" style="display:none;">
-    
-    <div id="match-info"></div>
-    
-    <div class="video-container">
-        <div id="video-frame"></div>
-    </div>
-    
-    <div id="channel-list" class="channel-list"></div>
-    
-    <div id="other-matches"></div>
-</div>
+   <main class="watch-main">
+        <div class="watch-container">
+            <div id="player-loader" class="player-loader">
+                <div class="loader"></div>
+                <p>جاري تجهيز البث، يرجى الانتظار...</p>
+            </div>
+            <div id="player-container" class="player-container">
+                </div>
+        </div>
+        <div id="match-details-info" class="match-details-info">
+            </div>
+    </main>
   <!-- الفوتر -->
  <footer class="footer">
     <div class="footer-content">
