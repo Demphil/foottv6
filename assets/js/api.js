@@ -49,17 +49,18 @@ async function fetchMatches(targetUrl) {
  * @param {string} html The raw HTML content of the page.
  * @returns {Array} An array of match objects.
  */
+// في ملف api.js
+
 function parseMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   
   const matches = [];
 
-  // The main selector for each match block
   const matchElements = doc.querySelectorAll('.AY_Match');
   
   if (matchElements.length === 0) {
-    console.error("CRITICAL: No matches found using selector '.AY_Match'. The website structure might have changed again.");
+    console.error("CRITICAL: لم يتم العثور على أي مباريات باستخدام المحدد '.AY_Match'.");
     return [];
   }
 
@@ -74,7 +75,6 @@ function parseMatches(html) {
 
           const homeTeamLogo = extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img'));
           const awayTeamLogo = extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img'));
-          
           const time = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
           
           const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
@@ -82,18 +82,31 @@ function parseMatches(html) {
               ? `${scoreSpans[0].textContent.trim()} - ${scoreSpans[1].textContent.trim()}`
               : 'VS';
 
-          const league = matchEl.querySelector('.MT_Info ul li:last-child')?.textContent?.trim() || 'بطولة غير محددة';
+          // --- التحديثات الجديدة هنا ---
+          const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
+          
+          // القناة هي غالباً العنصر الأول في القائمة
+          const channel = infoListItems[0]?.textContent?.trim() || '';
+          
+          // المعلق هو غالباً العنصر الثاني
+          const commentator = infoListItems[1]?.textContent?.trim() || '';
 
+          // الدوري هو العنصر الأخير
+          const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'بطولة';
+          
            matches.push({
               homeTeam: { name: homeTeamName, logo: homeTeamLogo },
               awayTeam: { name: awayTeamName, logo: awayTeamLogo },
               time: time,
               score: score,
-              league: league
+              league: league,
+              // إضافة البيانات الجديدة
+              channel: channel.includes('غير معروف') ? '' : channel,
+              commentator: commentator.includes('غير معروف') ? '' : commentator,
           });
 
       } catch (e) {
-          console.error('Failed to parse a single match element:', e, matchEl);
+          console.error('فشل في تحليل عنصر مباراة واحد:', e, matchEl);
       }
   });
 
