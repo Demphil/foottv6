@@ -19,21 +19,33 @@ function hideLoading() {
 }
 
 /**
- * Creates the HTML for a single match card, including extra details.
+ * Creates the HTML for a single, clickable match card that links externally.
  * @param {object} match The match data.
  * @returns {string} The HTML string for the match card.
  */
-// في ملف matches.js
-
 function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
-  const matchDetailsHTML = `...`; // (الكود الذي يعرض القناة والمعلق يبقى كما هو)
 
-  // --- التحديث الرئيسي هنا ---
-  // تم تحويل البطاقة إلى وسم <a> وتمرير رابط المباراة
+  // Create the HTML for extra details (channel, commentator)
+  const matchDetailsHTML = `
+    ${match.channel ? `
+      <div class="match-detail-item">
+        <i class="fas fa-tv" aria-hidden="true"></i>
+        <span>${match.channel}</span>
+      </div>
+    ` : ''}
+    ${match.commentator ? `
+      <div class="match-detail-item">
+        <i class="fas fa-microphone-alt" aria-hidden="true"></i>
+        <span>${match.commentator}</span>
+      </div>
+    ` : ''}
+  `;
+
+  // The entire card is now a link that opens in a new tab
   return `
-    <a href="watch.html?matchLink=${encodeURIComponent(match.matchLink)}" class="match-card-link">
+    <a href="${match.matchLink}" target="_blank" rel="noopener noreferrer" class="match-card-link">
       <article class="match-card" aria-label="Match between ${match.homeTeam.name} and ${match.awayTeam.name}">
         <div class="league-info">
             <span>${match.league}</span>
@@ -48,7 +60,7 @@ function renderMatch(match) {
             <span class="time">${match.time}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets.images/default-logo.png';">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
@@ -85,39 +97,26 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // --- 1. Filter and Render Featured Matches (Correct Timezone Logic) ---
-  const allMatches = [...todayMatches, ...tomorrowMatches];
-
-  const featuredMatches = allMatches.filter(match => {
+  // Filter for featured matches (e.g., evening matches from today)
+  const featuredMatches = todayMatches.filter(match => {
     try {
-      // Example time from source: "08:00 PM"
       const [timePart, ampm] = match.time.split(' ');
-      if (!ampm) return false; // Skip if time format is not as expected
-
+      if (!ampm) return false;
       let [hours] = timePart.split(':').map(Number);
-
-      // Convert to 24-hour format
       if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-      if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
-      
-      // Source time is Riyadh (GMT+3), which is 2 hours ahead of Morocco time (GMT+1).
-      // To find matches at 6 PM (18:00) Morocco time or later, we look for matches
-      // at 8 PM (20:00) Riyadh time or later.
-      const RIYADH_HOUR_THRESHOLD = 20;
-
-      return hours >= RIYADH_HOUR_THRESHOLD;
+      return hours >= 19; // 7 PM or later
     } catch (e) {
       return false;
     }
   });
   
-  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات مميزة قادمة.');
-
-  // --- 2. Render Today's Key Matches (Broadcast Section) ---
-  const keyTodayMatches = todayMatches.slice(0, 5); // Show first 5 matches of the day
+  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات مسائية اليوم.');
+  
+  // Render Today's Key Matches (Broadcast Section)
+  const keyTodayMatches = todayMatches.slice(0, 5);
   renderSection(DOM.broadcastContainer, keyTodayMatches, 'لا توجد مباريات هامة اليوم.');
 
-  // --- 3. Render Tabs for All Today's & Tomorrow's Matches ---
+  // Render Tabs for All Today's & Tomorrow's Matches
   renderSection(DOM.todayContainer, todayMatches, 'لا توجد مباريات مجدولة اليوم.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'لا توجد مباريات مجدولة غداً.');
 }
@@ -127,6 +126,7 @@ async function loadAndRenderMatches() {
  */
 function setupTabs() {
     const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
+        if (!activeTab || !inactiveTab || !activeContainer || !inactiveContainer) return;
         activeTab.classList.add('active');
         inactiveTab.classList.remove('active');
         activeContainer.style.display = 'grid';
