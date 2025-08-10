@@ -1,22 +1,24 @@
 // assets/js/streams.js
 
-// هذه هي "قاعدة بياناتك" الخاصة.
-// المفتاح هو اسم القناة (يجب أن يطابق تمامًا الاسم الذي نحصل عليه من موقع كورة).
-// القيمة هي رابط البث المباشر الذي وجدته.
-
 export const streamLinks = {
-  // === أمثلة لروابط قنوات beIN SPORTS ===
-  'beIN SPORTS HD 1': 'https://live.media.iptv.com/bein/bein-premium-1/index.m3u8',
-  'beIN SPORTS HD 2': 'https://stream.example.com/bein2.m3u8', // استبدل بالرابط الفعلي
-  'beIN SPORTS HD 3': 'https://stream.example.com/bein3.m3u8',
+  // ================================================
+  // === الربط التلقائي عبر اسم القناة من المصدر ===
+  // ================================================
+  // المفتاح: هو اسم القناة تمامًا كما يظهر في المصدر
+  // القيمة: هو الرابط الكامل لصفحة Blogger الخاصة بهذه القناة
 
-  // === أمثلة لروابط قنوات SSC السعودية ===
-  'SSC 1 HD': 'https://stream.example.com/ssc1.m3u8',
-  'SSC 5 HD': 'https://stream.example.com/ssc5.m3u8',
+  'beIN SPORTS HD 1': 'https://your-blog-name.blogspot.com/p/bein-1.html',
+  'beIN SPORTS HD 2': 'https://your-blog-name.blogspot.com/p/bein-2.html',
+  'SSC 1 HD': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
 
-  // === أمثلة لروابط قنوات أخرى ===
-  'أبوظبي الرياضية 1': 'https://stream.example.com/ad1.m3u8',
-  'الكأس HD1': 'https://stream.example.com/alkass1.m3u8',
+  // =================================================================
+  // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
+  // =================================================================
+  // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
+  // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
+  
+  'ريال مدريد-برشلونة': 'https://your-blog-name.blogspot.com/p/el-clasico.html',
+  'الأهلي-الزمالك': 'https://your-blog-name.blogspot.com/p/cairo-derby.html',
 
-  // أضف المزيد من القنوات والروابط هنا
+  // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
