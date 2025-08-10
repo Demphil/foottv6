@@ -64,6 +64,12 @@ async function fetchWithProxy(url) {
   }
   throw new Error('فشل جميع خوادم البروكسي');
 }
+
+function parseMatches(html, type) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const matches = [];
+  
   // استهداف العناصر حسب هيكل الموقع
   const matchElements = doc.querySelectorAll('.match-item, .match-row, .match-card');
   
@@ -110,7 +116,7 @@ async function fetchWithProxy(url) {
     }
   });
   
-  return matches;
+  return matches; // السطر 113 المصحح
 }
 
 function extractTime(matchElement, type) {
@@ -191,10 +197,3 @@ function getFallbackMatches() {
     }
   ];
 }
-
-console.log("تم عرض الأقسام:", {
-  featured: document.querySelectorAll('.featured-match').length,
-  broadcast: document.querySelectorAll('.broadcast-match').length,
-  today: document.querySelectorAll('#today-matches .match-card').length,
-  tomorrow: document.querySelectorAll('#tomorrow-matches .match-card').length
-});
