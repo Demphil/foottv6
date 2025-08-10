@@ -1,14 +1,13 @@
 // assets/js/watch.js
-
 document.addEventListener('DOMContentLoaded', () => {
-    // We are switching to a proxy that allows being iframed.
-    const PROXY_URL = 'https://proxy.cors.sh/';
+    // استخدم البروكسي الجديد والموثوق الخاص بك!
+    const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
     const playerContainer = document.getElementById('player-container');
     const playerLoader = document.getElementById('player-loader');
 
     if (!playerContainer || !playerLoader) {
-        console.error("Essential player elements are missing from the HTML!");
+        console.error("العناصر الأساسية للمشغل غير موجودة في HTML!");
         return;
     }
 
@@ -22,19 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const iframe = document.createElement('iframe');
-    // We construct the URL by adding the decoded match link directly after the proxy URL.
     iframe.setAttribute('src', `${PROXY_URL}${decodeURIComponent(matchLink)}`);
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('allowfullscreen', 'true');
-    // Adding sandbox attribute for better security and to potentially bypass some restrictions
     iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-presentation');
 
-
     iframe.onload = () => {
-        if (playerLoader) {
-            playerLoader.style.display = 'none';
-        }
+        if (playerLoader) playerLoader.style.display = 'none';
         playerContainer.style.visibility = 'visible';
         playerContainer.style.opacity = '1';
     };
