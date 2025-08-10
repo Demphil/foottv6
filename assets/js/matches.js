@@ -25,34 +25,42 @@ function hideLoading() {
  * @param {object} match The match data.
  * @returns {string} The HTML string for the match card.
  */
-unction renderMatch(match) {
+function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
 
-  // --- هذا هو الجزء الجديد للمساعدة ---
-  // 1. إنشاء المفتاح الخاص بالمباراة
+  // --- المنطق الذكي لتحديد الرابط الصحيح ---
+  // 1. إنشاء مفتاح خاص بالمباراة (للخطة البديلة)
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
-  
-  // 2. طباعة المفتاح في الـ Console لتراه بوضوح
-  console.log(`المفتاح لهذه المباراة هو: "${matchSpecificKey}"`);
 
-  // 3. ابحث عن رابط البث
+  // 2. البحث عن رابط البث:
+  //    أ. ابحث أولاً باستخدام اسم القناة القادم من المصدر.
+  //    ب. إذا فشلت، ابحث باستخدام المفتاح الخاص بأسماء الفرق.
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
+  // 3. تحديد ما إذا كانت البطاقة قابلة للنقر
+  const isClickable = watchUrl ? 'clickable' : 'not-clickable';
+  
+  // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
-    ${match.channel ? `<div class="match-detail-item"><i class="fas fa-tv"></i><span>${match.channel}</span></div>` : ''}
-    ${match.commentator ? `<div class="match-detail-item"><i class="fas fa-microphone-alt"></i><span>${match.commentator}</span></div>` : ''}
+    ${match.channel ? `
+      <div class="match-detail-item">
+        <i class="fas fa-tv" aria-hidden="true"></i>
+        <span>${match.channel}</span>
+      </div>
+    ` : ''}
+    ${match.commentator ? `
+      <div class="match-detail-item">
+        <i class="fas fa-microphone-alt" aria-hidden="true"></i>
+        <span>${match.commentator}</span>
+      </div>
+    ` : ''}
   `;
 
+  // بناء بطاقة المباراة النهائية
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
-        
-        <div style="background: #000; color: #fff; padding: 5px; font-size: 12px; text-align: left; direction: ltr; margin-bottom: 10px; border-radius: 4px;">
-          <strong>Debug Key:</strong> ${matchSpecificKey}
-        </div>
-
         ${!watchUrl ? '<span class="no-stream-badge">البث غير متوفر</span>' : ''}
         
         <div class="league-info">
