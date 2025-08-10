@@ -25,6 +25,6 @@ export const streamLinks = {
   
   'ريال مدريد-برشلونة': 'https://your-blog-name.blogspot.com/p/el-clasico.html',
   'الأهلي-الزمالك': 'https://your-blog-name.blogspot.com/p/cairo-derby.html',
-'اورلاندو سيتي -انتر ميامي': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
+'أورلاندو سيتي - انتر ميامي': 'https://your-blog-name.blogspot.com/p/ssc-1.html',
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
