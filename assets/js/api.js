@@ -110,6 +110,8 @@ async function fetchMatches(targetUrl) {
   return [];
 }
 
+// في ملف api.js
+
 function parseMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -121,6 +123,10 @@ function parseMatches(html) {
           const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
           const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
           if (!homeTeamName || !awayTeamName) return;
+
+          // --- التحديث الجديد هنا: استخراج رابط المباراة ---
+          const matchLink = matchEl.querySelector('a[title^="مشاهدة مباراة"]')?.href;
+          if (!matchLink) return; // تجاهل المباراة إذا لم يكن لها رابط
 
           const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
           const channel = infoListItems[0]?.textContent?.trim() || '';
@@ -135,6 +141,8 @@ function parseMatches(html) {
             league: league,
             channel: channel.includes('غير معروف') ? '' : channel,
             commentator: commentator.includes('غير معروف') ? '' : commentator,
+            // إضافة رابط المباراة إلى بياناتنا
+            matchLink: matchLink
           });
       } catch (e) {
           console.error('Failed to parse a single match element:', e);
