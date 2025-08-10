@@ -3,43 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>المباريات | Football Matches Tracker</title>
-    <link rel="canonical" href="https://foottv.info" />
+    <title>مباريات اليوم | FootTV</title>
+    
+    <meta name="description" content="موقع FootTV يقدم تغطية مباشرة وحصرية لأهم مباريات كرة القدم اليوم وغداً، بالإضافة إلى أخبار الفرق واللاعبين.">
+    <meta name="keywords" content="مباريات اليوم, مباريات الغد, بث مباشر, كورة لايف, يلا شوت, 96tv, كرة قدم, أخبار رياضية, الدوري السعودي, دوري أبطال أوروبا">
+    <meta name="author" content="FootTV Team">
+    <link rel="canonical" href="https://foottv.info">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="FootTV - مباريات كرة القدم مباشرة">
+    <meta property="og:description" content="تغطية حصرية لأحدث مباريات كرة القدم والجداول الزمنية.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://foottv.info">
+    <meta property="og:image" content="https://foottv.info/assets/images/logo.png">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FootTV - مباريات كرة القدم مباشرة">
+    <meta name="twitter:image" content="https://foottv.info/assets/images/logo.png">
+    
+    <link rel="preload" href="assets/css/matches.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
     <link rel="stylesheet" href="assets/css/matches.css">
     <link rel="stylesheet" href="assets/css/footer.css">
-    <meta name="google-site-verification" content="KlRdhj9pQd6QnGiR7_RJYOwJpmK3wqw9qAQaGeVji48" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="assets/images/favicon.icon" type="image/x-icon">
-    <script type='text/javascript' src='//pl26330988.profitableratecpm.com/31/36/42/3136423ba8e56051368cedef08742e2e.js'></script>
-    
-    <!-- SEO -->
-    <meta name="description" content="موقع FootTV يقدم تغطية حصرية لأحدث مباريات كرة القدم وأخبار الفرق واللاعبين">
-    <meta name="keywords" content="96tv,كرة قدم, مباريات, أخبار رياضية, الدوري الممتاز">
-    <meta name="author" content="FootTV Team">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="FootTV - أخبار ومباريات كرة القدم">
-    <meta property="og:description" content="تغطية حصرية لأحدث مباريات كرة القدم">
-    <meta property="og:type" content="foot tv">
-    <meta property="og:url" content="https://foottv.info">
-    <meta property="og:image" content="assets/images/logo.png">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="FootTV - أخبار ومباريات كرة القدم">
-    <meta name="twitter:image" content="assets/images/logo.png">
-    
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-KLKK77DT');</script>
-    <!-- End Google Tag Manager -->
-    
-    <!-- Google tag (gtag.js) -->
+    <meta name="google-site-verification" content="KlRdhj9pQd6QnGiR7_RJYOwJpmK3wqw9qAQaGeVji48" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-M49Z47N9N2"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -49,129 +39,96 @@
     </script>
 </head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KLKK77DT"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     
     <header class="header">
         <div class="logo">
-            <img src="assets/images/logo.png" alt="شعار الموقع" />
+            <img src="assets/images/logo.png" alt="شعار موقع FootTV" loading="lazy" width="60" height="60">
             <h1>مباريات كرة القدم</h1>
         </div>
         <nav class="nav">
             <ul>
-                <li><a href="news.html" class="active">Football News</a></li>
+                <li><a href="news.html">أخبار الكورة</a></li>
+                <li><a href="index.html" class="active">المباريات</a></li>
             </ul>
         </nav>
     </header>
 
-      <main class="matches-main">
-        <!-- شاشة التحميل -->
-        <div id="loading" class="loader-container" style="display: none;">    
+    <main class="matches-main">
+        <div id="loading" style="display: flex;">
             <div class="loader"></div>
         </div>
         
-        <!-- رسائل الخطأ -->
-        <div id="error-container" style="display: none;"></div>
-        
-        <!-- رسائل التنبيه -->
+        <div id="error-container" style="display: none;" role="alert"></div>
         <div id="toast-container"></div>
         
         <div class="matches-layout">
-            <!-- القسم الأيسر - المباريات المميزة -->
-            <section class="featured-section">
-                <h2 class="section-title"><i class="fas fa-star"></i> مبارياتنا المميزة</h2>
+            <section class="featured-section" aria-labelledby="featured-title">
+                <h2 id="featured-title" class="section-title"><i class="fas fa-star" aria-hidden="true"></i> مباريات مسائية مميزة</h2>
                 <div id="featured-matches" class="featured-slider">
-                    <!-- سيتم ملؤه بواسطة JavaScript -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
                         <p>جاري تحميل المباريات المميزة...</p>
                     </div>
                 </div>
-                <div class="slider-controls">
-                    <button class="slider-prev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
-                    <div class="slider-dots"></div>
-                    <button class="slider-next" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
-                </div>
             </section>
 
-            <!-- القسم الأيمن - المباريات المنقولة -->
-            <section class="broadcast-section">
-                <h2 class="section-title"><i class="fas fa-tv"></i> المباريات المنقولة</h2>
+            <section class="broadcast-section" aria-labelledby="broadcast-title">
+                <h2 id="broadcast-title" class="section-title"><i class="fas fa-tv" aria-hidden="true"></i> أهم مباريات اليوم</h2>
                 <div id="broadcast-matches" class="broadcast-list">
-                    <!-- سيتم ملؤه بواسطة JavaScript -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>جاري تحميل المباريات المنقولة...</p>
+                     <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <p>جاري تحميل أهم المباريات...</p>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- قسم جميع المباريات -->
-        <section class="all-matches">
-            <div class="matches-tabs">
-                <button class="tab-btn active" data-tab="today">مباريات اليوم</button>
-                <button class="tab-btn" data-tab="tomorrow">مباريات الغد</button>
+        <section class="all-matches" aria-labelledby="all-matches-title">
+            <h2 id="all-matches-title" class="section-title">جميع المباريات</h2>
+            <div class="matches-tabs" role="tablist">
+                <button id="today-tab" class="tab-btn active" data-tab="today" role="tab" aria-selected="true" aria-controls="today-matches-panel">مباريات اليوم</button>
+                <button id="tomorrow-tab" class="tab-btn" data-tab="tomorrow" role="tab" aria-selected="false" aria-controls="tomorrow-matches-panel">مباريات الغد</button>
             </div>
             
             <div class="matches-grid">
-                <div id="today-matches" class="tab-content active">
-                    <!-- مباريات اليوم -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
+                <div id="today-matches" class="tab-content active" role="tabpanel" aria-labelledby="today-tab">
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
                         <p>جاري تحميل مباريات اليوم...</p>
                     </div>
                 </div>
                 
-                <div id="tomorrow-matches" class="tab-content">
-                    <!-- مباريات الغد -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
+                <div id="tomorrow-matches" class="tab-content" role="tabpanel" aria-labelledby="tomorrow-tab" style="display: none;">
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
                         <p>جاري تحميل مباريات الغد...</p>
-                    </div>
-                </div>
-                
-                <div id="upcoming-matches" class="tab-content">
-                    <!-- المباريات القادمة -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>جاري تحميل المباريات القادمة...</p>
-                    </div>
-                </div>
-                
-                <div id="friendly-matches" class="tab-content">
-                    <!-- المباريات الودية -->
-                    <div class="loading-placeholder">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>جاري تحميل المباريات الودية...</p>
                     </div>
                 </div>
             </div>
         </section>
     </main>
-    <!-- الفوتر -->
+
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-logo">
-                <a href="#top-of-page" class="logo-text">Foot TV</a>
+                <a href="#" class="logo-text">FootTV</a>
             </div>
             <div class="footer-links">
-                <a href="index.html"><i class="fas fa-home"></i>Matches</a>
-                <a href="news.html"><i class="fas fa-newspaper"></i>Football News</a>
+                <a href="index.html"><i class="fas fa-home" aria-hidden="true"></i> المباريات</a>
+                <a href="news.html"><i class="fas fa-newspaper" aria-hidden="true"></i> أخبار الكورة</a>
             </div>
         </div>
         <div class="copyright">
-            <p>حقوق النشر © <span id="current-year"></span> Foot TV - جميع الحقوق محفوظة</p>
+            <p>حقوق النشر © <span id="current-year"></span> FootTV - جميع الحقوق محفوظة</p>
         </div>
     </footer>
     
     <script>
-        window.__VALID_ORIGIN__ = 'foottv.info'; // تعريف متغير التحقق
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
-
+    
+    <script type='text/javascript' src='//pl26330988.profitableratecpm.com/31/36/42/3136423ba8e56051368cedef08742e2e.js' async></script>
     <script type="module" src="assets/js/matches.js"></script>
-</body>
+
+</body>   
 </html>
