@@ -1,349 +1,1057 @@
-:root {
-  --primary-color: #e63946;
-  --secondary-color: #ffd166;
-  --dark-color: #1d3557;
-  --light-color: #f1faee;
-  --glass-effect: rgba(255, 255, 255, 0.1);
-  --header-height: 70px; /* تم تقليل الارتفاع قليلاً لتجربة أفضل */
-  --footer-height: 80px;
+ :root {
+
+  --primary-color: #e63946;
+
+  --secondary-color: #ffd166;
+
+  --dark-color: #1d3557;
+
+  --light-color: #f1faee;
+
+  --glass-effect: rgba(255, 255, 255, 0.1);
+
+  --header-height: 80px;
+
+  --footer-height: 80px;
+
+  --text-white: #ffffff;
+
+  --primary-red: #e63946;
+
+  --primary-white: #ffffff;
+
 }
 
-/* ============================================= */
-/* 1. التنسيقات العامة والأساسية         */
-/* ============================================= */
+
+
+/* التنسيق العام */
 
 body {
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
-  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
-  color: var(--light-color);
-  margin: 0;
-  padding-top: var(--header-height);
-  min-height: 100vh;
-  line-height: 1.6;
+
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+
+  color: var(--light-color);
+
+  margin: 0;
+
+  padding-top: var(--header-height);
+
+  min-height: 100vh;
+
 }
 
-/* استخدام clamp لجعل المساحات سائلة ومتجاوبة */
+
+
 .matches-main {
-  padding: clamp(15px, 4vw, 30px); /* بادينج يتغير بسلاسة */
-  max-width: 1400px;
-  margin: 0 auto;
+
+  padding: 20px;
+
+  max-width: 1400px;
+
+  margin: 0 auto;
+
+  padding-top: calc(var(--header-height) + 20px);
+
+  padding-bottom: calc(var(--footer-height) + 20px);
+
 }
 
-/* ============================================= */
-/* 2. الهيدر والتنقل (بدون تغيير جوهري)   */
-/* ============================================= */
+
+
+/* الهيدر */
 
 .header {
-  background: rgba(29, 53, 87, 0.8); /* لون أغمق مع شفافية */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  height: var(--header-height);
-  padding: 0 clamp(15px, 4vw, 30px);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 1000;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+
+  backdrop-filter: blur(10px);
+
+  height: var(--header-height);
+
+  padding: 0 20px;
+
+  position: fixed;
+
+  top: 0;
+
+  left: 0;
+
+  right: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  z-index: 1000;
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
 }
+
+
 
 .header .logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
 }
+
+
 
 .header .logo img {
-  height: 45px; /* حجم موحد ومناسب */
-  width: auto;
+
+  height: 60px;
+
+  width: auto;
+
 }
+
+
 
 .header .logo h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--light-color);
+
+  margin: 0;
+
+  font-size: 1.5rem;
+
+  font-weight: 700;
+
+  color: var(--light-color);
+
 }
+
+
 
 .nav ul {
-  display: flex;
-  gap: 15px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+
+  display: flex;
+
+  gap: 20px;
+
+  margin: 0;
+
+  padding: 0;
+
+  list-style: none;
+
 }
+
+
 
 .nav ul li a {
-  color: var(--light-color);
-  text-decoration: none;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 30px;
-  transition: background-color 0.3s ease;
+
+  color: var(--light-color);
+
+  text-decoration: none;
+
+  font-weight: 600;
+
+  font-size: 1.1rem;
+
+  padding: 8px 15px;
+
+  border-radius: 30px;
+
+  transition: all 0.3s ease;
+
 }
+
+
 
 .nav ul li a:hover,
+
 .nav ul li a.active {
-  background: rgba(255, 255, 255, 0.2);
+
+  background: rgba(255, 255, 255, 0.2);
+
 }
 
+/* في ملف matches.css */
 
-/* ============================================= */
-/* 3. هيكل الأقسام والتبويبات           */
-/* ============================================= */
 
-.section-title {
-  /* استخدام clamp لجعل حجم الخط سائل */
-  font-size: clamp(1.3rem, 5vw, 1.6rem); 
-  color: var(--light-color);
-  margin: 0 0 20px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.matches-layout, .all-matches {
-  background: var(--glass-effect);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: clamp(15px, 4vw, 25px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 30px;
-}
-
-.matches-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 25px;
-}
-
-.matches-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.tab-btn {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  border: none;
-  padding: 10px 15px;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.tab-btn:hover { color: var(--light-color); }
-.tab-btn.active {
-  color: var(--secondary-color);
-  border-bottom-color: var(--secondary-color);
-}
-
-.tab-content { display: none; }
-.tab-content.active {
-  display: grid;
-  /* شبكة مرنة تتكيف مع كل الشاشات */
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-/* ============================================= */
-/* 4. بطاقة المباراة (القلب النابض)      */
-/* ============================================= */
-
-.match-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-}
-
-.match-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.league-info {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--secondary-color);
-  margin-bottom: 15px;
-  text-align: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.teams {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.team {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex: 1;
-}
-
-.team img {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  margin-bottom: 8px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  padding: 3px;
-}
-
-.team-name {
-    font-size: 1rem;
-    font-weight: 600;
-    min-height: 40px;
-}
-
-.match-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-}
-
-.score {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.time {
-  font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-top: 5px;
-}
 
 .match-details-extra {
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  margin-top: 15px;
-  padding-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 0.8rem;
-  opacity: 0.9;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+  margin-top: 10px;
+
+  padding-top: 10px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  font-size: 0.85rem;
+
+  color: var(--light-color);
+
+  opacity: 0.9;
+
 }
+
+
 
 .match-detail-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
 }
+
+
 
 .match-detail-item i {
-  color: var(--secondary-color);
-  width: 15px;
-  text-align: center;
+
+  color: var(--secondary-color);
+
+  width: 15px;
+
+  text-align: center;
+
 }
 
 
-/* ============================================= */
-/* 5. عناصر مساعدة (التحميل والخطأ)      */
-/* ============================================= */
+
+/* نظام التحميل والرسائل */
 
 #loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(29, 53, 87, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  backdrop-filter: blur(5px);
+
+  position: fixed;
+
+  top: 0;
+
+  left: 0;
+
+  right: 0;
+
+  bottom: 0;
+
+  background: rgba(0, 0, 0, 0.7);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 9999;
+
 }
+
+
 
 .loader {
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: var(--primary-color);
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
+
+  border: 5px solid rgba(255, 255, 255, 0.3);
+
+  border-radius: 50%;
+
+  border-top: 5px solid var(--primary-color);
+
+  width: 50px;
+
+  height: 50px;
+
+  animation: spin 1s linear infinite;
+
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+
+
+@keyframes spin {
+
+  0% { transform: rotate(0deg); }
+
+  100% { transform: rotate(360deg); }
+
+}
+
+
+
+#error-container {
+
+  position: fixed;
+
+  top: 20px;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  background: var(--primary-color);
+
+  color: white;
+
+  padding: 15px;
+
+  border-radius: 5px;
+
+  z-index: 1000;
+
+  max-width: 90%;
+
+}
+
+
+
+#toast-container {
+
+  position: fixed;
+
+  bottom: 20px;
+
+  right: 20px;
+
+  z-index: 1000;
+
+}
+
+
+
+.toast {
+
+  background: rgba(0, 0, 0, 0.8);
+
+  color: white;
+
+  padding: 12px 20px;
+
+  border-radius: 4px;
+
+  margin-bottom: 10px;
+
+  animation: fadeIn 0.3s;
+
+}
+
+
+
+.toast.success {
+
+  background: rgba(40, 167, 69, 0.9);
+
+}
+
+
+
+.toast.error {
+
+  background: rgba(220, 53, 69, 0.9);
+
+}
+
+
+
+.toast.info {
+
+  background: rgba(23, 162, 184, 0.9);
+
+}
+
+
+
+@keyframes fadeIn {
+
+  from { opacity: 0; transform: translateY(20px); }
+
+  to { opacity: 1; transform: translateY(0); }
+
+}
+
+
+
+/* تنسيق المباريات المميزة */
+
+.matches-layout {
+
+  display: grid;
+
+  grid-template-columns: 1fr;
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+
+}
+
+
+
+@media (min-width: 992px) {
+
+  .matches-layout {
+
+    grid-template-columns: 30% 70%;
+
+  }
+
+}
+
+
+
+.featured-section,
+
+.broadcast-section {
+
+  background: var(--glass-effect);
+
+  backdrop-filter: blur(10px);
+
+  border-radius: 10px;
+
+  padding: 15px;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+}
+
+
+
+.section-title {
+
+  color: var(--light-color);
+
+  font-size: 1.3rem;
+
+  margin-top: 0;
+
+  margin-bottom: 15px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+
+
+.featured-slider {
+
+  position: relative;
+
+  min-height: 300px;
+
+}
+
+
+
+.featured-card {
+
+  background: rgba(255, 255, 255, 0.1);
+
+  border-radius: 8px;
+
+  padding: 15px;
+
+  margin-bottom: 15px;
+
+  transition: all 0.3s ease;
+
+  color: var(--light-color);
+
+}
+
+
+
+.featured-card:hover {
+
+  transform: translateY(-5px);
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+  background: rgba(255, 255, 255, 0.15);
+
+}
+
+
+
+/* تنسيق المباريات المنقولة */
+
+.broadcast-list {
+
+  display: grid;
+
+  gap: 15px;
+
+}
+
+
+
+.broadcast-card {
+
+  background: rgba(255, 255, 255, 0.1);
+
+  border-radius: 8px;
+
+  padding: 15px;
+
+  transition: all 0.3s ease;
+
+  color: var(--light-color);
+
+}
+
+
+
+.broadcast-card:hover {
+
+  transform: translateX(-5px);
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+  background: rgba(255, 255, 255, 0.15);
+
+}
+
+
+
+/* العناصر المشتركة */
+
+.league-info {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 10px;
+
+}
+
+
+
+.league-info img {
+
+  width: 30px;
+
+  height: 30px;
+
+  object-fit: contain;
+
+}
+
+
+
+.teams {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin: 15px 0;
+
+}
+
+
+
+.team {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  flex: 1;
+
+}
+
+
+
+.team img {
+
+  width: 50px;
+
+  height: 50px;
+
+  object-fit: contain;
+
+  margin-bottom: 5px;
+
+}
+
+
+
+.vs {
+
+  font-weight: bold;
+
+  font-size: 1.2rem;
+
+}
+
+
+
+.match-info {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  font-size: 0.9rem;
+
+}
+
+
+
+.match-info i {
+
+  margin-left: 5px;
+
+}
+
+
+
+/* أزرار المشاهدة */
+
+.watch-btn {
+
+  background: var(--primary-color);
+
+  color: white;
+
+  border: none;
+
+  padding: 8px 15px;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 10px;
+
+  width: 100%;
+
+}
+
+
+
+.watch-btn:hover {
+
+  background: #c1121f;
+
+}
+
+
+
+.watch-btn:disabled {
+
+  background: #6c757d;
+
+  cursor: not-allowed;
+
+}
+
+
+
+/* قسم جميع المباريات */
+
+.all-matches {
+
+  background: var(--glass-effect);
+
+  backdrop-filter: blur(10px);
+
+  border-radius: 10px;
+
+  padding: 15px;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+}
+
+
+
+.matches-tabs {
+
+  display: flex;
+
+  gap: 10px;
+
+  margin-bottom: 15px;
+
+  overflow-x: auto;
+
+  padding-bottom: 5px;
+
+}
+
+
+
+.tab-btn {
+
+  background: rgba(255, 255, 255, 0.2);
+
+  color: var(--light-color);
+
+  border: none;
+
+  padding: 8px 15px;
+
+  border-radius: 4px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  white-space: nowrap;
+
+}
+
+
+
+.tab-btn.active {
+
+  background: var(--light-color);
+
+  color: var(--primary-color);
+
+}
+
+
+
+.matches-grid {
+
+  display: grid;
+
+  gap: 15px;
+
+}
+
+
+
+.tab-content {
+
+  display: none;
+
+}
+
+
+
+.tab-content.active {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+  gap: 15px;
+
+}
+
+
+
+.match-card {
+
+  background: rgba(255, 255, 255, 0.1);
+
+  border-radius: 8px;
+
+  padding: 15px;
+
+  transition: all 0.3s ease;
+
+  color: var(--light-color);
+
+}
+
+
+
+.match-card:hover {
+
+  transform: translateY(-3px);
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+
+  background: rgba(255, 255, 255, 0.15);
+
+}
+
+
+
+/* عناصر التحكم بالسلايدر */
+
+.slider-controls {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 10px;
+
+}
+
+
+
+.slider-prev,
+
+.slider-next {
+
+  background: rgba(255, 255, 255, 0.3);
+
+  color: var(--light-color);
+
+  border: none;
+
+  width: 40px;
+
+  height: 40px;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+
+.slider-prev:hover,
+
+.slider-next:hover {
+
+  background: var(--light-color);
+
+  color: var(--primary-color);
+
+}
+
+
+
+.slider-dots {
+
+  display: flex;
+
+  gap: 8px;
+
+}
+
+
+
+.dot {
+
+  width: 12px;
+
+  height: 12px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.5);
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+}
+
+
+
+.dot.active {
+
+  background: var(--light-color);
+
+}
+
+
+
+/* رسائل الخطأ والتحميل */
+
+.error-message {
+
+  background: var(--primary-color);
+
+  color: white;
+
+  padding: 10px 15px;
+
+  border-radius: 4px;
+
+  margin-bottom: 15px;
+
+  text-align: center;
+
+}
+
+
 
 .no-matches {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 40px 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-  grid-column: 1 / -1;
-}
 
-.no-matches i {
-  font-size: 2.5rem;
-  margin-bottom: 15px;
-  display: block;
-  color: var(--secondary-color);
+  text-align: center;
+
+  color: rgba(255, 255, 255, 0.7);
+
+  padding: 20px;
+
 }
 
 
-/* ================================================== */
-/* 6. تحسينات للشاشات (Responsive Design)       */
-/* ================================================== */
 
-/* لأجهزة التابلت والشاشات المتوسطة */
-@media (min-width: 768px) {
-  .matches-layout {
-    grid-template-columns: 350px 1fr; /* عمود ثابت للمميزة وعمود مرن للباقي */
-    align-items: start;
-  }
+.loading-placeholder {
+
+  text-align: center;
+
+  padding: 40px 20px;
+
+  color: rgba(255, 255, 255, 0.7);
+
 }
 
-/* للشاشات الصغيرة (الهواتف) */
-@media (max-width: 767px) {
-  .header .logo h1 {
-    display: none; /* إخفاء اسم الموقع في الهواتف */
-  }
 
-  .nav ul {
-    gap: 5px;
-  }
-  .nav ul li a {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-  }
 
-  .team img {
-    width: 40px;
-    height: 40px;
-  }
+.loading-placeholder i {
 
-  .team-name {
-    font-size: 0.9rem;
-    min-height: 30px;
-  }
-  
-  .score {
-    font-size: 1.3rem;
-  }
+  font-size: 24px;
+
+  margin-bottom: 15px;
+
+  display: block;
+
+  color: var(--light-color);
+
 }
+
+
+
+.loading-placeholder p {
+
+  margin: 0;
+
+  font-size: 16px;
+
+}
+
+
+
+
+
+
+
+/* التجاوب مع الشاشات الصغيرة */
+
+@media (max-width: 768px) {
+
+  .header {
+
+    height: 60px;
+
+    padding: 0 10px;
+
+  }
+
+  
+
+  .header .logo img {
+
+    height: 40px;
+
+  }
+
+  
+
+  .header .logo h1 {
+
+    font-size: 1.1rem;
+
+  }
+
+  
+
+  .nav ul {
+
+    gap: 10px;
+
+  }
+
+  
+
+  .nav ul li a {
+
+    font-size: 0.9rem;
+
+    padding: 6px 10px;
+
+  }
+
+  
+
+  .matches-main {
+
+    padding: 10px;
+
+    padding-top: calc(60px + 10px);
+
+    padding-bottom: calc(60px + 10px);
+
+  }
+
+  
+
+  .featured-slider {
+
+    min-height: 250px;
+
+  }
+
+  
+
+  .team img {
+
+    width: 40px;
+
+    height: 40px;
+
+  }
+
+  
+
+  .vs {
+
+    font-size: 1rem;
+
+  }
+
+  
+
+  .tab-content.active {
+
+    grid-template-columns: 1fr;
+
+  }
