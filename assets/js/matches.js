@@ -92,11 +92,12 @@ function categorizeMatches() {
     return matchHour >= CONFIG.EVENING_START_HOUR;
   });
 
-  // المباريات المميزة
+  // المباريات المميزة (التصحيح هنا)
   const featuredMatches = all.filter(match => 
     CONFIG.MAJOR_LEAGUES.some(league => 
       match.league?.name?.includes(league)
-  );
+    ) // أضفت القوس الناقص هنا
+  ); // وأضفت القوس الناقص هنا
 
   return {
     broadcast: eveningMatches,
