@@ -1,25 +1,34 @@
-const BASE_URL = 'https://kooora.live-kooora.com';
+// اختر أحد هذه الخوادم البروكسية (جرّبها بالترتيب)
+const PROXY_SERVERS = [
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+  'https://proxy.cors.sh/?'
+];
 
 export async function getTodayMatches() {
-  try {
-    const response = await fetch(`${BASE_URL}/?show=matchs`);
-    const html = await response.text();
-    return parseMatches(html);
-  } catch (error) {
-    console.error('Error fetching today matches:', error);
-    return [];
-  }
+  const targetUrl = 'https://kooora.live-kooora.com/?show=matchs';
+  return fetchMatches(targetUrl);
 }
 
 export async function getTomorrowMatches() {
-  try {
-    const response = await fetch(`${BASE_URL}/?show=matchs&d=1`);
-    const html = await response.text();
-    return parseMatches(html);
-  } catch (error) {
-    console.error('Error fetching tomorrow matches:', error);
-    return [];
+  const targetUrl = 'https://kooora.live-kooora.com/?show=matchs&d=1';
+  return fetchMatches(targetUrl);
+}
+
+async function fetchMatches(targetUrl) {
+  for (const proxy of PROXY_SERVERS) {
+    try {
+      const response = await fetch(`${proxy}${encodeURIComponent(targetUrl)}`);
+      if (response.ok) {
+        const html = await response.text();
+        return parseMatches(html);
+      }
+    } catch (error) {
+      console.error(`Error with proxy ${proxy}:`, error);
+    }
   }
+  console.error('All proxies failed, using fallback data');
+  return getFallbackMatches();
 }
 
 function parseMatches(html) {
@@ -27,18 +36,37 @@ function parseMatches(html) {
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   
-  // استخراج أساسي للمباريات
+  // استخراج أساسي للمباريات (تعدل حسب هيكل الموقع الفعلي)
   const matchElements = doc.querySelectorAll('.match-item, .match-row');
   
   matchElements.forEach(match => {
     matches.push({
-      homeTeam: match.querySelector('.home-team')?.textContent?.trim() || 'فريق 1',
-      awayTeam: match.querySelector('.away-team')?.textContent?.trim() || 'فريق 2',
+      homeTeam: {
+        name: match.querySelector('.home-team')?.textContent?.trim() || 'فريق 1',
+        logo: match.querySelector('.home-team img')?.src || ''
+      },
+      awayTeam: {
+        name: match.querySelector('.away-team')?.textContent?.trim() || 'فريق 2',
+        logo: match.querySelector('.away-team img')?.src || ''
+      },
       time: match.querySelector('.time')?.textContent?.trim() || '--:--',
       score: match.querySelector('.score')?.textContent?.trim() || 'VS',
-      channels: Array.from(match.querySelectorAll('.channel')).map(c => c.textContent.trim())
+      league: match.closest('.league-section')?.querySelector('.league-name')?.textContent?.trim() || 'بطولة'
     });
   });
   
   return matches;
+}
+
+function getFallbackMatches() {
+  // بيانات احتياطية عند فشل الاتصال
+  return [
+    {
+      homeTeam: { name: 'فريق 1', logo: '' },
+      awayTeam: { name: 'فريق 2', logo: '' },
+      time: '--:--',
+      score: 'VS',
+      league: 'بطولة افتراضية'
+    }
+  ];
 }
