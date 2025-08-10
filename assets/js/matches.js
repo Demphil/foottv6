@@ -1,97 +1,143 @@
 import { getTodayMatches, getTomorrowMatches } from './api.js';
 
+// DOM elements mapping from index.html
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
+  broadcastContainer: document.getElementById('broadcast-matches'), // For today's key matches
   todayContainer: document.getElementById('today-matches'),
   tomorrowContainer: document.getElementById('tomorrow-matches'),
-  loading: document.getElementById('loading')
+  loadingScreen: document.getElementById('loading'),
+  todayTab: document.getElementById('today-tab'),
+  tomorrowTab: document.getElementById('tomorrow-tab'),
 };
 
-function showLoading() {
-  if (DOM.loading) DOM.loading.style.display = 'flex';
-}
-
+/**
+ * Hides the main loading spinner.
+ */
 function hideLoading() {
-  if (DOM.loading) DOM.loading.style.display = 'none';
+  if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
 
-function renderMatch(match, isFeatured = false) {
+/**
+ * Creates the HTML for a single match card.
+ * @param {object} match The match data.
+ * @returns {string} The HTML string for the match card.
+ */
+function renderMatch(match) {
+  // Fallback for missing logos to prevent broken images
+  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
+  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
+
   return `
-    <div class="match-card ${isFeatured ? 'featured' : ''}">
-      <div class="league">${match.league}</div>
+    <div class="match-card">
+      <div class="league-info">
+          <span>${match.league}</span>
+      </div>
       <div class="teams">
         <div class="team">
-          <img src="${match.homeTeam.logo || 'default-team.png'}" 
-               alt="${match.homeTeam.name}"
-               onerror="this.src='default-team.png'">
-          <span>${match.homeTeam.name}</span>
+          <img src="${homeLogo}" alt="${match.homeTeam.name}" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+          <span class="team-name">${match.homeTeam.name}</span>
         </div>
         <div class="match-info">
-          <span class="time">${match.time}</span>
           <span class="score">${match.score}</span>
+          <span class="time">${match.time}</span>
         </div>
         <div class="team">
-          <img src="${match.awayTeam.logo || 'default-team.png'}" 
-               alt="${match.awayTeam.name}"
-               onerror="this.src='default-team.png'">
-          <span>${match.awayTeam.name}</span>
+          <img src="${awayLogo}" alt="${match.awayTeam.name}" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+          <span class="team-name">${match.awayTeam.name}</span>
         </div>
       </div>
     </div>
   `;
 }
 
+/**
+ * Renders a "no matches found" message into a container.
+ * @param {HTMLElement} container The container to render the message in.
+ * @param {string} message The message to display.
+ */
+function renderNoMatches(container, message) {
+    if (container) {
+        container.innerHTML = `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
+    }
+}
+
+/**
+ * Main function to load data and render all match sections.
+ */
 async function loadAndRenderMatches() {
-  showLoading();
-  
-  try {
-    const [todayMatches, tomorrowMatches] = await Promise.all([
-      getTodayMatches(),
-      getTomorrowMatches()
-    ]);
+  // Fetch today's and tomorrow's matches in parallel for speed
+  const [todayMatches, tomorrowMatches] = await Promise.all([
+    getTodayMatches(),
+    getTomorrowMatches()
+  ]);
 
-    console.log('Today matches:', todayMatches);
-    console.log('Tomorrow matches:', tomorrowMatches);
+  // Once data is fetched, hide the main loader
+  hideLoading();
 
-    // عرض المباريات المسائية في القسم المميز (بعد 6 مساءً)
-    const eveningMatches = todayMatches.filter(match => {
-      const hour = parseInt(match.time.split(':')[0]) || 0;
-      return hour >= 18; // 6 مساءً
-    });
+  // 1. Render Featured/Evening Matches
+  const eveningMatches = todayMatches.filter(match => {
+    const hour = parseInt(match.time.split(':')[0], 10) || 0;
+    return hour >= 19; // 7 PM or later
+  });
+  if (DOM.featuredContainer) {
+      if (eveningMatches.length > 0) {
+        DOM.featuredContainer.innerHTML = eveningMatches.map(renderMatch).join('');
+      } else {
+        renderNoMatches(DOM.featuredContainer, 'لا توجد مباريات مسائية اليوم.');
+      }
+  }
 
-    if (DOM.featuredContainer) {
-      DOM.featuredContainer.innerHTML = eveningMatches.length > 0 
-        ? eveningMatches.map(match => renderMatch(match, true)).join('')
-        : '<p>لا توجد مباريات مسائية اليوم</p>';
+  // 2. Render Broadcast/Key Matches (e.g., first 5 of the day)
+  if (DOM.broadcastContainer) {
+      const keyMatches = todayMatches.slice(0, 5); // Show up to 5 key matches
+      if (keyMatches.length > 0) {
+          DOM.broadcastContainer.innerHTML = keyMatches.map(renderMatch).join('');
+      } else {
+          renderNoMatches(DOM.broadcastContainer, 'لا توجد مباريات هامة اليوم.');
+      }
+  }
+
+  // 3. Render All Today's Matches Tab
+  if (DOM.todayContainer) {
+    if (todayMatches.length > 0) {
+      DOM.todayContainer.innerHTML = todayMatches.map(renderMatch).join('');
+    } else {
+      renderNoMatches(DOM.todayContainer, 'لا توجد مباريات مجدولة اليوم.');
     }
+  }
 
-    if (DOM.todayContainer) {
-      DOM.todayContainer.innerHTML = todayMatches.length > 0
-        ? todayMatches.map(renderMatch).join('')
-        : '<p>لا توجد مباريات اليوم</p>';
+  // 4. Render All Tomorrow's Matches Tab
+  if (DOM.tomorrowContainer) {
+    if (tomorrowMatches.length > 0) {
+      DOM.tomorrowContainer.innerHTML = tomorrowMatches.map(renderMatch).join('');
+    } else {
+      renderNoMatches(DOM.tomorrowContainer, 'لا توجد مباريات مجدولة غداً.');
     }
-
-    if (DOM.tomorrowContainer) {
-      DOM.tomorrowContainer.innerHTML = tomorrowMatches.length > 0
-        ? tomorrowMatches.map(renderMatch).join('')
-        : '<p>لا توجد مباريات غداً</p>';
-    }
-
-  } catch (error) {
-    console.error('Error:', error);
-    alert('حدث خطأ في تحميل البيانات، يرجى المحاولة لاحقاً');
-  } finally {
-    hideLoading();
   }
 }
 
-// بدء التحميل عند تشغيل الصفحة
-document.addEventListener('DOMContentLoaded', loadAndRenderMatches);
+/**
+ * Sets up the tab switching logic.
+ */
+function setupTabs() {
+    DOM.todayTab?.addEventListener('click', () => {
+        DOM.todayTab.classList.add('active');
+        DOM.tomorrowTab.classList.remove('active');
+        DOM.todayContainer.style.display = 'grid'; // Or 'block' depending on your CSS
+        DOM.tomorrowContainer.style.display = 'none';
+    });
 
-// للفحص من الكونسول
-window.debugMatches = {
-  reload: () => {
-    localStorage.clear();
-    location.reload();
-  }
-};
+    DOM.tomorrowTab?.addEventListener('click', () => {
+        DOM.tomorrowTab.classList.add('active');
+        DOM.todayTab.classList.remove('active');
+        DOM.tomorrowContainer.style.display = 'grid'; // Or 'block'
+        DOM.todayContainer.style.display = 'none';
+    });
+}
+
+// Start the process when the page is ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupTabs();
+    loadAndRenderMatches();
+});
