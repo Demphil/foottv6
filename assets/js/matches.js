@@ -45,12 +45,9 @@ const appState = {
 
 // 4. التهيئة الرئيسية
 async function initializeApp() {
-  if (appState.isInitialized) return;
-
   try {
     showLoading();
-    console.log('جاري تحميل بيانات المباريات...');
-
+    
     const [todayMatches, tomorrowMatches] = await Promise.all([
       getTodayMatches(),
       getTomorrowMatches()
@@ -62,18 +59,12 @@ async function initializeApp() {
       all: [...(todayMatches || []), ...(tomorrowMatches || [])]
     };
 
-    console.log('تم تحميل البيانات:', {
-      today: appState.matchesData.today.length,
-      tomorrow: appState.matchesData.tomorrow.length
-    });
-
     renderAllSections();
     setupEventListeners();
-    appState.isInitialized = true;
 
   } catch (error) {
-    console.error('فشل تحميل البيانات:', error);
-    showError('حدث خطأ في تحميل البيانات. يرجى المحاولة لاحقاً');
+    console.error("Error:", error);
+    showError("حدث خطأ في تحميل البيانات");
     tryFallbackCache();
   } finally {
     hideLoading();
@@ -84,24 +75,26 @@ async function initializeApp() {
 function categorizeMatches() {
   const { today, tomorrow, all } = appState.matchesData;
   const now = new Date();
-  const currentHour = now.getUTCHours() + 1; // توقيت المغرب (UTC+1)
+  const currentHour = now.getHours();
 
-  // المباريات المسائية
-  const eveningMatches = today.filter(match => {
+  // 1. المباريات المنقولة اليوم (كل مباريات اليوم)
+  const broadcastMatches = [...today]; // نسخة من مباريات اليوم
+
+  // 2. المباريات المميزة (الدوريات الكبرى + المباريات بعد 6 مساءً)
+  const featuredMatches = all.filter(match => {
+    const isMajorLeague = CONFIG.MAJOR_LEAGUES.some(league => 
+      match.league?.name?.includes(league)
+    );
+    
     const matchHour = match.time ? parseInt(match.time.split(':')[0]) : 0;
-    return matchHour >= CONFIG.EVENING_START_HOUR;
+    const isEveningMatch = matchHour >= CONFIG.EVENING_START_HOUR;
+    
+    return isMajorLeague || isEveningMatch;
   });
 
-  // المباريات المميزة (التصحيح هنا)
-  const featuredMatches = all.filter(match => 
-    CONFIG.MAJOR_LEAGUES.some(league => 
-      match.league?.name?.includes(league)
-    ) // أضفت القوس الناقص هنا
-  ); // وأضفت القوس الناقص هنا
-
   return {
-    broadcast: eveningMatches,
-    featured: featuredMatches,
+    broadcast: broadcastMatches, // كل مباريات اليوم
+    featured: featuredMatches,  // الدوريات الكبرى + المسائية
     today,
     tomorrow
   };
@@ -120,55 +113,84 @@ function renderAllSections() {
 function renderBroadcastSection(matches) {
   if (!DOM.broadcastContainer) return;
 
-  DOM.broadcastContainer.innerHTML = matches.length ? matches.map(match => `
-    <div class="broadcast-match" data-id="${match.id}">
-      <div class="teams">
-        <div class="team">
-          <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.homeTeam.name}"
-               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-          <span>${match.homeTeam.name}</span>
+  if (!matches.length) {
+    DOM.broadcastContainer.innerHTML = `
+      <div class="no-matches">
+        <i class="fas fa-tv"></i>
+        <p>لا توجد مباريات منقولة اليوم</p>
+      </div>`;
+    return;
+  }
+
+  // عرض أهم مبارتين في القسم العلوي
+  const importantMatches = matches.filter(m => 
+    CONFIG.MAJOR_LEAGUES.some(league => m.league?.name?.includes(league))
+    .slice(0, 2);
+
+  DOM.broadcastContainer.innerHTML = `
+    ${importantMatches.map(match => `
+      <div class="highlight-match">
+        <div class="teams">
+          <div class="team">
+            <img src="${match.homeTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
+                 onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+            <span>${match.homeTeam.name}</span>
+          </div>
+          <div class="match-info">
+            <span class="time">${match.time}</span>
+            <span class="score">${match.score || 'VS'}</span>
+          </div>
+          <div class="team">
+            <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}"
+                 onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
+            <span>${match.awayTeam.name}</span>
+          </div>
         </div>
-        <div class="match-info">
-          <span class="score">${match.score || 'VS'}</span>
-          <span class="time">${match.time || '--:--'}</span>
-        </div>
-        <div class="team">
-          <img src="${match.awayTeam.logo || CONFIG.DEFAULT_TEAM_LOGO}" 
-               alt="${match.awayTeam.name}"
-               onerror="this.src='${CONFIG.DEFAULT_TEAM_LOGO}'">
-          <span>${match.awayTeam.name}</span>
+        <div class="channels">
+          ${match.channels?.map(c => `<span class="channel">${c}</span>`).join('')}
         </div>
       </div>
-      <div class="channels">
-        ${match.channels?.map(channel => `<span class="channel">${channel}</span>`).join('') || 'لا توجد قنوات'}
-      </div>
+    `).join('')}
+
+    <div class="other-matches">
+      ${matches.slice(2).map(match => `
+        <div class="broadcast-match">
+          <span class="team">${match.homeTeam.name}</span>
+          <span class="vs">${match.score || 'VS'}</span>
+          <span class="team">${match.awayTeam.name}</span>
+          <span class="time">${match.time}</span>
+        </div>
+      `).join('')}
     </div>
-  `).join('') : `
-    <div class="no-matches">
-      <i class="fas fa-tv"></i>
-      <p>لا توجد مباريات منقولة مساء اليوم</p>
-    </div>`;
+  `;
 }
 
 function renderFeaturedSection(matches) {
   if (!DOM.featuredContainer) return;
 
-  if (!matches.length) {
+  // تصفية المباريات المسائية فقط
+  const eveningMatches = matches.filter(match => {
+    const matchHour = match.time ? parseInt(match.time.split(':')[0]) : 0;
+    return matchHour >= CONFIG.EVENING_START_HOUR;
+  });
+
+  if (!eveningMatches.length) {
     DOM.featuredContainer.innerHTML = `
       <div class="no-matches">
         <i class="fas fa-star"></i>
-        <p>لا توجد مباريات مميزة اليوم</p>
+        <p>لا توجد مباريات مميزة مساء اليوم</p>
       </div>`;
     return;
   }
 
-  const groupedMatches = [];
-  for (let i = 0; i < matches.length; i += 4) {
-    groupedMatches.push(matches.slice(i, i + 4));
+  // عرض المباريات المسائية في السلايدر
+  const matchesPerSlide = 3;
+  const slides = [];
+  for (let i = 0; i < eveningMatches.length; i += matchesPerSlide) {
+    slides.push(eveningMatches.slice(i, i + matchesPerSlide));
   }
 
-  initFeaturedSlider(groupedMatches);
+  initFeaturedSlider(slides);
 }
 
 function initFeaturedSlider(groups) {
