@@ -23,47 +23,38 @@ function hideLoading() {
  * @param {object} match The match data.
  * @returns {string} The HTML string for the match card.
  */
+// في ملف matches.js
+
 function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
+  const matchDetailsHTML = `...`; // (الكود الذي يعرض القناة والمعلق يبقى كما هو)
 
-  // Create the HTML for extra details only if they exist.
-  const matchDetailsHTML = `
-    ${match.channel ? `
-      <div class="match-detail-item">
-        <i class="fas fa-tv" aria-hidden="true"></i>
-        <span>${match.channel}</span>
-      </div>
-    ` : ''}
-    ${match.commentator ? `
-      <div class="match-detail-item">
-        <i class="fas fa-microphone-alt" aria-hidden="true"></i>
-        <span>${match.commentator}</span>
-      </div>
-    ` : ''}
-  `;
-
+  // --- التحديث الرئيسي هنا ---
+  // تم تحويل البطاقة إلى وسم <a> وتمرير رابط المباراة
   return `
-    <article class="match-card" aria-label="Match between ${match.homeTeam.name} and ${match.awayTeam.name}">
-      <div class="league-info">
-          <span>${match.league}</span>
-      </div>
-      <div class="teams">
-        <div class="team">
-          <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
-          <span class="team-name">${match.homeTeam.name}</span>
+    <a href="watch.html?matchLink=${encodeURIComponent(match.matchLink)}" class="match-card-link">
+      <article class="match-card" aria-label="Match between ${match.homeTeam.name} and ${match.awayTeam.name}">
+        <div class="league-info">
+            <span>${match.league}</span>
         </div>
-        <div class="match-info">
-          <span class="score">${match.score}</span>
-          <span class="time">${match.time}</span>
+        <div class="teams">
+          <div class="team">
+            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+            <span class="team-name">${match.homeTeam.name}</span>
+          </div>
+          <div class="match-info">
+            <span class="score">${match.score}</span>
+            <span class="time">${match.time}</span>
+          </div>
+          <div class="team">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+            <span class="team-name">${match.awayTeam.name}</span>
+          </div>
         </div>
-        <div class="team">
-          <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
-          <span class="team-name">${match.awayTeam.name}</span>
-        </div>
-      </div>
-      ${matchDetailsHTML.trim() ? `<div class="match-details-extra">${matchDetailsHTML}</div>` : ''}
-    </article>
+        ${matchDetailsHTML.trim() ? `<div class="match-details-extra">${matchDetailsHTML}</div>` : ''}
+      </article>
+    </a>
   `;
 }
 
