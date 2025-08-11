@@ -95,7 +95,19 @@ async function fetchMatches(targetUrl) {
   }
 }
 
+// In api.js
+
 function parseMatches(html) {
+  // --- Start of Translation Logic ---
+  const translations = { /* ... Your full list of leagues and teams ... */ };
+  const translate = (arabicText) => {
+    for (const key in translations) {
+      if (arabicText.includes(key)) return translations[key];
+    }
+    return arabicText;
+  };
+  // --- End of Translation Logic ---
+
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
@@ -110,17 +122,31 @@ function parseMatches(html) {
           const matchLink = matchEl.querySelector('a[title^="مشاهدة مباراة"]')?.href;
           if (!matchLink) return;
 
+          // --- Improved Score and Time Parsing Logic ---
+          let score = 'VS';
+          const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
+          if (scoreSpans.length === 2) {
+              const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
+              const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
+              // Ensure both scores are valid numbers before creating the string
+              if (!isNaN(score1) && !isNaN(score2)) {
+                  score = `${score1} - ${score2}`;
+              }
+          }
+          const time = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+          // --- End of Improved Logic ---
+
           const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
           const channel = infoListItems[0]?.textContent?.trim() || '';
           const commentator = infoListItems[1]?.textContent?.trim() || '';
-          const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'بطولة';
+          const arabicLeague = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
           
           matches.push({
-            homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
-            awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-            time: matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--',
-            score: (spans => spans.length === 2 ? `${spans[0].textContent.trim()} - ${spans[1].textContent.trim()}` : 'VS')(matchEl.querySelectorAll('.MT_Result .RS-goals')),
-            league: league,
+            homeTeam: { name: translate(homeTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
+            awayTeam: { name: translate(awayTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+            time: time,
+            score: score,
+            league: translate(arabicLeague),
             channel: channel.includes('غير معروف') ? '' : channel,
             commentator: commentator.includes('غير معروف') ? '' : commentator,
             matchLink: matchLink
@@ -131,7 +157,6 @@ function parseMatches(html) {
   });
   return matches;
 }
-
 function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
