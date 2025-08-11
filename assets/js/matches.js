@@ -1,3 +1,12 @@
+بالتأكيد. إليك النسخة الكاملة والنهائية من ملف `matches.js` التي تحتوي على كل التعديلات الأخيرة، بما في ذلك الواجهة باللغة الإنجليزية.
+
+-----
+
+### ملف `matches.js` (النسخة الكاملة)
+
+قم باستبدال محتوى ملف `assets/js/matches.js` بالكامل بهذا الكود.
+
+```javascript
 import { getTodayMatches, getTomorrowMatches } from './api.js';
 // استيراد قاعدة بيانات روابط Blogger الخاصة بك
 import { streamLinks } from './streams.js';
@@ -29,16 +38,16 @@ function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
 
-  // --- المنطق الذكي لتحديد الرابط الصحيح ---
-  // 1. إنشاء مفتاح خاص بالمباراة (للخطة البديلة)
+  // --- Smart logic to determine the correct link ---
+  // 1. Create a match-specific key (as a fallback)
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
 
-  // 2. البحث عن رابط البث:
-  //    أ. ابحث أولاً باستخدام اسم القناة القادم من المصدر.
-  //    ب. إذا فشلت، ابحث باستخدام المفتاح الخاص بأسماء الفرق.
+  // 2. Look for the stream link:
+  //    a. First, try using the channel name from the source.
+  //    b. If that fails, try using the match-specific key.
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
 
-  // 3. تحديد ما إذا كانت البطاقة قابلة للنقر
+  // 3. Determine if the card should be clickable
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
   
   // Create the HTML for extra details (channel, commentator)
@@ -57,11 +66,11 @@ function renderMatch(match) {
     ` : ''}
   `;
 
-  // بناء بطاقة المباراة النهائية
+  // Build the final match card
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
-        ${!watchUrl ? '<span class="no-stream-badge">البث غير متوفر</span>' : ''}
+        ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
         
         <div class="league-info">
             <span>${match.league}</span>
@@ -122,10 +131,11 @@ async function loadAndRenderMatches() {
     }
   });
   
-  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات مسائية اليوم.');
-  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 5), 'لا توجد مباريات هامة اليوم.');
-  renderSection(DOM.todayContainer, todayMatches, 'لا توجد مباريات مجدولة اليوم.');
-  renderSection(DOM.tomorrowContainer, tomorrowMatches, 'لا توجد مباريات مجدولة غداً.');
+  // Using English messages for the UI
+  renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
+  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 5), 'No key matches scheduled for today.');
+  renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
+  renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
 }
 
 /**
@@ -155,6 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderMatches().catch(error => {
         console.error("An error occurred while loading matches:", error);
         hideLoading();
-        alert("فشل تحميل البيانات. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.");
+        // English alert message
+        alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
+```
