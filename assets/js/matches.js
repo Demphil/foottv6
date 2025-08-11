@@ -1,12 +1,3 @@
-بالتأكيد. إليك النسخة الكاملة والنهائية من ملف `matches.js` التي تحتوي على كل التعديلات الأخيرة، بما في ذلك الواجهة باللغة الإنجليزية.
-
------
-
-### ملف `matches.js` (النسخة الكاملة)
-
-قم باستبدال محتوى ملف `assets/js/matches.js` بالكامل بهذا الكود.
-
-```javascript
 import { getTodayMatches, getTomorrowMatches } from './api.js';
 // استيراد قاعدة بيانات روابط Blogger الخاصة بك
 import { streamLinks } from './streams.js';
@@ -169,4 +160,3 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
-```
