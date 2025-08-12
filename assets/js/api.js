@@ -71,7 +71,7 @@ export async function getTomorrowMatches() {
   }
 
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://goalkoora.live-koora.live/matches-tomorrowkora/';
+  const targetUrl = 'https://goalkoora.live-koora.live/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
