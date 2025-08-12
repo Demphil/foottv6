@@ -51,7 +51,7 @@ export async function getTodayMatches() {
   }
 
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://goalkooora.live-kooora.com/?show=matchs';
+  const targetUrl = 'https://goalkoora.live-koora.live/?show=matchs';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -71,7 +71,7 @@ export async function getTomorrowMatches() {
   }
 
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://goalkooora.live-kooora.com/matches-tomorrowkora/';
+  const targetUrl = 'https://goalkoora.live-koora.live/matches-tomorrowkora/';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -161,5 +161,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://goalkooora.live-kooora.com${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://goalkoora.live-koora.live${src.startsWith('/') ? '' : '/'}${src}`;
 }
