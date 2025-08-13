@@ -80,7 +80,7 @@ export async function getTodayMatches() {
   }
 
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://live.koralive.net/?show=matchs';
+  const targetUrl = 'https://live.koralive.net?show=matchs';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -97,7 +97,7 @@ export async function getTomorrowMatches() {
   }
 
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://live.koralive.net/matches-tomorrow/';
+  const targetUrl = 'https://live.koralive.net/matches-tomorrow';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -168,7 +168,7 @@ function parseMatches(html) {
             score: score,
             league: translate(arabicLeague),
             channel: channel.includes('غير معروف') ? '' : channel,
-            commentator: commentator.includes('غير معروف') ? '' : channel,
+            commentator: commentator.includes('غير معروف') ? '' : commentator,
             matchLink: matchLink
           });
       } catch (e) {
