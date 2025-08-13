@@ -1,4 +1,3 @@
-الكاملة / // --- 1. Cache Configuration ---
 
 // Set cache to expire after 5 hours
 
