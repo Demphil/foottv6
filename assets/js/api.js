@@ -1,8 +1,12 @@
 // --- 1. Cache Configuration ---
+// Set cache to expire after 5 hours
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000;
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
+/**
+ * Stores data in localStorage with a timestamp.
+ */
 function setCache(key, data) {
   const cacheItem = {
     timestamp: Date.now(),
@@ -12,6 +16,9 @@ function setCache(key, data) {
   console.log(`💾 Data for '${key}' saved to cache.`);
 }
 
+/**
+ * Retrieves data from localStorage if it's not expired.
+ */
 function getCache(key) {
   const cachedItem = localStorage.getItem(key);
   if (!cachedItem) return null;
@@ -21,13 +28,12 @@ function getCache(key) {
 
   if (age > CACHE_EXPIRY_MS) {
     localStorage.removeItem(key);
-    return null;
+    return null; // Cache is expired
   }
 
-  return data;
+  return data; // Cache is fresh
 }
 
-/* --- دالة لتحويل التوقيت --- */
 /**
  * Converts a time string from KSA (UTC+3) to Morocco (UTC+1).
  * @param {string} timeString - The time string, e.g., "09:30 PM".
@@ -35,7 +41,10 @@ function getCache(key) {
  */
 function convertKsaToMoroccoTime(timeString) {
   try {
-    if (!timeString || timeString.includes('--')) return timeString;
+    // If time is not available, return it as is
+    if (!timeString || !timeString.includes(':')) {
+      return timeString;
+    }
 
     const [timePart, ampm] = timeString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
@@ -48,11 +57,10 @@ function convertKsaToMoroccoTime(timeString) {
       hours = 0; // Midnight case
     }
 
-    // --- The Conversion ---
-    // Subtract 2 hours for Morocco time
+    // --- The Conversion: Subtract 2 hours for Morocco time ---
     hours -= 2;
 
-    // Handle cases where the time goes to the previous day
+    // Handle cases where the time rolls over to the previous day
     if (hours < 0) {
       hours += 24;
     }
@@ -63,11 +71,12 @@ function convertKsaToMoroccoTime(timeString) {
 
     return `${formattedHours}:${formattedMinutes}`;
   } catch (error) {
+    // If the time format is unexpected, log the error and return the original time
     console.error("Could not parse time:", timeString, error);
-    // If the time format is unexpected, return it as is
     return timeString;
   }
 }
+
 
 // --- 2. API Functions (Now with Caching) ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
@@ -80,7 +89,7 @@ export async function getTodayMatches() {
   }
 
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://live.koralive.net?show=matchs';
+  const targetUrl = 'https://live.koralive.net/?show=matchs';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -97,7 +106,7 @@ export async function getTomorrowMatches() {
   }
 
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://live.koralive.net/matches-tomorrow';
+  const targetUrl = 'https://live.koralive.net/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -105,6 +114,7 @@ export async function getTomorrowMatches() {
   }
   return newMatches;
 }
+
 
 // --- 3. Core Fetching and Parsing Logic ---
 async function fetchMatches(targetUrl) {
@@ -152,8 +162,10 @@ function parseMatches(html) {
               }
           }
           
-          // Get the original time and convert it
+          // Get the original time from the source
           const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+          
+          // Convert the time to Morocco's timezone
           const moroccoTime = convertKsaToMoroccoTime(originalTime);
 
           const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
@@ -164,7 +176,7 @@ function parseMatches(html) {
           matches.push({
             homeTeam: { name: translate(homeTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
             awayTeam: { name: translate(awayTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-            time: moroccoTime, // <-- Use the converted time here
+            time: moroccoTime, // Use the converted time here
             score: score,
             league: translate(arabicLeague),
             channel: channel.includes('غير معروف') ? '' : channel,
