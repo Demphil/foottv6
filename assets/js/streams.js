@@ -24,7 +24,7 @@ export const streamLinks = {
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
   'ريال مدريد-برشلونة': 'https://your-blog-name.blogspot.com/p/el-clasico.html',
-  'أورلاندو سيتي-انتر ميامي': 'https://foot966.blogspot.com/p/bein3_10.html',
+  'توتنهام هوتسبور-باري سان جيرمان ': 'https://foot966.blogspot.com/p/bein1.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
