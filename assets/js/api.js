@@ -1,58 +1,30 @@
 
-// Set cache to expire after 5 hours
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000;
-
 const CACHE_KEY_TODAY = 'matches_cache_today';
-
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
-
-
-
 /**
-
  * Stores data in localStorage with a timestamp.
-
  */
-
 function setCache(key, data) {
-
   const cacheItem = {
-
     timestamp: Date.now(),
-
     data: data,
-
   };
-
+  
   localStorage.setItem(key, JSON.stringify(cacheItem));
-
   console.log(`💾 Data for '${key}' saved to cache.`);
-
 }
-
-
-
 /**
 
  * Retrieves data from localStorage if it's not expired.
 
  */
-
 function getCache(key) {
-
   const cachedItem = localStorage.getItem(key);
-
   if (!cachedItem) return null;
-
-
-
   const { timestamp, data } = JSON.parse(cachedItem);
-
   const age = Date.now() - timestamp;
-
-
-
   if (age > CACHE_EXPIRY_MS) {
 
     localStorage.removeItem(key);
@@ -266,69 +238,34 @@ function parseMatches(html) {
               }
 
           }
-
           const time = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-
           // --- End of Improved Logic ---
-
-
-
           const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
-
           const channel = infoListItems[0]?.textContent?.trim() || '';
-
           const commentator = infoListItems[1]?.textContent?.trim() || '';
-
           const arabicLeague = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
-
-          
-
           matches.push({
-
             homeTeam: { name: translate(homeTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
-
             awayTeam: { name: translate(awayTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
 
             time: time,
-
             score: score,
-
             league: translate(arabicLeague),
-
             channel: channel.includes('غير معروف') ? '' : channel,
-
             commentator: commentator.includes('غير معروف') ? '' : commentator,
-
             matchLink: matchLink
-
           });
 
       } catch (e) {
-
           console.error('Failed to parse a single match element:', e);
-
       }
-
   });
-
   return matches;
-
 }
 
 function extractImageUrl(imgElement) {
-
   if (!imgElement) return '';
-
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
-
   if (src.startsWith('http') || src.startsWith('//')) return src;
-
   return `https://live.koralive.net${src.startsWith('/') ? '' : '/'}${src}`;
-
 }
-
-
-
-
-Afficher le raisonnement
-
