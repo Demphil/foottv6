@@ -1,12 +1,8 @@
 // --- 1. Cache Configuration ---
-// Set cache to expire after 5 hours
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000;
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
-/**
- * Stores data in localStorage with a timestamp.
- */
 function setCache(key, data) {
   const cacheItem = {
     timestamp: Date.now(),
@@ -16,9 +12,6 @@ function setCache(key, data) {
   console.log(`💾 Data for '${key}' saved to cache.`);
 }
 
-/**
- * Retrieves data from localStorage if it's not expired.
- */
 function getCache(key) {
   const cachedItem = localStorage.getItem(key);
   if (!cachedItem) return null;
@@ -28,21 +21,57 @@ function getCache(key) {
 
   if (age > CACHE_EXPIRY_MS) {
     localStorage.removeItem(key);
-    return null; // Cache is expired
+    return null;
   }
 
-  return data; // Cache is fresh
+  return data;
 }
 
+/* --- دالة لتحويل التوقيت --- */
+/**
+ * Converts a time string from KSA (UTC+3) to Morocco (UTC+1).
+ * @param {string} timeString - The time string, e.g., "09:30 PM".
+ * @returns {string} The converted time string, e.g., "19:30".
+ */
+function convertKsaToMoroccoTime(timeString) {
+  try {
+    if (!timeString || timeString.includes('--')) return timeString;
+
+    const [timePart, ampm] = timeString.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+
+    // Convert to 24-hour format
+    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
+      hours += 12;
+    }
+    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
+      hours = 0; // Midnight case
+    }
+
+    // --- The Conversion ---
+    // Subtract 2 hours for Morocco time
+    hours -= 2;
+
+    // Handle cases where the time goes to the previous day
+    if (hours < 0) {
+      hours += 24;
+    }
+
+    // Format back to HH:MM string
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}`;
+  } catch (error) {
+    console.error("Could not parse time:", timeString, error);
+    // If the time format is unexpected, return it as is
+    return timeString;
+  }
+}
 
 // --- 2. API Functions (Now with Caching) ---
-
-// Use your new, reliable Cloudflare Worker
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-/**
- * Fetches today's matches, using cache first.
- */
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) {
@@ -60,9 +89,6 @@ export async function getTodayMatches() {
   return newMatches;
 }
 
-/**
- * Fetches tomorrow's matches, using cache first.
- */
 export async function getTomorrowMatches() {
   const cachedMatches = getCache(CACHE_KEY_TOMORROW);
   if (cachedMatches) {
@@ -80,9 +106,7 @@ export async function getTomorrowMatches() {
   return newMatches;
 }
 
-
 // --- 3. Core Fetching and Parsing Logic ---
-
 async function fetchMatches(targetUrl) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
@@ -95,10 +119,7 @@ async function fetchMatches(targetUrl) {
   }
 }
 
-// In api.js
-
 function parseMatches(html) {
-  // --- Start of Translation Logic ---
   const translations = { /* ... Your full list of leagues and teams ... */ };
   const translate = (arabicText) => {
     for (const key in translations) {
@@ -106,7 +127,6 @@ function parseMatches(html) {
     }
     return arabicText;
   };
-  // --- End of Translation Logic ---
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -122,19 +142,19 @@ function parseMatches(html) {
           const matchLink = matchEl.querySelector('a[title^="مشاهدة مباراة"]')?.href;
           if (!matchLink) return;
 
-          // --- Improved Score and Time Parsing Logic ---
           let score = 'VS';
           const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
           if (scoreSpans.length === 2) {
               const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
               const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
-              // Ensure both scores are valid numbers before creating the string
               if (!isNaN(score1) && !isNaN(score2)) {
                   score = `${score1} - ${score2}`;
               }
           }
-          const time = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-          // --- End of Improved Logic ---
+          
+          // Get the original time and convert it
+          const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+          const moroccoTime = convertKsaToMoroccoTime(originalTime);
 
           const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
           const channel = infoListItems[0]?.textContent?.trim() || '';
@@ -144,11 +164,11 @@ function parseMatches(html) {
           matches.push({
             homeTeam: { name: translate(homeTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
             awayTeam: { name: translate(awayTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-            time: time,
+            time: moroccoTime, // <-- Use the converted time here
             score: score,
             league: translate(arabicLeague),
             channel: channel.includes('غير معروف') ? '' : channel,
-            commentator: commentator.includes('غير معروف') ? '' : commentator,
+            commentator: commentator.includes('غير معروف') ? '' : channel,
             matchLink: matchLink
           });
       } catch (e) {
@@ -157,6 +177,7 @@ function parseMatches(html) {
   });
   return matches;
 }
+
 function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
