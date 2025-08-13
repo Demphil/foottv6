@@ -23,7 +23,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'ريال مدريد-برشلونة': 'https://your-blog-name.blogspot.com/p/el-clasico.html',
+  'موريتانيا-بوركينا فاسو': 'https://foot966.blogspot.com/p/bein6.html',
   'باريس سان جيرمان-توتنهام هوتسبر': 'https://foot966.blogspot.com/p/bein1.html',
 
 
