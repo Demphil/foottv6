@@ -72,12 +72,6 @@ async function fetchMatches(targetUrl) {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    
-    // --- أداة المساعدة 1: طباعة جزء من HTML ---
-    console.log("--- Raw HTML Received (first 1000 chars) ---");
-    console.log(html.substring(0, 1000));
-    console.log("-------------------------------------------");
-
     return parseMatches(html);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
@@ -87,29 +81,65 @@ async function fetchMatches(targetUrl) {
 
 function parseMatches(html) {
   const translations = { /* ... Your full list of leagues and teams ... */ };
-  const translate = (text) => { /* ... */ return text; };
+  const translate = (text) => { 
+      for (const key in translations) {
+        if (text.includes(key)) return translations[key];
+      }
+      return text;
+  };
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
 
-  // --- أداة المساعدة 2: التحقق من المحدد الرئيسي ---
-  const mainSelector = '.AY_Match'; // <--- هذا هو المحدد الذي سنغيره
+  const mainSelector = '.AY_Match';
   const matchElements = doc.querySelectorAll(mainSelector);
   console.log(`Found ${matchElements.length} match elements using selector: "${mainSelector}"`);
 
   if (matchElements.length === 0) {
-      console.error("CRITICAL: Main selector did not find any matches. You must find the new correct selector.");
+      console.error("CRITICAL: Main selector did not find any matches.");
   }
   
   matchElements.forEach(matchEl => {
       try {
-          // ... (بقية الكود يبقى كما هو حاليًا)
+          // --- NEW CORRECT SELECTORS FOR KORA-MATCH.COM ---
           const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
           const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+          
           if (!homeTeamName || !awayTeamName) return;
-          // ...
-          matches.push({ /* ... */ });
+
+          const matchLink = matchEl.querySelector('a')?.href;
+          if (!matchLink) return;
+
+          let score = 'VS';
+          const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
+          if (scoreSpans.length === 2) {
+              const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
+              const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
+              if (!isNaN(score1) && !isNaN(score2)) {
+                  score = `${score1} - ${score2}`;
+              }
+          }
+          
+          const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+          const moroccoTime = convertKsaToMoroccoTime(originalTime);
+
+          const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
+          const channel = infoListItems[0]?.textContent?.trim() || '';
+          const commentator = infoListItems[1]?.textContent?.trim() || '';
+          const arabicLeague = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
+          
+          matches.push({
+            homeTeam: { name: translate(homeTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
+            awayTeam: { name: translate(awayTeamName), logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+            time: moroccoTime,
+            score: score,
+            league: translate(arabicLeague),
+            channel: channel.includes('غير معروف') ? '' : channel,
+            commentator: commentator.includes('غير معروف') ? '' : commentator,
+            matchLink: matchLink
+          });
+
       } catch (e) {
           console.error('Failed to parse a single match element:', e);
       }
