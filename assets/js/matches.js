@@ -1,5 +1,5 @@
 import { getTodayMatches, getTomorrowMatches } from './api.js';
-// استيراد قاعدة بيانات روابط Blogger الخاصة بك
+// إعادة استيراد قاعدة بيانات الروابط الخاصة بك
 import { streamLinks } from './streams.js';
 
 // DOM elements mapping from index.html
@@ -21,26 +21,25 @@ function hideLoading() {
 }
 
 /**
- * Creates the HTML for a single, intelligent match card.
- * @param {object} match The match data.
+ * Creates the HTML for a single, intelligent match card that uses streams.js.
+ * @param {object} match The match data object from api.js.
  * @returns {string} The HTML string for the match card.
  */
 function renderMatch(match) {
+  // فحص وقائي لمنع الأخطاء إذا كانت بيانات المباراة غير مكتملة
+  if (!match || !match.homeTeam || !match.awayTeam) {
+    console.error("Skipping malformed match object:", match);
+    return ''; // إرجاع نص فارغ لتجنب عرض بطاقة خاطئة
+  }
+
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
 
-  // --- Smart logic to determine the correct link ---
-  // 1. Create a match-specific key (as a fallback)
+  // --- المنطق الذكي لتحديد الرابط الصحيح من streams.js ---
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
-
-  // 2. Look for the stream link:
-  //    a. First, try using the channel name from the source.
-  //    b. If that fails, try using the match-specific key.
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-
-  // 3. Determine if the card should be clickable
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
-  
+
   // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
     ${match.channel ? `
@@ -57,7 +56,7 @@ function renderMatch(match) {
     ` : ''}
   `;
 
-  // Build the final match card
+  // بناء بطاقة المباراة النهائية
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
@@ -112,11 +111,9 @@ async function loadAndRenderMatches() {
   
   const featuredMatches = todayMatches.filter(match => {
     try {
-      const [timePart, ampm] = match.time.split(' ');
-      if (!ampm) return false;
-      let [hours] = timePart.split(':').map(Number);
-      if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-      return hours >= 19; // 7 PM or later
+      // The time is now 24-hour format, so filtering is simpler
+      const [hours] = match.time.split(':').map(Number);
+      return hours >= 19; // 7 PM or later in Morocco time
     } catch (e) {
       return false;
     }
@@ -156,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderMatches().catch(error => {
         console.error("An error occurred while loading matches:", error);
         hideLoading();
-        // English alert message
         alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
+
