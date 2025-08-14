@@ -80,7 +80,7 @@ export async function getTodayMatches() {
   }
 
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.kora-match.com?show=matchs';
+  const targetUrl = 'https://kora-match.com?show=matchs';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -97,7 +97,7 @@ export async function getTomorrowMatches() {
   }
 
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.kora-match.com/matches-tomorrow/';
+  const targetUrl = 'https://kora-match.com/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   
   if (newMatches.length > 0) {
@@ -182,5 +182,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.kora-match.com${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://kora-match.com${src.startsWith('/') ? '' : '/'}${src}`;
 }
