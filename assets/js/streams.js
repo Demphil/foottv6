@@ -25,6 +25,9 @@ export const streamLinks = {
   'أون سبورت 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
   'ON TIME SPORTS 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
+  'ad sports premium 1': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
+  'ad sports premium 2': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
+  
 
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
