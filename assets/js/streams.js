@@ -17,6 +17,8 @@ export const streamLinks = {
   'beIN Sports 6 HD': 'https://foot966.blogspot.com/p/bein6.html',
   'SSC 1 HD': 'https://foot966.blogspot.com/p/ssc1.html',
   'SSC 2 HD': 'https://foot966.blogspot.com/p/ssc2.html',
+  'SSC 3 HD': 'https://foot966.blogspot.com/p/ssc3_15.html',
+  'SSC extrat 1': 'https://foot966.blogspot.com/p/ssc-extrat-1.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
