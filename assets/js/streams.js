@@ -15,7 +15,9 @@ export const streamLinks = {
   'beIN SPORTS HD 6': 'https://foot966.blogspot.com/p/bein6.html',
   'SSC 1 HD': 'https://foot966.blogspot.com/p/ssc1.html',
   'SSC 2 HD': 'https://foot966.blogspot.com/p/ssc2.html',
-  'SSC 3 HD': 'https://foot966.blogspot.com/p/ssc3.html',
+  'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
+  'ON TIME SPORTS 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
+  'ON TIME SPORTS 2': 'https://mbc.aflam4you.net/playeraf.php?vid=33&aflam_s=1&aflam_k=18811111111',
 
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
@@ -23,8 +25,8 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'المغرب-زامبيا': 'https://foot966.blogspot.com/p/bein6.html',
-  'باريس سان جيرمان-توتنهام هوتسبر': 'https://foot966.blogspot.com/p/bein1.html',
+  '---': 'https://foot966.blogspot.com/p/bein6.html',
+  '---': 'https://foot966.blogspot.com/p/bein1.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
