@@ -14,10 +14,12 @@ export const streamLinks = {
   'beIN SPORTS HD 4': 'https://foot966.blogspot.com/p/bein4.html',
   'beIN SPORTS HD 5': 'https://foot966.blogspot.com/p/bein5.html',
   'beIN SPORTS HD 6': 'https://foot966.blogspot.com/p/bein6.html',
+  'beIN SPORTS 6 HD': 'https://foot966.blogspot.com/p/bein6.html',
   'SSC 1 HD': 'https://foot966.blogspot.com/p/ssc1.html',
   'SSC 2 HD': 'https://foot966.blogspot.com/p/ssc2.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'ON TIME SPORTS 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
+  'أون سبورت 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
   'ON TIME SPORTS 2': 'https://mbc.aflam4you.net/playeraf.php?vid=33&aflam_s=1&aflam_k=18811111111',
 
   // =================================================================
