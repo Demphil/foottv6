@@ -21,8 +21,8 @@ export const streamLinks = {
   'SSC extrat 1': 'https://foot966.blogspot.com/p/ssc-extrat-1.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
-  'ON TIME SPORTS 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
-  'أون سبورت 1': 'https://mbc.aflam4you.net/playeraf.php?vid=445&aflam_s=1&aflam_k=18811111111',
+  'ON TIME SPORTS 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'أون سبورت 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
   'ON TIME SPORTS 2': 'https://mbc.aflam4you.net/playeraf.php?vid=33&aflam_s=1&aflam_k=18811111111',
 
   // =================================================================
