@@ -23,7 +23,8 @@ export const streamLinks = {
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
   'أون سبورت 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
-  'ON TIME SPORTS 2': 'https://mbc.aflam4you.net/playeraf.php?vid=33&aflam_s=1&aflam_k=18811111111',
+  'ON TIME SPORTS 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
+  'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
 
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
