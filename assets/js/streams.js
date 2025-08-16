@@ -36,7 +36,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'باري-ميلان': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
+  'ميلان-باري': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
   'سيلتا فيجو-خيتافي': 'https://foot966.blogspot.com/p/bein3_15.html',
 
 
