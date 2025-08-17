@@ -36,8 +36,8 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'ميلان-باري': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
-  'سيلتا فيجو-خيتافي': 'https://foot966.blogspot.com/p/bein3_15.html',
+  'جنوب أفريقيا-أوغند': 'https://foot966.blogspot.com/p/bein6.html',
+  'الجزائر-النيجر': 'https://foot966.blogspot.com/p/bein3_15.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
