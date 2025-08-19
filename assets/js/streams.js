@@ -40,6 +40,7 @@ export const streamLinks = {
   'نيجيريا-جمهورية الكونغو': 'https://foot966.blogspot.com/p/bein6.html',
   'السودان-السنغال': 'https://foot966.blogspot.com/p/bein6.html',
   'المصري-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'ريال مدريد-أوساسونا': 'https://foot966.blogspot.com/p/bein3_15.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
