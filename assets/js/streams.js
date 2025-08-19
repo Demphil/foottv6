@@ -7,7 +7,7 @@ export const streamLinks = {
   // المفتاح: هو اسم القناة تمامًا كما يظهر في المصدر
   // القيمة: هو الرابط الكامل لصفحة Blogger الخاصة بهذه القناة
 
-  'beIN SPORTS HD 1': 'https://foot966.blogspot.com/p/bein1.html',
+  'beIN SPORTS HD 11': 'https://foot966.blogspot.com/p/bein1.html',
   'beIN SPORTS HD 2': 'https://foot966.blogspot.com/p/bein2.html',
   'Bein Sports HD2': 'https://foot966.blogspot.com/p/bein2.html',
   'beIN SPORTS HD 3': 'https://foot966.blogspot.com/p/bein3_15.html',
