@@ -38,7 +38,7 @@ export const streamLinks = {
   
   'جنوب أفريقيا-أوغندا': 'https://foot966.blogspot.com/p/bein6.html',
   'نيجيريا-جمهورية الكونغو': 'https://foot966.blogspot.com/p/bein6.html',
-  'بنفيكا-فنربخشة': 'https://foot966.blogspot.com/p/bein1.html',
+  'فنربخشة-بنفيكا': 'https://foot966.blogspot.com/p/bein1.html',
   'المصري-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
   'ريال مدريد-أوساسونا': 'https://foot966.blogspot.com/p/bein3_15.html',
 
