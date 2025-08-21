@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصفحة غير موجودة | FootTV</title>
+    
+    <!-- استيراد الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- رابط ملف CSS الرئيسي لمشاركة الأنماط -->
+    <link rel="stylesheet" href="assets/css/matches.css">
+    <link rel="stylesheet" href="assets/css/footer.css">
+
+    <style>
+        /* تنسيقات خاصة بصفحة 404 */
+        .error-main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-grow: 1; /* لجعل المحتوى يأخذ المساحة المتبقية */
+            padding: 20px;
+            min-height: calc(100vh - var(--header-height) - var(--footer-height)); /* حساب الارتفاع المتاح */
+        }
+
+        .error-icon {
+            font-size: 6rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .error-main h1 {
+            font-size: clamp(2rem, 10vw, 4rem); /* حجم خط متجاوب */
+            margin: 0;
+            color: var(--light-color);
+        }
+
+        .error-main p {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.8);
+            margin: 10px 0 30px 0;
+            max-width: 500px;
+        }
+
+        .back-home-btn {
+            background-color: var(--primary-color);
+            color: var(--light-color);
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-home-btn:hover {
+            background-color: #c1121f; /* لون أغمق عند المرور */
+            transform: translateY(-3px);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر (نفس هيدر موقعك) -->
+    <header class="header">
+        <div class="logo">
+            <img src="assets/images/logo.png" alt="FootTV Logo">
+            <h1>FootTV</h1>
+        </div>
+        <nav class="nav">
+            <ul>
+                <li><a href="/news.html">Football News</a></li>
+                <li><a href="/">Matches</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- المحتوى الرئيسي لصفحة الخطأ -->
+    <main class="error-main">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1>404</h1>
+        <p>عذرًا، الصفحة التي تبحث عنها غير موجودة أو تم حذفها. قد يكون الرابط الذي اتبعته خاطئًا.</p>
+        <a href="/" class="back-home-btn">
+            <i class="fas fa-home"></i>
+            العودة إلى الصفحة الرئيسية
+        </a>
+    </main>
+
+    <!-- الفوتر (نفس فوتر موقعك) -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <a href="#" class="logo-text">FootTV</a>
+            </div>
+            <div class="footer-links">
+                <a href="/"><i class="fas fa-home"></i> Matches</a>
+                <a href="/news.html"><i class="fas fa-newspaper"></i> News</a>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>Copyright © <span id="current-year"></span> FootTV - All rights reserved</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+    
+</body>
+</html>
