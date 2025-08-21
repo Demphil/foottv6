@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- 
+    This is the main page of your website.
+    Priority is set to 1.0 (the highest) because it's the most important page.
+    Change frequency is set to "daily" because the match list updates every day.
+  -->
+  <url>
+    <loc>https://foottv.info/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 
+    This is the news page.
+    Priority is set to 0.8, as it's important but secondary to the homepage.
+    Change frequency is set to "weekly" as a reasonable estimate.
+  -->
+  <url>
+    <loc>https://foottv.info/news.html</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- 
+    Add more <url> blocks here for any new pages you create in the future.
+    For example, if you add a contact page:
+    <url>
+      <loc>https://foottv.info/contact.html</loc>
+      <lastmod>2025-08-21</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.5</priority>
+    </url>
+  -->
+
+</urlset>
