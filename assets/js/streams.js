@@ -36,7 +36,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'باري سان جيرمان-أنجيه': 'https://foot966.blogspot.com/p/bein1.html',
+  'باريس سان جيرمان-أنجيه': 'https://foot966.blogspot.com/p/bein1.html',
   'مدغشقر-كينيا': 'https://foot966.blogspot.com/p/bein6.html',
   'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
   'تنزانيا-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
