@@ -36,11 +36,11 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'جنوب أفريقيا-أوغندا': 'https://foot966.blogspot.com/p/bein6.html',
-  'نيجيريا-جمهورية الكونغو': 'https://foot966.blogspot.com/p/bein6.html',
-  'فنربخشة-بنفيكا': 'https://foot966.blogspot.com/p/bein1.html',
-  'المصري-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
-  'ريال مدريد-أوساسونا': 'https://foot966.blogspot.com/p/bein3_15.html',
+  'أتجيه-باري سان جيرمان': 'https://foot966.blogspot.com/p/bein1.html',
+  'مدغشقر-كينيا': 'https://foot966.blogspot.com/p/bein6.html',
+  'ريال بيتيس-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
+  'المغرب-تنزانيا': 'https://foot966.blogspot.com/p/bein6.html',
+  'تشيلسي-وست هام يونايتد': 'https://foot966.blogspot.com/p/bein2.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
