@@ -36,11 +36,11 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'أتجيه-باري سان جيرمان': 'https://foot966.blogspot.com/p/bein1.html',
+  'باري سان جيرمان-أنجيه': 'https://foot966.blogspot.com/p/bein1.html',
   'مدغشقر-كينيا': 'https://foot966.blogspot.com/p/bein6.html',
-  'ريال بيتيس-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
-  'المغرب-تنزانيا': 'https://foot966.blogspot.com/p/bein6.html',
-  'تشيلسي-وست هام يونايتد': 'https://foot966.blogspot.com/p/bein2.html',
+  'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
+  'تنزانيا-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
+  'وست هام يونايتد-تشيلسي': 'https://foot966.blogspot.com/p/bein2.html',
 
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
