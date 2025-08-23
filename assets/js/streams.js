@@ -36,13 +36,13 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'برشلونة-ليفانتي': 'https://foot966.blogspot.com/p/bein2.html',
+  'ليفانتي-برشلونة': 'https://foot966.blogspot.com/p/bein2.html',
   'الجزائر-السودان': 'https://foot966.blogspot.com/p/bein6.html',
   'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
   'تنزانيا-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
   'وست هام يونايتد-تشيلسي': 'https://foot966.blogspot.com/p/bein1.html',
-  'كريمونيسي-ميلان': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
-  'بولونيا-روما': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
+  'ميلان-كريمونيسي': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
+  'روما-بولونيا': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
 
 
 
