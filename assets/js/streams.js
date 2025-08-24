@@ -14,6 +14,7 @@ export const streamLinks = {
   'beIN Sports 3 HD': 'https://foot966.blogspot.com/p/bein3_15.html',
   'beIN SPORTS HD 4': 'https://foot966.blogspot.com/p/bein4.html',
   'beIN SPORTS HD 5': 'https://foot966.blogspot.com/p/bein5.html',
+  'beIN 5ports 5 HD': 'https://foot966.blogspot.com/p/bein5.html',
   'beIN SPORTS HD 6': 'https://foot966.blogspot.com/p/bein6.html',
   'beIN Sports 6 HD': 'https://foot966.blogspot.com/p/bein6.html',
   'SSC 1 HD': 'https://foot966.blogspot.com/p/ssc1.html',
