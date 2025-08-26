@@ -37,7 +37,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'ليفانتي-برشلونة': 'https://foot966.blogspot.com/p/bein2.html',
+  'وولفرهامبتون-وست هام يونيتد': 'https://foot966.blogspot.com/p/bein5.html',
   'مدغشقر-السودان': 'https://foot966.blogspot.com/p/bein6.html',
   'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
   'المغرب-السنغال': 'https://foot966.blogspot.com/p/bein6.html',
