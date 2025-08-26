@@ -40,7 +40,7 @@ export const streamLinks = {
   'ليفانتي-برشلونة': 'https://foot966.blogspot.com/p/bein2.html',
   'مدغشقر-السودان': 'https://foot966.blogspot.com/p/bein6.html',
   'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
-  'السنغال-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
+  'المغرب-السنغال': 'https://foot966.blogspot.com/p/bein6.html',
   'وست هام يونايتد-تشيلسي': 'https://foot966.blogspot.com/p/bein1.html',
   'ميلان-كريمونيسي': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
   'روما-بولونيا': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
