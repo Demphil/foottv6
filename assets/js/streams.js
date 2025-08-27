@@ -1,4 +1,4 @@
-// assets/js/streams.js
+to// assets/js/streams.js
 
 export const streamLinks = {
   // ================================================
@@ -39,7 +39,7 @@ export const streamLinks = {
   
   'وست هام يونايتد-وولفرهامبتون': 'https://foot966.blogspot.com/p/bein5.html',
   'سيلتافيجو-ريال بيتيس': 'https://foot966.blogspot.com/p/bein6.html',
-  'ريال بيتيس-ألافيس': 'https://foot966.blogspot.com/p/bein3_15.html',
+  'ريال بيتيس-سلتافيجو': 'https://foot966.blogspot.com/p/bein3_15.html',
   'المغرب-السنغال': 'https://foot966.blogspot.com/p/bein6.html',
   'غريمسبي تاون-مانشستر يونايتد': 'https://foot966.blogspot.com/p/bein 4.html',
   'مانسفيلد-كريمونيسي': 'https://foot966.blogspot.com/p/bein5.html',
