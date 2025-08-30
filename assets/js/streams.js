@@ -37,13 +37,13 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'وست هام يونايتد-وولفرهامبتون': 'https://foot966.blogspot.com/p/bein5.html',
+  ' تولوز-باريس سان جيرمان': 'https://foot966.blogspot.com/p/bein2.html',
   'سيلتافيجو-ريال بيتيس': 'https://foot966.blogspot.com/p/bein6.html',
-  'ريال بيتيس-سلتافيجو': 'https://foot966.blogspot.com/p/bein3_15.html',
-  'المغرب-مدغشقر': 'https://foot966.blogspot.com/p/bein6.html',
-  'غريمسبي تاون-مانشستر يونايتد': 'https://foot966.blogspot.com/p/bein 4.html',
-  'مانسفيلد-كريمونيسي': 'https://foot966.blogspot.com/p/bein5.html',
-  'روما-إيفرتون': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
+  'ديبورتيفو ألافيس-أتلتيكو مدريد': 'https://foot966.blogspot.com/p/bein4.html',
+  'مدغشقر-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
+  'بيرنلي-مانشستر يونايتد': 'https://foot966.blogspot.com/p/bein1.html',
+  'ريال مدريد-ريال مايوركا': 'https://foot966.blogspot.com/p/bein1.html',
+  'الاهلي-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
 
 
 
