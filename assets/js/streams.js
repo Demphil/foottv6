@@ -40,10 +40,10 @@ export const streamLinks = {
   'باريس سان جيرمان-تولوز': 'https://foot966.blogspot.com/p/bein2.html',
   'سيلتافيجو-ريال بيتيس': 'https://foot966.blogspot.com/p/bein6.html',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'مدغشقر-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
+  '-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
   'ريال مايوركا-ريال مدريد': 'https://foot966.blogspot.com/p/bein1.html',
-  'بيراميدز-الأهلي': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'الأهلي-,بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
 
 
 
