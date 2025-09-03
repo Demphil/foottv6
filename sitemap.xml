@@ -24,16 +24,24 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+
   
-  <!-- 
-    Add more <url> blocks here for any new pages you create in the future.
-    For example, if you add a contact page:
-    <url>
-      <loc>https://foottv.info/contact.html</loc>
+   <url>
+      <loc>https://foottv.info/index.html</loc>
       <lastmod>2025-08-21</lastmod>
       <changefreq>monthly</changefreq>
       <priority>0.5</priority>
     </url>
-  -->
+  
+ 
+    Add more <url> blocks here for any new pages you create in the future.
+    For example, if you add a contact page:
+    <url>
+      <loc>https://foottv.info/404.html</loc>
+      <lastmod>2025-08-21</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>0.5</priority>
+    </url>
+ 
 
 </urlset>
