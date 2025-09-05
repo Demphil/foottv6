@@ -24,7 +24,7 @@ export const streamLinks = {
   'SSC SPORT 1HD': 'https://demphil.github.io/foottv-player/',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
-  'ON TIME SPORTS 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'ON TIME SPORTS 1': 'https://demphil.github.io/live-stream/',
   'أون سبورت 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
   'ON TIME SPORTS 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
@@ -39,12 +39,12 @@ export const streamLinks = {
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
   'باريس سان جيرمان-تولوز': 'https://foot966.blogspot.com/p/bein2.html',
-  'سيلتافيجو-ريال بيتيس': 'https://foot966.blogspot.com/p/bein6.html',
+  'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  '-المغرب': 'https://foot966.blogspot.com/p/bein6.html',
+  'النيجر-المغرب': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
   'ريال مايوركا-ريال مدريد': 'https://foot966.blogspot.com/p/bein1.html',
-  'الأهلي-,بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'أثيوبيا-مصر': 'https://demphil.github.io/live-stream/',
 
 
 
