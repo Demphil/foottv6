@@ -25,7 +25,7 @@ export const streamLinks = {
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://demphil.github.io/live-stream/',
-  'أون سبورت 1': 'https://foot966.blogspot.com/p/on-time-sports-1.html',
+  'أون سبورت 1': 'https://demphil.github.io/live-stream/',
   'ON TIME SPORTS 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'ad sports premium 1': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
