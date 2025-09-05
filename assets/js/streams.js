@@ -21,7 +21,7 @@ export const streamLinks = {
   'beIN Sports 6 HD': 'https://foot966.blogspot.com/p/bein6.html',
   'SSC 1 HD': 'https://foot966.blogspot.com/p/ssc1.html',
   'SSC 2 HD': 'https://foot966.blogspot.com/p/ssc2.html',
-  'SSC SPORT 1HD': 'https://demphil.github.io/foottv-player/',
+  'SSC Sport 3HD': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://demphil.github.io/live-stream/',
