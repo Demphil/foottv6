@@ -44,7 +44,7 @@ export const streamLinks = {
   'النيجر-المغرب': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
   'ريال مايوركا-ريال مدريد': 'https://foot966.blogspot.com/p/bein1.html',
-  'أثيوبيا-مصر': 'https://demphil.github.io/live-stream/',
+  'الجزائر-غينيا': 'https://foot966.blogspot.com/p/ssc1.html',
 
 
 
