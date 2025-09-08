@@ -41,7 +41,7 @@ export const streamLinks = {
   'باريس سان جيرمان-تولوز': 'https://foot966.blogspot.com/p/bein2.html',
   'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'مالي-غانا': 'https://foot966.blogspot.com/p/ssc2.html',
+  'غانا-مالي': 'https://foot966.blogspot.com/p/ssc2.html',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
   'ريال مايوركا-ريال مدريد': 'https://foot966.blogspot.com/p/bein1.html',
   'الجزائر-غينيا': 'https://foot966.blogspot.com/p/ssc1.html',
