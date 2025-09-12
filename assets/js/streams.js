@@ -48,8 +48,8 @@ export const streamLinks = {
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
-  'الاتحاد-الغتح': 'https://6666.coffe.world/albaplayer/ssc-1/?serv=0',
-  'الكوكب المراكشي-الوداد البيضاوي': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
+  'الفتح-الاتحاد': 'https://6666.coffe.world/albaplayer/ssc-1/?serv=0',
+  'الوداد البيضاوي-الكوكب المراكشي': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
