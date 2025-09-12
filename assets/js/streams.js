@@ -30,6 +30,11 @@ export const streamLinks = {
   'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'ad sports premium 1': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
   'ad sports premium 2': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
+  'ثمانية 2': 'https://6666.coffe.world/albaplayer/ssc-1/?serv=0',
+  'ثمانية 3': 'https://6666.coffe.world/albaplayer/ssc-2/?serv=0',
+
+
+  
   
 
   // =================================================================
@@ -41,12 +46,10 @@ export const streamLinks = {
   'باريس سان جيرمان-تولوز': 'https://foot966.blogspot.com/p/bein2.html',
   'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'غانا-مالي': 'https://foot966.blogspot.com/p/ssc2.html',
+  'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'مانشستر يونايتد-بيرنلي': 'https://foot966.blogspot.com/p/bein1.html',
-  'ريال مايوركا-ريال مدريد': 'https://foot966.blogspot.com/p/bein1.html',
-  'الجزائر-غينيا': 'https://foot966.blogspot.com/p/ssc1.html',
-
-
+  '-': 'https://6666.coffe.world/albaplayer/ssc-1/?serv=0',
+  'الكوكب المراكشي-الوداد البيضاوي': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
