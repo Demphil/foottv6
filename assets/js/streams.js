@@ -24,6 +24,7 @@ export const streamLinks = {
   'SSC Sport 3HD': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
   'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
+  'الرياضية المغربية': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://demphil.github.io/live-stream/',
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
   'ON TIME SPORTS 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
