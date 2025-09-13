@@ -33,6 +33,7 @@ export const streamLinks = {
   'أون سبورت 2': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
   'ad sports premium 1': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
   'ad sports premium 2': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
+  'ثمانية 1': 'https://demphil.github.io/tamania1/',
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
 
