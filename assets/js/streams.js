@@ -36,7 +36,7 @@ export const streamLinks = {
   'ثمانية 1': 'https://demphil.github.io/tamania1/',
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
-
+  'MBC Action': 'https://demphil.github.io/mbc-action/',
 
   
   
