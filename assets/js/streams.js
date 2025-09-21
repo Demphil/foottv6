@@ -25,7 +25,7 @@ export const streamLinks = {
   'SSC Sport 2HD': 'https://foot966.blogspot.com/p/ssc2.html',
   'SSC Sport 3HD': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'Arryadia TNT': 'https://foot966.blogspot.com/p/arryadia-sd.html',
-  'Arryadia S/D': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
+  'Arryadia S/D': 'https://demphil.github.io/aryadialive/',
   'الرياضية المغربية': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
   'ON TIME SPORTS 1': 'https://demphil.github.io/live-stream/',
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
@@ -53,7 +53,7 @@ export const streamLinks = {
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'برشلونة-فالنسيا': 'https://demphil.github.io/beinsports1/',
   'الاتحاد-الفتح': 'https://demphil.github.io/atamina2/',
-  'ريال دي بانجول-الجيش الملكي': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
+  'ريال دي بانجول-الجيش الملكي': 'https://demphil.github.io/aryadialive/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
