@@ -53,7 +53,7 @@ export const streamLinks = {
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'برشلونة-فالنسيا': 'https://demphil.github.io/beinsports1/',
   'الاتحاد-الفتح': 'https://demphil.github.io/atamina2/',
-  'الوداد البيضاوي-الكوكب المراكشي': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
+  'الجيش الملكي-ريال دي بانجول': 'https://foot966.blogspot.com/p/arryadia-sd_14.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
