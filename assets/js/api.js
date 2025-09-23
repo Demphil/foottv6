@@ -75,7 +75,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.kora-live.im/';
+  const targetUrl = 'https://www.sportlivekoora.com/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -88,7 +88,7 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.kora-live.im/matches-tomorrow/';
+  const targetUrl = 'https://www.sportlivekoora.com/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
