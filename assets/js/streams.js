@@ -52,7 +52,7 @@ export const streamLinks = {
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'برشلونة-فالنسيا': 'https://demphil.github.io/beinsports1/',
-  'الاتحاد-الفتح': 'https://demphil.github.io/atamina2/',
+  'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
   'ريال دي بانجول-الجيش الملكي': 'https://demphil.github.io/aryadialive/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
