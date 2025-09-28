@@ -55,7 +55,7 @@ export const streamLinks = {
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'برشلونة-فالنسيا': 'https://demphil.github.io/beinsports1/',
   'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
-  'الجيش الملكي-ريال دي بانجول': 'https://www.youtube.com/watch?v=lNVFUok1r-M',
+  'الدفاع الحسني الجديدي-الرجاء البيضاوي': 'https://foot966.blogspot.com/p/arryadia-sd.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
