@@ -39,6 +39,8 @@ export const streamLinks = {
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
+  'beIN Sports HD': 'https://demphil.github.io/beinfree/',
+  'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',
 
   
   
