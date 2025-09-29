@@ -159,5 +159,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.kora-live.im${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.sportlivekoora.com${src.startsWith('/') ? '' : '/'}${src}`;
 }
