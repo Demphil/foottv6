@@ -1,5 +1,5 @@
 # =============================================================
-# robots.txt for foottv.info
+# robots.txt for koralive.football
 # This file instructs search engine crawlers.
 # =============================================================
 
@@ -18,5 +18,5 @@ Disallow: /assets/css/
 # Provide the location of your sitemap.
 # This is the most important directive to help Google discover all your pages.
 # Make sure you have created and uploaded your sitemap.xml file.
-sitemap: https://a435656.sitemaphosting7.com/4531982/sitemap_4531982.xml
+sitemap: https://koralive.football/sitemap.xml
 
