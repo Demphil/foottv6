@@ -1,5 +1,6 @@
-// --- الإعدادات الأساسية للنظام الجديد ---
-const WORKER_URL = 'https://news.koora-live.workers.dev/'; // <-- رابط العامل الخاص بك
+// --- الإعدادات الأساسية - جلب البيانات من Yallakora ---
+const PROXY_URL = 'https://news.koora-live.workers.dev/?url='; // رابط العامل الخاص بك
+const SOURCE_BASE_URL = 'https://www.yallakora.com/';
 
 // عناصر DOM
 const elements = {
@@ -16,7 +17,7 @@ const elements = {
 // حالة التطبيق
 let state = {
   currentPage: 1,
-  currentCategory: 'أخبار-الكرة-العالمية', // القسم الافتراضي الجديد
+  currentCategory: 'news', // القسم الافتراضي
   currentSearchTerm: ''
 };
 
@@ -29,31 +30,63 @@ const helpers = {
 };
 
 /**
- * دالة جديدة ومبسطة لجلب الأخبار كـ JSON من العامل
+ * دالة جديدة لتحليل HTML واستخراج الأخبار من yallakora.com
+ */
+function parseNews(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const articles = [];
+    // المحدد الرئيسي لكل خبر في yallakora.com
+    const newsElements = doc.querySelectorAll('div.item');
+
+    newsElements.forEach(element => {
+        const titleElement = element.querySelector('a.title');
+        const imageElement = element.querySelector('img');
+        const descriptionElement = element.querySelector('p');
+        const dateElement = element.querySelector('div.time');
+
+        if (titleElement && imageElement && titleElement.href) {
+            articles.push({
+                title: titleElement.textContent.trim(),
+                url: titleElement.href,
+                image: imageElement.src,
+                description: descriptionElement ? descriptionElement.textContent.trim() : '',
+                publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
+                source: { name: "YallaKora" }
+            });
+        }
+    });
+    return articles;
+}
+
+/**
+ * دالة جلب الأخبار من yallakora.com
  */
 async function fetchNews(page = 1) {
   let targetUrl;
   
   if (state.currentSearchTerm) {
-    targetUrl = `${WORKER_URL}?s=${encodeURIComponent(state.currentSearchTerm)}&page=${page}`;
+    targetUrl = `${SOURCE_BASE_URL}search/news/results/${page}?query=${encodeURIComponent(state.currentSearchTerm)}`;
   } else {
-    targetUrl = `${WORKER_URL}?category=${state.currentCategory}&page=${page}`;
+    // بناء الرابط للأقسام
+    targetUrl = `${SOURCE_BASE_URL}${state.currentCategory}/news/${page}`;
   }
   
   try {
     helpers.showLoading();
-    const response = await fetch(targetUrl);
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error('Network response was not ok');
     
-    const articles = await response.json();
+    const html = await response.text();
+    const articles = parseNews(html);
     helpers.hideLoading();
     
-    // korascope يعرض 20 خبرًا في الصفحة
-    if (articles.length < 20) { 
+    if (articles.length < 10) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
       elements.loadMoreBtn.style.display = 'inline-block';
     }
+
     return articles;
   } catch (error) {
     helpers.hideLoading();
@@ -124,7 +157,7 @@ function setupEventListeners() {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const category = btn.dataset.category === 'all' ? 'أخبار-الكرة-العالمية' : btn.dataset.category;
+      const category = btn.dataset.category === 'all' ? 'news' : btn.dataset.category;
       state.currentCategory = category;
       state.currentSearchTerm = '';
       state.currentPage = 1;
@@ -148,3 +181,4 @@ async function handleSearch() {
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
+
