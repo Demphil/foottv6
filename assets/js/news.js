@@ -30,14 +30,18 @@ const helpers = {
 };
 
 /**
- * دالة لتحليل HTML واستخراج الأخبار من arabic.sport360.com
+ * دالة لتحليل HTML واستخراج الأخبار من arabic.sport360.com (مع المحددات الصحيحة)
  */
 function parseNews(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const articles = [];
-    // المحدد الرئيسي لكل خبر في sport360
-    const newsElements = doc.querySelectorAll('div.post-item');
+    
+    // المحدد الرئيسي الصحيح لكل خبر في sport360 هو 'article.post-item'
+    const newsElements = doc.querySelectorAll('article.post-item');
+    
+    // رسالة مساعدة للتحقق من أننا نجد العناصر
+    console.log(`Found ${newsElements.length} news elements with selector 'article.post-item'`);
 
     newsElements.forEach(element => {
         const titleElement = element.querySelector('h2.post-title a');
@@ -82,7 +86,6 @@ async function fetchNews(page = 1) {
     
     helpers.hideLoading();
     
-    // إذا كانت النتائج أقل من 10 (العدد الافتراضي للصفحة هناك)، افترض أنها الصفحة الأخيرة
     if (articles.length < 10) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
@@ -102,7 +105,7 @@ async function fetchNews(page = 1) {
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
     if (!articles || articles.length === 0) {
-        elements.breakingNews.innerHTML = '<p class="no-news">لا توجد أخبار عاجلة.</p>';
+        elements.breakingNews.innerHTML = '<p class="no-news">No breaking news available.</p>';
         return;
     }
     elements.breakingNews.innerHTML = articles.map(article => `
@@ -121,6 +124,11 @@ function renderSportsNews(articles, append = false) {
     if (!append) {
         elements.sportsNews.innerHTML = '';
     }
+    // إذا لم تكن هناك أخبار، اعرض رسالة
+    if (!append && (!articles || articles.length === 0)) {
+        elements.sportsNews.innerHTML = '<p class="no-news">No news found for this category.</p>';
+        return;
+    }
     articles.forEach(article => {
         const card = document.createElement('div');
         card.className = 'sports-news-card';
@@ -132,7 +140,7 @@ function renderSportsNews(articles, append = false) {
                     <p>${article.description || ''}</p>
                     <div class="news-meta">
                         <span>${article.publishedAt}</span>
-                        <span>قراءة المزيد</span>
+                        <span>Read More</span>
                     </div>
                 </div>
             </a>
@@ -159,7 +167,6 @@ function setupEventListeners() {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      // sport360 يستخدم 'football' للأخبار العامة
       const category = btn.dataset.category === 'all' ? 'football' : btn.dataset.category;
       
       state.currentCategory = category;
@@ -181,6 +188,7 @@ function setupEventListeners() {
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
   state.currentSearchTerm = term;
+  state.currentCategory = 'football'; // إعادة تعيين القسم عند البحث
   state.currentPage = 1;
   helpers.clearError();
   const results = await fetchNews(state.currentPage);
@@ -189,4 +197,3 @@ async function handleSearch() {
 
 // بدء التطبيق
 document.addEventListener('DOMContentLoaded', init);
-
