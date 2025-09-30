@@ -17,8 +17,7 @@ const elements = {
 // حالة التطبيق
 let state = {
   currentPage: 1,
-  currentCategory: 'news', // القسم الافتراضي هو "الأخبار"
-  currentSearchTerm: ''
+  currentSearchTerm: '' // سنعتمد على البحث كمصدر أساسي
 };
 
 // وظائف مساعدة (تبقى كما هي)
@@ -30,16 +29,12 @@ const helpers = {
 };
 
 /**
- * دالة جديدة لتحليل HTML واستخراج الأخبار من kooora.com
- * @param {string} html - The raw HTML content
- * @returns {Array} - An array of article objects
+ * دالة لتحليل HTML واستخراج الأخبار من kooora.com
  */
 function parseNews(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const articles = [];
-    
-    // المحدد الرئيسي لكل خبر في kooora.com
     const newsElements = doc.querySelectorAll('li.post_item');
 
     newsElements.forEach(element => {
@@ -63,18 +58,18 @@ function parseNews(html) {
 }
 
 /**
- * دالة جديدة لجلب الأخبار من kooora.com
- * @param {string} category - The category or search term
- * @param {number} page - The page number
- * @returns {Promise<Array>}
+ * دالة جديدة وموحدة لجلب الأخبار من kooora.com
  */
-async function fetchNews(category = 'news', page = 1) {
+async function fetchNews(page = 1) {
   let targetUrl;
+  const searchTerm = state.currentSearchTerm;
 
-  if (state.currentSearchTerm) {
-      targetUrl = `${SOURCE_BASE_URL}?s=${encodeURIComponent(state.currentSearchTerm)}&page=${page}`;
+  // إذا كان هناك مصطلح بحث، استخدم رابط البحث
+  if (searchTerm) {
+      targetUrl = `${SOURCE_BASE_URL}?s=${encodeURIComponent(searchTerm)}&page=${page}`;
   } else {
-      targetUrl = `${SOURCE_BASE_URL}${category}/?page=${page}`;
+      // إذا لم يكن هناك بحث، اعرض الصفحة الرئيسية للأخبار
+      targetUrl = `${SOURCE_BASE_URL}news/?page=${page}`;
   }
 
   try {
@@ -87,7 +82,7 @@ async function fetchNews(category = 'news', page = 1) {
     
     helpers.hideLoading();
     
-    if (articles.length === 0) {
+    if (articles.length < 10) { // إذا كانت النتائج أقل من المتوقع، فهذه هي الصفحة الأخيرة
       elements.loadMoreBtn.style.display = 'none';
     } else {
       elements.loadMoreBtn.style.display = 'inline-block';
@@ -102,7 +97,7 @@ async function fetchNews(category = 'news', page = 1) {
   }
 }
 
-// دوال العرض (render) تبقى كما هي تقريبًا
+// دوال العرض (render) تبقى كما هي
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
     if (!articles || articles.length === 0) {
@@ -143,7 +138,7 @@ function renderSportsNews(articles, append = false) {
 
 // التحميل الأولي
 async function init() {
-  const initialNews = await fetchNews('news');
+  const initialNews = await fetchNews();
   renderSportsNews(initialNews);
   renderBreakingNews(initialNews.slice(0, 4));
   setupEventListeners();
@@ -154,21 +149,31 @@ function setupEventListeners() {
   elements.searchBtn?.addEventListener('click', handleSearch);
   elements.searchInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
 
+  // الأقسام الآن تعمل كأزرار بحث جاهزة
   elements.categoryButtons?.forEach(btn => {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      state.currentCategory = btn.dataset.category || 'news';
-      state.currentSearchTerm = '';
+      
+      const categoryTerm = btn.dataset.category;
+      
+      // إذا كان الزر هو "الكل"، امسح مصطلح البحث
+      if (categoryTerm === 'news' || categoryTerm === 'all') {
+          state.currentSearchTerm = '';
+      } else {
+          // وإلا، استخدم القيمة ككلمة بحث
+          state.currentSearchTerm = categoryTerm;
+      }
+      
       state.currentPage = 1;
-      const results = await fetchNews(state.currentCategory);
+      const results = await fetchNews(state.currentPage);
       renderSportsNews(results);
     });
   });
 
   elements.loadMoreBtn?.addEventListener('click', async () => {
     state.currentPage++;
-    const moreNews = await fetchNews(state.currentCategory, state.currentPage);
+    const moreNews = await fetchNews(state.currentPage);
     renderSportsNews(moreNews, true);
   });
 }
@@ -176,11 +181,10 @@ function setupEventListeners() {
 // معالج البحث
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
-  if (!term) return;
-  state.currentSearchTerm = term;
+  state.currentSearchTerm = term; // لا نحتاج للبحث إذا كان فارغًا، سيعود تلقائيًا للأخبار العامة
   state.currentPage = 1;
   helpers.clearError();
-  const results = await fetchNews();
+  const results = await fetchNews(state.currentPage);
   renderSportsNews(results);
 }
 
