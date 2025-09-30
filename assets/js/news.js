@@ -1,6 +1,5 @@
-// --- الإعدادات الأساسية للنظام الجديد (sport360.com) ---
-const PROXY_URL = 'https://news.koora-live.workers.dev/'; // الرابط الأساسي للعامل فقط
-const SOURCE_BASE_URL = 'https://www.korascope.com';
+// --- الإعدادات الأساسية للنظام الجديد ---
+const WORKER_URL = 'https://news.koora-live.workers.dev/'; // <-- رابط العامل الخاص بك
 
 // عناصر DOM
 const elements = {
@@ -17,7 +16,7 @@ const elements = {
 // حالة التطبيق
 let state = {
   currentPage: 1,
-  currentCategory: 'football',
+  currentCategory: 'أخبار-الكرة-العالمية', // القسم الافتراضي الجديد
   currentSearchTerm: ''
 };
 
@@ -30,70 +29,31 @@ const helpers = {
 };
 
 /**
- * دالة لتحليل HTML واستخراج الأخبار
- */
-function parseNews(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const articles = [];
-    const newsElements = doc.querySelectorAll('article.post-item');
-
-    newsElements.forEach(element => {
-        const titleElement = element.querySelector('h2.post-title a');
-        const imageElement = element.querySelector('.post-image img');
-        const descriptionElement = element.querySelector('.post-excerpt p');
-        const dateElement = element.querySelector('.post-date');
-
-        if (titleElement && imageElement && titleElement.href) {
-            articles.push({
-                title: titleElement.textContent.trim(),
-                url: titleElement.href,
-                image: imageElement.dataset.src || imageElement.src,
-                description: descriptionElement ? descriptionElement.textContent.trim() : '',
-                publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
-                source: { name: "korascope" }
-            });
-        }
-    });
-    return articles;
-}
-
-/**
- * دالة جلب الأخبار (محدثة لتستخدم Base64)
+ * دالة جديدة ومبسطة لجلب الأخبار كـ JSON من العامل
  */
 async function fetchNews(page = 1) {
   let targetUrl;
   
   if (state.currentSearchTerm) {
-    targetUrl = `${SOURCE_BASE_URL}page/${page}/?s=${encodeURIComponent(state.currentSearchTerm)}`;
+    targetUrl = `${WORKER_URL}?s=${encodeURIComponent(state.currentSearchTerm)}&page=${page}`;
   } else {
-    targetUrl = `${SOURCE_BASE_URL}category/${state.currentCategory}/page/${page}`;
+    targetUrl = `${WORKER_URL}?category=${state.currentCategory}&page=${page}`;
   }
   
   try {
     helpers.showLoading();
+    const response = await fetch(targetUrl);
+    if (!response.ok) throw new Error('Network response was not ok');
     
-    // --- التعديل الحاسم هنا ---
-    // btoa() هي الدالة التي تقوم بـ "تمويه" الرابط إلى Base64
-    const encodedUrl = btoa(targetUrl);
-    const finalUrl = `${PROXY_URL}?url=${encodedUrl}`;
-    
-    const response = await fetch(finalUrl);
-    // -------------------------
-
-    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
-    
-    const html = await response.text();
-    const articles = parseNews(html);
-    
+    const articles = await response.json();
     helpers.hideLoading();
     
-    if (articles.length < 10) { 
+    // korascope يعرض 20 خبرًا في الصفحة
+    if (articles.length < 20) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
       elements.loadMoreBtn.style.display = 'inline-block';
     }
-
     return articles;
   } catch (error) {
     helpers.hideLoading();
@@ -151,6 +111,7 @@ function renderSportsNews(articles, append = false) {
     });
 }
 async function init() {
+  helpers.clearError();
   const initialNews = await fetchNews();
   renderSportsNews(initialNews);
   renderBreakingNews(initialNews.slice(0, 4));
@@ -163,7 +124,7 @@ function setupEventListeners() {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const category = btn.dataset.category === 'all' ? 'football' : btn.dataset.category;
+      const category = btn.dataset.category === 'all' ? 'أخبار-الكرة-العالمية' : btn.dataset.category;
       state.currentCategory = category;
       state.currentSearchTerm = '';
       state.currentPage = 1;
@@ -180,10 +141,11 @@ function setupEventListeners() {
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
   state.currentSearchTerm = term;
-  state.currentCategory = 'football';
+  state.currentCategory = ''; // مسح القسم عند البحث
   state.currentPage = 1;
   helpers.clearError();
   const results = await fetchNews(state.currentPage);
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
+
