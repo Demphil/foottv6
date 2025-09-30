@@ -148,4 +148,3 @@ async function handleSearch() {
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
-
