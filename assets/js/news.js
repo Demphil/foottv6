@@ -1,6 +1,6 @@
 // --- الإعدادات الأساسية للنظام الجديد (sport360.com) ---
 const PROXY_URL = 'https://news.koora-live.workers.dev/'; // الرابط الأساسي للعامل فقط
-const SOURCE_BASE_URL = 'https://arabic.sport360.com/';
+const SOURCE_BASE_URL = 'https://www.korascope.com/category/%d8%a3%d8%ae%d8%a8%d8%a7%d8%b1-%d8%a7%d9%84%d9%83%d8%b1%d8%a9-%d8%a7%d9%84%d8%b9%d8%a7%d9%84%d9%85%d9%8a%d8%a9/';
 
 // عناصر DOM
 const elements = {
@@ -51,7 +51,7 @@ function parseNews(html) {
                 image: imageElement.dataset.src || imageElement.src,
                 description: descriptionElement ? descriptionElement.textContent.trim() : '',
                 publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
-                source: { name: "Sport360" }
+                source: { name: "korascope" }
             });
         }
     });
@@ -187,4 +187,3 @@ async function handleSearch() {
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
-
