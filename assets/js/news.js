@@ -1,8 +1,8 @@
 // --- الإعدادات الأساسية للنظام الجديد (sport360.com) ---
-const PROXY_URL = 'https://news.koora-live.workers.dev/?url='; // <-- تأكد من أنه رابط العامل الخاص بك
+const PROXY_URL = 'https://news.koora-live.workers.dev/'; // الرابط الأساسي للعامل فقط
 const SOURCE_BASE_URL = 'https://arabic.sport360.com/';
 
-// عناصر DOM (تبقى كما هي)
+// عناصر DOM
 const elements = {
   breakingNews: document.getElementById('breaking-news'),
   sportsNews: document.getElementById('sports-news'),
@@ -17,11 +17,11 @@ const elements = {
 // حالة التطبيق
 let state = {
   currentPage: 1,
-  currentCategory: 'football', // القسم الافتراضي هو "كرة القدم"
+  currentCategory: 'football',
   currentSearchTerm: ''
 };
 
-// وظائف مساعدة (تبقى كما هي)
+// وظائف مساعدة
 const helpers = {
   showLoading: () => { if(elements.loading) elements.loading.style.display = 'flex'; },
   hideLoading: () => { if(elements.loading) elements.loading.style.display = 'none'; },
@@ -30,18 +30,13 @@ const helpers = {
 };
 
 /**
- * دالة لتحليل HTML واستخراج الأخبار من arabic.sport360.com (مع المحددات الصحيحة)
+ * دالة لتحليل HTML واستخراج الأخبار
  */
 function parseNews(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const articles = [];
-    
-    // المحدد الرئيسي الصحيح لكل خبر في sport360 هو 'article.post-item'
     const newsElements = doc.querySelectorAll('article.post-item');
-    
-    // رسالة مساعدة للتحقق من أننا نجد العناصر
-    console.log(`Found ${newsElements.length} news elements with selector 'article.post-item'`);
 
     newsElements.forEach(element => {
         const titleElement = element.querySelector('h2.post-title a');
@@ -53,7 +48,7 @@ function parseNews(html) {
             articles.push({
                 title: titleElement.textContent.trim(),
                 url: titleElement.href,
-                image: imageElement.dataset.src || imageElement.src, // للتعامل مع التحميل البطيء
+                image: imageElement.dataset.src || imageElement.src,
                 description: descriptionElement ? descriptionElement.textContent.trim() : '',
                 publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
                 source: { name: "Sport360" }
@@ -64,7 +59,7 @@ function parseNews(html) {
 }
 
 /**
- * دالة جديدة وموحدة لجلب الأخبار من sport360.com
+ * دالة جلب الأخبار (محدثة لتستخدم Base64)
  */
 async function fetchNews(page = 1) {
   let targetUrl;
@@ -72,14 +67,21 @@ async function fetchNews(page = 1) {
   if (state.currentSearchTerm) {
     targetUrl = `${SOURCE_BASE_URL}page/${page}/?s=${encodeURIComponent(state.currentSearchTerm)}`;
   } else {
-    // بناء الرابط للأقسام والصفحة الرئيسية
     targetUrl = `${SOURCE_BASE_URL}category/${state.currentCategory}/page/${page}`;
   }
   
   try {
     helpers.showLoading();
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
-    if (!response.ok) throw new Error('Network response was not ok');
+    
+    // --- التعديل الحاسم هنا ---
+    // btoa() هي الدالة التي تقوم بـ "تمويه" الرابط إلى Base64
+    const encodedUrl = btoa(targetUrl);
+    const finalUrl = `${PROXY_URL}?url=${encodedUrl}`;
+    
+    const response = await fetch(finalUrl);
+    // -------------------------
+
+    if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
     
     const html = await response.text();
     const articles = parseNews(html);
@@ -101,7 +103,8 @@ async function fetchNews(page = 1) {
   }
 }
 
-// دوال العرض (render) تبقى كما هي
+// ... بقية دوال الملف (render, init, etc.) تبقى كما هي تمامًا ...
+
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
     if (!articles || articles.length === 0) {
@@ -124,7 +127,6 @@ function renderSportsNews(articles, append = false) {
     if (!append) {
         elements.sportsNews.innerHTML = '';
     }
-    // إذا لم تكن هناك أخبار، اعرض رسالة
     if (!append && (!articles || articles.length === 0)) {
         elements.sportsNews.innerHTML = '<p class="no-news">No news found for this category.</p>';
         return;
@@ -148,27 +150,20 @@ function renderSportsNews(articles, append = false) {
         elements.sportsNews.appendChild(card);
     });
 }
-
-// التحميل الأولي
 async function init() {
   const initialNews = await fetchNews();
   renderSportsNews(initialNews);
   renderBreakingNews(initialNews.slice(0, 4));
   setupEventListeners();
 }
-
-// إعداد كل مستمعي الأحداث
 function setupEventListeners() {
   elements.searchBtn?.addEventListener('click', handleSearch);
   elements.searchInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
-
   elements.categoryButtons?.forEach(btn => {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      
       const category = btn.dataset.category === 'all' ? 'football' : btn.dataset.category;
-      
       state.currentCategory = category;
       state.currentSearchTerm = '';
       state.currentPage = 1;
@@ -176,24 +171,20 @@ function setupEventListeners() {
       renderSportsNews(results);
     });
   });
-
   elements.loadMoreBtn?.addEventListener('click', async () => {
     state.currentPage++;
     const moreNews = await fetchNews(state.currentPage);
     renderSportsNews(moreNews, true);
   });
 }
-
-// معالج البحث
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
   state.currentSearchTerm = term;
-  state.currentCategory = 'football'; // إعادة تعيين القسم عند البحث
+  state.currentCategory = 'football';
   state.currentPage = 1;
   helpers.clearError();
   const results = await fetchNews(state.currentPage);
   renderSportsNews(results);
 }
-
-// بدء التطبيق
 document.addEventListener('DOMContentLoaded', init);
+
