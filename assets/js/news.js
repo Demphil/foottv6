@@ -1,6 +1,6 @@
 // --- الإعدادات الأساسية للنظام الجديد (sport360.com) ---
 const PROXY_URL = 'https://news.koora-live.workers.dev/'; // الرابط الأساسي للعامل فقط
-const SOURCE_BASE_URL = 'https://www.korascope.com/category/%d8%a3%d8%ae%d8%a8%d8%a7%d8%b1-%d8%a7%d9%84%d9%83%d8%b1%d8%a9-%d8%a7%d9%84%d8%b9%d8%a7%d9%84%d9%85%d9%8a%d8%a9/';
+const SOURCE_BASE_URL = 'https://www.korascope.com';
 
 // عناصر DOM
 const elements = {
