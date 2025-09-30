@@ -1,6 +1,6 @@
 // --- الإعدادات الأساسية للنظام الجديد ---
 const PROXY_URL = 'https://news.koora-live.workers.dev/?url='; // <-- تأكد من أنه رابط العامل الخاص بك
-const SOURCE_BASE_URL = 'https://www.hihi2.com/';
+const SOURCE_BASE_URL = 'https://www.kooora.com/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1';
 const maxResults = 12; // عدد الأخبار في كل صفحة
 
 // عناصر DOM (تبقى كما هي)
