@@ -1,6 +1,6 @@
-// --- الإعدادات الأساسية للنظام الجديد (kooora.com) ---
+// --- الإعدادات الأساسية للنظام الجديد (sport360.com) ---
 const PROXY_URL = 'https://news.koora-live.workers.dev/?url='; // <-- تأكد من أنه رابط العامل الخاص بك
-const SOURCE_BASE_URL = 'https://www.kooora.com/';
+const SOURCE_BASE_URL = 'https://arabic.sport360.com/';
 
 // عناصر DOM (تبقى كما هي)
 const elements = {
@@ -17,7 +17,8 @@ const elements = {
 // حالة التطبيق
 let state = {
   currentPage: 1,
-  currentSearchTerm: '' // سنعتمد على البحث كمصدر أساسي
+  currentCategory: 'football', // القسم الافتراضي هو "كرة القدم"
+  currentSearchTerm: ''
 };
 
 // وظائف مساعدة (تبقى كما هي)
@@ -29,28 +30,29 @@ const helpers = {
 };
 
 /**
- * دالة لتحليل HTML واستخراج الأخبار من kooora.com
+ * دالة لتحليل HTML واستخراج الأخبار من arabic.sport360.com
  */
 function parseNews(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const articles = [];
-    const newsElements = doc.querySelectorAll('li.post_item');
+    // المحدد الرئيسي لكل خبر في sport360
+    const newsElements = doc.querySelectorAll('div.post-item');
 
     newsElements.forEach(element => {
-        const titleElement = element.querySelector('h3 a');
-        const imageElement = element.querySelector('img.post_img');
-        const descriptionElement = element.querySelector('p.post_excerpt');
-        const dateElement = element.querySelector('span.post_date');
+        const titleElement = element.querySelector('h2.post-title a');
+        const imageElement = element.querySelector('.post-image img');
+        const descriptionElement = element.querySelector('.post-excerpt p');
+        const dateElement = element.querySelector('.post-date');
 
         if (titleElement && imageElement && titleElement.href) {
             articles.push({
                 title: titleElement.textContent.trim(),
                 url: titleElement.href,
-                image: imageElement.dataset.src || imageElement.src,
+                image: imageElement.dataset.src || imageElement.src, // للتعامل مع التحميل البطيء
                 description: descriptionElement ? descriptionElement.textContent.trim() : '',
                 publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
-                source: { name: "Kooora" }
+                source: { name: "Sport360" }
             });
         }
     });
@@ -58,20 +60,18 @@ function parseNews(html) {
 }
 
 /**
- * دالة جديدة وموحدة لجلب الأخبار من kooora.com
+ * دالة جديدة وموحدة لجلب الأخبار من sport360.com
  */
 async function fetchNews(page = 1) {
   let targetUrl;
-  const searchTerm = state.currentSearchTerm;
-
-  // إذا كان هناك مصطلح بحث، استخدم رابط البحث
-  if (searchTerm) {
-      targetUrl = `${SOURCE_BASE_URL}?s=${encodeURIComponent(searchTerm)}&page=${page}`;
+  
+  if (state.currentSearchTerm) {
+    targetUrl = `${SOURCE_BASE_URL}page/${page}/?s=${encodeURIComponent(state.currentSearchTerm)}`;
   } else {
-      // إذا لم يكن هناك بحث، اعرض الصفحة الرئيسية للأخبار
-      targetUrl = `${SOURCE_BASE_URL}news/?page=${page}`;
+    // بناء الرابط للأقسام والصفحة الرئيسية
+    targetUrl = `${SOURCE_BASE_URL}category/${state.currentCategory}/page/${page}`;
   }
-
+  
   try {
     helpers.showLoading();
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
@@ -82,7 +82,8 @@ async function fetchNews(page = 1) {
     
     helpers.hideLoading();
     
-    if (articles.length < 10) { // إذا كانت النتائج أقل من المتوقع، فهذه هي الصفحة الأخيرة
+    // إذا كانت النتائج أقل من 10 (العدد الافتراضي للصفحة هناك)، افترض أنها الصفحة الأخيرة
+    if (articles.length < 10) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
       elements.loadMoreBtn.style.display = 'inline-block';
@@ -106,10 +107,12 @@ function renderBreakingNews(articles) {
     }
     elements.breakingNews.innerHTML = articles.map(article => `
         <div class="breaking-news-card">
-            <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="breaking-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
-            <div class="breaking-news-content">
-                <h3><a href="${article.url}" target="_blank" rel="noopener noreferrer">${article.title}</a></h3>
-            </div>
+            <a href="${article.url}" target="_blank" rel="noopener noreferrer">
+                <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="breaking-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
+                <div class="breaking-news-content">
+                    <h3>${article.title}</h3>
+                </div>
+            </a>
         </div>
     `).join('');
 }
@@ -122,15 +125,17 @@ function renderSportsNews(articles, append = false) {
         const card = document.createElement('div');
         card.className = 'sports-news-card';
         card.innerHTML = `
-            <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="sports-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
-            <div class="sports-news-content">
-                <h3><a href="${article.url}" target="_blank" rel="noopener noreferrer">${article.title}</a></h3>
-                <p>${article.description || ''}</p>
-                <div class="news-meta">
-                    <span>${article.publishedAt}</span>
-                    <a href="${article.url}" target="_blank" rel="noopener noreferrer">قراءة المزيد</a>
+            <a href="${article.url}" target="_blank" rel="noopener noreferrer" class="news-card-link">
+                <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="sports-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
+                <div class="sports-news-content">
+                    <h3>${article.title}</h3>
+                    <p>${article.description || ''}</p>
+                    <div class="news-meta">
+                        <span>${article.publishedAt}</span>
+                        <span>قراءة المزيد</span>
+                    </div>
                 </div>
-            </div>
+            </a>
         `;
         elements.sportsNews.appendChild(card);
     });
@@ -149,22 +154,16 @@ function setupEventListeners() {
   elements.searchBtn?.addEventListener('click', handleSearch);
   elements.searchInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
 
-  // الأقسام الآن تعمل كأزرار بحث جاهزة
   elements.categoryButtons?.forEach(btn => {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       
-      const categoryTerm = btn.dataset.category;
+      // sport360 يستخدم 'football' للأخبار العامة
+      const category = btn.dataset.category === 'all' ? 'football' : btn.dataset.category;
       
-      // إذا كان الزر هو "الكل"، امسح مصطلح البحث
-      if (categoryTerm === 'news' || categoryTerm === 'all') {
-          state.currentSearchTerm = '';
-      } else {
-          // وإلا، استخدم القيمة ككلمة بحث
-          state.currentSearchTerm = categoryTerm;
-      }
-      
+      state.currentCategory = category;
+      state.currentSearchTerm = '';
       state.currentPage = 1;
       const results = await fetchNews(state.currentPage);
       renderSportsNews(results);
@@ -181,7 +180,7 @@ function setupEventListeners() {
 // معالج البحث
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
-  state.currentSearchTerm = term; // لا نحتاج للبحث إذا كان فارغًا، سيعود تلقائيًا للأخبار العامة
+  state.currentSearchTerm = term;
   state.currentPage = 1;
   helpers.clearError();
   const results = await fetchNews(state.currentPage);
@@ -190,3 +189,4 @@ async function handleSearch() {
 
 // بدء التطبيق
 document.addEventListener('DOMContentLoaded', init);
+
