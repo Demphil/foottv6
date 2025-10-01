@@ -1,6 +1,8 @@
-// --- الإعدادات الأساسية - جلب البيانات من Yallakora ---
-const PROXY_URL = 'https://news.koora-live.workers.dev/?url='; // رابط العامل الخاص بك
-const SOURCE_BASE_URL = 'https://www.yallakora.com/';
+// --- الإعدادات الأساسية - استخدم NewsData.io API مع خيارات متقدمة ---
+
+const API_KEY = "pub_f000d71989e04e57956136ef7c68f702";
+// بناء الرابط الأساسي مع كل الخيارات الجديدة
+const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar,en,fr&category=sports&timezone=Africa/Casablanca`;
 
 // عناصر DOM
 const elements = {
@@ -16,9 +18,8 @@ const elements = {
 
 // حالة التطبيق
 let state = {
-  currentPage: 1,
-  currentCategory: 'news', // القسم الافتراضي
-  currentSearchTerm: ''
+  nextPage: null,
+  currentKeywords: 'football international' // الكلمات المفتاحية الافتراضية
 };
 
 // وظائف مساعدة
@@ -30,64 +31,46 @@ const helpers = {
 };
 
 /**
- * دالة جديدة لتحليل HTML واستخراج الأخبار من yallakora.com
+ * دالة جديدة لجلب الأخبار من NewsData.io API
  */
-function parseNews(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const articles = [];
-    // المحدد الرئيسي لكل خبر في yallakora.com
-    const newsElements = doc.querySelectorAll('div.item');
+async function fetchNews(page = null) {
+  const keywords = state.currentKeywords;
+  // إضافة الكلمات المفتاحية إلى الرابط الأساسي
+  let targetUrl = `${BASE_URL}&q=${encodeURIComponent(keywords)}`;
 
-    newsElements.forEach(element => {
-        const titleElement = element.querySelector('a.title');
-        const imageElement = element.querySelector('img');
-        const descriptionElement = element.querySelector('p');
-        const dateElement = element.querySelector('div.time');
-
-        if (titleElement && imageElement && titleElement.href) {
-            articles.push({
-                title: titleElement.textContent.trim(),
-                url: titleElement.href,
-                image: imageElement.src,
-                description: descriptionElement ? descriptionElement.textContent.trim() : '',
-                publishedAt: dateElement ? dateElement.textContent.trim() : new Date().toISOString(),
-                source: { name: "YallaKora" }
-            });
-        }
-    });
-    return articles;
-}
-
-/**
- * دالة جلب الأخبار من yallakora.com
- */
-async function fetchNews(page = 1) {
-  let targetUrl;
-  
-  if (state.currentSearchTerm) {
-    targetUrl = `${SOURCE_BASE_URL}search/news/results/${page}?query=${encodeURIComponent(state.currentSearchTerm)}`;
-  } else {
-    // بناء الرابط للأقسام
-    targetUrl = `${SOURCE_BASE_URL}${state.currentCategory}/news/${page}`;
+  // إضافة بارامتر الصفحة إذا كان موجودًا (لزر "تحميل المزيد")
+  if (page) {
+    targetUrl += `&page=${page}`;
   }
   
   try {
     helpers.showLoading();
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const html = await response.text();
-    const articles = parseNews(html);
+    const response = await fetch(targetUrl);
+    const result = await response.json();
     helpers.hideLoading();
-    
-    if (articles.length < 10) { 
+
+    if (result.status !== "success") {
+      throw new Error(result.results?.message || 'An unknown API error occurred.');
+    }
+
+    const articles = result.results || [];
+    state.nextPage = result.nextPage;
+
+    if (!state.nextPage) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
       elements.loadMoreBtn.style.display = 'inline-block';
     }
 
-    return articles;
+    // تعديل البيانات لتناسب الهيكل القديم
+    return articles.map(article => ({
+        title: article.title,
+        description: article.description,
+        image: article.image_url,
+        publishedAt: article.pubDate,
+        url: article.link
+    }));
+
   } catch (error) {
     helpers.hideLoading();
     helpers.showError('حدث خطأ في جلب الأخبار من المصدر.');
@@ -134,7 +117,7 @@ function renderSportsNews(articles, append = false) {
                     <h3>${article.title}</h3>
                     <p>${article.description || ''}</p>
                     <div class="news-meta">
-                        <span>${article.publishedAt}</span>
+                        <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
                         <span>Read More</span>
                     </div>
                 </div>
@@ -157,27 +140,26 @@ function setupEventListeners() {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const category = btn.dataset.category === 'all' ? 'news' : btn.dataset.category;
-      state.currentCategory = category;
-      state.currentSearchTerm = '';
-      state.currentPage = 1;
-      const results = await fetchNews(state.currentPage);
+      const category = btn.dataset.category === 'all' ? 'football international' : btn.dataset.category;
+      state.currentKeywords = category;
+      state.nextPage = null; // إعادة تعيين الصفحة عند تغيير القسم
+      const results = await fetchNews();
       renderSportsNews(results);
     });
   });
   elements.loadMoreBtn?.addEventListener('click', async () => {
-    state.currentPage++;
-    const moreNews = await fetchNews(state.currentPage);
-    renderSportsNews(moreNews, true);
+    if (state.nextPage) {
+        const moreNews = await fetchNews(state.nextPage);
+        renderSportsNews(moreNews, true);
+    }
   });
 }
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
-  state.currentSearchTerm = term;
-  state.currentCategory = ''; // مسح القسم عند البحث
-  state.currentPage = 1;
+  state.currentKeywords = term || 'football international';
+  state.nextPage = null; // إعادة تعيين الصفحة عند البحث
   helpers.clearError();
-  const results = await fetchNews(state.currentPage);
+  const results = await fetchNews();
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
