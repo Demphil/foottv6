@@ -1,6 +1,4 @@
- /* 1. ملاحظة هامة: تم إزالة @import من هنا. */
-/* الرجاء إضافة السطر التالي إلى <head> في ملف HTML الخاص بك: */
-/* <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"> */
+/* 1. ملاحظة هامة: يجب نقل رابط استيراد الخط إلى ملف HTML */
 
 :root {
   --primary-color: #e63946;
@@ -23,7 +21,7 @@ body {
 
 .news-main {
   padding: clamp(15px, 4vw, 30px);
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -49,7 +47,7 @@ body {
   gap: 12px;
 }
 .header .logo img {
-  height: 65px;
+  height: 45px;
   width: auto;
 }
 .header .logo h1 {
@@ -169,27 +167,28 @@ body {
 .breaking-news-card:hover, .sports-news-card:hover {
   transform: translateY(-5px);
 }
+.news-card-link {
+  text-decoration: none;
+}
 
 .breaking-news-image, .sports-news-image {
   width: 100%;
-  object-fit: cover;
+  height: auto; /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
   aspect-ratio: 16 / 9; /* --- حل CLS: حجز مساحة للصورة --- */
+  object-fit: cover;
   background-color: #2a3b4c; /* لون نائب يظهر قبل تحميل الصورة */
 }
-.breaking-news-image { height: auto; } /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
-.sports-news-image { height: auto; } /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
 
 .breaking-news-content, .sports-news-content {
   padding: 15px;
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* لجعل المحتوى يملأ المساحة */
+  flex-grow: 1;
 }
 
-/* --- التصحيح الرئيسي: جعل كل النصوص بيضاء --- */
 .breaking-news-content h3, .sports-news-content h3,
 .breaking-news-content p, .sports-news-content p {
-  color: var(--light-color) !important; /* اللون الأبيض */
+  color: var(--light-color) !important;
   margin: 0;
 }
 .breaking-news-content h3 { font-size: 1rem; }
@@ -198,9 +197,8 @@ body {
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 15px;
-  flex-grow: 1; /* لجعل الوصف يملأ المساحة المتاحة */
+  flex-grow: 1;
 }
-/* ------------------------------------------- */
 
 .news-meta {
   display: flex;
@@ -208,10 +206,7 @@ body {
   align-items: center;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
-  margin-top: auto; /* لدفع هذا العنصر إلى الأسفل دائمًا */
-}
-.news-meta a, .news-card-link {
-  text-decoration: none;
+  margin-top: auto;
 }
 .news-meta span:last-child {
   color: var(--secondary-color);
@@ -257,22 +252,42 @@ body {
 }
 .error { background: var(--primary-color); color: white; }
 
+/* 7. التجاوب مع الشاشات المختلفة (محسّن) */
 
-/* 7. التجاوب مع الشاشات الصغيرة */
-@media (max-width: 768px) {
-  .header {
-    height: 60px;
-    padding: 0 15px;
-  }
-  .header .logo img {
-    height: 40px;
-  }
-  .header .logo h1 {
-    display: none;
-  }
-  .nav { display: none; } /* أبسط للهواتف */
-  .menu-toggle { display: block; }
+/* --- الهواتف (حتى 767px) --- */
+@media (max-width: 767px) {
+  .header .logo h1 { display: none; }
+  .nav { display: none; }
+  .menu-toggle { display: block; } /* افترض وجود هذا الزر في HTML */
 
-  .breaking-news-grid { grid-template-columns: 1fr; }
-  .sports-news-grid { grid-template-columns: 1fr; }
+  .breaking-news-grid, .sports-news-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
+/* --- الأجهزة اللوحية (Tablets) --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .breaking-news-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sports-news-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- الشاشات الكبيرة جدًا (TVs) --- */
+@media (min-width: 1600px) {
+  body {
+    font-size: 18px; /* زيادة حجم الخط الأساسي */
+  }
+  .news-main {
+    max-width: 1800px;
+  }
+  .breaking-news-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+   .sports-news-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
