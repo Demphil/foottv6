@@ -7,6 +7,17 @@
   --header-height: 80px;
   --footer-height: 80px;
 }
+/* --- لإضافة هذا التعديل، الصق الكود التالي في نهاية ملف assets/css/news.css --- */
+
+.sports-news-content h3,
+.sports-news-content p {
+    color: #FFFFFF; /* اللون الأبيض الصريح */
+}
+
+/* للتأكد من أن رابط "قراءة المزيد" يظهر بلون مناسب أيضًا */
+.news-meta a {
+    color: var(--secondary-color); /* استخدام اللون الثانوي (الأصفر) من تصميمك */
+}
 
 
 /* التنسيق العام */
