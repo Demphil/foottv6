@@ -1,6 +1,3 @@
-/* 1. استيراد الخط الجديد والمتغيرات الأساسية */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-
 :root {
   --primary-color: #e63946;
   --secondary-color: #ffd166;
@@ -50,7 +47,7 @@ body {
   gap: 12px;
 }
 .header .logo img {
-  height: 60px;
+  height: 45px;
   width: auto;
 }
 .header .logo h1 {
@@ -128,7 +125,7 @@ body {
   gap: 20px;
 }
 
-/* 5. بطاقة المباراة الموحدة (التحسين الرئيسي) */
+/* 5. بطاقة المباراة الموحدة */
 a.match-card-link {
   text-decoration: none;
   color: inherit;
@@ -171,10 +168,11 @@ a.match-card-link {
 }
 .team img {
   width: 50px;
-  height: 50px;
+  height: auto; /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
+  aspect-ratio: 1 / 1; /* --- حل CLS: حجز مساحة مربعة للشعار --- */
   object-fit: contain;
   margin-bottom: 8px;
-  background: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.8); /* --- لون نائب يظهر قبل تحميل الشعار --- */
   border-radius: 50%;
   padding: 3px;
 }
@@ -295,7 +293,7 @@ a.match-card-link {
   }
   .team img {
     width: 40px;
-    height: 40px;
+    height: auto;
   }
   .team-name {
     font-size: 0.9rem;
