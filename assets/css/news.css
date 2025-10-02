@@ -1,5 +1,6 @@
-/* 1. استيراد الخط الجديد والمتغيرات الأساسية */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+ /* 1. ملاحظة هامة: تم إزالة @import من هنا. */
+/* الرجاء إضافة السطر التالي إلى <head> في ملف HTML الخاص بك: */
+/* <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap"> */
 
 :root {
   --primary-color: #e63946;
@@ -172,9 +173,11 @@ body {
 .breaking-news-image, .sports-news-image {
   width: 100%;
   object-fit: cover;
+  aspect-ratio: 16 / 9; /* --- حل CLS: حجز مساحة للصورة --- */
+  background-color: #2a3b4c; /* لون نائب يظهر قبل تحميل الصورة */
 }
-.breaking-news-image { height: 160px; }
-.sports-news-image { height: 180px; }
+.breaking-news-image { height: auto; } /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
+.sports-news-image { height: auto; } /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
 
 .breaking-news-content, .sports-news-content {
   padding: 15px;
