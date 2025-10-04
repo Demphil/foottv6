@@ -1,8 +1,7 @@
-// --- الإعدادات الأساسية - استخدم NewsData.io API مع خيارات متقدمة ---
-
+// --- الإعدادات الأساسية - NewsData.io API ---
 const API_KEY = "pub_f000d71989e04e57956136ef7c68f702";
-// بناء الرابط الأساسي مع كل الخيارات الجديدة
-const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar,en,fr&category=sports&timezone=Africa/Casablanca`;
+// --- التعديل هنا: تم تغيير language=ar,en,fr إلى language=ar فقط ---
+const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar&category=sports&timezone=Africa/Casablanca`;
 
 // عناصر DOM
 const elements = {
@@ -19,7 +18,7 @@ const elements = {
 // حالة التطبيق
 let state = {
   nextPage: null,
-  currentKeywords: 'football international' // الكلمات المفتاحية الافتراضية
+  currentKeywords: 'كرة القدم' // الكلمة المفتاحية الافتراضية
 };
 
 // وظائف مساعدة
@@ -31,14 +30,12 @@ const helpers = {
 };
 
 /**
- * دالة جديدة لجلب الأخبار من NewsData.io API
+ * دالة جلب الأخبار من NewsData.io API
  */
 async function fetchNews(page = null) {
   const keywords = state.currentKeywords;
-  // إضافة الكلمات المفتاحية إلى الرابط الأساسي
   let targetUrl = `${BASE_URL}&q=${encodeURIComponent(keywords)}`;
 
-  // إضافة بارامتر الصفحة إذا كان موجودًا (لزر "تحميل المزيد")
   if (page) {
     targetUrl += `&page=${page}`;
   }
@@ -62,7 +59,6 @@ async function fetchNews(page = null) {
       elements.loadMoreBtn.style.display = 'inline-block';
     }
 
-    // تعديل البيانات لتناسب الهيكل القديم
     return articles.map(article => ({
         title: article.title,
         description: article.description,
@@ -79,12 +75,11 @@ async function fetchNews(page = null) {
   }
 }
 
-// ... بقية دوال الملف (render, init, etc.) تبقى كما هي تمامًا ...
-
+// دوال العرض
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
     if (!articles || articles.length === 0) {
-        elements.breakingNews.innerHTML = '<p class="no-news">No breaking news available.</p>';
+        elements.breakingNews.innerHTML = '<p class="no-news">لا توجد أخبار عاجلة.</p>';
         return;
     }
     elements.breakingNews.innerHTML = articles.map(article => `
@@ -104,7 +99,7 @@ function renderSportsNews(articles, append = false) {
         elements.sportsNews.innerHTML = '';
     }
     if (!append && (!articles || articles.length === 0)) {
-        elements.sportsNews.innerHTML = '<p class="no-news">No news found for this category.</p>';
+        elements.sportsNews.innerHTML = '<p class="no-news">لا توجد أخبار لهذا القسم.</p>';
         return;
     }
     articles.forEach(article => {
@@ -118,7 +113,7 @@ function renderSportsNews(articles, append = false) {
                     <p>${article.description || ''}</p>
                     <div class="news-meta">
                         <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
-                        <span>Read More</span>
+                        <span>قراءة المزيد</span>
                     </div>
                 </div>
             </a>
@@ -140,9 +135,9 @@ function setupEventListeners() {
     btn.addEventListener('click', async () => {
       elements.categoryButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const category = btn.dataset.category === 'all' ? 'football international' : btn.dataset.category;
+      const category = btn.dataset.category === 'all' ? 'كرة القدم' : btn.dataset.category;
       state.currentKeywords = category;
-      state.nextPage = null; // إعادة تعيين الصفحة عند تغيير القسم
+      state.nextPage = null;
       const results = await fetchNews();
       renderSportsNews(results);
     });
@@ -156,8 +151,8 @@ function setupEventListeners() {
 }
 async function handleSearch() {
   const term = elements.searchInput.value.trim();
-  state.currentKeywords = term || 'football international';
-  state.nextPage = null; // إعادة تعيين الصفحة عند البحث
+  state.currentKeywords = term || 'كرة القدم';
+  state.nextPage = null;
   helpers.clearError();
   const results = await fetchNews();
   renderSportsNews(results);
