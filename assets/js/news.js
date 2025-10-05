@@ -1,9 +1,31 @@
-// --- الإعدادات الأساسية - NewsData.io API ---
+// --- 1. الإعدادات الأساسية و الكاش ---
 const API_KEY = "pub_f000d71989e04e57956136ef7c68f702";
-// --- التعديل هنا: تم تغيير language=ar,en,fr إلى language=ar فقط ---
 const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar&category=sports&timezone=Africa/Casablanca`;
+const CACHE_DURATION = 5 * 60 * 60 * 1000; // 5 ساعات
 
-// عناصر DOM
+// --- 2. دوال الكاش ---
+function setCache(key, data) {
+  const cacheItem = {
+    timestamp: Date.now(),
+    data: data,
+  };
+  localStorage.setItem(key, JSON.stringify(cacheItem));
+  console.log(`💾 Data for '${key}' saved to cache.`);
+}
+
+function getCache(key) {
+  const cachedItem = localStorage.getItem(key);
+  if (!cachedItem) return null;
+
+  const { timestamp, data } = JSON.parse(cachedItem);
+  if ((Date.now() - timestamp) > CACHE_DURATION) {
+    localStorage.removeItem(key);
+    return null; // Cache is expired
+  }
+  return data; // Cache is fresh
+}
+
+// --- 3. بقية الكود ---
 const elements = {
   breakingNews: document.getElementById('breaking-news'),
   sportsNews: document.getElementById('sports-news'),
@@ -15,13 +37,11 @@ const elements = {
   categoryButtons: document.querySelectorAll('.category-btn')
 };
 
-// حالة التطبيق
 let state = {
   nextPage: null,
-  currentKeywords: 'كرة القدم' // الكلمة المفتاحية الافتراضية
+  currentKeywords: 'كرة القدم'
 };
 
-// وظائف مساعدة
 const helpers = {
   showLoading: () => { if(elements.loading) elements.loading.style.display = 'flex'; },
   hideLoading: () => { if(elements.loading) elements.loading.style.display = 'none'; },
@@ -29,15 +49,26 @@ const helpers = {
   clearError: () => { if(elements.errorContainer) elements.errorContainer.innerHTML = ''; }
 };
 
-/**
- * دالة جلب الأخبار من NewsData.io API
- */
 async function fetchNews(page = null) {
   const keywords = state.currentKeywords;
   let targetUrl = `${BASE_URL}&q=${encodeURIComponent(keywords)}`;
-
   if (page) {
     targetUrl += `&page=${page}`;
+  }
+
+  // إنشاء مفتاح فريد للكاش بناءً على الطلب
+  const cacheKey = `news_cache_${keywords}_${page || 'initial'}`;
+  const cachedData = getCache(cacheKey);
+
+  if (cachedData) {
+    console.log(`⚡ Loading news from cache for key: ${cacheKey}`);
+    state.nextPage = cachedData.nextPage; // استعادة nextPage من الكاش
+    if (!state.nextPage) { 
+      elements.loadMoreBtn.style.display = 'none';
+    } else {
+      elements.loadMoreBtn.style.display = 'inline-block';
+    }
+    return cachedData.articles;
   }
   
   try {
@@ -52,6 +83,9 @@ async function fetchNews(page = null) {
 
     const articles = result.results || [];
     state.nextPage = result.nextPage;
+
+    // تخزين البيانات الجديدة في الكاش
+    setCache(cacheKey, { articles: articles, nextPage: state.nextPage });
 
     if (!state.nextPage) { 
       elements.loadMoreBtn.style.display = 'none';
@@ -75,7 +109,6 @@ async function fetchNews(page = null) {
   }
 }
 
-// دوال العرض
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
     if (!articles || articles.length === 0) {
