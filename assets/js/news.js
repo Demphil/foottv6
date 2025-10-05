@@ -1,7 +1,11 @@
-// --- 1. الإعدادات الأساسية و الكاش ---
+// --- 1. الإعدادات الأساسية ---
 const API_KEY = "pub_f000d71989e04e57956136ef7c68f702";
-const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar&category=sports&timezone=Africa/Casablanca`;
-const CACHE_DURATION = 5 * 60 * 60 * 1000; // 5 ساعات
+const API_BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country=fr,ma,sa,es,gb&language=ar&category=sports&timezone=Africa/Casablanca`;
+const CACHE_DURATION = 5 * 60 * 60 * 1000; // 5 hours
+
+// --- !! هام: رابط العامل الذي سيستخدم للصور !! ---
+// تأكد من أن هذا هو رابط العامل الذي قمت بتحديثه
+const IMAGE_PROXY_URL = 'https://news.koora-live.workers.dev/?url='; 
 
 // --- 2. دوال الكاش ---
 function setCache(key, data) {
@@ -51,18 +55,17 @@ const helpers = {
 
 async function fetchNews(page = null) {
   const keywords = state.currentKeywords;
-  let targetUrl = `${BASE_URL}&q=${encodeURIComponent(keywords)}`;
+  let targetUrl = `${API_BASE_URL}&q=${encodeURIComponent(keywords)}`;
   if (page) {
     targetUrl += `&page=${page}`;
   }
 
-  // إنشاء مفتاح فريد للكاش بناءً على الطلب
   const cacheKey = `news_cache_${keywords}_${page || 'initial'}`;
   const cachedData = getCache(cacheKey);
 
   if (cachedData) {
     console.log(`⚡ Loading news from cache for key: ${cacheKey}`);
-    state.nextPage = cachedData.nextPage; // استعادة nextPage من الكاش
+    state.nextPage = cachedData.nextPage;
     if (!state.nextPage) { 
       elements.loadMoreBtn.style.display = 'none';
     } else {
@@ -84,7 +87,6 @@ async function fetchNews(page = null) {
     const articles = result.results || [];
     state.nextPage = result.nextPage;
 
-    // تخزين البيانات الجديدة في الكاش
     setCache(cacheKey, { articles: articles, nextPage: state.nextPage });
 
     if (!state.nextPage) { 
@@ -110,43 +112,47 @@ async function fetchNews(page = null) {
 }
 
 function renderBreakingNews(articles) {
-    if (!elements.breakingNews) return;
-    if (!articles || articles.length === 0) {
-        elements.breakingNews.innerHTML = '<p class="no-news">لا توجد أخبار عاجلة.</p>';
-        return;
-    }
-    elements.breakingNews.innerHTML = articles.map(article => `
+    if (!elements.breakingNews || !articles || articles.length === 0) return;
+    
+    elements.breakingNews.innerHTML = articles.map(article => {
+        // --- التعديل هنا: تمرير الصورة عبر البروكسي ---
+        const imageUrl = article.image ? `${IMAGE_PROXY_URL}${encodeURIComponent(article.image)}` : 'assets/images/placeholder.jpg';
+        
+        return `
         <div class="breaking-news-card">
             <a href="${article.url}" target="_blank" rel="noopener noreferrer">
-                <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="breaking-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
+                <img src="${imageUrl}" alt="${article.title}" class="breaking-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
                 <div class="breaking-news-content">
                     <h3>${article.title}</h3>
                 </div>
             </a>
         </div>
-    `).join('');
+    `}).join('');
 }
+
 function renderSportsNews(articles, append = false) {
     if (!elements.sportsNews) return;
-    if (!append) {
-        elements.sportsNews.innerHTML = '';
-    }
+    if (!append) elements.sportsNews.innerHTML = '';
     if (!append && (!articles || articles.length === 0)) {
-        elements.sportsNews.innerHTML = '<p class="no-news">لا توجد أخبار لهذا القسم.</p>';
+        elements.sportsNews.innerHTML = '<p class="no-news">No news found for this category.</p>';
         return;
     }
+
     articles.forEach(article => {
+        // --- التعديل هنا: تمرير الصورة عبر البروكسي ---
+        const imageUrl = article.image ? `${IMAGE_PROXY_URL}${encodeURIComponent(article.image)}` : 'assets/images/placeholder.jpg';
+        
         const card = document.createElement('div');
         card.className = 'sports-news-card';
         card.innerHTML = `
             <a href="${article.url}" target="_blank" rel="noopener noreferrer" class="news-card-link">
-                <img src="${article.image || 'assets/images/placeholder.jpg'}" alt="${article.title}" class="sports-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
+                <img src="${imageUrl}" alt="${article.title}" class="sports-news-image" onerror="this.src='assets/images/placeholder.jpg';"/>
                 <div class="sports-news-content">
                     <h3>${article.title}</h3>
                     <p>${article.description || ''}</p>
                     <div class="news-meta">
                         <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
-                        <span>قراءة المزيد</span>
+                        <span>Read More</span>
                     </div>
                 </div>
             </a>
@@ -191,4 +197,3 @@ async function handleSearch() {
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
-
