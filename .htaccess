@@ -36,16 +36,3 @@
         Header set Access-Control-Allow-Origin "*"
     </FilesMatch>
 </IfModule>
-```
-
-#### الخطوة 2: تعديل ملفات HTML لتحميل CSS بشكل أفضل
-لحل مشكلة "طلبات تحجب العرض"، قم بتعديل طريقة استدعاء ملفات CSS في **كل صفحات HTML** (`index.html`, `news.html`, etc.).
-
-**ابحث عن هذا السطر:**
-```html
-<link rel="stylesheet" href="assets/css/matches.css">
-```
-
-**واستبدله بهذا السطر:**
-```html
-<link rel="stylesheet" href="assets/css/matches.css" media="print" onload="this.media='all'">
