@@ -4,7 +4,6 @@ const API_BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&country
 const CACHE_DURATION = 5 * 60 * 60 * 1000; // 5 hours
 
 // --- !! هام: رابط العامل الذي سيستخدم للصور !! ---
-// تأكد من أن هذا هو رابط العامل الذي قمت بتحديثه
 const IMAGE_PROXY_URL = 'https://news.koora-live.workers.dev/?url='; 
 
 // --- 2. دوال الكاش ---
@@ -112,10 +111,12 @@ async function fetchNews(page = null) {
 }
 
 function renderBreakingNews(articles) {
-    if (!elements.breakingNews || !articles || articles.length === 0) return;
+    if (!elements.breakingNews || !articles || articles.length === 0) {
+        elements.breakingNews.innerHTML = '<p class="no-news">No breaking news available.</p>';
+        return;
+    }
     
     elements.breakingNews.innerHTML = articles.map(article => {
-        // --- التعديل هنا: تمرير الصورة عبر البروكسي ---
         const imageUrl = article.image ? `${IMAGE_PROXY_URL}${encodeURIComponent(article.image)}` : 'assets/images/placeholder.jpg';
         
         return `
@@ -139,7 +140,6 @@ function renderSportsNews(articles, append = false) {
     }
 
     articles.forEach(article => {
-        // --- التعديل هنا: تمرير الصورة عبر البروكسي ---
         const imageUrl = article.image ? `${IMAGE_PROXY_URL}${encodeURIComponent(article.image)}` : 'assets/images/placeholder.jpg';
         
         const card = document.createElement('div');
@@ -197,3 +197,4 @@ async function handleSearch() {
   renderSportsNews(results);
 }
 document.addEventListener('DOMContentLoaded', init);
+
