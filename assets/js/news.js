@@ -48,7 +48,7 @@ const elements = {
 
 let state = {
   nextPage: null,
-  currentKeywords: 'كرة القدم'
+  currentKeywords: 'كرة القدم , الدوري الانجليزي , دوري ابطال اوربا , دوري ابطال افريقيا , كاس العالم , انتقالات اللاعبين'
 };
 
 const helpers = {
