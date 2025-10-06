@@ -1,19 +1,16 @@
-/* 1. المتغيرات الأساسية والألوان الرسمية */
 :root {
   --primary-color: #e63946;
   --secondary-color: #ffd166;
-  --dark-color: #2a2a3e; /* لون داكن جديد متوافق مع التصميم */
+  --dark-color: #1d3557;
   --light-color: #f1faee;
-  /* تأثير زجاجي جديد داكن وشفاف */
-  --glass-effect: rgba(30, 30, 45, 0.6); 
+  --glass-effect: rgba(255, 255, 255, 0.1);
   --header-height: 70px;
 }
 
-/* 2. التنسيقات العامة */
+/* 2. التنسيقات العامة للجسم */
 body {
-  font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
-  /* تدرج لوني جديد يطابق الصفحة الرئيسية */
-  background: linear-gradient(135deg, #3a2d4b, #2a2a3e);
+  font-family: 'Cairo', sans-serif;
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   color: var(--light-color);
   margin: 0;
   padding-top: var(--header-height);
@@ -21,8 +18,8 @@ body {
 }
 
 .news-main {
-  padding: clamp(15px, 4vw, 30px);
-  max-width: 1400px;
+   padding: clamp(15px, 4vw, 30px); /* مساحات مرنة تتكيف مع حجم الشاشة */
+  max-width: 1600px; /* زيادة العرض الأقصى للشاشات الكبيرة */
   margin: 0 auto;
 }
 
