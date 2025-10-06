@@ -47,7 +47,7 @@ body {
   gap: 12px;
 }
 .header .logo img {
-  height: 65px;
+  height: 45px;
   width: auto;
 }
 .header .logo h1 {
@@ -171,10 +171,11 @@ body {
   text-decoration: none;
 }
 
+/* --- حل CLS: حجز مساحة للصور --- */
 .breaking-news-image, .sports-news-image {
   width: 100%;
-  height: auto; /* الارتفاع سيتم تحديده بواسطة aspect-ratio */
-  aspect-ratio: 16 / 9; /* --- حل CLS: حجز مساحة للصورة --- */
+  height: auto;
+  aspect-ratio: 16 / 9; /* حجز مساحة مستطيلة للصورة */
   object-fit: cover;
   background-color: #2a3b4c; /* لون نائب يظهر قبل تحميل الصورة */
 }
@@ -252,42 +253,23 @@ body {
 }
 .error { background: var(--primary-color); color: white; }
 
-/* 7. التجاوب مع الشاشات المختلفة (محسّن) */
-
-/* --- الهواتف (حتى 767px) --- */
+/* 7. التجاوب مع الشاشات المختلفة */
 @media (max-width: 767px) {
   .header .logo h1 { display: none; }
   .nav { display: none; }
-  .menu-toggle { display: block; } /* افترض وجود هذا الزر في HTML */
+  .menu-toggle { display: block; }
 
   .breaking-news-grid, .sports-news-grid {
     grid-template-columns: 1fr;
   }
 }
-
-/* --- الأجهزة اللوحية (Tablets) --- */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .breaking-news-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .sports-news-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .breaking-news-grid { grid-template-columns: repeat(2, 1fr); }
+  .sports-news-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
-/* --- الشاشات الكبيرة جدًا (TVs) --- */
 @media (min-width: 1600px) {
-  body {
-    font-size: 18px; /* زيادة حجم الخط الأساسي */
-  }
-  .news-main {
-    max-width: 1800px;
-  }
-  .breaking-news-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  }
-   .sports-news-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  }
+  body { font-size: 18px; }
+  .news-main { max-width: 1800px; }
+  .breaking-news-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .sports-news-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
 }
-
