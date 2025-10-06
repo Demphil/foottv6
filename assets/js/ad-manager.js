@@ -11,20 +11,19 @@
         // أضف أي سكريبتات أخرى هنا
     ];
 
-    // الفاصل الزمني بين تحميل كل إعلان (بالمللي ثانية)
-    // 15 ثانية = 15000
-    const delayBetweenAds = 15000; 
+    // التأخير الأولي قبل بدء أول دورة إعلانية (10 ثوانٍ)
+    const initialDelay = 10000;
+
+    // الفاصل الزمني بين تحميل كل إعلان داخل الدورة (5 ثوانٍ)
+    const delayBetweenAds = 5000;
+
+    // الفاصل الزمني بعد انتهاء الدورة وقبل بدء دورة جديدة (30 ثانية)
+    const delayBetweenCycles = 30000;
 
     // --- لا تقم بتعديل أي شيء تحت هذا السطر ---
 
     // دالة لإنشاء وتحميل سكريبت إعلاني واحد
     function createAndLoadScript(adInfo) {
-        // التحقق من عدم وجود السكريبت من قبل لتجنب التكرار
-        if (document.querySelector(`script[src="${adInfo.src}"][data-zone="${adInfo['data-zone']}"]`)) {
-            console.log('Ad script already loaded, skipping:', adInfo.src);
-            return;
-        }
-
         const script = document.createElement('script');
         script.src = adInfo.src;
         script.async = true;
@@ -38,20 +37,40 @@
         }
         
         document.body.appendChild(script);
-        console.log('Ad script dynamically loaded:', adInfo.src);
+        console.log(`Ad script loaded: ${adInfo.src} with zone ${adInfo['data-zone'] || ''}`);
     }
 
-    // دالة لبدء التحميل المتدرج للإعلانات
-    function startStaggeredLoading() {
-        console.log('Starting staggered ad loading...');
-        adScripts.forEach((ad, index) => {
-            setTimeout(() => {
-                createAndLoadScript(ad);
-            }, index * delayBetweenAds); // التأخير يزداد مع كل إعلان
-        });
+    // دالة لتحميل السكريبتات بشكل متسلسل
+    function loadScriptsSequentially(index = 0) {
+        // إذا انتهت دورة الإعلانات
+        if (index >= adScripts.length) {
+            console.log(`Ad cycle complete. Scheduling next cycle in ${delayBetweenCycles / 1000} seconds.`);
+            // جدولة الدورة التالية لتبدأ بعد 30 ثانية
+            setTimeout(runAdCycle, delayBetweenCycles);
+            return;
+        }
+
+        // تحميل الإعلان الحالي
+        const adToLoad = adScripts[index];
+        createAndLoadScript(adToLoad);
+
+        // جدولة الإعلان التالي في السلسلة بعد 5 ثوانٍ
+        console.log(`Scheduling next ad in ${delayBetweenAds / 1000} seconds.`);
+        setTimeout(() => loadScriptsSequentially(index + 1), delayBetweenAds);
+    }
+    
+    // الدالة الرئيسية التي تبدأ دورة إعلانية
+    function runAdCycle() {
+        console.log("Starting new ad loading cycle.");
+        loadScriptsSequentially(0);
     }
 
-    // انتظر حتى يتم تحميل الصفحة بالكامل قبل بدء أي شيء
-    window.addEventListener('load', startStaggeredLoading);
+    // انتظر حتى يتم تحميل الصفحة بالكامل
+    window.addEventListener('load', function() {
+        console.log(`Page loaded. Waiting ${initialDelay / 1000} seconds before starting the first ad cycle.`);
+        // ابدأ الدورة الإعلانية الأولى بعد 10 ثوانٍ
+        setTimeout(runAdCycle, initialDelay);
+    });
 
 })();
+
