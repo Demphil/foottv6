@@ -2,16 +2,18 @@
 :root {
   --primary-color: #e63946;
   --secondary-color: #ffd166;
-  --dark-color: #1d3557;
+  --dark-color: #2a2a3e; /* لون داكن جديد متوافق مع التصميم */
   --light-color: #f1faee;
-  --glass-effect: rgba(40, 50, 70, 0.7);
+  /* تأثير زجاجي جديد داكن وشفاف */
+  --glass-effect: rgba(30, 30, 45, 0.6); 
   --header-height: 70px;
 }
 
 /* 2. التنسيقات العامة */
 body {
   font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
-  background: linear-gradient(135deg, var(--dark-color), #2b4a74);
+  /* تدرج لوني جديد يطابق الصفحة الرئيسية */
+  background: linear-gradient(135deg, #3a2d4b, #2a2a3e);
   color: var(--light-color);
   margin: 0;
   padding-top: var(--header-height);
@@ -24,7 +26,7 @@ body {
   margin: 0 auto;
 }
 
-/* 3. الهيدر والتنقل */
+/* 3. الهيدر والتنقل (متوافق مع التصميم) */
 .header {
   background: rgba(29, 53, 87, 0.8);
   backdrop-filter: blur(10px);
@@ -97,8 +99,12 @@ body {
 
 /* 5. شريط البحث والتصنيفات */
 .search-section {
+  background: var(--glass-effect);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
   padding: 15px;
   margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .search-container {
   display: flex;
@@ -193,7 +199,6 @@ body {
   flex-direction: column;
   flex-grow: 1;
 }
-/* --- التصحيح الرئيسي: جعل كل النصوص بيضاء --- */
 .breaking-news-content h3, .sports-news-content h3,
 .sports-news-content p {
   color: var(--light-color);
@@ -252,4 +257,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
