@@ -5,7 +5,6 @@
     // قائمة بجميع أكواد الإعلانات الخاصة بك
     const adScripts = [
         { src: 'https://fpyf8.com/88/tag.min.js', 'data-zone': '176035' },
-        { src: 'https://fpyf8.com/88/tag.min.js', 'data-zone': '176038' },
         { src: '//pl27749993.revenuecpmgate.com/cd/63/af/cd63afe2e01f3ca410d046a3e7e0b784.js' },
         { src: '//pl27749999.revenuecpmgate.com/52/78/3c/52783c8a8062307c66371da73d0bae78.js' }
         // أضف أي سكريبتات أخرى هنا
