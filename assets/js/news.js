@@ -1,7 +1,7 @@
 // --- 1. الإعدادات الأساسية و الكاش ---
-const API_KEY = "pub_f000d71989e04e57956136ef7c68f702";
+const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24";
 const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}`;
-const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 ساعات
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 ساعة
 
 // --- 2. دوال الكاش ---
 function setCache(key, data) {
