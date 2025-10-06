@@ -15,7 +15,7 @@
     const initialDelay = 10000;
 
     // الفاصل الزمني بين تحميل كل إعلان داخل الدورة (5 ثوانٍ)
-    const delayBetweenAds = 5000;
+    const delayBetweenAds = 18000;
 
     // الفاصل الزمني بعد انتهاء الدورة وقبل بدء دورة جديدة (30 ثانية)
     const delayBetweenCycles = 30000;
