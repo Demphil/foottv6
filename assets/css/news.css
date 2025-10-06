@@ -2,43 +2,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
 :root {
-  --primary-color: #e63946;
-  --secondary-color: #ffd166;
-  --dark-color: #1d3557;
-  --light-color: #f1faee;
-  --glass-effect: rgba(40, 50, 70, 0.7); /* لون زجاجي أغمق وأوضح */
-  --header-height: 70px;
+  --primary-color: #e63946;
+  --secondary-color: #ffd166;
+  --dark-color: #1d3557;
+  --light-color: #f1faee;
+  --glass-effect: rgba(255, 255, 255, 0.1);
+  --header-height: 80px;
+  --footer-height: 80px;
+}
+/* --- لإضافة هذا التعديل، الصق الكود التالي في نهاية ملف assets/css/news.css --- */
+.sports-news-content h3,
+.sports-news-content p {
+    color: #FFFFFF; /* اللون الأبيض الصريح */
 }
 
-/* 2. التنسيقات العامة */
+/* للتأكد من أن رابط "قراءة المزيد" يظهر بلون مناسب أيضًا */
+.news-meta a {
+    color: var(--secondary-color); /* استخدام اللون الثانوي (الأصفر) من تصميمك */
+}
+
+/* التنسيق العام */
 body {
-  font-family: 'Cairo', sans-serif;
-  background: linear-gradient(135deg, var(--dark-color), #2b4a74);
-  color: var(--light-color);
-  margin: 0;
-  padding-top: var(--header-height);
-  min-height: 100vh;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  color: var(--light-color);
+  margin: 0;
+  padding-top: var(--header-height);
+  color: var(--text-white);
 }
 
-.news-main {
-  padding: clamp(15px, 4vw, 30px);
-  max-width: 1400px;
-  margin: 0 auto;
+.matches-main {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* 3. الهيدر (متوافق مع index.html) */
+/* تنسيق الهيدر (مطابق لـ news.html) */
 .header {
-  background: rgba(29, 53, 87, 0.8);
-  backdrop-filter: blur(10px);
-  height: var(--header-height);
-  padding: 0 clamp(15px, 4vw, 30px);
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 1000;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+  backdrop-filter: blur(10px);
+  height: var(--header-height);
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 /* ... (بقية تنسيقات الهيدر تبقى كما هي) ... */
 .header .logo { display: flex; align-items: center; gap: 12px; }
