@@ -4,20 +4,20 @@
     // --- الإعدادات ---
     // قائمة بجميع أكواد الإعلانات الخاصة بك
     const adScripts = [
-        { src: 'https://fpyf8.com/88/tag.min.js', 'data-zone': '176035' },
+        { src: 'https://fpyf8.com/88/tag.min.js', 'data-zone': '176038' },
         { src: '//pl27749993.revenuecpmgate.com/cd/63/af/cd63afe2e01f3ca410d046a3e7e0b784.js' },
         { src: '//pl27749999.revenuecpmgate.com/52/78/3c/52783c8a8062307c66371da73d0bae78.js' }
         // أضف أي سكريبتات أخرى هنا
     ];
 
     // التأخير الأولي قبل بدء أول دورة إعلانية (10 ثوانٍ)
-    const initialDelay = 10000;
+    const initialDelay = 15000;
 
     // الفاصل الزمني بين تحميل كل إعلان داخل الدورة (5 ثوانٍ)
-    const delayBetweenAds = 18000;
+    const delayBetweenAds = 25000;
 
     // الفاصل الزمني بعد انتهاء الدورة وقبل بدء دورة جديدة (30 ثانية)
-    const delayBetweenCycles = 30000;
+    const delayBetweenCycles = 50000;
 
     // --- لا تقم بتعديل أي شيء تحت هذا السطر ---
 
