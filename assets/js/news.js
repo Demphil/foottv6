@@ -118,7 +118,7 @@ async function fetchNews(page = null) {
 
 function renderBreakingNews(articles) {
     if (!elements.breakingNews) return;
-    if (!articles || articles.length === 5) {
+    if (!articles || articles.length === 0) {
         elements.breakingNews.innerHTML = '<p class="no-news">No breaking news available.</p>';
         return;
     }
