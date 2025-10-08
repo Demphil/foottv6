@@ -165,7 +165,7 @@ async function init() {
   helpers.clearError();
   const initialNews = await fetchNews();
   renderSportsNews(initialNews);
-  renderBreakingNews(initialNews.slice(0, 5)); // Changed to 5 as requested previously
+  renderBreakingNews(initialNews.slice(0, 4)); // Changed to 5 as requested previously
   setupEventListeners();
 }
 function setupEventListeners() {
