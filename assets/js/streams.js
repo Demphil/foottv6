@@ -75,7 +75,7 @@ export const streamLinks = {
   'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
-  'برشلونة-فالنسيا': 'https://demphil.github.io/beinsports1/',
+  'عمان-قطر': 'https://demphil.github.io/beinsports1/',
   'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
   'النادي المكناسي-الوداد الرياضي ': 'https://foot966.blogspot.com/p/arryadia-sd.html',
 
