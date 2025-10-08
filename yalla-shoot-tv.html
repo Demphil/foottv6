@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ====================================================== -->
+    <!-- === وسوم SEO الأساسية (الأكثر أهمية لجوجل) === -->
+    <!-- ====================================================== -->
+
+    <!-- 1. العنوان: قصير، واضح، ويحتوي على الكلمات المفتاحية الرئيسية -->
+    <title>KoraLive | كورة لايف - بث مباشر لمباريات اليوم</title>
+
+    <!-- 2. الوصف: جملة جذابة تصف محتوى الموقع بدقة -->
+    <meta name="description" content="موقع KoraLive (كورة لايف) يقدم لكم بث مباشر لأهم مباريات اليوم، مع تغطية حصرية لنتائج وجداول الدوريات العالمية والعربية مثل دوري أبطال أوروبا والدوري السعودي.">
+
+    <!-- 3. الكلمات المفتاحية (اختياري، لكن لا يضر) -->
+    <meta name="keywords" content="كورة لايف, بث مباشر, مباريات اليوم, koralive, koora live, دوري أبطال أوروبا, الدوري الإنجليزي, الدوري الإسباني, الدوري السعودي">
+
+    <!-- 4. رابط النسخة الرسمية للموقع -->
+    <link rel="canonical" href="https://koralive.football/" />
+
+    <!-- ====================================================== -->
+    <!-- === وسوم Open Graph (للمشاركة على فيسبوك وواتساب) === -->
+    <!-- ====================================================== -->
+
+    <meta property="og:title" content="KoraLive | كورة لايف - شاهد بث مباشر لمباريات اليوم"/>
+    <meta property="og:description" content="تغطية حصرية ومباشرة لأهم مباريات كرة القدم العالمية والعربية. انضم إلينا لمشاهدة فريقك المفضل."/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://koralive.football/"/>
+    <meta property="og:image" content="https://koralive.football/assets/images/logo.png"/>
+    <meta property="og:locale" content="ar_AR"/>
+
+    <!-- ====================================================== -->
+    <!-- === وسوم Twitter Card (للمشاركة على تويتر) === -->
+    <!-- ====================================================== -->
+    
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="KoraLive | كورة لايف - بث مباشر لمباريات اليوم"/>
+    <meta name="twitter:description" content="تابع البث المباشر لأهم مباريات كرة القدم العالمية والعربية على KoraLive."/>
+    <meta name="twitter:image" content="https://koralive.football/assets/images/logo.png"/>
+
+    <!-- ====================================================== -->
+    <!-- === بقية الوسوم التقنية === -->
+    <!-- ====================================================== -->
+
+    <meta name="author" content="KoraLive Team">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <meta name="robots" content="index, follow">
+
+    <!-- هنا تضع روابط ملفات CSS و JavaScript كالمعتاد -->
+    <link rel="stylesheet" href="assets/css/matches.css" media="print" onload="this.media='all'">
+    
+    <link rel="preload" href="assets/css/matches.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet" href="assets/css/footer.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap">
+   
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LVZ7KRDPEW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LVZ7KRDPEW');
+</script>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="logo">
+            <img src="assets/images/logo.png" alt="koralive Logo" loading="lazy" width="60" height="60">
+            <h1>Football Matches</h1>
+          
+           <a href="https://koralive.football/" class="logo" style="text-decoration: none; color: inherit;">
+   <a href="https://koralive.football/" class="logo" style="text-decoration: none; color: inherit;">
+    <h1>KooraLive</h1>
+       <h1>كورة لايف</h1>
+</a>
+        </div>
+        <nav class="nav">
+            <ul>
+                <li><a href="news.html">Football News</a></li>
+                <li><a href="index.html" class="active">Matches</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="matches-main">
+        <div id="loading" style="display: flex;">
+            <div class="loader"></div>
+        </div>
+        
+        <div id="error-container" style="display: none;" role="alert"></div>
+        <div id="toast-container"></div>
+        
+        <div class="matches-layout">
+            <section class="featured-section" aria-labelledby="featured-title">
+                <h2 id="featured-title" class="section-title"><i class="fas fa-star" aria-hidden="true"></i> Featured Evening Matches</h2>
+                <div id="featured-matches" class="featured-slider">
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <p>Loading featured matches...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="broadcast-section" aria-labelledby="broadcast-title">
+                <h2 id="broadcast-title" class="section-title"><i class="fas fa-tv" aria-hidden="true"></i> Today's Key Matches</h2>
+                <div id="broadcast-matches" class="broadcast-list">
+                     <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <p>Loading key matches...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="all-matches" aria-labelledby="all-matches-title">
+            <h2 id="all-matches-title" class="section-title">All Matches</h2>
+            <div class="matches-tabs" role="tablist">
+                <button id="today-tab" class="tab-btn active" data-tab="today" role="tab" aria-selected="true">Today's Matches</button>
+                <button id="tomorrow-tab" class="tab-btn" data-tab="tomorrow" role="tab" aria-selected="false">Tomorrow's Matches</button>
+            </div>
+            
+            <div class="matches-grid">
+                <div id="today-matches" class="tab-content active" role="tabpanel" aria-labelledby="today-tab">
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <p>Loading today's matches...</p>
+                    </div>
+                </div>
+                
+                <div id="tomorrow-matches" class="tab-content" role="tabpanel" aria-labelledby="tomorrow-tab" style="display: none;">
+                    <div class="loading-placeholder" aria-live="polite">
+                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                        <p>Loading tomorrow's matches...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <a href="#" class="logo-text">Kora Live</a>
+            </div>
+               
+        <div class="footer-links">
+            <a href="news.html"><i class="fas fa-newspaper"></i> Football News</a>
+            <a href="index.html"><i class="fas fa-home"></i> Matches</a>
+        </div>
+    </div>
+
+    <!-- الجزء الجديد: قوائم الروابط (تم تحديث الروابط لتكون داخلية) -->
+    <div class="footer-extra-links">
+        <div class="footer-widget">
+            <h3 class="widget-title">koora live</h3>
+            <ul class="widget-menu">
+                <li><a href="/yalla-shoot.html">يلا شوت – yalla shoot</a></li>
+                <li><a href="/kooracity.html">كورة سيتي | kooracity</a></li>
+                <li><a href="/yalla-shoot-hd.html">يلا شوت اتش دي – YallaShootHD</a></li>
+            </ul>
+        </div>
+        <div class="footer-widget">
+            <h3 class="widget-title">kora live</h3>
+            <ul class="widget-menu">
+                <li><a href="/yalla-live.html">يلا لايف – yalla live</a></li>
+                <li><a href="/koora-extra.html">كورة اكسترا – koora extra</a></li>
+                <li><a href="/yalla-shoot-tv.html">يلا شوت تيفي – Yalla Shoot TV</a></li>
+            </ul>
+        </div>
+        <div class="footer-widget">
+            <h3 class="widget-title">كورة لايف</h3>
+            <ul class="widget-menu">
+                <li><a href="/sir-tv.html">سير تيفي – Sir TV</a></li>
+                <li><a href="/kora-online.html">كورة أون لاين – kora online</a></li>
+                <li><a href="/yacine-tv.html">ياسين تيفي – Yacine TV</a></li>
+            </ul>
+        </div>
+        <div class="footer-widget">
+            <h3 class="widget-title">kooralive</h3>
+            <ul class="widget-menu">
+                <li><a href="/livehd7.html">livehd7 – الاسطورة لبث المباريات</a></li>
+                <li><a href="/buzkora.html">بوز كورة – buzkora</a></li>
+                <li><a href="/syria-live.html">سوريا لايف | Syria Live</a></li>
+            </ul>
+        </div>
+    </div>
+        <div class="copyright">
+            <p>Copyright © <span id="current-year"></span> Koralive - All rights reserved</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+    <script src="assets/js/ad-manager.js"></script>
+    <script type="module" src="assets/js/matches.js"></script>
+
+</body>   
+</html>
