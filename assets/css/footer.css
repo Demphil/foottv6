@@ -1,18 +1,23 @@
 /* --- المتغيرات الأساسية (للتوافق) --- */
 :root {
   --primary-color: #e63946;
-  --dark-color: #2a2a3e;
+  --dark-color: #1d3557;
   --light-color: #f1faee;
   --secondary-color: #ffd166;
+  --glass-effect: rgba(255, 255, 255, 0.1);
 }
 
-/* --- تنسيق الفوتر العام --- */
+/* --- تنسيق الفوتر المحسن --- */
 .footer {
-  background: linear-gradient(135deg, #3a2d4b, #2a2a3e);
+  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
   color: var(--light-color);
-  padding: 2.5rem clamp(15px, 4vw, 30px);
-  margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: auto; /* يدفعه لأسفل الصفحة */
+  min-height: 120px; /* --- حل CLS: حجز مساحة للفوتر --- */
+  box-sizing: border-box;
 }
 
 /* --- الجزء العلوي (الشعار والروابط الرئيسية) --- */
