@@ -18,8 +18,8 @@ body {
 }
 
 .news-main {
-   padding: clamp(15px, 4vw, 30px); /* مساحات مرنة تتكيف مع حجم الشاشة */
-  max-width: 1600px; /* زيادة العرض الأقصى للشاشات الكبيرة */
+  padding: clamp(15px, 4vw, 30px);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -160,15 +160,14 @@ body {
   display: grid;
   gap: 20px;
   margin-bottom: 20px;
+  /* --- التعديل هنا: استخدام grid-auto-rows --- */
+  grid-auto-rows: 1fr; /* إجبار كل الصفوف على أخذ نفس الارتفاع */
 }
-/* --- التعديل هنا: استخدام grid-auto-rows --- */
 .breaking-news-grid { 
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  grid-auto-rows: 1fr; /* إجبار كل الصفوف على أخذ نفس الارتفاع */
 }
 .sports-news-grid { 
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  grid-auto-rows: 1fr; /* إجبار كل الصفوف على أخذ نفس الارتفاع */
 }
 .breaking-news-card, .sports-news-card {
   background: rgba(0,0,0, 0.2);
@@ -176,8 +175,8 @@ body {
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
-  display: flex;
-  flex-direction: column; /* --- التعديل هنا: استخدام flexbox للتحكم الداخلي --- */
+  display: flex; /* --- التعديل هنا: استخدام flexbox للتحكم الداخلي --- */
+  flex-direction: column; 
 }
 .breaking-news-card a, .sports-news-card a {
   text-decoration: none;
@@ -257,4 +256,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
