@@ -160,8 +160,7 @@ body {
   display: grid;
   gap: 20px;
   margin-bottom: 20px;
-  /* --- التعديل هنا: استخدام grid-auto-rows --- */
-  grid-auto-rows: 1fr; /* إجبار كل الصفوف على أخذ نفس الارتفاع */
+  grid-auto-rows: 1fr; 
 }
 .breaking-news-grid { 
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -175,7 +174,7 @@ body {
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
-  display: flex; /* --- التعديل هنا: استخدام flexbox للتحكم الداخلي --- */
+  display: flex;
   flex-direction: column; 
 }
 .breaking-news-card a, .sports-news-card a {
@@ -199,7 +198,7 @@ body {
   padding: 15px;
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* --- التعديل هنا: جعل هذا القسم يملأ المساحة المتبقية --- */
+  flex-grow: 1;
 }
 .breaking-news-content h3, .sports-news-content h3,
 .sports-news-content p {
@@ -214,7 +213,15 @@ body {
   font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 15px;
-  flex-grow: 1; /* --- التعديل هنا: جعل الوصف يتمدد --- */
+  flex-grow: 1;
+
+  /* --- التعديل الحاسم هنا: قص النص الطويل --- */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* حدد عدد الأسطر التي تريدها (3 أسطر جيد) */
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* ------------------------------------------- */
 }
 .news-meta {
   display: flex;
@@ -222,7 +229,7 @@ body {
   align-items: center;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
-  margin-top: auto; /* --- التعديل هنا: دفع هذا العنصر لأسفل البطاقة دائمًا --- */
+  margin-top: auto;
 }
 .news-meta span:last-child {
   color: var(--secondary-color);
@@ -256,4 +263,3 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
