@@ -77,7 +77,7 @@ export const streamLinks = {
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'عمان-قطر': 'https://demphil.github.io/beinsports1/',
   'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
-  'النادي المكناسي-الوداد الرياضي ': 'https://foot966.blogspot.com/p/arryadia-sd.html',
+  'المغرب-البحرين': 'https://foot966.blogspot.com/p/arryadia-sd.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
