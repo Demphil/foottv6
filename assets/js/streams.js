@@ -61,7 +61,7 @@ export const streamLinks = {
   'beIN Sports HD': 'https://demphil.github.io/beinfree/',
   'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',
    'Starzplay': 'https://demphil.github.io/starzplay/',
-
+   'الجزائرية السادسة': 'https://demphil.github.io/algy6/',
   
   
 
