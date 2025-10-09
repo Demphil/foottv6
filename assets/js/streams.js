@@ -75,7 +75,7 @@ export const streamLinks = {
   'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
-  'عمان-قطر': 'https://demphil.github.io/beinsports1/',
+  'المغرب تحت 20-كوريا الجنوبية تحت 20': 'https://demphil.github.io/beinfree/',
   'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
   'المغرب-البحرين': 'https://demphil.github.io/aryadialive/',
 
