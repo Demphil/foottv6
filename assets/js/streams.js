@@ -77,7 +77,7 @@ export const streamLinks = {
   'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
   'المغرب تحت 20-كوريا الجنوبية تحت 20': 'https://demphil.github.io/beinfree/',
   'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
-  'المغرب-البحرين': 'https://demphil.github.io/aryadialive/',
+  'مصر-غينيا بيساو': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
