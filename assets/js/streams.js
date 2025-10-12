@@ -74,10 +74,9 @@ export const streamLinks = {
   'باريس سان جيرمان-تولوز': 'https://foot966.blogspot.com/p/bein2.html',
   'توغو-موريتانيا': 'https://demphil.github.io/foottv-bein3/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'إشبيلية-إلتشي': 'https://demphil.github.io/foottv-bein3/',
+  'الولايات المتحدة الامريكية نحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
   'المغرب تحت 20-كوريا الجنوبية تحت 20': 'https://demphil.github.io/beinfree/',
-  'الاهلي السعودي-بيراميدز': 'https://demphil.github.io/mbc-action/',
-  'مصر-غينيا بيساو': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
+  'الاهلي السعودي-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
