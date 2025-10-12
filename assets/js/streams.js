@@ -24,9 +24,9 @@ export const streamLinks = {
   'beIN Sports 5 HD': 'https://demphil.github.io/bein5/',
   'beIN 5ports 5 HD': 'https://demphil.github.io/bein5/',
   'بى أن سبورت 5 HD': 'https://demphil.github.io/bein5/',
- // 'beIN SPORTS HD 6': 'https://demphil.github.io/bein6/', //
- // 'beIN Sports 6 HD': 'https://demphil.github.io/bein6/',
-//  'بى أن سبورت 6 HD': 'https://demphil.github.io/bein6/',//
+    'beIN SPORTS HD 6': 'https://demphil.github.io/bein6/',
+    'beIN Sports 6 HD': 'https://demphil.github.io/bein6/',
+   'بى أن سبورت 6 HD': 'https://demphil.github.io/bein6/',
   'beIN SPORTS HD 7': 'https://demphil.github.io/bein7/',
   'beIN Sports 7 HD': 'https://demphil.github.io/bein7/',
   'بى أن سبورت 7 HD': 'https://demphil.github.io/bein7/',
