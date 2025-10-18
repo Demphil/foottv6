@@ -113,7 +113,7 @@ async function loadAndRenderMatches() {
     try {
       // The time is now 24-hour format, so filtering is simpler
       const [hours] = match.time.split(':').map(Number);
-      return hours >= 19; // 7 PM or later in Morocco time
+      return hours >= 16; // 4 PM or later in Morocco time
     } catch (e) {
       return false;
     }
@@ -121,7 +121,7 @@ async function loadAndRenderMatches() {
   
   // Using English messages for the UI
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 5), 'No key matches scheduled for today.');
+  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 10), 'No key matches scheduled for today.');
   renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
 }
