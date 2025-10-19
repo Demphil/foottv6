@@ -76,7 +76,8 @@ export const streamLinks = {
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'الولايات المتحدة تحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
   'المغرب تحت 20-فرنسا تحت 20': 'https://demphil.github.io/beinfree/',
-  'الاهلي السعودي-بيراميدز': 'https://foot966.blogspot.com/p/on-time-sports-2.html',
+  'الوداد الرياضي-بيراميدز': 'https://demphil.github.io/algery/',
+  'حوريا-الجيش الملكي': 'https://demphil.github.io/algery/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
