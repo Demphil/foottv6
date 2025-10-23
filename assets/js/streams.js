@@ -77,7 +77,7 @@ export const streamLinks = {
   'الولايات المتحدة تحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
   'المغرب تحت 20-فرنسا تحت 20': 'https://demphil.github.io/beinfree/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
-  'حوريا-الجيش الملكي': 'https://demphil.github.io/algery/',
+  'ليل-باوك سالونيكا': 'https://demphil.github.io/bein7/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
