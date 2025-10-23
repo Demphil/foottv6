@@ -71,7 +71,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'باريس سان جيرمان-ستراسبورج': 'https://demphil.github.io/beinsports1/',
+  'روما-فيكتوريا بلزن': 'https://demphil.github.io/foottv-bein3//',
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'الولايات المتحدة تحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
