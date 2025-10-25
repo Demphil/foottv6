@@ -280,7 +280,7 @@ a.match-card-link {
 .social-bar {
     position: fixed; /* يجعله ثابتًا على الشاشة */
     top: 50%; /* يبدأ من منتصف الشاشة */
-    left: 100%; /* يثبته على اليمين */
+    right: 0; /* يثبته على اليمين */
     transform: translateY(-50%); /* يوسطه عموديًا بدقة */
     display: flex;
     flex-direction: column; /* يجعله عموديًا */
