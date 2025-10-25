@@ -276,7 +276,37 @@ a.match-card-link {
   display: block;
   color: var(--secondary-color);
 }
+/* --- تنسيق شريط التواصل الاجتماعي العائم --- */
+.social-bar {
+    position: fixed; /* يجعله ثابتًا على الشاشة */
+    top: 50%; /* يبدأ من منتصف الشاشة */
+    right: 0; /* يثبته على اليمين */
+    transform: translateY(-50%); /* يوسطه عموديًا بدقة */
+    display: flex;
+    flex-direction: column; /* يجعله عموديًا */
+    gap: 8px; /* مسافة بين الأيقونات */
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2); /* خلفية زجاجية خفيفة */
+    backdrop-filter: blur(5px);
+    border-radius: 10px 0 0 10px; /* تدوير الحواف اليسرى */
+    z-index: 999; /* للتأكد من أنه فوق المحتوى */
+}
 
+.social-icon {
+    color: white;
+    font-size: 24px; /* حجم الأيقونة */
+    padding: 8px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.social-icon:hover {
+    transform: scale(1.2);
+}
+
+/* ألوان اختيارية لكل أيقونة عند مرور الماوس */
+.social-icon.tiktok:hover { color: #00f2ea; }
+.social-icon.instagram:hover { color: #e4405f; }
+.social-icon.youtube:hover { color: #ff0000; }
 /* 7. التجاوب مع الشاشات المختلفة (محسّن) */
 
 /* --- الهواتف (حتى 767px) --- */
