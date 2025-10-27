@@ -22,8 +22,8 @@ body {
 }
 
 .matches-main {
-  padding: clamp(15px, 4vw, 30px); /* مساحات مرنة تتكيف مع حجم الشاشة */
-  max-width: 1600px; /* زيادة العرض الأقصى للشاشات الكبيرة */
+  padding: clamp(15px, 4vw, 30px);
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -46,18 +46,29 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .header .logo {
+  flex: 1;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: flex-start;
 }
 .header .logo img {
-  height: 65px;
+  height: 45px;
   width: auto;
 }
-.header .logo h1 {
+.header .header-title {
+  flex: 2;
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 700;
+  color: var(--light-color);
+  text-align: center;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
 }
 .nav ul {
   display: flex;
@@ -125,7 +136,7 @@ body {
 .tab-content { display: none; }
 .tab-content.active {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* شبكة مرنة */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
@@ -276,47 +287,34 @@ a.match-card-link {
   display: block;
   color: var(--secondary-color);
 }
-/* --- تنسيق شريط التواصل الاجتماعي العائم --- */
-.social-bar {
-    position: fixed; /* يجعله ثابتًا على الشاشة */
-    top: 50%; /* يبدأ من منتصف الشاشة */
-    left: 0; /* يثبته على اليمين */
-    transform: translateY(-50%); /* يوسطه عموديًا بدقة */
-    display: flex;
-    flex-direction: column; /* يجعله عموديًا */
-    gap: 8px; /* مسافة بين الأيقونات */
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2); /* خلفية زجاجية خفيفة */
-    backdrop-filter: blur(5px);
-    border-radius: 10px 0 0 10px; /* تدوير الحواف اليسرى */
-    z-index: 999; /* للتأكد من أنه فوق المحتوى */
-}
 
-.social-icon {
-    color: white;
-    font-size: 24px; /* حجم الأيقونة */
-    padding: 8px;
-    transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.social-icon:hover {
-    transform: scale(1.2);
-}
-
-/* ألوان اختيارية لكل أيقونة عند مرور الماوس */
-.social-icon.tiktok:hover { color: #00f2ea; }
-.social-icon.instagram:hover { color: #e4405f; }
-.social-icon.youtube:hover { color: #ff0000; }
 /* 7. التجاوب مع الشاشات المختلفة (محسّن) */
 
 /* --- الهواتف (حتى 767px) --- */
 @media (max-width: 767px) {
-  .header .logo h1 {
-    display: none;
+  .header {
+    padding: 0 15px;
+  }
+  /* --- التعديل الحاسم هنا --- */
+  .header .logo {
+    flex: 0 1 auto; /* السماح للشعار بالانكماش */
+  }
+  .header .logo img {
+    height: 40px;
+  }
+  .header .header-title {
+    flex: 1 1 auto; /* السماح للعنوان بالتمدد والانكماش */
+    font-size: 0.8rem; /* تصغير حجم الخط أكثر */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0; /* ضروري لعمل ellipsis في flexbox */
   }
   .nav {
-    display: none; /* إخفاء قائمة التنقل في الهواتف لتبسيط الواجهة */
+    display: none;
   }
+  
+  /* ... بقية تنسيقات الهاتف ... */
   .team img {
     width: 45px;
   }
@@ -328,18 +326,20 @@ a.match-card-link {
     font-size: 1.3rem;
   }
   .tab-content.active {
-    grid-template-columns: 1fr; /* عمود واحد فقط في الهواتف */
+    grid-template-columns: 1fr;
   }
 }
 
 /* --- الأجهزة اللوحية (Tablets) --- */
 @media (min-width: 768px) and (max-width: 1023px) {
   .matches-layout {
-    grid-template-columns: 1fr; /* عرض الأقسام فوق بعضها */
+    grid-template-columns: 1fr;
   }
   .tab-content.active {
-    /* عرض عمودين في الأجهزة اللوحية */
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .header .header-title {
+    font-size: 1.2rem;
   }
 }
 
@@ -354,7 +354,7 @@ a.match-card-link {
 /* --- الشاشات الكبيرة جدًا (TVs) --- */
 @media (min-width: 1600px) {
   body {
-    font-size: 18px; /* زيادة حجم الخط الأساسي */
+    font-size: 18px;
   }
   .matches-main {
     max-width: 1800px;
@@ -366,3 +366,4 @@ a.match-card-link {
     font-size: 1.8rem;
   }
 }
+
