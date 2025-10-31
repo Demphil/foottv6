@@ -75,7 +75,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.live-match-tv.ne';
+  const targetUrl = 'https://www.live-match-tv.net';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -159,5 +159,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.bienkoora.live/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
