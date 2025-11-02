@@ -143,7 +143,7 @@ function setupTabs() {
         activeTab.classList.add('active');
         inactiveTab.classList.remove('active');
         activeContainer.style.display = 'grid';
-        inactiveContainer.style.display = 'none';
+        activeContainer.style.display = 'none';
     };
 
     DOM.todayTab?.addEventListener('click', () => {
@@ -164,3 +164,4 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
+
