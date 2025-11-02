@@ -165,5 +165,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.livekora.vip/${src.startsWith('/') ? '' : '/'}${src}`;
 }
