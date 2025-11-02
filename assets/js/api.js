@@ -87,7 +87,7 @@ function isMatchLive(moroccoTimeString) {
         
         const matchStartTimeInMinutes = hours * 60 + minutes;
         const windowStartTime = matchStartTimeInMinutes - 10;
-        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و 15 دقيقة
+        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و
 
         const now = new Date();
         const localTimezoneOffset = now.getTimezoneOffset();
