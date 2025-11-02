@@ -27,7 +27,44 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. API Functions ---
+// --- 2. دالة التحقق من المباراة الجارية ---
+/**
+ * يتحقق مما إذا كانت المباراة جارية الآن
+ * (نفترض أن التوقيت هو بتوقيت المغرب)
+ * @param {string} timeString - The time string, e.g., "19:00"
+ * @returns {boolean} True if the match is live
+ */
+function isMatchLive(timeString) {
+    try {
+        if (!timeString || !timeString.includes(':')) {
+            return false;
+        }
+
+        // تحويل وقت المباراة (مثل "19:00") إلى دقائق
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const matchStartTimeInMinutes = hours * 60 + minutes;
+        
+        // حساب وقت انتهاء المباراة (نفترض ساعتين)
+        const matchEndTimeInMinutes = matchStartTimeInMinutes + 120; // 120 دقيقة
+
+        // الحصول على الوقت الحالي بتوقيت المغرب (UTC+1)
+        const now = new Date();
+        // ملاحظة: هذا يعتمد على أن متصفح المستخدم في المغرب
+        // لحل أكثر دقة، نحتاج إلى معرفة فارق التوقيت العالمي (UTC)
+        // لكن هذا الحل سيعمل لمعظم المستخدمين في المغرب
+        const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // التحقق مما إذا كان الوقت الحالي يقع بين بداية ونهاية المباراة
+        return (
+            currentTimeInMinutes >= matchStartTimeInMinutes &&
+            currentTimeInMinutes <= matchEndTimeInMinutes
+        );
+    } catch (e) {
+        return false;
+    }
+}
+
+// --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 export async function getTodayMatches() {
@@ -56,7 +93,7 @@ export async function getTomorrowMatches() {
   return newMatches;
 }
 
-// --- 3. Core Fetching and Parsing Logic ---
+// --- 4. Core Fetching and Parsing Logic ---
 async function fetchMatches(targetUrl) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
@@ -92,8 +129,10 @@ function parseMatches(html) {
         if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
       }
       
-      // --- التعديل هنا: تم إزالة دالة تحويل التوقيت ---
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+      
+      // --- التعديل هنا: التحقق مما إذا كانت المباراة جارية ---
+      const is_live = isMatchLive(originalTime);
 
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       const channel = infoListItems[0]?.textContent?.trim() || '';
@@ -103,12 +142,13 @@ function parseMatches(html) {
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: originalTime, // <-- استخدام الوقت الأصلي مباشرة
+        time: originalTime,
         score: score,
         league: league,
         channel: channel.includes('غير معروف') ? '' : channel,
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        matchLink: matchLink
+        matchLink: matchLink,
+        is_live: is_live // <-- إضافة الخاصية الجديدة
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
@@ -123,3 +163,4 @@ function extractImageUrl(imgElement) {
   if (src.startsWith('http') || src.startsWith('//')) return src;
   return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
+
