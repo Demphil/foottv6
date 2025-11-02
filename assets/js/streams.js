@@ -76,7 +76,7 @@ export const streamLinks = {
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'الولايات المتحدة تحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
-  'النصر-الاتحاد': 'https://demphil.github.io/bein6/',
+  'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
   'الوداد الرياضي-الرجاء البيضاوي': 'https://demphil.github.io/aryadialive/',
 
