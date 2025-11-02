@@ -40,6 +40,12 @@ function renderMatch(match) {
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
+  // --- التعديل هنا: تحديد التنسيق والكلمة للمباريات الجارية ---
+  const isLive = match.is_live;
+  const timeClass = isLive ? 'time live-now' : 'time';
+  const timeText = isLive ? 'جارية الآن' : match.time;
+  // ----------------------------------------------------
+
   // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
     ${match.channel ? `
@@ -72,7 +78,7 @@ function renderMatch(match) {
           </div>
           <div class="match-info">
             <span class="score">${match.score}</span>
-            <span class="time">${match.time}</span>
+            <span class="${timeClass}">${timeText}</span>
           </div>
           <div class="team">
             <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
@@ -109,17 +115,19 @@ async function loadAndRenderMatches() {
 
   hideLoading();
   
-  const featuredMatches = todayMatches.filter(match => {
-    try {
-      // The time is now 24-hour format, so filtering is simpler
-      const [hours] = match.time.split(':').map(Number);
-      return hours >= 16; // 4 PM or later in Morocco time
-    } catch (e) {
-      return false;
-    }
-  });
+  // --- التعديل هنا: فرز المباريات الجارية ---
+  // 1. فصل المباريات الجارية عن المباريات القادمة
+  const liveMatches = todayMatches.filter(match => match.is_live);
+  const upcomingMatches = todayMatches.filter(match => !match.is_live);
+
+  // 2. فرز كل قائمة حسب التوقيت
+  liveMatches.sort((a, b) => a.time.localeCompare(b.time));
+  upcomingMatches.sort((a, b) => a.time.localeCompare(b.time));
+
+  // 3. دمج القائمتين (الجارية أولاً) لعرضها في "المباريات المميزة"
+  const featuredMatches = [...liveMatches, ...upcomingMatches];
   
-  // Using English messages for the UI
+  // 4. عرض القوائم
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
   renderSection(DOM.broadcastContainer, todayMatches.slice(0, 10), 'No key matches scheduled for today.');
   renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
@@ -156,4 +164,3 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
-
