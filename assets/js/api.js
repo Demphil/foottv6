@@ -65,7 +65,7 @@ function convertSourceToMoroccoTime(timeString) {
   }
 }
 
-// --- 3. دالة التحقق من المباراة الجارية ---
+// --- 3. دالة التحقق من المباراة الجارية (نسخة محسنة) ---
 /**
  * يتحقق مما إذا كانت المباراة جارية الآن (بتوقيت المغرب)
  * @param {string} moroccoTimeString - The time string in Morocco time, e.g., "20:30"
@@ -77,18 +77,21 @@ function isMatchLive(moroccoTimeString) {
             return false;
         }
 
-        // تحويل وقت المباراة (مثل "20:30") إلى دقائق
         const [hours, minutes] = moroccoTimeString.split(':').map(Number);
         if (isNaN(hours) || isNaN(minutes)) return false;
         
         const matchStartTimeInMinutes = hours * 60 + minutes;
         
-        // حساب وقت انتهاء المباراة (نفترض ساعتين)
-        const matchEndTimeInMinutes = matchStartTimeInMinutes + 120; // 120 دقيقة
+        // --- التعديل هنا ---
+        // وقت بدء المباراة (قبل 10 دقائق من البداية)
+        const windowStartTime = matchStartTimeInMinutes - 10;
+        // وقت انتهاء المباراة (نفترض ساعتين و 15 دقيقة)
+        const windowEndTime = matchStartTimeInMinutes + 135; // 135 دقيقة
+        // ------------------
 
         // الحصول على الوقت الحالي بتوقيت المغرب (UTC+1)
         const now = new Date();
-        const localTimezoneOffset = now.getTimezoneOffset(); // فارق التوقيت المحلي بالدقائق
+        const localTimezoneOffset = now.getTimezoneOffset();
         const moroccoTimezoneOffset = -60; // UTC+1
         
         const nowUtc = now.getTime() + (localTimezoneOffset * 60000);
@@ -96,10 +99,10 @@ function isMatchLive(moroccoTimeString) {
 
         const currentTimeInMinutes = moroccoNow.getHours() * 60 + moroccoNow.getMinutes();
 
-        // التحقق مما إذا كان الوقت الحالي يقع بين بداية ونهاية المباراة
+        // التحقق مما إذا كان الوقت الحالي يقع ضمن النافذة الجديدة
         return (
-            currentTimeInMinutes >= matchStartTimeInMinutes &&
-            currentTimeInMinutes <= matchEndTimeInMinutes
+            currentTimeInMinutes >= windowStartTime &&
+            currentTimeInMinutes <= windowEndTime
         );
     } catch (e) {
         console.error("Error in isMatchLive:", e);
@@ -212,3 +215,4 @@ function extractImageUrl(imgElement) {
   if (src.startsWith('http') || src.startsWith('//')) return src;
   return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
+
