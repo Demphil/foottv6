@@ -40,6 +40,12 @@ function renderMatch(match) {
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
+  // --- التعديل هنا: تحديد التنسيق والكلمة للمباريات الجارية ---
+  const isLive = match.is_live;
+  const timeClass = isLive ? 'time live-now' : 'time';
+  const timeText = isLive ? 'جارية الآن' : match.time;
+  // ----------------------------------------------------
+
   // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
     ${match.channel ? `
@@ -72,7 +78,7 @@ function renderMatch(match) {
           </div>
           <div class="match-info">
             <span class="score">${match.score}</span>
-            <span class="time">${match.time}</span>
+            <span class="${timeClass}">${timeText}</span>
           </div>
           <div class="team">
             <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
@@ -114,32 +120,36 @@ async function loadAndRenderMatches() {
   const enhancedTodayMatches = todayMatches.map(match => {
     if (!match || !match.homeTeam || !match.awayTeam) return null; // فحص أمان
     
-    // إصلاح الخطأ: كان يقارن homeTeam.name بـ homeTeam.name
     const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`; 
     const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
     return {
         ...match,
-        isStreamAvailable: !!watchUrl // true إذا كان الرابط موجودًا، false إذا لم يكن
+        isStreamAvailable: !!watchUrl
     };
   }).filter(Boolean); // إزالة أي مباريات تالفة
 
   // 2. فرز المباريات: المتاحة أولاً، ثم غير المتاحة
   const availableMatches = enhancedTodayMatches.filter(match => match.isStreamAvailable);
   const unavailableMatches = enhancedTodayMatches.filter(match => !match.isStreamAvailable);
+  
+  // 3. فرز المباريات المتاحة: الجارية أولاً، ثم القادمة
+  const liveMatches = availableMatches.filter(match => match.is_live);
+  const upcomingMatches = availableMatches.filter(match => !match.is_live);
 
-  // 3. فرز كل مجموعة حسب التوقيت
-  availableMatches.sort((a, b) => a.time.localeCompare(b.time));
+  // 4. فرز كل مجموعة حسب التوقيت
+  liveMatches.sort((a, b) => a.time.localeCompare(b.time));
+  upcomingMatches.sort((a, b) => a.time.localeCompare(b.time));
   unavailableMatches.sort((a, b) => a.time.localeCompare(b.time));
 
-  // 4. دمج القائمتين (المتاحة أولاً، ثم غير المتاحة في الأسفل)
-  const sortedTodayMatches = [...availableMatches, ...unavailableMatches];
-  // -------------------------
-
-  // 5. تصفية المباريات المميزة (من القائمة المفرزة)
+  // 5. دمج القوائم بالترتيب الصحيح (جارية، قادمة متاحة، ثم غير متاحة)
+  const sortedTodayMatches = [...liveMatches, ...upcomingMatches, ...unavailableMatches];
+  
+  // 6. تصفية المباريات المميزة (من القائمة المفرزة بالكامل)
+  // يتم الفرز مسبقًا، لذلك المباريات الجارية ستكون في الأعلى
   const featuredMatches = sortedTodayMatches.filter(match => {
     try {
       const [hours] = match.time.split(':').map(Number);
-      return hours >= 16;
+      return hours >= 16; // 4 PM or later in Morocco time
     } catch (e) {
       return false;
     }
