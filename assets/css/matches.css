@@ -288,6 +288,26 @@ a.match-card-link {
   color: var(--secondary-color);
 }
 
+/* تنسيق زر "جارية الآن" */
+.match-card .time.live-now {
+    background: #e74c3c; /* أحمر بارز */
+    color: white !important;
+    font-weight: bold;
+    animation: pulse 1.5s infinite; /* تأثير نبض خفيف */
+    border-radius: 4px;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
 /* 7. التجاوب مع الشاشات المختلفة (محسّن) */
 
 /* --- الهواتف (حتى 767px) --- */
