@@ -27,21 +27,60 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. دالة التحقق من المباراة الجارية ---
+// --- 2. Timezone Conversion Function ---
 /**
- * يتحقق مما إذا كانت المباراة جارية الآن
- * (نفترض أن التوقيت هو بتوقيت المغرب)
- * @param {string} timeString - The time string, e.g., "19:00"
+ * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
+ * @param {string} timeString - The time string, e.g., "09:30 PM".
+ * @returns {string} The converted time string, e.g., "20:30".
+ */
+function convertSourceToMoroccoTime(timeString) {
+  try {
+    if (!timeString || !timeString.includes(':')) {
+      return timeString;
+    }
+
+    const [timePart, ampm] = timeString.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+
+    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
+      hours += 12;
+    }
+    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
+      hours = 0;
+    }
+
+    // Subtract 1 hour for Morocco time
+    hours -= 1;
+
+    if (hours < 0) {
+      hours += 24;
+    }
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+
+    return `${formattedHours}:${formattedMinutes}`;
+  } catch (error) {
+    return timeString;
+  }
+}
+
+// --- 3. دالة التحقق من المباراة الجارية ---
+/**
+ * يتحقق مما إذا كانت المباراة جارية الآن (بتوقيت المغرب)
+ * @param {string} moroccoTimeString - The time string in Morocco time, e.g., "20:30"
  * @returns {boolean} True if the match is live
  */
-function isMatchLive(timeString) {
+function isMatchLive(moroccoTimeString) {
     try {
-        if (!timeString || !timeString.includes(':')) {
+        if (!moroccoTimeString || !moroccoTimeString.includes(':')) {
             return false;
         }
 
-        // تحويل وقت المباراة (مثل "19:00") إلى دقائق
-        const [hours, minutes] = timeString.split(':').map(Number);
+        // تحويل وقت المباراة (مثل "20:30") إلى دقائق
+        const [hours, minutes] = moroccoTimeString.split(':').map(Number);
+        if (isNaN(hours) || isNaN(minutes)) return false;
+        
         const matchStartTimeInMinutes = hours * 60 + minutes;
         
         // حساب وقت انتهاء المباراة (نفترض ساعتين)
@@ -49,10 +88,13 @@ function isMatchLive(timeString) {
 
         // الحصول على الوقت الحالي بتوقيت المغرب (UTC+1)
         const now = new Date();
-        // ملاحظة: هذا يعتمد على أن متصفح المستخدم في المغرب
-        // لحل أكثر دقة، نحتاج إلى معرفة فارق التوقيت العالمي (UTC)
-        // لكن هذا الحل سيعمل لمعظم المستخدمين في المغرب
-        const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+        const localTimezoneOffset = now.getTimezoneOffset(); // فارق التوقيت المحلي بالدقائق
+        const moroccoTimezoneOffset = -60; // UTC+1
+        
+        const nowUtc = now.getTime() + (localTimezoneOffset * 60000);
+        const moroccoNow = new Date(nowUtc + (moroccoTimezoneOffset * 60000));
+
+        const currentTimeInMinutes = moroccoNow.getHours() * 60 + moroccoNow.getMinutes();
 
         // التحقق مما إذا كان الوقت الحالي يقع بين بداية ونهاية المباراة
         return (
@@ -60,22 +102,28 @@ function isMatchLive(timeString) {
             currentTimeInMinutes <= matchEndTimeInMinutes
         );
     } catch (e) {
+        console.error("Error in isMatchLive:", e);
         return false;
     }
 }
 
-// --- 3. API Functions ---
+
+// --- 4. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) {
     console.log("⚡ Loading today's matches from cache.");
-    return cachedMatches;
+    // إعادة التحقق من المباريات الجارية عند التحميل من الكاش
+    return cachedMatches.map(match => ({
+        ...match,
+        is_live: isMatchLive(match.time)
+    }));
   }
   console.log("🌐 Fetching today's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/';
-  const newMatches = await fetchMatches(targetUrl);
+  const newMatches = await fetchMatches(targetUrl, false); // false = ليس الغد
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
 }
@@ -88,25 +136,25 @@ export async function getTomorrowMatches() {
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl);
+  const newMatches = await fetchMatches(targetUrl, true); // true = مباريات الغد
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
 }
 
-// --- 4. Core Fetching and Parsing Logic ---
-async function fetchMatches(targetUrl) {
+// --- 5. Core Fetching and Parsing Logic ---
+async function fetchMatches(targetUrl, isTomorrow = false) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    return parseMatches(html);
+    return parseMatches(html, isTomorrow); // تمرير العلامة
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
     return [];
   }
 }
 
-function parseMatches(html) {
+function parseMatches(html, isTomorrow = false) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
@@ -130,9 +178,10 @@ function parseMatches(html) {
       }
       
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+      const moroccoTime = convertSourceToMoroccoTime(originalTime);
       
-      // --- التعديل هنا: التحقق مما إذا كانت المباراة جارية ---
-      const is_live = isMatchLive(originalTime);
+      // التحقق مما إذا كانت المباراة جارية (فقط لمباريات اليوم)
+      const is_live = !isTomorrow && isMatchLive(moroccoTime);
 
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       const channel = infoListItems[0]?.textContent?.trim() || '';
@@ -142,7 +191,7 @@ function parseMatches(html) {
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: originalTime,
+        time: moroccoTime, // استخدام توقيت المغرب
         score: score,
         league: league,
         channel: channel.includes('غير معروف') ? '' : channel,
@@ -163,4 +212,3 @@ function extractImageUrl(imgElement) {
   if (src.startsWith('http') || src.startsWith('//')) return src;
   return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
-
