@@ -28,37 +28,25 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
-/**
- * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
- * @param {string} timeString - The time string, e.g., "09:30 PM".
- * @returns {string} The converted time string, e.g., "20:30".
- */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
       return timeString;
     }
-
     const [timePart, ampm] = timeString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
-
     if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
       hours += 12;
     }
     if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
       hours = 0;
     }
-
-    // Subtract 1 hour for Morocco time
     hours -= 1;
-
     if (hours < 0) {
       hours += 24;
     }
-
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
-
     return `${formattedHours}:${formattedMinutes}`;
   } catch (error) {
     return timeString;
@@ -66,28 +54,20 @@ function convertSourceToMoroccoTime(timeString) {
 }
 
 // --- 3. دالة التحقق من المباراة الجارية (نسخة محسنة) ---
-/**
- * يتحقق مما إذا كانت المباراة جارية الآن (بتوقيت المغرب)
- * @param {string} moroccoTimeString - The time string in Morocco time, e.g., "20:30"
- * @returns {boolean} True if the match is live
- */
 function isMatchLive(moroccoTimeString) {
     try {
         if (!moroccoTimeString || !moroccoTimeString.includes(':')) {
             return false;
         }
-
         const [hours, minutes] = moroccoTimeString.split(':').map(Number);
         if (isNaN(hours) || isNaN(minutes)) return false;
         
         const matchStartTimeInMinutes = hours * 60 + minutes;
         
-        // --- التعديل هنا ---
         // وقت بدء المباراة (قبل 10 دقائق من البداية)
         const windowStartTime = matchStartTimeInMinutes - 10;
         // وقت انتهاء المباراة (نفترض ساعتين و 15 دقيقة)
         const windowEndTime = matchStartTimeInMinutes + 135; // 135 دقيقة
-        // ------------------
 
         // الحصول على الوقت الحالي بتوقيت المغرب (UTC+1)
         const now = new Date();
@@ -109,7 +89,6 @@ function isMatchLive(moroccoTimeString) {
         return false;
     }
 }
-
 
 // --- 4. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
