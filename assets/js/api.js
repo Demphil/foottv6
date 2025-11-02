@@ -27,26 +27,49 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. Timezone Conversion Function ---
+// --- 2. Timezone Conversion Function (Updated) ---
+/**
+ * Converts a time string (both 12h and 24h format) to Morocco time (UTC+1).
+ * @param {string} timeString - The time string, e.g., "09:30 PM" or "16:15".
+ * @returns {string} The converted time string, e.g., "20:30" or "15:15".
+ */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
       return timeString;
     }
-    const [timePart, ampm] = timeString.split(' ');
-    let [hours, minutes] = timePart.split(':').map(Number);
-    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
-      hours += 12;
+
+    let hours, minutes, ampm;
+    
+    // التحقق إذا كان التوقيت يحتوي على AM/PM
+    if (timeString.includes('PM') || timeString.includes('AM')) {
+      const [timePart, ampmPart] = timeString.split(' ');
+      [hours, minutes] = timePart.split(':').map(Number);
+      ampm = ampmPart.toUpperCase();
+
+      if (ampm.includes('PM') && hours !== 12) {
+        hours += 12;
+      }
+      if (ampm.includes('AM') && hours === 12) {
+        hours = 0;
+      }
+    } else {
+      // إذا لم يكن هناك AM/PM، افترض أنه بتنسيق 24 ساعة
+      [hours, minutes] = timeString.split(':').map(Number);
     }
-    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
-      hours = 0;
-    }
+    
+    if (isNaN(hours) || isNaN(minutes)) return timeString;
+
+    // Subtract 1 hour for Morocco time
     hours -= 1;
+
     if (hours < 0) {
       hours += 24;
     }
+
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
+
     return `${formattedHours}:${formattedMinutes}`;
   } catch (error) {
     return timeString;
@@ -63,13 +86,9 @@ function isMatchLive(moroccoTimeString) {
         if (isNaN(hours) || isNaN(minutes)) return false;
         
         const matchStartTimeInMinutes = hours * 60 + minutes;
-        
-        // وقت بدء المباراة (قبل 10 دقائق من البداية)
         const windowStartTime = matchStartTimeInMinutes - 10;
-        // وقت انتهاء المباراة (نفترض ساعتين و 15 دقيقة)
-        const windowEndTime = matchStartTimeInMinutes + 135; // 135 دقيقة
+        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و 15 دقيقة
 
-        // الحصول على الوقت الحالي بتوقيت المغرب (UTC+1)
         const now = new Date();
         const localTimezoneOffset = now.getTimezoneOffset();
         const moroccoTimezoneOffset = -60; // UTC+1
@@ -79,7 +98,6 @@ function isMatchLive(moroccoTimeString) {
 
         const currentTimeInMinutes = moroccoNow.getHours() * 60 + moroccoNow.getMinutes();
 
-        // التحقق مما إذا كان الوقت الحالي يقع ضمن النافذة الجديدة
         return (
             currentTimeInMinutes >= windowStartTime &&
             currentTimeInMinutes <= windowEndTime
@@ -90,6 +108,7 @@ function isMatchLive(moroccoTimeString) {
     }
 }
 
+
 // --- 4. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
@@ -97,7 +116,6 @@ export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) {
     console.log("⚡ Loading today's matches from cache.");
-    // إعادة التحقق من المباريات الجارية عند التحميل من الكاش
     return cachedMatches.map(match => ({
         ...match,
         is_live: isMatchLive(match.time)
@@ -105,7 +123,7 @@ export async function getTodayMatches() {
   }
   console.log("🌐 Fetching today's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/';
-  const newMatches = await fetchMatches(targetUrl, false); // false = ليس الغد
+  const newMatches = await fetchMatches(targetUrl, false);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
 }
@@ -118,7 +136,7 @@ export async function getTomorrowMatches() {
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl, true); // true = مباريات الغد
+  const newMatches = await fetchMatches(targetUrl, true);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
 }
@@ -129,7 +147,7 @@ async function fetchMatches(targetUrl, isTomorrow = false) {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    return parseMatches(html, isTomorrow); // تمرير العلامة
+    return parseMatches(html, isTomorrow);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
     return [];
@@ -162,7 +180,6 @@ function parseMatches(html, isTomorrow = false) {
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
       const moroccoTime = convertSourceToMoroccoTime(originalTime);
       
-      // التحقق مما إذا كانت المباراة جارية (فقط لمباريات اليوم)
       const is_live = !isTomorrow && isMatchLive(moroccoTime);
 
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
@@ -173,13 +190,13 @@ function parseMatches(html, isTomorrow = false) {
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: moroccoTime, // استخدام توقيت المغرب
+        time: moroccoTime,
         score: score,
         league: league,
         channel: channel.includes('غير معروف') ? '' : channel,
         commentator: commentator.includes('غير معروف') ? '' : commentator,
         matchLink: matchLink,
-        is_live: is_live // <-- إضافة الخاصية الجديدة
+        is_live: is_live
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
