@@ -1,7 +1,4 @@
- 
 // --- 1. Cache Configuration ---
-
-
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
@@ -30,47 +27,7 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. Timezone Conversion Function ---
-/**
- * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
- * @param {string} timeString - The time string, e.g., "09:30 PM".
- * @returns {string} The converted time string, e.g., "20:30".
- */
-function convertSourceToMoroccoTime(timeString) {
-  try {
-    if (!timeString || !timeString.includes(':')) {
-      return timeString;
-    }
-
-    const [timePart, ampm] = timeString.split(' ');
-    let [hours, minutes] = timePart.split(':').map(Number);
-
-    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
-      hours += 12;
-    }
-    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
-      hours = 0;
-    }
-
-    // --- التعديل الحاسم هنا ---
-    // المصدر على الأغلب بتوقيت أوروبا (GMT+2) والمغرب (GMT+1)
-    // لذلك نقوم بطرح ساعة واحدة فقط
-    hours -= 1;
-
-    if (hours < 0) {
-      hours += 24;
-    }
-
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(minutes).padStart(2, '0');
-
-    return `${formattedHours}:${formattedMinutes}`;
-  } catch (error) {
-    return timeString;
-  }
-}
-
-// --- 3. API Functions ---
+// --- 2. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 export async function getTodayMatches() {
@@ -80,7 +37,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.livekora.vip/';
+  const targetUrl = 'https://www.live-match-tv.net/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -99,7 +56,7 @@ export async function getTomorrowMatches() {
   return newMatches;
 }
 
-// --- 4. Core Fetching and Parsing Logic ---
+// --- 3. Core Fetching and Parsing Logic ---
 async function fetchMatches(targetUrl) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
@@ -135,9 +92,8 @@ function parseMatches(html) {
         if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
       }
       
+      // --- التعديل هنا: تم إزالة دالة تحويل التوقيت ---
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      // استخدام الدالة الجديدة
-      const moroccoTime = convertSourceToMoroccoTime(originalTime);
 
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       const channel = infoListItems[0]?.textContent?.trim() || '';
@@ -147,7 +103,7 @@ function parseMatches(html) {
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: moroccoTime, // Use the converted time here
+        time: originalTime, // <-- استخدام الوقت الأصلي مباشرة
         score: score,
         league: league,
         channel: channel.includes('غير معروف') ? '' : channel,
@@ -165,5 +121,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.livekora.vip/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
