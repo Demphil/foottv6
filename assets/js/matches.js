@@ -1,7 +1,6 @@
-import { getTodayMatches, getTomorrowMatches } from './api.js';
+ import { getTodayMatches, getTomorrowMatches } from './api.js';
 // إعادة استيراد قاعدة بيانات الروابط الخاصة بك
 import { streamLinks } from './streams.js';
-
 // DOM elements mapping from index.html
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
@@ -40,12 +39,6 @@ function renderMatch(match) {
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
-  // --- التعديل هنا: تحديد التنسيق والكلمة للمباريات الجارية ---
-  const isLive = match.is_live;
-  const timeClass = isLive ? 'time live-now' : 'time';
-  const timeText = isLive ? 'جارية الآن' : match.time;
-  // ----------------------------------------------------
-
   // Create the HTML for extra details (channel, commentator)
   const matchDetailsHTML = `
     ${match.channel ? `
@@ -61,13 +54,12 @@ function renderMatch(match) {
       </div>
     ` : ''}
   `;
-
   // بناء بطاقة المباراة النهائية
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
-        ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
-        
+      ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
+
         <div class="league-info">
             <span>${match.league}</span>
         </div>
@@ -78,7 +70,7 @@ function renderMatch(match) {
           </div>
           <div class="match-info">
             <span class="score">${match.score}</span>
-            <span class="${timeClass}">${timeText}</span>
+            <span class="time">${match.time}</span>
           </div>
           <div class="team">
             <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
@@ -96,7 +88,6 @@ function renderMatch(match) {
  */
 function renderSection(container, matches, message) {
     if (!container) return;
-
     if (matches && matches.length > 0) {
         container.innerHTML = matches.map(renderMatch).join('');
     } else {
@@ -114,51 +105,21 @@ async function loadAndRenderMatches() {
   ]);
 
   hideLoading();
-  
-  // --- التعديل الحاسم هنا ---
-  // 1. إضافة خاصية "isStreamAvailable" لكل مباراة
-  const enhancedTodayMatches = todayMatches.map(match => {
-    if (!match || !match.homeTeam || !match.awayTeam) return null; // فحص أمان
-    
-    const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`; 
-    const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-    return {
-        ...match,
-        isStreamAvailable: !!watchUrl
-    };
-  }).filter(Boolean); // إزالة أي مباريات تالفة
 
-  // 2. فرز المباريات: المتاحة أولاً، ثم غير المتاحة
-  const availableMatches = enhancedTodayMatches.filter(match => match.isStreamAvailable);
-  const unavailableMatches = enhancedTodayMatches.filter(match => !match.isStreamAvailable);
-  
-  // 3. فرز المباريات المتاحة: الجارية أولاً، ثم القادمة
-  const liveMatches = availableMatches.filter(match => match.is_live);
-  const upcomingMatches = availableMatches.filter(match => !match.is_live);
-
-  // 4. فرز كل مجموعة حسب التوقيت
-  liveMatches.sort((a, b) => a.time.localeCompare(b.time));
-  upcomingMatches.sort((a, b) => a.time.localeCompare(b.time));
-  unavailableMatches.sort((a, b) => a.time.localeCompare(b.time));
-
-  // 5. دمج القوائم بالترتيب الصحيح (جارية، قادمة متاحة، ثم غير متاحة)
-  const sortedTodayMatches = [...liveMatches, ...upcomingMatches, ...unavailableMatches];
-  
-  // 6. تصفية المباريات المميزة (من القائمة المفرزة بالكامل)
-  // يتم الفرز مسبقًا، لذلك المباريات الجارية ستكون في الأعلى
-  const featuredMatches = sortedTodayMatches.filter(match => {
+  const featuredMatches = todayMatches.filter(match => {
     try {
+      // The time is now 24-hour format, so filtering is simpler
       const [hours] = match.time.split(':').map(Number);
       return hours >= 16; // 4 PM or later in Morocco time
     } catch (e) {
       return false;
     }
   });
-  
-  // عرض القوائم المفرزة
+
+  // Using English messages for the UI
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  renderSection(DOM.broadcastContainer, sortedTodayMatches.slice(0, 10), 'No key matches scheduled for today.');
-  renderSection(DOM.todayContainer, sortedTodayMatches, 'No matches scheduled for today.');
+  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 10), 'No key matches scheduled for today.');
+  renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
 }
 
@@ -179,7 +140,7 @@ function setupTabs() {
     });
 
     DOM.tomorrowTab?.addEventListener('click', () => {
-        handleTabClick(DOM.tomorrowTab, DOM.todayTab, DOM.tomorrowContainer, DOM.tomorrowContainer);
+        handleTabClick(DOM.tomorrowTab, DOM.todayTab, DOM.tomorrowContainer, DOM.todayContainer);
     });
 }
 
@@ -192,4 +153,3 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
-
