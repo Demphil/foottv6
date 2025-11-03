@@ -3,6 +3,7 @@ const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
+
 function setCache(key, data) {
   const cacheItem = {
     timestamp: Date.now(),
@@ -27,64 +28,54 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. تم حذف دالة تحويل التوقيت ---
-
-// --- 3. دالة التحقق من المباراة الجارية (نسخة محسنة) ---
-function isMatchLive(moroccoTimeString) {
-    try {
-        if (!moroccoTimeString || !moroccoTimeString.includes(':')) return false;
-        
-        // --- تعديل للتعامل مع تنسيق 12 و 24 ساعة ---
-        let hours, minutes;
-        const [timePart, ampm] = moroccoTimeString.split(' ');
-        
-        if (ampm && (ampm.toUpperCase().includes('PM') || ampm.toUpperCase().includes('AM'))) {
-            [hours, minutes] = timePart.split(':').map(Number);
-            if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
-            if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
-        } else {
-            [hours, minutes] = moroccoTimeString.split(':').map(Number);
-        }
-        
-        if (isNaN(hours) || isNaN(minutes)) return false;
-        // -----------------------------------------
-        
-        const matchStartTimeInMinutes = hours * 60 + minutes;
-        const windowStartTime = matchStartTimeInMinutes - 10;
-        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و 15 دقيقة
-
-        const now = new Date();
-        const localTimezoneOffset = now.getTimezoneOffset();
-        const moroccoTimezoneOffset = -60; // UTC+1
-        
-        const nowUtc = now.getTime() + (localTimezoneOffset * 60000);
-        const moroccoNow = new Date(nowUtc + (moroccoTimezoneOffset * 60000));
-        const currentTimeInMinutes = moroccoNow.getHours() * 60 + moroccoNow.getMinutes();
-
-        return (currentTimeInMinutes >= windowStartTime && currentTimeInMinutes <= windowEndTime);
-    } catch (e) {
-        console.error("Error in isMatchLive:", e);
-        return false;
+// --- 2. Timezone Conversion Function ---
+/**
+ * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
+ * @param {string} timeString - The time string, e.g., "09:30 PM".
+ * @returns {string} The converted time string, e.g., "20:30".
+ */
+function convertSourceToMoroccoTime(timeString) {
+  try {
+    if (!timeString || !timeString.includes(':')) {
+      return timeString;
     }
+
+    const [timePart, ampm] = timeString.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
+      hours += 12;
+    }
+    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
+      hours = 0;
+    }
+
+    // --- التعديل الحاسم هنا ---
+    // المصدر على الأغلب بتوقيت أوروبا (GMT+2) والمغرب (GMT+1)
+    // لذلك نقوم بطرح ساعة واحدة فقط
+    hours -= 1;
+    if (hours < 0) {
+      hours += 24;
+    }
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    return `${formattedHours}:${formattedMinutes}`;
+  } catch (error) {
+    return timeString;
+  }
 }
 
-
-// --- 4. API Functions ---
+// --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) {
     console.log("⚡ Loading today's matches from cache.");
-    // إعادة التحقق من المباريات الجارية عند التحميل من الكاش
-    return cachedMatches.map(match => ({
-        ...match,
-        is_live: isMatchLive(match.time) // match.time هو توقيت المغرب بالفعل
-    }));
+    return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/';
-  const newMatches = await fetchMatches(targetUrl, false);
+  const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
 }
@@ -97,90 +88,68 @@ export async function getTomorrowMatches() {
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
   const targetUrl = 'https://www.live-match-tv.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl, true);
+  const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
 }
 
-// --- 5. Core Fetching and Parsing Logic ---
-async function fetchMatches(targetUrl, isTomorrow = false) {
+// --- 4. Core Fetching and Parsing Logic ---
+async function fetchMatches(targetUrl) {
+
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    return parseMatches(html, isTomorrow);
+    return parseMatches(html);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
     return [];
   }
 }
 
-/**
- * دالة تحليل HTML (محدثة)
- */
-function parseMatches(html, isTomorrow = false) {
+function parseMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
-  
-  const matchSelectors = '.AY_Match, .match-item, .match-card, .match-container, .post-match';
-  const matchElements = doc.querySelectorAll(matchSelectors);
-  
-  console.log(`[Debug] Found ${matchElements.length} potential match elements using selectors: "${matchSelectors}"`);
-  if (matchElements.length === 0) {
-      console.warn("[Debug] No match containers found.");
-  }
-
-  matchElements.forEach((matchEl, index) => {
+  const matchElements = doc.querySelectorAll('.AY_Match');
+  matchElements.forEach(matchEl => {
     try {
-      let homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
-      let awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
-      let originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim();
-      let scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
-      let infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
 
-      if (!homeTeamName) homeTeamName = matchEl.querySelector('.team-home .team-name, .g_Home .team-name')?.textContent?.trim();
-      if (!awayTeamName) awayTeamName = matchEl.querySelector('.team-away .team-name, .g_Away .team-name')?.textContent?.trim();
-      if (!originalTime) originalTime = matchEl.querySelector('.match-time, .time, .match-date')?.textContent?.trim();
-      if (scoreSpans.length === 0) scoreSpans = matchEl.querySelectorAll('.score-container .score, .match-score .score');
-      if (infoListItems.length === 0) infoListItems = matchEl.querySelectorAll('.match-details li, .match-info li');
-
+      const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
+      const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
       if (!homeTeamName || !awayTeamName) return;
-
       const matchLink = matchEl.querySelector('a')?.href;
       if (!matchLink) return;
-
       let score = 'VS';
+      const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
       if (scoreSpans.length === 2) {
         const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
         const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
         if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
       }
-      
-      // --- التعديل هنا: استخدام الوقت الأصلي مباشرة ---
-      const moroccoTime = originalTime || '--:--';
-      const is_live = !isTomorrow && isMatchLive(moroccoTime);
 
+    
+      const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+      // استخدام الدالة الجديدة
+      const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       const channel = infoListItems[0]?.textContent?.trim() || '';
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
-      
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img, .team-home img, .g_Home img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img, .team-away img, .g_Away img')) },
-        time: moroccoTime, // استخدام توقيت المغرب مباشرة
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+        time: moroccoTime, // Use the converted time here
         score: score,
         league: league,
         channel: channel.includes('غير معروف') ? '' : channel,
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        matchLink: matchLink,
-        is_live: is_live
+        matchLink: matchLink
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
     }
   });
-  console.log(`[Debug] Successfully parsed ${matches.length} matches out of ${matchElements.length} elements found.`);
   return matches;
 }
 
@@ -190,4 +159,3 @@ function extractImageUrl(imgElement) {
   if (src.startsWith('http') || src.startsWith('//')) return src;
   return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
-
