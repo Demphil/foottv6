@@ -75,10 +75,10 @@ export const streamLinks = {
   'روما-فيكتوريا بلزن': 'https://demphil.github.io/foottv-bein3//',
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'الولايات المتحدة تحت 20-المغرب تحت 20': 'https://demphil.github.io/beinfree/',
+  'اليابان تحت 20-المغرب تحت 17': 'https://demphil.github.io/beinfree/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
-  'الوداد الرياضي-الرجاء البيضاوي': 'https://demphil.github.io/aryadialive/',
+  'المغرب-الرجاء البيضاوي': 'https://demphil.github.io/aryadialive/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
