@@ -28,48 +28,26 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function (Updated) ---
-/**
- * Converts a time string (both 12h and 24h format) to Morocco time (UTC+1).
- * @param {string} timeString - The time string, e.g., "09:30 PM" or "16:15".
- * @returns {string} The converted time string, e.g., "20:30" or "15:15".
- */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
       return timeString;
     }
-
     let hours, minutes, ampm;
-    
-    // التحقق إذا كان التوقيت يحتوي على AM/PM
     if (timeString.includes('PM') || timeString.includes('AM')) {
       const [timePart, ampmPart] = timeString.split(' ');
       [hours, minutes] = timePart.split(':').map(Number);
       ampm = ampmPart.toUpperCase();
-
-      if (ampm.includes('PM') && hours !== 12) {
-        hours += 12;
-      }
-      if (ampm.includes('AM') && hours === 12) {
-        hours = 0;
-      }
+      if (ampm.includes('PM') && hours !== 12) hours += 12;
+      if (ampm.includes('AM') && hours === 12) hours = 0;
     } else {
-      // إذا لم يكن هناك AM/PM، افترض أنه بتنسيق 24 ساعة
       [hours, minutes] = timeString.split(':').map(Number);
     }
-    
     if (isNaN(hours) || isNaN(minutes)) return timeString;
-
-    // Subtract 1 hour for Morocco time
     hours -= 1;
-
-    if (hours < 0) {
-      hours += 24;
-    }
-
+    if (hours < 0) hours += 24;
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
-
     return `${formattedHours}:${formattedMinutes}`;
   } catch (error) {
     return timeString;
@@ -79,15 +57,13 @@ function convertSourceToMoroccoTime(timeString) {
 // --- 3. دالة التحقق من المباراة الجارية (نسخة محسنة) ---
 function isMatchLive(moroccoTimeString) {
     try {
-        if (!moroccoTimeString || !moroccoTimeString.includes(':')) {
-            return false;
-        }
+        if (!moroccoTimeString || !moroccoTimeString.includes(':')) return false;
         const [hours, minutes] = moroccoTimeString.split(':').map(Number);
         if (isNaN(hours) || isNaN(minutes)) return false;
         
         const matchStartTimeInMinutes = hours * 60 + minutes;
         const windowStartTime = matchStartTimeInMinutes - 10;
-        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و
+        const windowEndTime = matchStartTimeInMinutes + 135; // ساعتان و 15 دقيقة
 
         const now = new Date();
         const localTimezoneOffset = now.getTimezoneOffset();
@@ -95,13 +71,9 @@ function isMatchLive(moroccoTimeString) {
         
         const nowUtc = now.getTime() + (localTimezoneOffset * 60000);
         const moroccoNow = new Date(nowUtc + (moroccoTimezoneOffset * 60000));
-
         const currentTimeInMinutes = moroccoNow.getHours() * 60 + moroccoNow.getMinutes();
 
-        return (
-            currentTimeInMinutes >= windowStartTime &&
-            currentTimeInMinutes <= windowEndTime
-        );
+        return (currentTimeInMinutes >= windowStartTime && currentTimeInMinutes <= windowEndTime);
     } catch (e) {
         console.error("Error in isMatchLive:", e);
         return false;
@@ -154,42 +126,56 @@ async function fetchMatches(targetUrl, isTomorrow = false) {
   }
 }
 
+/**
+ * دالة تحليل HTML (محدثة لتكون أكثر مرونة)
+ */
 function parseMatches(html, isTomorrow = false) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
-  const matchElements = doc.querySelectorAll('.AY_Match');
   
+  // --- التعديل هنا: البحث عن عدة محددات شائعة ---
+  const matchElements = doc.querySelectorAll('.AY_Match, .match-item, .match-card');
+  console.log(`Found ${matchElements.length} potential match elements.`);
+
   matchElements.forEach(matchEl => {
     try {
-      const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
-      const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+      // --- محاولة المحددات الأصلية أولاً ---
+      let homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
+      let awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+      let originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim();
+      let scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
+      let infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
+
+      // --- محاولة المحددات الاحتياطية إذا فشلت الأصلية ---
+      if (!homeTeamName) homeTeamName = matchEl.querySelector('.team-home .team-name')?.textContent?.trim();
+      if (!awayTeamName) awayTeamName = matchEl.querySelector('.team-away .team-name')?.textContent?.trim();
+      if (!originalTime) originalTime = matchEl.querySelector('.match-time, .time')?.textContent?.trim();
+      if (scoreSpans.length === 0) scoreSpans = matchEl.querySelectorAll('.score-container .score');
+      if (infoListItems.length === 0) infoListItems = matchEl.querySelectorAll('.match-details li');
+
       if (!homeTeamName || !awayTeamName) return;
 
       const matchLink = matchEl.querySelector('a')?.href;
       if (!matchLink) return;
 
       let score = 'VS';
-      const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
       if (scoreSpans.length === 2) {
         const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
         const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
         if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
       }
       
-      const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      const moroccoTime = convertSourceToMoroccoTime(originalTime);
-      
+      const moroccoTime = convertSourceToMoroccoTime(originalTime || '--:--');
       const is_live = !isTomorrow && isMatchLive(moroccoTime);
 
-      const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       const channel = infoListItems[0]?.textContent?.trim() || '';
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
       
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img, .team-home img')) },
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img, .team-away img')) },
         time: moroccoTime,
         score: score,
         league: league,
@@ -202,6 +188,7 @@ function parseMatches(html, isTomorrow = false) {
       console.error('Failed to parse a single match element:', e);
     }
   });
+  console.log(`Successfully parsed ${matches.length} matches.`);
   return matches;
 }
 
