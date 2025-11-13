@@ -58,8 +58,8 @@ export const streamLinks = {
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
-  //'beIN Sports HD': 'https://demphil.github.io/beinfree/',//
-  //'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',//
+  'beIN Sports HD': 'https://demphil.github.io/beinfree/',
+  'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',
    'Starzplay': 'https://demphil.github.io/starzplay/',
    'الجزائرية السادسة': 'https://demphil.github.io/algy6/',
   'beIN Sports /Xtra 1': 'https://demphil.github.io/BEINEXTRA1/',
@@ -75,7 +75,7 @@ export const streamLinks = {
   'روما-فيكتوريا بلزن': 'https://demphil.github.io/foottv-bein3//',
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'المغرب تحت 17-كاليدونيا الجديدة تحت 17': 'https://demphil.github.io/aryadialive/',
+  'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/aryadialive/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
   'المغرب-الرجاء البيضاوي': 'https://demphil.github.io/aryadialive/',
