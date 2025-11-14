@@ -72,7 +72,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'روما-فيكتوريا بلزن': 'https://demphil.github.io/foottv-bein3//',
+  'مصر-أوزبكستان': 'https://demphil.github.io/live-stream',
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/beinfree/',
