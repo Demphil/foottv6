@@ -75,7 +75,7 @@ export const streamLinks = {
   'روما-فيكتوريا بلزن': 'https://demphil.github.io/foottv-bein3//',
   'بيراميدز-نهظة بركان': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/aryadialive/',
+  'الولاي 17-المغرب تحت 17': 'https://demphil.github.io/aryadialive/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
   'المغرب-الرجاء البيضاوي': 'https://demphil.github.io/aryadialive/',
