@@ -52,8 +52,8 @@ export const streamLinks = {
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
   'ON TIME SPORTS 2': 'https://demphil.github.io/onesports2/',
   'أون سبورت 2': 'https://demphil.github.io/onesports2/',
-  'ad sports premium 1': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
-  'ad sports premium 2': 'https://foot966.blogspot.com/p/ad-sports-premium-2.html',
+  'ad sports premium 1': 'https://demphil.github.io/abu-dhabi-sport12/',
+  'ad sports premium 2': 'https://demphil.github.io/abu-dhabi-sport12/',
   'ثمانية 1': 'https://demphil.github.io/tamania1/',
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
@@ -78,7 +78,7 @@ export const streamLinks = {
   'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/beinfree/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
-  'البرازيل-السنغال': 'https://foot966.blogspot.com/p/ad-sports-premium-1.html',
+  'البرازيل-السنغال': 'https://demphil.github.io/abu-dhabi-sport12/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
