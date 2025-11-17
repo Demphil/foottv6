@@ -78,7 +78,7 @@ export const streamLinks = {
   'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/beinfree/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
-  'البرازيل-السنغال': 'https://demphil.github.io/abu-dhabi-sport12/',
+  'مصر-الجزائر': 'https://demphil.github.io/onesports2/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
