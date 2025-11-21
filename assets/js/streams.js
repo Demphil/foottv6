@@ -75,7 +75,7 @@ export const streamLinks = {
   'جورجيا-إسبانيا': 'https://demphil.github.io/beinsports1/',
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  'الولايات المتحدة تحت 17-المغرب تحت 17': 'https://demphil.github.io/beinfree/',
+  'المغرب تحت 17-البرازيل تحت 17': 'https://demphil.github.io/beinfree/',
   'ليل-أنجيه': 'https://demphil.github.io/bein4/',
   'أشانتي كوتوكو-الوداد الرياضي': 'https://demphil.github.io/algery/',
   'الرأس الأخضر-مصر': 'https://demphil.github.io/abu-dhabi-sport12/',
