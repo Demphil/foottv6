@@ -1,5 +1,6 @@
 // --- 1. Cache Configuration ---
-import { getChannelByTeam } from './chaine.js'; // استيراد الدالة
+// في بداية ملف api.js
+import { getChannelByTeam } from './chaine.js';  // تأكد من وجود ./ والنقطة
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
