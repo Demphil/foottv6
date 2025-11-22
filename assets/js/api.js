@@ -157,7 +157,7 @@ function parseMatches(html) {
         time: moroccoTime, 
         score: score,
         league: league,
-        channel: , 
+        channel:  "", 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
         matchLink: finalLink // هنا وضعنا الرابط الصحيح
       });
