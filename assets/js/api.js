@@ -1,8 +1,9 @@
 // --- 1. Cache Configuration ---
+import { getChannelByTeam } from './chaine.js'; // استيراد الدالة
+
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
-
 
 function setCache(key, data) {
   const cacheItem = {
@@ -29,11 +30,6 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
-/**
- * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
- * @param {string} timeString - The time string, e.g., "09:30 PM".
- * @returns {string} The converted time string, e.g., "20:30".
- */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
@@ -49,9 +45,6 @@ function convertSourceToMoroccoTime(timeString) {
       hours = 0;
     }
 
-    // --- التعديل الحاسم هنا ---
-    // المصدر على الأغلب بتوقيت أوروبا (GMT+2) والمغرب (GMT+1)
-    // لذلك نقوم بطرح ساعة واحدة فقط
     hours -= 1;
     if (hours < 0) {
       hours += 24;
@@ -95,7 +88,6 @@ export async function getTomorrowMatches() {
 
 // --- 4. Core Fetching and Parsing Logic ---
 async function fetchMatches(targetUrl) {
-
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
@@ -112,14 +104,17 @@ function parseMatches(html) {
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   const matchElements = doc.querySelectorAll('.AY_Match');
+  
   matchElements.forEach(matchEl => {
     try {
-
       const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
       const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+      
       if (!homeTeamName || !awayTeamName) return;
+      
       const matchLink = matchEl.querySelector('a')?.href;
       if (!matchLink) return;
+      
       let score = 'VS';
       const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
       if (scoreSpans.length === 2) {
@@ -128,21 +123,30 @@ function parseMatches(html) {
         if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
       }
 
-    
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      // استخدام الدالة الجديدة
       const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
-      const channel = infoListItems[0]?.textContent?.trim() || '';
+      
+      let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
+
+      // --- جلب القناة من القائمة النصية ---
+      let finalChannel = channelFromSite;
+      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
+         // نرسل أسماء الفرق للدالة لتبحث عنها داخل النص الذي لصقته
+         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
+      }
+      // ---------------------------------
+
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: moroccoTime, // Use the converted time here
+        time: moroccoTime, 
         score: score,
         league: league,
-        channel: channel.includes('غير معروف') ? '' : channel,
+        channel: finalChannel, 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
         matchLink: matchLink
       });
