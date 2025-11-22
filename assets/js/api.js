@@ -157,14 +157,9 @@ function parseMatches(html) {
         time: moroccoTime, 
         score: score,
         league: league,
-
-        // 👇 التعديل هنا: اجعل القناة نصاً فارغاً لكي لا تظهر
-        channel: '', 
-        
+        channel: , 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        
-        // 👇 الرابط سيظل يعمل لأننا حسبناه في الخطوة السابقة (finalLink)
-        matchLink: finalLink 
+        matchLink: finalLink // هنا وضعنا الرابط الصحيح
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
