@@ -149,15 +149,22 @@ function parseMatches(html) {
       }
       // ---------------------------------
 
+      // ... (الكود السابق لحساب finalChannel و finalLink يبقى كما هو) ...
+
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
         time: moroccoTime, 
         score: score,
         league: league,
-        channel: finalChannel, 
+
+        // 👇 التعديل هنا: اجعل القناة نصاً فارغاً لكي لا تظهر
+        channel: '', 
+        
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        matchLink: matchLink
+        
+        // 👇 الرابط سيظل يعمل لأننا حسبناه في الخطوة السابقة (finalLink)
+        matchLink: finalLink 
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
