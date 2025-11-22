@@ -76,7 +76,7 @@ export const streamLinks = {
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'المغرب تحت 17-البرازيل تحت 17': 'https://demphil.github.io/beinfree/',
-  'ليل-أنجيه': 'https://demphil.github.io/bein4/',
+  'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
   'الأهلي-شبيبة القبائل ': 'https://demphil.github.io/bein6/',
   'الرأس الأخضر-مصر': 'https://demphil.github.io/abu-dhabi-sport12/',
 
