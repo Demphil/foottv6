@@ -31,11 +31,11 @@ export const matchesData = `
 الهلال × الفتح (16:40): SSC 1 HD
 الاتفاق × الفيحاء (16:25): SSC Extra 1 HD
 
-الجيش الملكي × يانغ أفريكانز: beIN SPORTS HD 6 / Arryadia S/D
+الجيش الملكي × يانغ أفريكانز: beIN SPORTS HD 6
 صن داونز × سانت إيلوي لوبوبو: beIN SPORTS HD 7
 الأهلي × شبيبة القبائل: beIN SPORTS HD 6
 الترجي × ستاد مالي: beIN SPORTS HD 8
-نهضة بركان × باور ديناموز: beIN SPORTS HD 6 / Arryadia S/D
+نهضة بركان × باور ديناموز: beIN SPORTS HD 6
 بيراميدز × ريفرز يونايتد: beIN SPORTS HD 8
 شباب بلوزداد × سينجيدا: beIN SPORTS HD 9
 `;
