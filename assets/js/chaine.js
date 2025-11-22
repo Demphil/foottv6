@@ -1,5 +1,5 @@
 // chaine.js
-
+import { channelsLinks } from './stream.js'; // 1. استيراد الروابط
 // 🟢 ضع القائمة اليومية هنا بين علامات (``) كما هي
 export const matchesData = `
 بيرنلي × تشيلسي (14:30): beIN SPORTS HD 1
@@ -41,38 +41,40 @@ export const matchesData = `
 `;
 
 /**
- * دالة تقوم بقراءة النص أعلاه واستخراج القناة
- * بناءً على اسم الفريق المستضيف أو الضيف
+ * دالة للبحث عن القناة وجلب رابطها من ملف stream.js
+ * لقد قمت بتغيير اسمها إلى getChannelInfo لتتوافق مع api.js الذي لديك
  */
-export function getChannelByTeam(homeTeam, awayTeam) {
-  if (!matchesData || (!homeTeam && !awayTeam)) return '';
+export function getChannelInfo(homeTeam, awayTeam) {
+  if (!matchesData || (!homeTeam && !awayTeam)) return { name: '', link: '' };
 
-  // تقسيم النص إلى أسطر
   const lines = matchesData.trim().split('\n');
   
-  // تنظيف أسماء الفرق من المسافات الزائدة لضمان البحث الدقيق
+  // تنظيف الأسماء
   const home = homeTeam ? homeTeam.trim() : '';
   const away = awayTeam ? awayTeam.trim() : '';
 
   for (let line of lines) {
-    // نتأكد أن السطر ليس فارغاً
     if (!line.trim()) continue;
 
-    // 1. التحقق مما إذا كان السطر يحتوي على اسم الفريق المستضيف أو الضيف
-    // نستخدم includes للبحث عن الاسم داخل السطر
+    // البحث في السطر
     const hasHome = home && line.includes(home);
     const hasAway = away && line.includes(away);
 
     if (hasHome || hasAway) {
-      // 2. إذا وجدنا الفريق، نقوم باستخراج القناة
-      // القناة موجودة دائماً بعد النقطتين (:) حسب التنسيق الذي وضعته
+      // إذا وجدنا المباراة
       if (line.includes(':')) {
-        const parts = line.split(':'); // نقسم السطر عند النقطتين
-        const channelName = parts[parts.length - 1]; // نأخذ الجزء الأخير (القناة)
-        return channelName.trim(); // نرجع اسم القناة نظيفاً
+        const parts = line.split(':');
+        // نستخرج اسم القناة
+        const channelName = parts[parts.length - 1].trim();
+        
+        // 2. هنا السحر: نأخذ الاسم ونبحث عنه في ملف stream.js
+        const link = channelsLinks[channelName] || '#'; // إذا لم نجد الرابط نضع #
+
+        // نرجع النتيجة بالشكل الذي يطلبه api.js
+        return { name: channelName, link: link };
       }
     }
   }
 
-  return "غير محدد"; // في حال لم نجد المباراة في القائمة
+  return { name: "غير محدد", link: "" };
 }
