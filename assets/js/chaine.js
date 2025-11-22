@@ -1,6 +1,7 @@
 // chaine.js
-import { streamLinks } from './streams.js'; // 1. استيراد الروابط
-// 🟢 ضع القائمة اليومية هنا بين علامات (``) كما هي
+import { streamLinks } from './streams.js';
+
+// 🟢 قائمة المباريات اليومية
 export const matchesData = `
 بيرنلي × تشيلسي (14:30): beIN SPORTS HD 1
 ليفربول × نوتنجهام فورست (17:00): beIN SPORTS HD 1
@@ -42,50 +43,66 @@ export const matchesData = `
 
 /**
  * دالة ذكية لاستخراج الرابط
- * تتجاهل حالة الأحرف (Small/Capital) والمسافات
+ * تطابق الأسماء بذكاء (تجاهل حالة الأحرف والمسافات)
+ * وتدعم البحث باسم الفريقين كخيار بديل
  */
 export function getChannelInfo(homeTeam, awayTeam) {
   if (!matchesData || (!homeTeam && !awayTeam)) return { name: '', link: '' };
 
   const lines = matchesData.trim().split('\n');
   
-  // تنظيف أسماء الفرق القادمة من الموقع
   const home = homeTeam ? homeTeam.trim() : '';
   const away = awayTeam ? awayTeam.trim() : '';
 
   for (let line of lines) {
     if (!line.trim()) continue;
 
-    // البحث عن الفريقين داخل السطر
+    // البحث عن الفريقين
     const hasHome = home && line.includes(home);
     const hasAway = away && line.includes(away);
 
     if (hasHome || hasAway) {
+      
+      // ---------------------------------------------------------
+      // 1. الخطة البديلة: البحث المباشر برابط "الفريق-ضد-الفريق"
+      // هذه الخطوة مفيدة للمباريات المخصصة في ملف streams.js
+      // ---------------------------------------------------------
+      const matchKey = `${home}-${away}`; // مثال: الترجي-ستاد مالي
+      if (streamLinks[matchKey]) {
+          return { name: "مباراة خاصة", link: streamLinks[matchKey] };
+      }
+
+      // ---------------------------------------------------------
+      // 2. البحث عن طريق اسم القناة (Matching Smart)
+      // ---------------------------------------------------------
       if (line.includes(':')) {
         const parts = line.split(':');
-        // اسم القناة كما كتبته في القائمة أعلاه
-        let channelNameRaw = parts[parts.length - 1].trim(); 
+        const channelNameRaw = parts[parts.length - 1].trim(); 
         
-        // --- البحث الذكي في ملف streams.js ---
-        // 1. تنظيف اسم القناة من القائمة (حذف مسافات، توحيد أحرف)
-        const targetChannel = channelNameRaw.toLowerCase().replace(/\s+/g, '');
+        // تنظيف اسم القناة من القائمة (تحويل لصغير وحذف المسافات)
+        // مثال: "AD Sports Premium 1" تصبح "adsportspremium1"
+        const targetClean = channelNameRaw.toLowerCase().replace(/\s+/g, '');
 
-        // 2. جلب كل مفاتيح القنوات من ملف streams.js
+        // جلب جميع المفاتيح من ملف streams.js
         const streamKeys = Object.keys(streamLinks);
 
-        // 3. البحث عن مفتاح يطابق القناة بغض النظر عن الشكل
+        // البحث عن المفتاح المطابق
         const foundKey = streamKeys.find(key => 
-            key.toLowerCase().replace(/\s+/g, '') === targetChannel
+            key.toLowerCase().replace(/\s+/g, '') === targetClean
         );
 
-        // 4. تحديد الرابط
         let finalLink = '#';
+        
         if (foundKey) {
+            // تم العثور على تطابق تام بعد التنظيف
             finalLink = streamLinks[foundKey];
         } else {
-            // محاولة أخيرة: بحث جزئي (إذا كان الاسم يحتوي على جزء من المفتاح)
-             const partialKey = streamKeys.find(key => targetChannel.includes(key.toLowerCase().replace(/\s+/g, '')));
-             if (partialKey) finalLink = streamLinks[partialKey];
+            // محاولة أخيرة: البحث الجزئي
+            // مفيدة إذا كان الاسم في القائمة "beIN Sports HD 1" وفي الروابط "beIN Sports 1"
+            const partialKey = streamKeys.find(key => 
+                targetClean.includes(key.toLowerCase().replace(/\s+/g, ''))
+            );
+            if (partialKey) finalLink = streamLinks[partialKey];
         }
 
         return { name: channelNameRaw, link: finalLink };
