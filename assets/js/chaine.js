@@ -41,36 +41,31 @@ export const matchesData = `
 `;
 
 /**
- * دالة للبحث عن القناة وجلب رابطها من ملف stream.js
- * لقد قمت بتغيير اسمها إلى getChannelInfo لتتوافق مع api.js الذي لديك
+ * دالة للبحث عن القناة وجلب رابطها من قائمة streamLinks
  */
 export function getChannelInfo(homeTeam, awayTeam) {
   if (!matchesData || (!homeTeam && !awayTeam)) return { name: '', link: '' };
 
   const lines = matchesData.trim().split('\n');
-  
-  // تنظيف الأسماء
   const home = homeTeam ? homeTeam.trim() : '';
   const away = awayTeam ? awayTeam.trim() : '';
 
   for (let line of lines) {
     if (!line.trim()) continue;
 
-    // البحث في السطر
     const hasHome = home && line.includes(home);
     const hasAway = away && line.includes(away);
 
     if (hasHome || hasAway) {
-      // إذا وجدنا المباراة
       if (line.includes(':')) {
         const parts = line.split(':');
-        // نستخرج اسم القناة
+        // نستخرج اسم القناة ونزيل المسافات الزائدة
         const channelName = parts[parts.length - 1].trim();
         
-        // 2. هنا السحر: نأخذ الاسم ونبحث عنه في ملف stream.js
-        const link = channelsLinks[channelName] || '#'; // إذا لم نجد الرابط نضع #
+        // 👇 3. البحث عن الرابط داخل streamLinks
+        // إذا لم نجد القناة، نعيد #
+        const link = streamLinks[channelName] || '#'; 
 
-        // نرجع النتيجة بالشكل الذي يطلبه api.js
         return { name: channelName, link: link };
       }
     }
