@@ -1,13 +1,13 @@
 // chaine.js
 import { streamLinks } from './streams.js';
 
-// 🟢 قائمة المباريات اليومية
+// 🟢 قائمة المباريات اليومية (تم تعديل القنوات لتطابق ملف streams.js حرفياً)
 export const matchesData = `
 بيرنلي × تشيلسي (14:30): beIN SPORTS HD 1
 ليفربول × نوتنجهام فورست (17:00): beIN SPORTS HD 1
 نيوكاسل يونايتد × مانشستر سيتي (19:30): beIN SPORTS HD 1
 وولفرهامبتون × كريستال بالاس (17:00): beIN SPORTS HD 2
-بورنموث × وست هام يونايتد (17:00): beIN Sports Xtra 1
+بورنموث × وست هام يونايتد (17:00): beIN Sports /Xtra 1
 برايتون × برينتفورد (17:00): beIN SPORTS HD 2
 فولهام × سندرلاند (17:00): beIN SPORTS HD 3
 
@@ -16,10 +16,10 @@ export const matchesData = `
 فياريال × ريال مايوركا (22:00): beIN SPORTS HD 1
 ألافيس × سيلتا فيجو (15:00): beIN SPORTS HD 3
 
-فيورنتينا × يوفنتوس (19:00): AD Sports Premium 1
-نابولي × أتالانتا (21:45): AD Sports Premium 1
-أودينيزي × بولونيا (16:00): AD Sports Premium 1
-كالياري × جنوى (16:00): AD Sports Premium 2
+فيورنتينا × يوفنتوس (19:00): ad sports premium 1
+نابولي × أتالانتا (21:45): ad sports premium 1
+أودينيزي × بولونيا (16:00): ad sports premium 1
+كالياري × جنوى (16:00): ad sports premium 2
 
 بايرن ميونخ × فرايبورج (16:30): beIN SPORTS HD 5
 بوروسيا دورتموند × شتوتجارت (16:30): beIN SPORTS HD 6
@@ -30,7 +30,7 @@ export const matchesData = `
 لانس × ستراسبورج (18:00): beIN SPORTS HD 4
 
 الهلال × الفتح (16:40): SSC 1 HD
-الاتفاق × الفيحاء (16:25): SSC Extra 1 HD
+الاتفاق × الفيحاء (16:25): SSC Sport 2HD
 
 الجيش الملكي × يانغ أفريكانز: beIN SPORTS HD 6
 صن داونز × سانت إيلوي لوبوبو: beIN SPORTS HD 7
@@ -43,8 +43,7 @@ export const matchesData = `
 
 /**
  * دالة ذكية لاستخراج الرابط
- * تطابق الأسماء بذكاء (تجاهل حالة الأحرف والمسافات)
- * وتدعم البحث باسم الفريقين كخيار بديل
+ * تبحث عن تطابق دقيق، ثم تطابق ذكي (بدون مسافات)، ثم بحث باسم الفريق
  */
 export function getChannelInfo(homeTeam, awayTeam) {
   if (!matchesData || (!homeTeam && !awayTeam)) return { name: '', link: '' };
@@ -57,52 +56,42 @@ export function getChannelInfo(homeTeam, awayTeam) {
   for (let line of lines) {
     if (!line.trim()) continue;
 
-    // البحث عن الفريقين
     const hasHome = home && line.includes(home);
     const hasAway = away && line.includes(away);
 
     if (hasHome || hasAway) {
       
-      // ---------------------------------------------------------
-      // 1. الخطة البديلة: البحث المباشر برابط "الفريق-ضد-الفريق"
-      // هذه الخطوة مفيدة للمباريات المخصصة في ملف streams.js
-      // ---------------------------------------------------------
-      const matchKey = `${home}-${away}`; // مثال: الترجي-ستاد مالي
+      // 1. الخطة البديلة: البحث برابط "الفريق-ضد-الفريق" (مفيد للمباريات الخاصة)
+      const matchKey = `${home}-${away}`;
       if (streamLinks[matchKey]) {
           return { name: "مباراة خاصة", link: streamLinks[matchKey] };
       }
 
-      // ---------------------------------------------------------
-      // 2. البحث عن طريق اسم القناة (Matching Smart)
-      // ---------------------------------------------------------
+      // 2. البحث عن القناة
       if (line.includes(':')) {
         const parts = line.split(':');
+        // اسم القناة كما هو مكتوب في القائمة أعلاه
         const channelNameRaw = parts[parts.length - 1].trim(); 
         
-        // تنظيف اسم القناة من القائمة (تحويل لصغير وحذف المسافات)
-        // مثال: "AD Sports Premium 1" تصبح "adsportspremium1"
-        const targetClean = channelNameRaw.toLowerCase().replace(/\s+/g, '');
+        // أ) محاولة البحث المباشر (التطابق التام) - هذا سيعمل 100% الآن
+        if (streamLinks[channelNameRaw]) {
+            return { name: channelNameRaw, link: streamLinks[channelNameRaw] };
+        }
 
-        // جلب جميع المفاتيح من ملف streams.js
+        // ب) البحث الذكي (في حال نسيت حرفاً أو مسافة مستقبلاً)
+        const targetClean = channelNameRaw.toLowerCase().replace(/\s+/g, '');
         const streamKeys = Object.keys(streamLinks);
 
-        // البحث عن المفتاح المطابق
         const foundKey = streamKeys.find(key => 
             key.toLowerCase().replace(/\s+/g, '') === targetClean
         );
 
         let finalLink = '#';
-        
         if (foundKey) {
-            // تم العثور على تطابق تام بعد التنظيف
             finalLink = streamLinks[foundKey];
         } else {
-            // محاولة أخيرة: البحث الجزئي
-            // مفيدة إذا كان الاسم في القائمة "beIN Sports HD 1" وفي الروابط "beIN Sports 1"
-            const partialKey = streamKeys.find(key => 
-                targetClean.includes(key.toLowerCase().replace(/\s+/g, ''))
-            );
-            if (partialKey) finalLink = streamLinks[partialKey];
+             const partialKey = streamKeys.find(key => targetClean.includes(key.toLowerCase().replace(/\s+/g, '')));
+             if (partialKey) finalLink = streamLinks[partialKey];
         }
 
         return { name: channelNameRaw, link: finalLink };
