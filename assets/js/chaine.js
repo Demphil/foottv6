@@ -96,71 +96,38 @@ const channelAliases = {
 };
 
 /**
- * دالة البحث المطورة
+ * دالة تقوم بقراءة النص أعلاه واستخراج القناة
+ * بناءً على اسم الفريق المستضيف أو الضيف
  */
-export function getChannelInfo(homeTeam, awayTeam) {
-  if (!matchesData) return { name: '', link: '' };
+export function getChannelByTeam(homeTeam, awayTeam) {
+  if (!matchesData || (!homeTeam && !awayTeam)) return '';
 
-  // تنظيف أسماء الفرق
-  const h = homeTeam ? homeTeam.trim() : '';
-  const a = awayTeam ? awayTeam.trim() : '';
-
+  // تقسيم النص إلى أسطر
   const lines = matchesData.trim().split('\n');
   
+  // تنظيف أسماء الفرق من المسافات الزائدة لضمان البحث الدقيق
+  const home = homeTeam ? homeTeam.trim() : '';
+  const away = awayTeam ? awayTeam.trim() : '';
+
   for (let line of lines) {
+    // نتأكد أن السطر ليس فارغاً
     if (!line.trim()) continue;
 
-    // 1. البحث عن الفريقين
-    if ((h && line.includes(h)) || (a && line.includes(a))) {
-      
-      // أ) فحص الخطة البديلة (رابط خاص للمباراة)
-      const matchKey = `${h}-${a}`;
-      if (streamLinks[matchKey]) {
-          return { name: "Live Match", link: streamLinks[matchKey] };
-      }
+    // 1. التحقق مما إذا كان السطر يحتوي على اسم الفريق المستضيف أو الضيف
+    // نستخدم includes للبحث عن الاسم داخل السطر
+    const hasHome = home && line.includes(home);
+    const hasAway = away && line.includes(away);
 
-      // ب) البحث عن القناة باستخدام القاموس
+    if (hasHome || hasAway) {
+      // 2. إذا وجدنا الفريق، نقوم باستخراج القناة
+      // القناة موجودة دائماً بعد النقطتين (:) حسب التنسيق الذي وضعته
       if (line.includes(':')) {
-        const parts = line.split(':');
-        let channelNameRaw = parts[parts.length - 1].trim();
-        
-        let finalLink = '#';
-        let finalName = channelNameRaw;
-
-        // 1. هل الاسم موجود مباشرة في القاموس (channelAliases)؟
-        if (channelAliases[channelNameRaw]) {
-            // نأخذ الاسم الصحيح من القاموس
-            const correctKey = channelAliases[channelNameRaw];
-            // نجلب الرابط من ملف الروابط
-            if (streamLinks[correctKey]) {
-                finalLink = streamLinks[correctKey];
-                finalName = correctKey;
-            }
-        } 
-        // 2. إذا لم يكن في القاموس، نحاول البحث المباشر في streams.js
-        else if (streamLinks[channelNameRaw]) {
-            finalLink = streamLinks[channelNameRaw];
-        }
-        // 3. محاولة أخيرة: البحث الذكي (إزالة المسافات وحالة الأحرف)
-        else {
-             const targetClean = channelNameRaw.toLowerCase().replace(/[^a-z0-9]/g, '');
-             // البحث في القاموس
-             const aliasKey = Object.keys(channelAliases).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === targetClean);
-             if (aliasKey) {
-                 const realKey = channelAliases[aliasKey];
-                 finalLink = streamLinks[realKey] || '#';
-             } 
-             // البحث في الروابط مباشرة
-             else {
-                 const streamKey = Object.keys(streamLinks).find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === targetClean);
-                 if (streamKey) finalLink = streamLinks[streamKey];
-             }
-        }
-
-        return { name: finalName, link: finalLink };
+        const parts = line.split(':'); // نقسم السطر عند النقطتين
+        const channelName = parts[parts.length - 1]; // نأخذ الجزء الأخير (القناة)
+        return channelName.trim(); // نرجع اسم القناة نظيفاً
       }
     }
   }
 
-  return { name: "غير محدد", link: "" };
+  return "غير محدد"; // في حال لم نجد المباراة في القائمة
 }
