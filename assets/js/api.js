@@ -30,6 +30,9 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
+/**
+ * Converts a time string from Source to Morocco (UTC+1).
+ */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
@@ -45,10 +48,15 @@ function convertSourceToMoroccoTime(timeString) {
       hours = 0;
     }
 
-    hours -= 1;
+    // --- التعديل الجديد هنا ---
+    // قمنا بتغيير الطرح ليصبح ساعتين بدلاً من ساعة واحدة
+    hours -= 2; 
+
+    // معالجة الحالة إذا أصبح الوقت سالباً (مثلاً الساعة 1 ليلاً ناقص ساعتين تصبح 23)
     if (hours < 0) {
       hours += 24;
     }
+    
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
     return `${formattedHours}:${formattedMinutes}`;
