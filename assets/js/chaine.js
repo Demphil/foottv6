@@ -1,5 +1,5 @@
 // chaine.js
-import { channelsLinks } from './streams.js'; // 1. استيراد الروابط
+import { streamLinks } from './streams.js'; // 1. استيراد الروابط
 // 🟢 ضع القائمة اليومية هنا بين علامات (``) كما هي
 export const matchesData = `
 بيرنلي × تشيلسي (14:30): beIN SPORTS HD 1
