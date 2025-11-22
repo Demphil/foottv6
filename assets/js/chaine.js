@@ -13,7 +13,7 @@ export const matchesData = `
 
 برشلونة × أتلتيك بلباو (17:15): beIN SPORTS HD 3
 أوساسونا × ريال سوسيداد (19:30): beIN SPORTS HD 3
-فياريال × ريال مايوركا (22:00): beIN SPORTS HD 5
+فياريال × ريال مايوركا (22:00): beIN SPORTS HD 3
 ألافيس × سيلتا فيجو (15:00): beIN SPORTS HD 3
 
 فيورنتينا × يوفنتوس (19:00): AD Sports Premium 1
