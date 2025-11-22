@@ -24,7 +24,7 @@ export const matchesData = `
 بوروسيا دورتموند × شتوتجارت (16:30): beIN SPORTS HD 6
 فولفسبورج × باير ليفركوزن (16:30): beIN SPORTS HD 9
 
-باريس سان جيرمان × لو آفر (22:05): beIN Sports HD 4
+باريس سان جيرمان × لو آفر (22:05): beIN SPORTS HD 4
 ستاد رين × موناكو (20:00): beIN SPORTS HD 4
 لانس × ستراسبورج (18:00): beIN SPORTS HD 4
 
