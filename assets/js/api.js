@@ -31,6 +31,16 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
+
+/**
+
+ * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
+
+ * @param {string} timeString - The time string, e.g., "09:30 PM".
+
+ * @returns {string} The converted time string, e.g., "20:30".
+
+ */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
@@ -42,10 +52,14 @@ function convertSourceToMoroccoTime(timeString) {
     if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
       hours += 12;
     }
+
     if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
       hours = 0;
     }
 
+   // --- التعديل الحاسم هنا ---
+    // المصدر على الأغلب بتوقيت أوروبا (GMT+2) والمغرب (GMT+1)
+   // لذلك نقوم بطرح ساعة واحدة فقط
     hours -= 1;
     if (hours < 0) {
       hours += 24;
