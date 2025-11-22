@@ -13,7 +13,7 @@ export const matchesData = `
 
 برشلونة × أتلتيك بلباو (17:15): beIN SPORTS HD 3
 أوساسونا × ريال سوسيداد (19:30): beIN SPORTS HD 3
-فياريال × ريال مايوركا (22:00): beIN SPORTS HD 1
+فياريال × ريال مايوركا (22:00): beIN SPORTS HD 2
 ألافيس × سيلتا فيجو (15:00): beIN SPORTS HD 3
 
 فيورنتينا × يوفنتوس (19:00): AD Sports Premium 1
@@ -25,7 +25,7 @@ export const matchesData = `
 بوروسيا دورتموند × شتوتجارت (16:30): beIN SPORTS HD 6
 فولفسبورج × باير ليفركوزن (16:30): beIN SPORTS HD 9
 
-باريس سان جيرمان × لو آفر (22:05): beIN SPORTS HD 4
+باريس سان جيرمان × لو آفر (22:05): beIN SPORTS HD 1
 ستاد رين × موناكو (20:00): beIN SPORTS HD 4
 لانس × ستراسبورج (18:00): beIN SPORTS HD 4
 
