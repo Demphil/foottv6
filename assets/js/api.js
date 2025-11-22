@@ -1,6 +1,5 @@
 // --- 1. Cache Configuration ---
-// في بداية ملف api.js
-import { getChannelByTeam } from './chaine.js';  // تأكد من وجود ./ والنقطة
+import { getChannelInfo } from './chaine.js'; // استيراد دالة جلب المعلومات (الاسم + الرابط)
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
@@ -49,11 +48,9 @@ function convertSourceToMoroccoTime(timeString) {
       hours = 0;
     }
 
-    // --- التعديل الجديد هنا ---
-    // قمنا بتغيير الطرح ليصبح ساعتين بدلاً من ساعة واحدة
-    hours -= 2; 
+    // تعديل التوقيت للمغرب (طرح ساعتين)
+    hours -= 2;
 
-    // معالجة الحالة إذا أصبح الوقت سالباً (مثلاً الساعة 1 ليلاً ناقص ساعتين تصبح 23)
     if (hours < 0) {
       hours += 24;
     }
@@ -121,8 +118,7 @@ function parseMatches(html) {
       
       if (!homeTeamName || !awayTeamName) return;
       
-      const matchLink = matchEl.querySelector('a')?.href;
-      if (!matchLink) return;
+      const matchLinkFromSite = matchEl.querySelector('a')?.href;
       
       let score = 'VS';
       const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
@@ -136,20 +132,19 @@ function parseMatches(html) {
       const moroccoTime = convertSourceToMoroccoTime(originalTime);
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
-      
-      let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
 
-      // --- جلب القناة من القائمة النصية ---
-      let finalChannel = channelFromSite;
-      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-         // نرسل أسماء الفرق للدالة لتبحث عنها داخل النص الذي لصقته
-         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
+      // --- المنطق الجديد: جلب معلومات القناة والرابط ---
+      // 1. نجلب البيانات من ملفك (chaine.js)
+      const myChannelInfo = getChannelInfo(homeTeamName, awayTeamName);
+      
+      // 2. نحدد الرابط النهائي:
+      // إذا كان هناك رابط في ملفك، نستخدمه. وإلا نستخدم الرابط الأصلي من الموقع
+      let finalLink = matchLinkFromSite;
+      if (myChannelInfo.link && myChannelInfo.link !== '#' && myChannelInfo.link !== '') {
+          finalLink = myChannelInfo.link;
       }
-      // ---------------------------------
-
-      // ... (الكود السابق لحساب finalChannel و finalLink يبقى كما هو) ...
 
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
@@ -157,9 +152,14 @@ function parseMatches(html) {
         time: moroccoTime, 
         score: score,
         league: league,
-        channel:  "", 
+        
+        // هنا نخفي القناة بوضع نص فارغ
+        channel: '', 
+        
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        matchLink: finalLink // هنا وضعنا الرابط الصحيح
+        
+        // هذا الرابط هو الذي سيعمل عند الضغط (سواء كان من ملفك أو من الموقع)
+        matchLink: finalLink 
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
