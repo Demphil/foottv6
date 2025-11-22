@@ -41,32 +41,54 @@ export const matchesData = `
 `;
 
 /**
- * دالة للبحث عن القناة وجلب رابطها من قائمة streamLinks
+ * دالة ذكية لاستخراج الرابط
+ * تتجاهل حالة الأحرف (Small/Capital) والمسافات
  */
 export function getChannelInfo(homeTeam, awayTeam) {
   if (!matchesData || (!homeTeam && !awayTeam)) return { name: '', link: '' };
 
   const lines = matchesData.trim().split('\n');
+  
+  // تنظيف أسماء الفرق القادمة من الموقع
   const home = homeTeam ? homeTeam.trim() : '';
   const away = awayTeam ? awayTeam.trim() : '';
 
   for (let line of lines) {
     if (!line.trim()) continue;
 
+    // البحث عن الفريقين داخل السطر
     const hasHome = home && line.includes(home);
     const hasAway = away && line.includes(away);
 
     if (hasHome || hasAway) {
       if (line.includes(':')) {
         const parts = line.split(':');
-        // نستخرج اسم القناة ونزيل المسافات الزائدة
-        const channelName = parts[parts.length - 1].trim();
+        // اسم القناة كما كتبته في القائمة أعلاه
+        let channelNameRaw = parts[parts.length - 1].trim(); 
         
-        // 👇 3. البحث عن الرابط داخل streamLinks
-        // إذا لم نجد القناة، نعيد #
-        const link = streamLinks[channelName] || '#'; 
+        // --- البحث الذكي في ملف streams.js ---
+        // 1. تنظيف اسم القناة من القائمة (حذف مسافات، توحيد أحرف)
+        const targetChannel = channelNameRaw.toLowerCase().replace(/\s+/g, '');
 
-        return { name: channelName, link: link };
+        // 2. جلب كل مفاتيح القنوات من ملف streams.js
+        const streamKeys = Object.keys(streamLinks);
+
+        // 3. البحث عن مفتاح يطابق القناة بغض النظر عن الشكل
+        const foundKey = streamKeys.find(key => 
+            key.toLowerCase().replace(/\s+/g, '') === targetChannel
+        );
+
+        // 4. تحديد الرابط
+        let finalLink = '#';
+        if (foundKey) {
+            finalLink = streamLinks[foundKey];
+        } else {
+            // محاولة أخيرة: بحث جزئي (إذا كان الاسم يحتوي على جزء من المفتاح)
+             const partialKey = streamKeys.find(key => targetChannel.includes(key.toLowerCase().replace(/\s+/g, '')));
+             if (partialKey) finalLink = streamLinks[partialKey];
+        }
+
+        return { name: channelNameRaw, link: finalLink };
       }
     }
   }
