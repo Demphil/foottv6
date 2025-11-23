@@ -63,6 +63,8 @@ export const streamLinks = {
   'الكأس HD1': 'https://dns2.getmoney.my/albaplayer/b2/?serv=0',
    'الجزائرية السادسة': 'https://demphil.github.io/algy6/',
   'beIN Sports /Xtra 1': 'https://demphil.github.io/BEINEXTRA1/',
+  'beIN SPORTS Mena 3': 'https://demphil.github.io/beinmena-3/',
+
   
   
 
