@@ -27,7 +27,7 @@ export const matchesData = `
 ========== الدوري الفرنسي (beIN Sports) ==========
 أوكسير × أولمبيك ليون (15:00): beIN SPORTS HD 4
 نانت × لوريان (17:15): beIN SPORTS HD 4
-ليل × باريس أف.سي. (20:45): beIN SPORTS HD 2
+ليل × باريس أف.سي. (20:45): beIN SPORTS HD 3
 
 ========== الدوري الألماني (beIN Sports) ==========
 لايبزيج × فيردر بريمن (15:30): beIN SPORTS HD 5
@@ -36,7 +36,7 @@ export const matchesData = `
 النصر × الخليج (18:30): SSC 1 HD
 
 ========== دوري أبطال أفريقيا (beIN Sports) ==========
-الوداد الرياضي × نايروبي يونايتد (20:00): beIN SPORTS HD 3
+الوداد الرياضي × نايروبي يونايتد (20:00): beIN SPORTS Mena 3
 الزمالك × زيسكو (20:00): beIN SPORTS HD 5
 `;
 
