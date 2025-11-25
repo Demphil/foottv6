@@ -5,12 +5,12 @@ import { streamLinks } from './streams.js';
 export const matchesData = `
 ========== دوري أبطال أوروبا (قمة الليلة) ==========
 مانشستر سيتي × باير ليفركوزن (21:00): beIN SPORTS HD 3
-تشيلسي × برشلونة (21:00): beIN SPORTS HD 1
+تشيلسي × برشلونة (21:00): beIN SPORTS HD 2 
 أولمبيك مارسيليا × نيوكاسل يونايتد (21:00): beIN SPORTS HD 5
-أياكس × بنفيكا (18:45): beIN SPORTS HD 4
+أياكس × بنفيكا (18:45): beIN SPORTS HD 5
 
 ========== الدوري الأوروبي / المؤتمر ==========
-غلطة سراي × يونيون سانت جيلواز (18:45): beIN SPORTS HD 3
+غلطة سراي × يونيون سانت جيلواز (18:45): beIN SPORTS HD 4
 بودو جليمت × يوفنتوس (21:00): AD Sports Premium 1
 نابولي × كارباغ اغدام (21:00): beIN SPORTS HD 6
 سلافيا براغ × أتلتيك بلباو (21:00): beIN SPORTS HD 8
