@@ -5,7 +5,7 @@ import { streamLinks } from './streams.js';
 export const matchesData = `
 ========== دوري أبطال أوروبا (قمة الليلة) ==========
 مانشستر سيتي × باير ليفركوزن (21:00): beIN SPORTS HD 3
-تشيلسي × برشلونة (21:00): beIN SPORTS HD 2 
+تشيلسي × برشلونة (21:00): beIN SPORTS HD 1 
 أولمبيك مارسيليا × نيوكاسل يونايتد (21:00): beIN SPORTS HD 5
 أياكس × بنفيكا (18:45): beIN SPORTS HD 5
 
