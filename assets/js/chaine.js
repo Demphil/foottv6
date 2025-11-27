@@ -17,6 +17,11 @@ export const matchesData = `
 ريال بيتيس × أوتريخت: beIN SPORTS HD 7
 ستراسبورج × كريستال بالاس: beIN SPORTS HD 8
 
+نوتنجهام فورست × مالمو: beIN SPORTS XTRA 1
+مكابي تل أبيب × أولمبيك ليون: beIN SPORTS XTRA 2
+بولونيا × ريد بول سالزبورغ: beIN SPORTS XTRA 3
+غو أهيد إيغيلز × شتوتجارت: beIN SPORTS EN 1
+
 ========== كأس مصر ==========
 سموحة × غزل المحلة: OnTime Sports
 البنك الأهلي × بور فؤاد: OnTime Sports
