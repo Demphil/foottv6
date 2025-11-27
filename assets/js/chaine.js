@@ -12,8 +12,8 @@ export const matchesData = `
 فاينورد × سيلتيك: beIN SPORTS HD 2
 روما × ميتييلاند: beIN SPORTS HD 3
 لودوجوريتس × سيلتا فيجو: beIN SPORTS HD 4
-ليل × دينامو زغرب: beIN SPORTS HD 5
-بورتو × نيس: beIN SPORTS HD 6
+ليل × دينامو زغرب: beIN SPORTS HD 6
+بورتو × نيس: beIN SPORTS HD 5
 ريال بيتيس × أوتريخت: beIN SPORTS HD 7
 ستراسبورج × كريستال بالاس: beIN SPORTS HD 8
 
