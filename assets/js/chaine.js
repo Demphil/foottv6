@@ -5,7 +5,7 @@ import { streamLinks } from './streams.js';
 export const matchesData = `
 
 ========== دوري أبطال إفريقيا (قمم عربية) ==========
-الأهلي المصري × الجيش الملكي المغربي: beIN SPORTS HD 4
+الأهلي المصري × الجيش الملكي المغربي: beIN SPORTS HD 1
 صن داونز × مولودية الجزائر: beIN SPORTS HD 6
 نهضة بركان × ريفرز يونايتد: beIN SPORTS HD 3
 الوداد الرياضي × أزام يونايتد: beIN SPORTS HD 2
