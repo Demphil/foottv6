@@ -5,10 +5,10 @@ import { streamLinks } from './streams.js';
 export const matchesData = `
 ========== دوري أبطال إفريقيا (قمم عربية) ==========
 الأهلي المصري × الجيش الملكي المغربي: beIN SPORTS HD 4
-صن داونز × مولودية الجزائر: beIN SPORTS HD 6
-نهضة بركان × ريفرز يونايتد: beIN SPORTS HD 3
-الوداد الرياضي × أزام يونايتد: beIN SPORTS HD 2
-يانغ أفريكانز × شبيبة القبائل: beIN SPORTS HD 1
+صن داونز × مولودية الجزائر: beIN SPORTS HD 
+نهضة بركان × ريفرز يونايتد: beIN SPORTS HD 7
+الوداد الرياضي × أزام يونايتد: beIN SPORTS HD 6
+يانغ أفريكانز × شبيبة القبائل: beIN SPORTS HD 2
 
 ========== الدوري السعودي (روشن) ==========
 القادسية × الأهلي السعودي: SSC Sports 1 HD
