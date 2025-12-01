@@ -1,9 +1,11 @@
 // --- 1. Cache Configuration ---
-import { getChannelByTeam } from './chaine.js'; // استيراد الدالة
+import { getChannelByTeam } from './chaine.js'; // استيراد الدالة كخيار احتياطي
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
+// رابط Gemini Worker الخاص بك
+const GEMINI_WORKER_URL = 'https://gemini-kora.koora-live.workers.dev/';
 
 function setCache(key, data) {
   const cacheItem = {
@@ -48,11 +50,9 @@ function convertSourceToMoroccoTime(timeString) {
       hours = 0;
     }
 
-    // --- التعديل الجديد هنا ---
-    // قمنا بتغيير الطرح ليصبح ساعتين بدلاً من ساعة واحدة
+    // تعديل التوقيت للمغرب (-2 ساعة حسب طلبك السابق)
     hours -= 2; 
 
-    // معالجة الحالة إذا أصبح الوقت سالباً (مثلاً الساعة 1 ليلاً ناقص ساعتين تصبح 23)
     if (hours < 0) {
       hours += 24;
     }
@@ -100,28 +100,31 @@ async function fetchMatches(targetUrl) {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    return parseMatches(html);
+    // ننتظر التحليل لأنه أصبح الآن غير متزامن (Async) بسبب Gemini
+    return await parseMatches(html);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
     return [];
   }
 }
 
-function parseMatches(html) {
+async function parseMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const matches = [];
-  const matchElements = doc.querySelectorAll('.AY_Match');
   
-  matchElements.forEach(matchEl => {
+  // تحويل NodeList إلى Array لنتمكن من استخدام map مع async
+  const matchElements = Array.from(doc.querySelectorAll('.AY_Match'));
+  
+  // نستخدم Promise.all لمعالجة جميع المباريات في وقت واحد لزيادة السرعة
+  const matchesPromises = matchElements.map(async (matchEl) => {
     try {
       const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
       const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
       
-      if (!homeTeamName || !awayTeamName) return;
+      if (!homeTeamName || !awayTeamName) return null;
       
       const matchLink = matchEl.querySelector('a')?.href;
-      if (!matchLink) return;
+      if (!matchLink) return null;
       
       let score = 'VS';
       const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
@@ -140,15 +143,37 @@ function parseMatches(html) {
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
 
-      // --- جلب القناة من القائمة النصية ---
+      // --- 🤖 GEMINI INTEGRATION START 🤖 ---
       let finalChannel = channelFromSite;
-      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-         // نرسل أسماء الفرق للدالة لتبحث عنها داخل النص الذي لصقته
-         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
-      }
-      // ---------------------------------
+      let geminiChannel = null;
 
-      matches.push({
+      // محاولة جلب القناة من Gemini
+      try {
+        const matchTitle = `${homeTeamName} vs ${awayTeamName}`;
+        // إرسال الطلب إلى Cloudflare Worker
+        const geminiResponse = await fetch(`${GEMINI_WORKER_URL}?match=${encodeURIComponent(matchTitle)}`);
+        
+        if (geminiResponse.ok) {
+            const data = await geminiResponse.json();
+            if (data.channel && data.channel !== "Unknown Channel") {
+                geminiChannel = data.channel;
+            }
+        }
+      } catch (geminiError) {
+        console.warn(`Gemini fetch failed for ${homeTeamName} vs ${awayTeamName}:`, geminiError);
+        // في حال فشل Gemini، سنعتمد على الكود القديم في الأسفل
+      }
+
+      // تحديد القناة النهائية: الأولوية لـ Gemini، ثم الموقع، ثم chaine.js
+      if (geminiChannel) {
+          finalChannel = geminiChannel;
+      } else if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
+          // الخيار الاحتياطي القديم
+          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
+      }
+      // --- GEMINI INTEGRATION END ---
+
+      return {
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
         time: moroccoTime, 
@@ -157,12 +182,16 @@ function parseMatches(html) {
         channel: finalChannel, 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
         matchLink: matchLink
-      });
+      };
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
+      return null;
     }
   });
-  return matches;
+
+  // انتظار اكتمال جميع الطلبات وتصفية النتائج الفارغة (null)
+  const matches = await Promise.all(matchesPromises);
+  return matches.filter(match => match !== null);
 }
 
 function extractImageUrl(imgElement) {
