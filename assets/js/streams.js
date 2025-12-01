@@ -79,7 +79,7 @@ export const streamLinks = {
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   'المغرب تحت 17-البرازيل تحت 17': 'https://demphil.github.io/beinfree/',
   'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
-  'تونس-سوريا': 'https://demphil.github.io/beinfree/',
+  'تونس-سوريا': 'https://demphil.github.io/BEINEXTRA1/',
   'قطر-فلسطين': 'https://demphil.github.io/beinfree/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
