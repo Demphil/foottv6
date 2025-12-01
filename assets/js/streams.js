@@ -80,7 +80,7 @@ export const streamLinks = {
   'المغرب تحت 17-البرازيل تحت 17': 'https://demphil.github.io/beinfree/',
   'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
   'تونس-سوريا': 'https://demphil.github.io/BEINEXTRA1/',
-  'قطر-فلسطين': 'https://demphil.github.io/beinfree/',
+  'قطر-فلسطين': 'https://demphil.github.io/abu-dhabi-sport12/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
