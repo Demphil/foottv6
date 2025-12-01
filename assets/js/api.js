@@ -1,9 +1,13 @@
+// assets/js/api.js
+
 // --- 1. Cache Configuration ---
-import { getChannelByTeam } from './chaine.js'; // استيراد الدالة كخيار احتياطي
+// استيراد دالة التنظيف الجديدة (normalizeChannelName) بالإضافة لدالة البحث القديمة
+import { getChannelByTeam, normalizeChannelName } from './chaine.js'; 
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
+
 // رابط Gemini Worker الخاص بك
 const GEMINI_WORKER_URL = 'https://gemini-kora.koora-live.workers.dev/';
 
@@ -156,7 +160,8 @@ async function parseMatches(html) {
         if (geminiResponse.ok) {
             const data = await geminiResponse.json();
             if (data.channel && data.channel !== "Unknown Channel") {
-                geminiChannel = data.channel;
+                // 🔥 التعديل الجوهري هنا: نستخدم دالة التنظيف لتوحيد الاسم
+                geminiChannel = normalizeChannelName(data.channel);
             }
         }
       } catch (geminiError) {
@@ -168,7 +173,7 @@ async function parseMatches(html) {
       if (geminiChannel) {
           finalChannel = geminiChannel;
       } else if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-          // الخيار الاحتياطي القديم
+          // الخيار الاحتياطي القديم (يستخدم أيضاً البحث اليدوي في chaine.js)
           finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
       // --- GEMINI INTEGRATION END ---
