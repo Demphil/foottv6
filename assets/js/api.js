@@ -1,20 +1,29 @@
 // assets/js/api.js
-import { normalizeChannelName } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; 
+const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
-const GEMINI_WORKER_URL = 'https://gemini-kora.koora-live.workers.dev/'; // تأكد من الرابط
+
+// رابط Worker الخاص بك
+const GEMINI_WORKER_URL = 'https://gemini-kora.koora-live.workers.dev/'; 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-// --- دوال الكاش والوقت ---
-function setCache(key, data) { localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data })); }
+// --- 1. دوال الكاش والوقت ---
+function setCache(key, data) {
+  localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data }));
+}
+
 function getCache(key) {
-  const item = localStorage.getItem(key); if (!item) return null;
+  const item = localStorage.getItem(key);
+  if (!item) return null;
   const { timestamp, data } = JSON.parse(item);
-  if (Date.now() - timestamp > CACHE_EXPIRY_MS) { localStorage.removeItem(key); return null; }
+  if (Date.now() - timestamp > CACHE_EXPIRY_MS) {
+    localStorage.removeItem(key);
+    return null;
+  }
   return data;
 }
+
 function convertSourceToMoroccoTime(timeString) {
     try {
         if (!timeString || !timeString.includes(':')) return timeString;
@@ -28,10 +37,46 @@ function convertSourceToMoroccoTime(timeString) {
     } catch (e) { return timeString; }
 }
 
-// --- الدوال الرئيسية ---
+// --- 2. دالة تنظيف القنوات (تم نقلها هنا لحل مشكلة الاستيراد) ---
+function normalizeChannelName(rawName) {
+    if (!rawName) return null;
+    
+    // قائمة القنوات الرسمية في streams.js
+    const validChannels = [
+        "beIN Sports 1", "beIN Sports 2", "beIN Sports 3", "beIN Sports 4",
+        "beIN Sports Premium 1", "SSC 1 HD", "SSC 5 HD",
+        "AD Sports 1", "AD Sports Premium 1",
+        "On Time Sports 1", "On Time Sports 2",
+        "Alkass One HD", "Arryadia TNT"
+    ];
+
+    // تنظيف بسيط
+    const clean = rawName.trim();
+    
+    // محاولة مطابقة دقيقة
+    if (validChannels.includes(clean)) return clean;
+
+    // محاولة مطابقة جزئية ذكية
+    const lower = clean.toLowerCase();
+    if (lower.includes("ontime") || lower.includes("on time")) return "On Time Sports 1";
+    if (lower.includes("ssc")) return "SSC 1 HD";
+    if (lower.includes("ad sports premium") || lower.includes("abu dhabi premium")) return "AD Sports Premium 1";
+    if (lower.includes("ad sports") || lower.includes("abu dhabi")) return "AD Sports 1";
+    if (lower.includes("arryadia")) return "Arryadia TNT";
+    if (lower.includes("alkass")) return "Alkass One HD";
+    if (lower.includes("bein")) return "beIN Sports 1"; // الافتراضي لبي إن
+
+    return clean;
+}
+
+// --- 3. الدوال الرئيسية للجلب ---
 export async function getTodayMatches() {
   const cached = getCache(CACHE_KEY_TODAY);
-  if (cached) return cached;
+  if (cached) {
+      console.log("⚡ Loading matches from cache.");
+      return cached;
+  }
+  console.log("🌐 Fetching matches from network...");
   const matches = await fetchMatches('https://www.koora3ala100.com/');
   if (matches.length) setCache(CACHE_KEY_TODAY, matches);
   return matches;
@@ -49,6 +94,7 @@ async function fetchMatches(targetUrl) {
   try {
     const res = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const html = await res.text();
+    // نستخدم دالة الدفعات الجديدة
     return await parseMatchesAndBatchFetch(html);
   } catch (e) {
     console.error("Fetch error:", e);
@@ -56,13 +102,13 @@ async function fetchMatches(targetUrl) {
   }
 }
 
-// 🔥 الدالة الجديدة التي تدعم الحزمة الواحدة 🔥
+// 🔥 الدالة الذكية: ترسل كل المباريات في طلب واحد (Batch) 🔥
 async function parseMatchesAndBatchFetch(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matchElements = Array.from(doc.querySelectorAll('.AY_Match'));
   
-  // 1. استخراج البيانات الأساسية أولاً
+  // 1. استخراج البيانات الأساسية وتجهيز القائمة
   const matchesData = matchElements.map((matchEl, index) => {
     try {
         const homeTeam = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
@@ -73,7 +119,7 @@ async function parseMatchesAndBatchFetch(html) {
         const league = infos[infos.length - 1]?.textContent?.trim() || 'League';
 
         return {
-            id: `match_${index}`, // معرف مؤقت
+            id: `match_${index}`, 
             element: matchEl,
             title: `${homeTeam} vs ${awayTeam}`,
             league: league,
@@ -84,7 +130,7 @@ async function parseMatchesAndBatchFetch(html) {
 
   if (matchesData.length === 0) return [];
 
-  // 2. إعداد قائمة لإرسالها لـ Gemini (طلب واحد فقط!)
+  // 2. إرسال القائمة لـ Gemini (طلب واحد فقط!)
   const payload = {
       matches: matchesData.map(m => ({ id: m.id, title: m.title, league: m.league }))
   };
@@ -92,16 +138,16 @@ async function parseMatchesAndBatchFetch(html) {
   let channelsMap = {};
   
   try {
-      console.log("🚀 Sending Batch Request to Gemini...");
+      console.log("🚀 Sending Batch Request to Gemini (Size: " + matchesData.length + ")...");
       const response = await fetch(GEMINI_WORKER_URL, {
-          method: 'POST',
+          method: 'POST', // استخدام POST ضروري هنا
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
       });
       
       if (response.ok) {
           channelsMap = await response.json();
-          console.log("✅ Batch Reply:", channelsMap);
+          console.log("✅ Gemini Batch Reply Recieved.");
       } else {
           console.error("Worker Error:", await response.text());
       }
@@ -109,11 +155,10 @@ async function parseMatchesAndBatchFetch(html) {
       console.error("Batch Fetch Failed:", err);
   }
 
-  // 3. دمج النتائج وبناء الكائنات النهائية
+  // 3. دمج النتائج
   const finalMatches = matchesData.map(mData => {
       const matchEl = mData.element;
       
-      // استخراج باقي التفاصيل (وقت، نتيجة، صور)
       const link = matchEl.querySelector('a')?.href;
       const timeEl = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
       const time = convertSourceToMoroccoTime(timeEl);
@@ -123,13 +168,11 @@ async function parseMatchesAndBatchFetch(html) {
       const infos = matchEl.querySelectorAll('.MT_Info ul li');
       const commentator = infos[1]?.textContent?.trim() || '';
 
-      // جلب القناة من خريطة Gemini أو استخدام الافتراضي
+      // جلب القناة من النتيجة أو استخدام الافتراضي
       let channel = channelsMap[mData.id] || "beIN Sports 1";
       
-      // تنظيف الاسم لضمان تطابقه مع streams.js
-      if (normalizeChannelName) {
-          channel = normalizeChannelName(channel) || channel;
-      }
+      // تنظيف الاسم محلياً
+      channel = normalizeChannelName(channel);
 
       return {
         homeTeam: { name: mData.homeTeam, logo: extractImg(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
