@@ -1,37 +1,113 @@
-// assets/js/chaine.js
+  // chaine.js
+import { streamLinks } from './streams.js';
 
-// رابط الـ Worker الخاص بك
-const GEMINI_WORKER_URL = 'https://gemini-kora.koora-live.workers.dev/';
+// 🟢 قائمة المباريات (بتاريخ 2025/11/26) والقنوات الناقلة لها
+export const matchesData = `
+========== كأس العرب (أبو ظبي الرياضية) ==========
+تونس × سوريا: beIN SPORTS HD
+قطر × فلسطين: beIN SPORTS HD
+
+========== الدوري المصري / كأس مصر ==========
+حرس الحدود × الإسماعيلي: أون سبورت 1
+طلائع الجيش × السكة الحديد: أون سبورت 2
+الجونة × بترول أسيوط: أون سبورت 1
+
+========== الدوري التركي (ديربي) ==========
+فنربخشة × غلطة سراي: beIN SPORTS HD 2
+
+========== الدوري الإيطالي ==========
+بولونيا × كريمونيسي: Starzplay
+
+========== الدوري الإسباني ==========
+رايو فاييكانو × فالنسيا: beIN Sports 3 HD
+`;
+// ============================================================
+// 🔴 قاموس الاحتمالات (The Magic Dictionary)
+// المفتاح (اليسار): هو الاسم المحتمل الذي قد يظهر في القائمة
+// القيمة (اليمين): هي اسم القناة الصحيح تماماً كما هو في streams.js
+// ============================================================
+const channelAliases = {
+    // احتمالات بي إن سبورت 1
+    "beIN SPORTS HD 1": "beIN SPORTS HD 1",
+    "beIN Sports 1": "beIN SPORTS HD 1",
+    "bein 1": "beIN SPORTS HD 1",
+    "بي ان سبورت 1": "beIN SPORTS HD 1",
+
+    // احتمالات بي إن سبورت 2
+    "beIN SPORTS HD 2": "beIN SPORTS HD 2",
+    "beIN Sports 2": "beIN SPORTS HD 2",
+    "bein 2": "beIN SPORTS HD 2",
+
+    // احتمالات بي إن سبورت 3
+    "beIN SPORTS HD 3": "beIN SPORTS HD 3",
+    "beIN Sports 3": "beIN SPORTS HD 3",
+
+    // احتمالات بي إن سبورت 4
+    "beIN SPORTS HD 4": "beIN SPORTS HD 4",
+    "beIN Sports 4": "beIN SPORTS HD 4",
+
+    // احتمالات بي إن سبورت اكسترا 1 (لاحظ حل مشكلة الشَرطة المائلة)
+    "beIN Sports Xtra 1": "beIN Sports /Xtra 1",
+    "beIN Sports Extra 1": "beIN Sports /Xtra 1",
+    "beIN Xtra 1": "beIN Sports /Xtra 1",
+
+    // احتمالات أبو ظبي الرياضية (حل مشكلة الحروف الكبيرة والصغيرة)
+    "AD Sports Premium 1": "ad sports premium 1",
+    "AD Premium 1": "ad sports premium 1",
+    "أبوظبي بريميوم 1": "ad sports premium 1",
+
+    "AD Sports Premium 2": "ad sports premium 2",
+    "AD Premium 2": "ad sports premium 2",
+
+    // احتمالات القنوات السعودية SSC
+    "SSC 1 HD": "SSC 1 HD",
+    "SSC 1": "SSC 1 HD",
+    
+    // هنا الحل السحري لقناة Extra:
+    // بما أنك لا تملك رابط لـ SSC Extra، قمت بتحويلها لرابط SSC Sport 2HD المتوفر لديك
+    "SSC Extra 1 HD": "SSC Sport 2HD", 
+    "SSC Extra 1": "SSC Sport 2HD",
+    "SSC 2": "SSC Sport 2HD",
+    
+    // قنوات أون تايم سبورت المصرية
+    "أون سبورت 1": "ON TIME SPORTS 1",
+    "أون سبورت 2": "ON TIME SPORTS 2",
+    "OnTime Sports": "ON TIME SPORTS 1",
+};
 
 /**
- * دالة ذكية: لا تحتوي على مباريات، بل تبحث عنها!
- * تأخذ اسم الفريقين والدوري، وتسأل Gemini عن القناة
- */
-export async function getChannelFromGemini(homeTeam, awayTeam, league) {
-    const matchTitle = `${homeTeam} vs ${awayTeam}`;
-    
-    // إذا لم تكن هناك أسماء فرق، نتوقف
-    if (!homeTeam || !awayTeam) return "غير محدد";
+ * دالة تقوم بقراءة النص أعلاه واستخراج القناة
+ * بناءً على اسم الفريق المستضيف أو الضيف
+ */
+export function getChannelByTeam(homeTeam, awayTeam) {
+  if (!matchesData || (!homeTeam && !awayTeam)) return '';
 
-    try {
-        console.log(`🤖 Asking Gemini for: ${matchTitle} (${league})`);
-        
-        // إرسال الطلب لـ Gemini
-        const queryUrl = `${GEMINI_WORKER_URL}?match=${encodeURIComponent(matchTitle)}&league=${encodeURIComponent(league || '')}`;
-        
-        const response = await fetch(queryUrl);
-        if (!response.ok) return "غير محدد";
+  // تقسيم النص إلى أسطر
+  const lines = matchesData.trim().split('\n');
+  
+  // تنظيف أسماء الفرق من المسافات الزائدة لضمان البحث الدقيق
+  const home = homeTeam ? homeTeam.trim() : '';
+  const away = awayTeam ? awayTeam.trim() : '';
 
-        const data = await response.json();
+  for (let line of lines) {
+    // نتأكد أن السطر ليس فارغاً
+    if (!line.trim()) continue;
 
-        // إذا وجد Gemini القناة، نعيدها
-        if (data.channel && data.channel !== "Unknown Channel") {
-            return data.channel;
-        }
-    } catch (error) {
-        console.warn(`Gemini failed for ${matchTitle}`, error);
-    }
+    // 1. التحقق مما إذا كان السطر يحتوي على اسم الفريق المستضيف أو الضيف
+    // نستخدم includes للبحث عن الاسم داخل السطر
+    const hasHome = home && line.includes(home);
+    const hasAway = away && line.includes(away);
 
-    // إذا فشل Gemini، نرجع القناة الافتراضية
-    return "beIN Sports 1"; 
+    if (hasHome || hasAway) {
+      // 2. إذا وجدنا الفريق، نقوم باستخراج القناة
+      // القناة موجودة دائماً بعد النقطتين (:) حسب التنسيق الذي وضعته
+      if (line.includes(':')) {
+        const parts = line.split(':'); // نقسم السطر عند النقطتين
+        const channelName = parts[parts.length - 1]; // نأخذ الجزء الأخير (القناة)
+        return channelName.trim(); // نرجع اسم القناة نظيفاً
+      }
+    }
+  }
+
+  return "غير محدد"; // في حال لم نجد المباراة في القائمة
 }
