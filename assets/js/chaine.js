@@ -1,113 +1,103 @@
-// chaine.js
-import { streamLinks } from './streams.js';
+// assets/js/chaine.js
 
-// 🟢 قائمة المباريات (بتاريخ 2025/11/26) والقنوات الناقلة لها
-export const matchesData = `
-========== كأس العرب (أبو ظبي الرياضية) ==========
-تونس × سوريا: beIN SPORTS HD
-قطر × فلسطين: beIN SPORTS HD
-
-========== الدوري المصري / كأس مصر ==========
-حرس الحدود × الإسماعيلي: أون سبورت 1
-طلائع الجيش × السكة الحديد: أون سبورت 2
-الجونة × بترول أسيوط: أون سبورت 1
-
-========== الدوري التركي (ديربي) ==========
-فنربخشة × غلطة سراي: beIN SPORTS HD 2
-
-========== الدوري الإيطالي ==========
-بولونيا × كريمونيسي: Starzplay
-
-========== الدوري الإسباني ==========
-رايو فاييكانو × فالنسيا: beIN Sports 3 HD
-`;
-// ============================================================
-// 🔴 قاموس الاحتمالات (The Magic Dictionary)
-// المفتاح (اليسار): هو الاسم المحتمل الذي قد يظهر في القائمة
-// القيمة (اليمين): هي اسم القناة الصحيح تماماً كما هو في streams.js
-// ============================================================
+// 🔴 قاموس التصحيح (Aliases)
+// هذا أهم جزء الآن! وظيفته تصحيح ما يرسله Gemini ليطابق ملف streams.js
 const channelAliases = {
-    // احتمالات بي إن سبورت 1
-    "beIN SPORTS HD 1": "beIN SPORTS HD 1",
+    // --- قنوات بي إن سبورت ---
     "beIN Sports 1": "beIN SPORTS HD 1",
+    "beIN SPORTS 1": "beIN SPORTS HD 1",
     "bein 1": "beIN SPORTS HD 1",
     "بي ان سبورت 1": "beIN SPORTS HD 1",
 
-    // احتمالات بي إن سبورت 2
-    "beIN SPORTS HD 2": "beIN SPORTS HD 2",
     "beIN Sports 2": "beIN SPORTS HD 2",
     "bein 2": "beIN SPORTS HD 2",
+    "بي ان سبورت 2": "beIN SPORTS HD 2",
 
-    // احتمالات بي إن سبورت 3
-    "beIN SPORTS HD 3": "beIN SPORTS HD 3",
     "beIN Sports 3": "beIN SPORTS HD 3",
+    "bein 3": "beIN SPORTS HD 3",
 
-    // احتمالات بي إن سبورت 4
-    "beIN SPORTS HD 4": "beIN SPORTS HD 4",
     "beIN Sports 4": "beIN SPORTS HD 4",
+    "bein 4": "beIN SPORTS HD 4",
+    
+    "beIN Sports Premium 1": "beIN Sports Premium 1",
+    "beIN Premium 1": "beIN Sports Premium 1",
 
-    // احتمالات بي إن سبورت اكسترا 1 (لاحظ حل مشكلة الشَرطة المائلة)
-    "beIN Sports Xtra 1": "beIN Sports /Xtra 1",
-    "beIN Sports Extra 1": "beIN Sports /Xtra 1",
-    "beIN Xtra 1": "beIN Sports /Xtra 1",
-
-    // احتمالات أبو ظبي الرياضية (حل مشكلة الحروف الكبيرة والصغيرة)
-    "AD Sports Premium 1": "ad sports premium 1",
-    "AD Premium 1": "ad sports premium 1",
-    "أبوظبي بريميوم 1": "ad sports premium 1",
-
-    "AD Sports Premium 2": "ad sports premium 2",
-    "AD Premium 2": "ad sports premium 2",
-
-    // احتمالات القنوات السعودية SSC
-    "SSC 1 HD": "SSC 1 HD",
+    // --- قنوات SSC السعودية ---
     "SSC 1": "SSC 1 HD",
+    "SSC 1 HD": "SSC 1 HD",
+    "SSC Sport 1": "SSC 1 HD",
+
+    "SSC 5": "SSC 5 HD",
+    "SSC 5 HD": "SSC 5 HD",
+
+    "SSC Extra 1": "SSC Sport 2HD", // تحويل القنوات غير المتوفرة للمتوفرة
+    "SSC Extra 2": "SSC Sport 2HD",
+
+    // --- قنوات أبو ظبي ---
+    "Abu Dhabi Sports 1": "AD Sports 1",
+    "AD Sports 1": "AD Sports 1",
     
-    // هنا الحل السحري لقناة Extra:
-    // بما أنك لا تملك رابط لـ SSC Extra، قمت بتحويلها لرابط SSC Sport 2HD المتوفر لديك
-    "SSC Extra 1 HD": "SSC Sport 2HD", 
-    "SSC Extra 1": "SSC Sport 2HD",
-    "SSC 2": "SSC Sport 2HD",
-    
-    // قنوات أون تايم سبورت المصرية
-    "أون سبورت 1": "ON TIME SPORTS 1",
-    "أون سبورت 2": "ON TIME SPORTS 2",
-    "OnTime Sports": "ON TIME SPORTS 1",
+    // --- قنوات الكأس ---
+    "Alkass One": "Alkass One HD",
+    "Alkass 1": "Alkass One HD",
+
+    // --- قنوات أون تايم ---
+    "On Time Sports": "ON TIME SPORTS 1",
+    "On Time Sports 1": "ON TIME SPORTS 1",
 };
 
 /**
- * دالة تقوم بقراءة النص أعلاه واستخراج القناة
- * بناءً على اسم الفريق المستضيف أو الضيف
+ * دالة جديدة ومهمة جداً
+ * وظيفتها: أخذ اسم القناة من Gemini وتنظيفه ليعمل الرابط
  */
-export function getChannelByTeam(homeTeam, awayTeam) {
-  if (!matchesData || (!homeTeam && !awayTeam)) return '';
+export function normalizeChannelName(rawName) {
+    if (!rawName) return null;
 
-  // تقسيم النص إلى أسطر
-  const lines = matchesData.trim().split('\n');
-  
-  // تنظيف أسماء الفرق من المسافات الزائدة لضمان البحث الدقيق
-  const home = homeTeam ? homeTeam.trim() : '';
-  const away = awayTeam ? awayTeam.trim() : '';
-
-  for (let line of lines) {
-    // نتأكد أن السطر ليس فارغاً
-    if (!line.trim()) continue;
-
-    // 1. التحقق مما إذا كان السطر يحتوي على اسم الفريق المستضيف أو الضيف
-    // نستخدم includes للبحث عن الاسم داخل السطر
-    const hasHome = home && line.includes(home);
-    const hasAway = away && line.includes(away);
-
-    if (hasHome || hasAway) {
-      // 2. إذا وجدنا الفريق، نقوم باستخراج القناة
-      // القناة موجودة دائماً بعد النقطتين (:) حسب التنسيق الذي وضعته
-      if (line.includes(':')) {
-        const parts = line.split(':'); // نقسم السطر عند النقطتين
-        const channelName = parts[parts.length - 1]; // نأخذ الجزء الأخير (القناة)
-        return channelName.trim(); // نرجع اسم القناة نظيفاً
-      }
+    // 1. البحث المباشر في القاموس
+    if (channelAliases[rawName]) {
+        return channelAliases[rawName];
     }
-  }
 
-  return "غير محدد"; // في حال لم نجد المباراة في القائمة
+    // 2. تنظيف النص (إزالة المسافات الزائدة ومحاولة البحث مرة أخرى)
+    const cleanName = rawName.trim();
+    if (channelAliases[cleanName]) {
+        return channelAliases[cleanName];
+    }
+
+    // 3. البحث الجزئي (مثلاً لو Gemini أرسل "Channel: beIN 1")
+    for (const [key, value] of Object.entries(channelAliases)) {
+        if (cleanName.toLowerCase().includes(key.toLowerCase())) {
+            return value;
+        }
+    }
+
+    // إذا لم نجد تطابق، نرجع الاسم كما هو (لعل وعسى يكون صحيحاً)
+    return cleanName;
+}
+
+// -------------------------------------------------------------
+// هذا الجزء يبقى كخيار احتياطي (Backup) فقط
+// في حال تعطل Gemini، يمكنك وضع المباريات هنا يدوياً
+// -------------------------------------------------------------
+export const matchesData = `
+`; // اتركها فارغة إلا للضرورة
+
+export function getChannelByTeam(homeTeam, awayTeam) {
+    if (!matchesData.trim()) return ''; 
+    // ... (نفس كود البحث القديم الذي كان لديك)
+    const lines = matchesData.trim().split('\n');
+    const home = homeTeam ? homeTeam.trim() : '';
+    const away = awayTeam ? awayTeam.trim() : '';
+
+    for (let line of lines) {
+        if (!line.trim()) continue;
+        if ((home && line.includes(home)) || (away && line.includes(away))) {
+            if (line.includes(':')) {
+                const parts = line.split(':');
+                // نمرر النتيجة أيضاً عبر دالة التنظيف
+                return normalizeChannelName(parts[parts.length - 1]);
+            }
+        }
+    }
+    return '';
 }
