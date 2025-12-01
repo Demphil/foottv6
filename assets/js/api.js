@@ -1,7 +1,6 @@
 // assets/js/api.js
 
 // --- 1. Cache Configuration ---
-// استيراد دالة التنظيف الجديدة (normalizeChannelName) بالإضافة لدالة البحث القديمة
 import { getChannelByTeam, normalizeChannelName } from './chaine.js'; 
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
@@ -36,9 +35,6 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
-/**
- * Converts a time string from Source to Morocco (UTC+1).
- */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
@@ -54,7 +50,6 @@ function convertSourceToMoroccoTime(timeString) {
       hours = 0;
     }
 
-    // تعديل التوقيت للمغرب (-2 ساعة حسب طلبك السابق)
     hours -= 2; 
 
     if (hours < 0) {
@@ -104,7 +99,6 @@ async function fetchMatches(targetUrl) {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    // ننتظر التحليل لأنه أصبح الآن غير متزامن (Async) بسبب Gemini
     return await parseMatches(html);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
@@ -116,10 +110,8 @@ async function parseMatches(html) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   
-  // تحويل NodeList إلى Array لنتمكن من استخدام map مع async
   const matchElements = Array.from(doc.querySelectorAll('.AY_Match'));
   
-  // نستخدم Promise.all لمعالجة جميع المباريات في وقت واحد لزيادة السرعة
   const matchesPromises = matchElements.map(async (matchEl) => {
     try {
       const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
@@ -143,39 +135,44 @@ async function parseMatches(html) {
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       
-      let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
+      // 🛑🛑 التعديل هنا لغرض الاختبار 🛑🛑
+      // تجاهل القناة القادمة من الموقع تماماً
+      let channelFromSite = ''; 
+      // بدلاً من: let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
+
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
 
       // --- 🤖 GEMINI INTEGRATION START 🤖 ---
-      let finalChannel = channelFromSite;
+      let finalChannel = ''; // نبدأ بقيمة فارغة
       let geminiChannel = null;
 
       // محاولة جلب القناة من Gemini
       try {
         const matchTitle = `${homeTeamName} vs ${awayTeamName}`;
-        // إرسال الطلب إلى Cloudflare Worker
         const geminiResponse = await fetch(`${GEMINI_WORKER_URL}?match=${encodeURIComponent(matchTitle)}`);
         
         if (geminiResponse.ok) {
             const data = await geminiResponse.json();
             if (data.channel && data.channel !== "Unknown Channel") {
-                // 🔥 التعديل الجوهري هنا: نستخدم دالة التنظيف لتوحيد الاسم
                 geminiChannel = normalizeChannelName(data.channel);
             }
         }
       } catch (geminiError) {
         console.warn(`Gemini fetch failed for ${homeTeamName} vs ${awayTeamName}:`, geminiError);
-        // في حال فشل Gemini، سنعتمد على الكود القديم في الأسفل
       }
 
-      // تحديد القناة النهائية: الأولوية لـ Gemini، ثم الموقع، ثم chaine.js
+      // تحديد القناة النهائية:
       if (geminiChannel) {
+          // 1. الأولوية لـ Gemini
           finalChannel = geminiChannel;
-      } else if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-          // الخيار الاحتياطي القديم (يستخدم أيضاً البحث اليدوي في chaine.js)
+      } else {
+          // 2. إذا فشل Gemini، نستخدم البحث اليدوي (chaine.js) فقط
+          // ولن نستخدم channelFromSite لأننا جعلناها فارغة عمداً
           finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
+      
+      // إذا بقيت finalChannel فارغة، ستظهر المباراة بدون قناة (وهذا دليل على أننا لا نأخذ من الموقع)
       // --- GEMINI INTEGRATION END ---
 
       return {
@@ -194,7 +191,6 @@ async function parseMatches(html) {
     }
   });
 
-  // انتظار اكتمال جميع الطلبات وتصفية النتائج الفارغة (null)
   const matches = await Promise.all(matchesPromises);
   return matches.filter(match => match !== null);
 }
