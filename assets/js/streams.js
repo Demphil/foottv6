@@ -64,6 +64,9 @@ export const streamLinks = {
    'الجزائرية السادسة': 'https://demphil.github.io/algy6/',
   'beIN Sports Xtra 1': 'https://demphil.github.io/BEINEXTRA1/',
   'beIN SPORTS Mena 3': 'https://demphil.github.io/beinmena-3/',
+  'أبو ظبي الرياضية 1': 'https://demphil.github.io/adsports-primum1/',
+   'أبو ظبي الرياضية 2': 'https://demphil.github.io/adsports-primum1/',
+
 
   
   
