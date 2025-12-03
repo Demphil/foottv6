@@ -67,7 +67,7 @@ export const streamLinks = {
   'أبو ظبي الرياضية 1': 'https://demphil.github.io/adsports-primum1/',
   'ابو ظبي الرياضية 1': 'https://demphil.github.io/adsports-primum1/',
    'أبو ظبي الرياضية 2': 'https://demphil.github.io/adsports-primum1/',
-     'ابو ظبي الرياضية 2': 'https://demphil.github.io/adsports-primum1/',
+     'ابوظبي الرياضية 2': 'https://demphil.github.io/adsports-primum1/',
 
 
 
