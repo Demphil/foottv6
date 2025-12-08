@@ -1,0 +1,171 @@
+/* --- News Controls (Search & Filters) --- */
+.news-controls-section {
+    padding: 20px;
+    background: rgba(30, 30, 40, 0.5); /* خلفية شفافة داكنة */
+    margin-bottom: 20px;
+    border-radius: 12px;
+}
+
+.news-search-container {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+#news-search-input {
+    width: 100%;
+    padding: 12px 50px 12px 20px;
+    border-radius: 30px;
+    border: none;
+    background: #2a2a35;
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+}
+
+#search-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e74c3c; /* اللون الأحمر في الصورة */
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#search-btn:hover { background: #c0392b; }
+
+/* Filters Chips */
+.news-filters {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: #2a2a35;
+    border: 1px solid #3a3a45;
+    color: #ccc;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    transition: 0.3s;
+    font-size: 14px;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    background: #e74c3c;
+    color: #fff;
+    border-color: #e74c3c;
+}
+
+/* --- News Grid (Cards) --- */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+}
+
+.news-card {
+    background: #23232e;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: relative;
+    height: 100%; /* لتوحيد الطول */
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+}
+
+.news-image-wrapper {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+}
+
+.news-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.news-category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(231, 76, 60, 0.9);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.news-content {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.news-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    color: #fff;
+}
+
+.news-title a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.news-title a:hover { color: #e74c3c; }
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+    margin-top: 10px;
+}
+
+.read-more-link {
+    color: #e74c3c;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* زر عرض المزيد */
+.load-more-container {
+    text-align: center;
+    margin-top: 30px;
+}
+.load-more-btn {
+    background: transparent;
+    border: 2px solid #e74c3c;
+    color: #fff;
+    padding: 10px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+.load-more-btn:hover { background: #e74c3c; }
