@@ -9,7 +9,7 @@
     <!-- ====================================================== -->
 
     <!-- 1. العنوان: قصير، واضح، ويحتوي على الكلمات المفتاحية الرئيسية -->
-    <title>كورة لايف | بث مباشر مباريات اليوم – koralive football</title>
+    <title>كورة لايف | kora live | مباريات اليوم بث مباشر koora live</title>
 
     <!-- 2. الوصف: جملة جذابة تصف محتوى الموقع بدقة -->
     <meta name="description" content="شاهد جميع مباريات اليوم بث مباشر عبر كورة لايف، بجودة عالية وبدون تقطيع، مع تغطية الدوري الإنجليزي والإسباني.">
@@ -30,7 +30,7 @@
     <!-- === وسوم Open Graph (للمشاركة على فيسبوك وواتساب) === -->
     <!-- ====================================================== -->
 
-    <meta property="og:title" content="كورة لايف | بث مباشر مباريات اليوم – koralive football"/>
+    <meta property="og:title" content=كورة لايف | kora live | مباريات اليوم بث مباشر koora live/>
     <meta property="og:description" content="شاهد جميع مباريات اليوم بث مباشر عبر كورة لايف، بجودة عالية وبدون تقطيع، مع تغطية الدوري الإنجليزي والإسباني."/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://koralive.football/"/>
@@ -42,7 +42,7 @@
     <!-- ====================================================== -->
     
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="كورة لايف | بث مباشر مباريات اليوم – koralive football"/>
+    <meta name="twitter:title" content=كورة لايف | kora live | مباريات اليوم بث مباشر koora live/>
     <meta name="twitter:description" content="شاهد جميع مباريات اليوم بث مباشر عبر كورة لايف، بجودة عالية وبدون تقطيع، مع تغطية الدوري الإنجليزي والإسباني."/>
     <meta name="twitter:image" content="https://koralive.football/assets/images/logo.png"/>
     <!-- ====================================================== -->
@@ -95,72 +95,76 @@
     </div>
     
     <!-- 2. العنوان (في المنتصف) - تم تحديث النص هنا -->
-    <h1 class="header-title">كورة لايف | بث مباشر مباريات اليوم – koralive football</h1>
+    <h1 class="header-title">كورة لايف | kora live | مباريات اليوم بث مباشر Koralive.Football</h1>
     
     <!-- 3. قائمة التنقل (على اليمين) -->
     <nav class="nav">
         <ul>
-            <li><a href="news.html">Football News</a></li>
-            <li><a href="index.html" class="active">Matches</a></li>
+            <li><a href="news.html">أخبار الرياضة</a></li>
+            <li><a href="index.html" class="active">مباريات اليوم بث مباشر</a></li>
         </ul>
     </nav>
 
 </header>
 
-    <main class="matches-main">
-        <div id="loading" style="display: flex;">
-            <div class="loader"></div>
+      <main class="matches-main">
+    <section class="featured-section">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-moon"></i> مباريات السهرة</h2>
+        </div>
+        <div id="featured-matches" class="featured-slider">
+            <div class="loading-placeholder">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>جاري تحميل مباريات المساء...</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-controls-section">
+        <div class="news-search-container">
+            <input type="text" id="news-search-input" placeholder="ابحث في الأخبار...">
+            <button id="search-btn"><i class="fas fa-search"></i></button>
         </div>
         
-        <div id="error-container" style="display: none;" role="alert"></div>
-        <div id="toast-container"></div>
-        
-        <div class="matches-layout">
-            <section class="featured-section" aria-labelledby="featured-title">
-                <h2 id="featured-title" class="section-title"><i class="fas fa-star" aria-hidden="true"></i> Featured Evening Matches</h2>
-                <div id="featured-matches" class="featured-slider">
-                    <div class="loading-placeholder" aria-live="polite">
-                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                        <p>Loading featured matches...</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="broadcast-section" aria-labelledby="broadcast-title">
-                <h2 id="broadcast-title" class="section-title"><i class="fas fa-tv" aria-hidden="true"></i> Today's Key Matches</h2>
-                <div id="broadcast-matches" class="broadcast-list">
-                     <div class="loading-placeholder" aria-live="polite">
-                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                        <p>Loading key matches...</p>
-                    </div>
-                </div>
-            </section>
+        <div class="news-filters">
+            <button class="filter-btn active" data-category="all">الكل</button>
+            <button class="filter-btn" data-category="spanish"><i class="fas fa-flag"></i> الدوري الإسباني</button>
+            <button class="filter-btn" data-category="english"><i class="fas fa-crown"></i> الدوري الإنجليزي</button>
+            <button class="filter-btn" data-category="saudi"><i class="fas fa-futbol"></i> الدوري السعودي</button>
+            <button class="filter-btn" data-category="champions"><i class="fas fa-trophy"></i> دوري الأبطال</button>
+            <button class="filter-btn" data-category="transfers"><i class="fas fa-exchange-alt"></i> الانتقالات</button>
         </div>
+    </section>
 
-        <section class="all-matches" aria-labelledby="all-matches-title">
-            <h2 id="all-matches-title" class="section-title">All Matches</h2>
-            <div class="matches-tabs" role="tablist">
-                <button id="today-tab" class="tab-btn active" data-tab="today" role="tab" aria-selected="true">Today's Matches</button>
-                <button id="tomorrow-tab" class="tab-btn" data-tab="tomorrow" role="tab" aria-selected="false">Tomorrow's Matches</button>
+    <section class="news-grid-section">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-newspaper"></i> آخر أخبار كرة القدم</h2>
+        </div>
+        
+        <div id="news-grid-container" class="news-grid">
+            <div class="loading-placeholder" style="grid-column: 1/-1;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>جاري جلب آخر الأخبار...</p>
             </div>
-            
-            <div class="matches-grid">
-                <div id="today-matches" class="tab-content active" role="tabpanel" aria-labelledby="today-tab">
-                    <div class="loading-placeholder" aria-live="polite">
-                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                        <p>Loading today's matches...</p>
-                    </div>
-                </div>
-                
-                <div id="tomorrow-matches" class="tab-content" role="tabpanel" aria-labelledby="tomorrow-tab" style="display: none;">
-                    <div class="loading-placeholder" aria-live="polite">
-                        <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                        <p>Loading tomorrow's matches...</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+        </div>
+        
+        <div class="load-more-container">
+            <a href="news.html" class="load-more-btn">عرض كل الأخبار</a>
+        </div>
+    </section>
+
+    <section class="all-matches">
+        <h2 class="section-title">جدول المباريات</h2>
+        <div class="matches-tabs">
+            <button id="today-tab" class="tab-btn active" data-tab="today">مباريات اليوم</button>
+            <button id="tomorrow-tab" class="tab-btn" data-tab="tomorrow">مباريات الغد</button>
+        </div>
+        <div class="matches-grid">
+            <div id="today-matches" class="tab-content active"></div>
+            <div id="tomorrow-matches" class="tab-content" style="display: none;"></div>
+        </div>
+    </section>
+</main>
 
     <footer class="footer">
         <div class="footer-content">
@@ -169,8 +173,8 @@
             </div>
                
         <div class="footer-links">
-            <a href="news.html"><i class="fas fa-newspaper"></i> Football News</a>
-            <a href="index.html"><i class="fas fa-home"></i> Matches</a>
+            <a href="news.html"><i class="fas fa-newspaper"></i>أخبار الرياضة</a>
+            <a href="index.html"><i class="fas fa-home"></i>مباريات اليوم بث مباشر</a>
         </div>
     </div>
 
@@ -219,6 +223,7 @@
     </script>
     <script src="assets/js/ad-manager.js"></script>
     <script type="module" src="assets/js/matches.js"></script>
+    <script type="module" src="assets/js/news.js"></script>
 
 </body>   
 </html>
