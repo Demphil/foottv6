@@ -1,23 +1,21 @@
-:root {
+ :root {
   --primary-color: #e63946;
   --secondary-color: #ffd166;
   --dark-color: #1d3557;
   --light-color: #f1faee;
-  --card-bg: #23232e; /* لون خلفية البطاقات الجديد */
-  --glass-effect: rgba(30, 30, 40, 0.6); /* زجاجي داكن */
+  --glass-effect: rgba(255, 255, 255, 0.1);
   --header-height: 70px;
 }
 
 /* 1. التنسيقات العامة */
 body {
-  font-family: 'Cairo', sans-serif;
-  background: #15151a; /* خلفية داكنة جداً للموقع */
-  color: var(--light-color);
-  margin: 0;
-  padding-top: var(--header-height);
-  min-height: 100vh;
+ font-family: 'Cairo', sans-serif;
+ background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+ color: var(--light-color);
+ margin: 0;
+ padding-top: var(--header-height);
+ min-height: 100vh;
 }
-
 .news-main {
   padding: clamp(15px, 4vw, 30px);
   max-width: 1400px;
@@ -26,7 +24,7 @@ body {
 
 /* 2. الهيدر (حافظنا عليه كما هو) */
 .header {
-  background: rgba(29, 53, 87, 0.95);
+  background: rgba(29, 53, 87, 0.8);
   backdrop-filter: blur(10px);
   height: var(--header-height);
   padding: 0 clamp(15px, 4vw, 30px);
@@ -36,8 +34,7 @@ body {
   align-items: center;
   justify-content: space-between;
   z-index: 1000;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
 }
 .header .logo { display: flex; align-items: center; gap: 12px; }
 .header .logo img { height: 45px; width: auto; }
@@ -108,15 +105,18 @@ body {
 }
 
 .category-btn.active, .category-btn:hover {
-  background: var(--primary-color);
-  color: #fff;
-  border-color: var(--primary-color);
+  background: var(--light-color);
+  color: var(--dark-color);
 }
 
 /* 4. أقسام الأخبار (العناوين) */
 .breaking-news-section, .sports-news-section {
-    margin-bottom: 40px;
-}
+  display: grid;
+  gap: 20px;
+  margin-bottom: 20px;
+  grid-auto-rows: 1fr; 
+
+}}
 
 .section-title {
   font-size: 1.5rem;
