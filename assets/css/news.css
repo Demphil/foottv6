@@ -3,14 +3,15 @@
   --secondary-color: #ffd166;
   --dark-color: #1d3557;
   --light-color: #f1faee;
-  --glass-effect: rgba(255, 255, 255, 0.1);
+  --card-bg: #23232e; /* لون خلفية البطاقات الجديد */
+  --glass-effect: rgba(30, 30, 40, 0.6); /* زجاجي داكن */
   --header-height: 70px;
 }
 
-/* 2. التنسيقات العامة للجسم */
+/* 1. التنسيقات العامة */
 body {
   font-family: 'Cairo', sans-serif;
-  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  background: #15151a; /* خلفية داكنة جداً للموقع */
   color: var(--light-color);
   margin: 0;
   padding-top: var(--header-height);
@@ -23,9 +24,9 @@ body {
   margin: 0 auto;
 }
 
-/* 3. الهيدر (متوافق مع التصميم) */
+/* 2. الهيدر (حافظنا عليه كما هو) */
 .header {
-  background: rgba(29, 53, 87, 0.8);
+  background: rgba(29, 53, 87, 0.95);
   backdrop-filter: blur(10px);
   height: var(--header-height);
   padding: 0 clamp(15px, 4vw, 30px);
@@ -35,262 +36,298 @@ body {
   align-items: center;
   justify-content: space-between;
   z-index: 1000;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.header .logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.header .logo img {
-  height: 45px;
-  width: auto;
-}
-.header .logo h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-.nav ul {
-  display: flex;
-  gap: 15px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.nav ul li a {
-  color: var(--light-color);
-  text-decoration: none;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 30px;
-  transition: background-color 0.3s ease;
-}
-.nav ul li a:hover, .nav ul li a.active {
-  background: rgba(255, 255, 255, 0.2);
-}
+.header .logo { display: flex; align-items: center; gap: 12px; }
+.header .logo img { height: 45px; width: auto; }
+.header .logo h1 { margin: 0; font-size: 1.4rem; font-weight: 700; color: #fff; }
+.nav ul { display: flex; gap: 15px; list-style: none; margin: 0; padding: 0; }
+.nav ul li a { color: var(--light-color); text-decoration: none; font-weight: 600; padding: 8px 16px; border-radius: 30px; transition: 0.3s; }
+.nav ul li a:hover { background: rgba(255, 255, 255, 0.2); }
 
-/* 4. هيكلة الأقسام الرئيسية */
-.breaking-news-section,
-.sports-news-section {
-    background: var(--glass-effect);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: clamp(15px, 4vw, 25px);
-    margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.section-title {
-  font-size: clamp(1.5rem, 5vw, 1.8rem);
-  color: var(--light-color);
-  margin: 0 0 20px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.section-title i {
-  color: var(--secondary-color);
-}
-
-/* 5. شريط البحث والتصنيفات */
+/* 3. شريط البحث والتصنيفات (تحديث ليتناسب مع الوضع الداكن) */
 .search-section {
   background: var(--glass-effect);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  padding: 15px;
+  padding: 20px;
   margin-bottom: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .search-container {
   display: flex;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  max-width: 600px;
+  margin-left: auto; margin-right: auto; /* توسيط */
 }
+
 .search-container input {
   flex-grow: 1;
   padding: 12px 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 25px;
-  font-size: 1rem;
-  background: rgba(0,0,0,0.2);
-  color: var(--light-color);
+  border-radius: 30px;
+  border: 1px solid #3a3a45;
+  background: #2a2a35;
+  color: #fff;
   font-family: 'Cairo', sans-serif;
+  outline: none;
 }
+
 .search-container button {
   background: var(--primary-color);
   color: white;
   border: none;
-  width: 50px;
-  height: 50px;
+  width: 45px; height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.1rem;
+  transition: 0.3s;
 }
+.search-container button:hover { background: #c0392b; }
+
 .categories-tabs {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 10px;
-}
-.category-btn {
-  font-family: 'Cairo', sans-serif;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--light-color);
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 8px 18px;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-.category-btn.active, .category-btn:hover {
-  background: var(--light-color);
-  color: var(--dark-color);
+  padding-bottom: 5px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-/* 6. بطاقات الأخبار (تصميم موحد ومصحح) */
-.breaking-news-grid, .sports-news-grid {
-  display: grid;
-  gap: 20px;
+.category-btn {
+  background: #2a2a35;
+  color: #ccc;
+  border: 1px solid #3a3a45;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Cairo', sans-serif;
+  transition: 0.3s;
+  white-space: nowrap;
+}
+
+.category-btn.active, .category-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+/* 4. أقسام الأخبار (العناوين) */
+.breaking-news-section, .sports-news-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: #fff;
   margin-bottom: 20px;
-  grid-auto-rows: 1fr; 
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--primary-color);
+  display: inline-block;
 }
-.breaking-news-grid { 
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+/* ======================================================== */
+/* === 5. تنسيق البطاقات الجديد (ليطابق ما يولده news.js) === */
+/* ======================================================== */
+
+/* الشبكة (Grid) */
+#breaking-news, #sports-news {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
 }
-.sports-news-grid { 
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-}
-.breaking-news-card, .sports-news-card {
-  background: rgba(0,0,0, 0.2);
-  border-radius: 10px;
+
+/* بطاقة الخبر (The Card) */
+.news-card, .breaking-news-card {
+  background: var(--card-bg);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   transition: transform 0.3s ease;
-  display: flex;
-  flex-direction: column; 
-}
-.breaking-news-card a, .sports-news-card a {
-  text-decoration: none;
-  color: inherit;
+  border: 1px solid #2e2e3a;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-.breaking-news-card:hover, .sports-news-card:hover {
-  transform: translateY(-5px);
+
+.news-card:hover, .breaking-news-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
-.breaking-news-image, .sports-news-image {
+
+/* حاوية الصورة */
+.news-image-wrapper {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.news-image-wrapper img {
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   object-fit: cover;
-  background-color: #2a3b4c;
+  transition: transform 0.5s ease;
 }
-.breaking-news-content, .sports-news-content {
-  padding: 15px;
+
+.news-card:hover img, .breaking-news-card:hover img {
+  transform: scale(1.1);
+}
+
+/* البادج (التصنيف) */
+.news-category-badge {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: var(--primary-color);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* المحتوى النصي */
+.news-content {
+  padding: 20px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
 }
-.breaking-news-content h3, .sports-news-content h3,
-.sports-news-content p {
-  color: var(--light-color);
-  margin: 0;
-  line-height: 1.4;
-}
-.breaking-news-content h3 { font-size: 1.1rem; }
-.sports-news-content h3 { font-size: 1.1rem; margin-bottom: 10px; }
-.sports-news-content p {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 15px;
-  flex-grow: 1;
 
-  /* --- التعديل الحاسم هنا: قص النص الطويل --- */
-  display: -webkit-box;
-  -webkit-line-clamp: 3; /* حدد عدد الأسطر التي تريدها (3 أسطر جيد) */
-  -webkit-box-orient: vertical;  
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* ------------------------------------------- */
+.news-title {
+  margin: 0 0 15px 0;
+  line-height: 1.5;
 }
+
+.news-title a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: color 0.3s;
+  
+  /* قص العنوان الطويل */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-title a:hover { color: var(--primary-color); }
+
+/* المعلومات الإضافية (الوقت والرابط) */
 .news-meta {
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255,255,255,0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-top: auto;
+  font-size: 0.85rem;
+  color: #aaa;
 }
-.news-meta span:last-child {
-  color: var(--secondary-color);
+
+.read-more-link {
+  color: var(--primary-color);
+  text-decoration: none;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
+.read-more-link:hover { text-decoration: underline; }
+
+
+/* 6. زر تحميل المزيد (إصلاح المشكلة) */
 .load-more-btn {
-  display: block;
-  margin: 20px auto 0;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 25px;
+  display: none; /* مخفي افتراضياً، الجافاسكريبت سيظهره */
+  margin: 30px auto;
+  background: transparent;
+  border: 2px solid var(--primary-color);
+  color: #fff;
+  padding: 12px 40px;
+  border-radius: 30px;
   cursor: pointer;
   font-family: 'Cairo', sans-serif;
   font-size: 1rem;
   font-weight: 700;
+  transition: 0.3s;
+  align-items: center;
+  gap: 10px;
 }
-/* 7. نظام التحميل والرسائل */
-.loading-indicator { display: flex; justify-content: center; align-items: center; padding: 40px; gap: 15px; }
-.loader { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: var(--light-color); width: 40px; height: 40px; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.no-news, .error { background: var(--glass-effect); padding: 20px; border-radius: 8px; text-align: center; color: rgba(255, 255, 255, 0.8); }
-.error { background: var(--primary-color); color: white; }
-/* 8. التجاوب مع الشاشات المختلفة */
-@media (max-width: 767px) {
-  .header .logo h1 { display: none; }
-  .nav { display: none; }
-  .menu-toggle { display: block; }
-  .breaking-news-grid, .sports-news-grid {
-    grid-template-columns: 1fr;
-  }
+
+.load-more-btn:hover {
+  background: var(--primary-color);
+  transform: translateY(-3px);
 }
-/* --- تنسيق شريط التواصل الاجتماعي العائم --- */
+
+.load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* 7. شريط التواصل الاجتماعي */
 .social-bar {
-    position: fixed; /* يجعله ثابتًا على الشاشة */
-    top: 50%; /* يبدأ من منتصف الشاشة */
-    left: 0; /* يثبته على اليمين */
-    transform: translateY(-50%); /* يوسطه عموديًا بدقة */
-    display: flex;
-    flex-direction: column; /* يجعله عموديًا */
-    gap: 8px; /* مسافة بين الأيقونات */
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2); /* خلفية زجاجية خفيفة */
-    backdrop-filter: blur(5px);
-    border-radius: 10px 0 0 10px; /* تدوير الحواف اليسرى */
-    z-index: 999; /* للتأكد من أنه فوق المحتوى */
+  position: fixed;
+  top: 50%;
+  left: 0; 
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 10px;
+  background: rgba(35, 35, 46, 0.9);
+  border-radius: 0 15px 15px 0;
+  z-index: 999;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .social-icon {
-    color: white;
-    font-size: 24px; /* حجم الأيقونة */
-    padding: 8px;
-    transition: transform 0.2s ease, color 0.2s ease;
+  color: #ccc;
+  font-size: 20px;
+  transition: 0.3s;
+  display: flex;
+  justify-content: center;
 }
 
-.social-icon:hover {
-    transform: scale(1.2);
-}
-
-/* ألوان اختيارية لكل أيقونة عند مرور الماوس */
+.social-icon:hover { transform: scale(1.2); color: #fff; }
 .social-icon.tiktok:hover { color: #00f2ea; }
 .social-icon.instagram:hover { color: #e4405f; }
 .social-icon.youtube:hover { color: #ff0000; }
+
+/* 8. التجاوب (Mobile Responsive) */
+@media (max-width: 768px) {
+  #breaking-news, #sports-news {
+    grid-template-columns: 1fr; /* عمود واحد في الموبايل */
+  }
+  
+  .header .logo h1 { display: none; } /* إخفاء النص في الموبايل */
+  
+  .news-image-wrapper { height: 220px; }
+}
+
+/* 9. اللودر ورسائل الخطأ */
+.loading-indicator {
+  display: flex; 
+  justify-content: center; 
+  margin: 40px 0;
+}
+.loader {
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.no-news, .error-msg {
+  text-align: center;
+  padding: 30px;
+  background: rgba(255,0,0,0.1);
+  border-radius: 10px;
+  color: #ffcccc;
+  grid-column: 1 / -1;
+}
