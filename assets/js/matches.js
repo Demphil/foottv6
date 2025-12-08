@@ -1,12 +1,13 @@
- import { getTodayMatches, getTomorrowMatches } from './api.js';
+import { getTodayMatches, getTomorrowMatches } from './api.js';
 // إعادة استيراد قاعدة بيانات الروابط الخاصة بك
 import { streamLinks } from './streams.js';
+
 // DOM elements mapping from index.html
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
-  broadcastContainer: document.getElementById('broadcast-matches'),
-  todayContainer: document.getElementById('today-matches'),
-  tomorrowContainer: document.getElementById('tomorrow-matches'),
+  broadcastContainer: document.getElementById('broadcast-matches'), // قسم أهم المباريات
+  todayContainer: document.getElementById('today-matches'),         // قسم جدول اليوم
+  tomorrowContainer: document.getElementById('tomorrow-matches'),   // قسم جدول الغد
   loadingScreen: document.getElementById('loading'),
   todayTab: document.getElementById('today-tab'),
   tomorrowTab: document.getElementById('tomorrow-tab'),
@@ -20,26 +21,23 @@ function hideLoading() {
 }
 
 /**
- * Creates the HTML for a single, intelligent match card that uses streams.js.
- * @param {object} match The match data object from api.js.
- * @returns {string} The HTML string for the match card.
+ * Creates the HTML for a single match card.
  */
 function renderMatch(match) {
-  // فحص وقائي لمنع الأخطاء إذا كانت بيانات المباراة غير مكتملة
   if (!match || !match.homeTeam || !match.awayTeam) {
     console.error("Skipping malformed match object:", match);
-    return ''; // إرجاع نص فارغ لتجنب عرض بطاقة خاطئة
+    return ''; 
   }
 
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
 
-  // --- المنطق الذكي لتحديد الرابط الصحيح من streams.js ---
+  // --- المنطق الذكي لتحديد الرابط ---
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
-  // Create the HTML for extra details (channel, commentator)
+  // تفاصيل القناة والمعلق
   const matchDetailsHTML = `
     ${match.channel ? `
       <div class="match-detail-item">
@@ -54,7 +52,7 @@ function renderMatch(match) {
       </div>
     ` : ''}
   `;
-  // بناء بطاقة المباراة النهائية
+
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
@@ -84,7 +82,7 @@ function renderMatch(match) {
 }
 
 /**
- * Renders a list of matches into a container or shows a "no matches" message.
+ * Renders a list of matches into a container.
  */
 function renderSection(container, matches, message) {
     if (!container) return;
@@ -106,20 +104,26 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
+  // فلترة مباريات السهرة (اختياري: يمكنك إزالته إذا أردت عرض كل شيء في السلايدر أيضاً)
   const featuredMatches = todayMatches.filter(match => {
     try {
-      // The time is now 24-hour format, so filtering is simpler
       const [hours] = match.time.split(':').map(Number);
-      return hours >= 16; // 4 PM or later in Morocco time
-    } catch (e) {
-      return false;
-    }
+      return hours >= 16; 
+    } catch (e) { return false; }
   });
 
-  // Using English messages for the UI
+  // --- التعديل هنا: إزالة .slice(0, 20) لعرض كل المباريات ---
+  
+  // 1. مباريات السهرة (Featured)
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  renderSection(DOM.broadcastContainer, todayMatches.slice(0, 20), 'No key matches scheduled for today.');
+  
+  // 2. أهم المباريات (Broadcast) - الآن تعرض الكل بدون حد أقصى
+  renderSection(DOM.broadcastContainer, todayMatches, 'No key matches scheduled for today.');
+  
+  // 3. جدول اليوم (Tab 1)
   renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
+  
+  // 4. جدول الغد (Tab 2)
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
 }
 
@@ -150,6 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndRenderMatches().catch(error => {
         console.error("An error occurred while loading matches:", error);
         hideLoading();
-        alert("Failed to load data. Please check your internet connection and try again.");
+        // alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
