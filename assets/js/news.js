@@ -1,11 +1,11 @@
 // assets/js/news.js
 
 // --- 1. الإعدادات الأساسية ---
-const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24"; // مفتاحك الخاص
+const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24"; 
 const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}`;
-const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 ساعة كافية للأخبار
+const CACHE_DURATION = 12 * 60 * 60 * 1000; 
 
-// --- 2. دوال الكاش (احتفظنا بها كما هي لأنها ممتازة) ---
+// --- 2. دوال الكاش ---
 function setCache(key, data) {
   try {
     const cacheItem = { timestamp: Date.now(), data: data };
@@ -26,41 +26,47 @@ function getCache(key) {
   } catch (error) { return null; }
 }
 
-// --- 3. إدارة العناصر (تحديث IDs لتطابق HTML الجديد) ---
+// --- 3. إدارة العناصر (التعرف على الصفحتين) ---
 const elements = {
-  grid: document.getElementById('news-grid-container'),
-  searchInput: document.getElementById('news-search-input'),
+  // المحاولة الأولى: ID الصفحة الرئيسية || المحاولة الثانية: ID صفحة الأخبار
+  grid: document.getElementById('news-grid-container') || document.getElementById('sports-news'),
+  
+  // خاص بصفحة الأخبار فقط
+  breakingGrid: document.getElementById('breaking-news'), 
+  
+  // عناصر مشتركة (نبحث عن ID أو Class لضمان العمل)
+  searchInput: document.getElementById('news-search-input') || document.getElementById('news-search'),
   searchBtn: document.getElementById('search-btn'),
-  filterBtns: document.querySelectorAll('.filter-btn'),
-  loadMoreBtn: document.querySelector('.load-more-btn') // الزر الجديد
+  
+  // الأزرار
+  filterBtns: document.querySelectorAll('.filter-btn'), // الصفحة الرئيسية
+  categoryBtns: document.querySelectorAll('.category-btn'), // صفحة الأخبار
+  
+  loadMoreBtn: document.getElementById('load-more') || document.querySelector('.load-more-btn')
 };
 
 let state = {
   nextPage: null,
-  currentKeywords: 'كرة القدم' // الكلمة الافتراضية
+  currentKeywords: 'كرة القدم'
 };
 
-// --- 4. دالة الجلب (Fetch) ---
+// --- 4. دالة الجلب ---
 async function fetchNews(page = null) {
   const keywords = state.currentKeywords;
-  
-  // بناء الرابط (نبحث في الرياضة وباللغة العربية)
   let targetUrl = `${BASE_URL}&language=ar&category=sports&q=${encodeURIComponent(keywords)}`;
   if (page) targetUrl += `&page=${page}`;
 
-  // محاولة الكاش أولاً
   const cacheKey = `news_${keywords}_${page || 'init'}`;
   const cachedData = getCache(cacheKey);
 
   if (cachedData) {
-    console.log(`⚡ News loaded from cache: ${keywords}`);
     state.nextPage = cachedData.nextPage;
     updateLoadMoreBtn();
     return cachedData.articles;
   }
   
   try {
-    // إظهار التحميل إذا كان أول طلب
+    // إظهار اللودر في الشبكة الرئيسية المتوفرة
     if (!page && elements.grid) {
         elements.grid.innerHTML = '<div class="loading-placeholder"><i class="fas fa-spinner fa-spin"></i><p>جاري جلب الأخبار...</p></div>';
     }
@@ -73,7 +79,6 @@ async function fetchNews(page = null) {
     const articles = result.results || [];
     state.nextPage = result.nextPage;
 
-    // حفظ في الكاش
     setCache(cacheKey, { articles: articles, nextPage: state.nextPage });
     updateLoadMoreBtn();
 
@@ -81,62 +86,88 @@ async function fetchNews(page = null) {
 
   } catch (error) {
     console.error('News Fetch Error:', error);
-    if (elements.grid) elements.grid.innerHTML = '<p class="error-msg">عذراً، حدث خطأ أثناء جلب الأخبار.</p>';
+    if (elements.grid) elements.grid.innerHTML = '<p class="error-msg">عذراً، حدث خطأ في الاتصال.</p>';
     return [];
   }
 }
 
-// --- 5. دالة العرض (Render) - تم تحديثها لتطابق التصميم الجديد ---
+// --- 5. دالة العرض (Render) ---
 function renderNews(articles, append = false) {
     if (!elements.grid) return;
 
     // تنظيف الحاوية إذا لم يكن "تحميل المزيد"
     if (!append) {
         elements.grid.innerHTML = '';
+        if (elements.breakingGrid) elements.breakingGrid.innerHTML = ''; // تنظيف العاجل أيضاً
     }
 
     if (!articles || articles.length === 0) {
-        if (!append) elements.grid.innerHTML = '<p class="no-news">لا توجد أخبار تطابق بحثك حالياً.</p>';
+        if (!append) elements.grid.innerHTML = '<p class="no-news">لا توجد أخبار.</p>';
         return;
     }
 
-    articles.forEach(article => {
-        // فلترة الصور المكسورة
-        const imgUrl = article.image_url || 'assets/images/default-news.jpg';
-        
-        // تحديد التصنيف (Badge)
-        let badge = "عالمي";
-        if(article.title.includes("سعودي") || article.title.includes("الهلال")) badge = "السعودية";
-        if(article.title.includes("مصري") || article.title.includes("الأهلي")) badge = "مصر";
-        if(article.title.includes("إسباني") || article.title.includes("ريال")) badge = "إسبانيا";
+    // --- منطق خاص لصفحة news.html ---
+    // إذا كنا في صفحة الأخبار (يوجد breakingGrid) ولم يكن "تحميل المزيد" (append=false)
+    // نأخذ أول 4 أخبار ونضعها في "أخبار عاجلة" والباقي في الشبكة
+    let mainArticles = articles;
+    
+    if (elements.breakingGrid && !append) {
+        const breakingArticles = articles.slice(0, 4);
+        mainArticles = articles.slice(4); // الباقي للشبكة الرئيسية
 
-        const card = document.createElement('article');
-        card.className = 'news-card'; // الكلاس الجديد من CSS
-        
-        card.innerHTML = `
-            <div class="news-image-wrapper">
-                <span class="news-category-badge">${badge}</span>
-                <img src="${imgUrl}" alt="${article.title}" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
-            </div>
-            <div class="news-content">
-                <h3 class="news-title">
-                    <a href="${article.link}" target="_blank">${truncateText(article.title, 60)}</a>
-                </h3>
-                <div class="news-meta">
-                    <span><i class="far fa-clock"></i> ${formatDate(article.pubDate)}</span>
-                    <a href="${article.link}" target="_blank" class="read-more-link">التفاصيل <i class="fas fa-arrow-left"></i></a>
-                </div>
-            </div>
-        `;
+        breakingArticles.forEach(article => {
+            const card = createNewsCard(article, 'breaking');
+            elements.breakingGrid.appendChild(card);
+        });
+    }
+
+    // عرض الباقي في الشبكة الرئيسية (Grid)
+    mainArticles.forEach(article => {
+        const card = createNewsCard(article, 'standard');
         elements.grid.appendChild(card);
     });
 }
 
-// --- 6. دوال مساعدة ---
+// دالة مساعدة لإنشاء HTML البطاقة
+function createNewsCard(article, type) {
+    const imgUrl = article.image_url || 'assets/images/default-news.jpg';
+    
+    // تحديد البادج
+    let badge = "عالمي";
+    if(article.title.includes("سعودي") || article.title.includes("الهلال")) badge = "السعودية";
+    if(article.title.includes("مصري") || article.title.includes("الأهلي")) badge = "مصر";
+    if(article.title.includes("إسباني") || article.title.includes("ريال")) badge = "إسبانيا";
+
+    const card = document.createElement(type === 'breaking' ? 'div' : 'article');
+    // استخدام كلاسات موحدة ليعمل CSS الجديد
+    card.className = type === 'breaking' ? 'breaking-news-card' : 'news-card'; 
+    
+    // HTML موحد (يعتمد على CSS الجديد)
+    card.innerHTML = `
+        <div class="news-image-wrapper">
+            <span class="news-category-badge">${badge}</span>
+            <img src="${imgUrl}" alt="${article.title}" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
+        </div>
+        <div class="news-content">
+            <h3 class="news-title">
+                <a href="${article.link}" target="_blank">${truncateText(article.title, 60)}</a>
+            </h3>
+            <div class="news-meta">
+                <span><i class="far fa-clock"></i> ${formatDate(article.pubDate)}</span>
+                <a href="${article.link}" target="_blank" class="read-more-link">اقرأ <i class="fas fa-arrow-left"></i></a>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+// --- 6. دوال مساعدة وزر التحميل ---
 function updateLoadMoreBtn() {
     if (elements.loadMoreBtn) {
-        elements.loadMoreBtn.style.display = state.nextPage ? 'inline-block' : 'none';
-        elements.loadMoreBtn.innerHTML = 'عرض المزيد من الأخبار';
+        // إظهار الزر فقط إذا كانت هناك صفحة تالية
+        elements.loadMoreBtn.style.display = state.nextPage ? 'inline-flex' : 'none'; // inline-flex لتوسط الأيقونة
+        elements.loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> تحميل المزيد';
+        elements.loadMoreBtn.disabled = false;
     }
 }
 
@@ -151,61 +182,65 @@ function formatDate(dateString) {
     return date.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
 }
 
-// --- 7. تهيئة الصفحة والأحداث ---
+// --- 7. التهيئة ---
 async function init() {
-    // التحميل المبدئي
+    // 1. جلب وعرض الأخبار
     const initialNews = await fetchNews();
     renderNews(initialNews);
     
-    // تفعيل البحث
-    elements.searchBtn?.addEventListener('click', handleSearch);
-    elements.searchInput?.addEventListener('keyup', (e) => { if (e.key === 'Enter') handleSearch(); });
+    // 2. تفعيل البحث (يعمل في الصفحتين)
+    const performSearch = async () => {
+        const term = elements.searchInput.value.trim();
+        if (!term) return;
+        state.currentKeywords = term;
+        state.nextPage = null;
+        const results = await fetchNews();
+        renderNews(results);
+    };
 
-    // تفعيل الفلاتر
-    elements.filterBtns?.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            // تحديث الشكل (Active Class)
-            elements.filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    elements.searchBtn?.addEventListener('click', performSearch);
+    elements.searchInput?.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
 
-            // تحديد كلمة البحث بناءً على الفلتر
-            const cat = btn.dataset.category;
-            let query = 'كرة القدم'; // الافتراضي
-            
-            if(cat === 'spanish') query = 'الدوري الإسباني';
-            if(cat === 'english') query = 'الدوري الإنجليزي';
-            if(cat === 'saudi') query = 'الدوري السعودي';
-            if(cat === 'can afrique ') query = 'دوري ابطال افريقيا';
-            if(cat === 'champions') query = 'دوري أبطال أوروبا';
-            if(cat === 'transfers') query = 'انتقالات لاعبين';
+    // 3. تفعيل الفلاتر (للصفحة الرئيسية)
+    elements.filterBtns?.forEach(btn => setupFilterClick(btn));
+    // 4. تفعيل التصنيفات (لصفحة news.html)
+    elements.categoryBtns?.forEach(btn => setupFilterClick(btn));
 
-            state.currentKeywords = query;
-            state.nextPage = null;
-            
-            const results = await fetchNews();
-            renderNews(results);
-        });
-    });
-
-    // تفعيل زر تحميل المزيد
+    // 5. تفعيل زر تحميل المزيد (المشكلة كانت هنا وتم حلها)
     elements.loadMoreBtn?.addEventListener('click', async () => {
         if (state.nextPage) {
-            elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
+            elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
+            elements.loadMoreBtn.disabled = true; // منع النقر المتكرر
+            
             const moreNews = await fetchNews(state.nextPage);
-            renderNews(moreNews, true); // True تعني أضف النتائج للأسفل ولا تمسح القديم
+            renderNews(moreNews, true); // true = إضافة للأسفل
         }
     });
 }
 
-async function handleSearch() {
-    const term = elements.searchInput.value.trim();
-    if (!term) return;
-    
-    state.currentKeywords = term;
-    state.nextPage = null;
-    const results = await fetchNews();
-    renderNews(results);
+// دالة مساعدة للفلاتر
+function setupFilterClick(btn) {
+    btn.addEventListener('click', async () => {
+        // إزالة active من جميع الأزرار المشابهة
+        const siblings = btn.parentElement.querySelectorAll('button');
+        siblings.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        let query = btn.dataset.category;
+        if(query === 'football' || query === 'all') query = 'كرة القدم';
+        
+        // تحويل كلمات الفلاتر الإنجليزية (index.html) إلى عربي
+        if(query === 'spanish') query = 'الدوري الإسباني';
+        if(query === 'english') query = 'الدوري الإنجليزي';
+        if(query === 'saudi') query = 'الدوري السعودي';
+        if(query === 'champions') query = 'دوري أبطال أوروبا';
+        if(query === 'transfers') query = 'انتقالات لاعبين';
+
+        state.currentKeywords = query;
+        state.nextPage = null;
+        const results = await fetchNews();
+        renderNews(results);
+    });
 }
 
-// تشغيل الكود عند فتح الصفحة
 document.addEventListener('DOMContentLoaded', init);
