@@ -179,7 +179,13 @@ function truncateText(text, length) {
 function formatDate(dateString) {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' });
+    
+    // التغيير هنا: استخدام 'ar-EG-u-nu-latn' لإجبار الأرقام اللاتينية
+    return date.toLocaleDateString('ar-EG-u-nu-latn', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric' // أضفت السنة لتكون المعلومة كاملة (يمكنك إزالتها إذا أردت)
+    });
 }
 
 // --- 7. التهيئة ---
