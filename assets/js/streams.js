@@ -31,7 +31,7 @@ export const streamLinks = {
   'beIN Sports 7 HD': 'https://demphil.github.io/bein7/',
   'بى أن سبورت 7 HD': 'https://demphil.github.io/bein7/',
   'beIN SPORTS HD 8': 'https://demphil.github.io/bein8/',
-  'beIN Sports HD 8': 'https://demphil.github.io/bein8/',
+  'beIN Sport 8 HD': 'https://demphil.github.io/bein8/',
   'beIN Sports 8 HD': 'https://demphil.github.io/bein8/',
   'بى أن سبورت 8 HD': 'https://demphil.github.io/bein8/',
   'beIN SPORTS HD 9': 'https://demphil.github.io/bein9/',
