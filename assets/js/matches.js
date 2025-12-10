@@ -1,69 +1,89 @@
+// assets/js/matches.js
+
 import { getTodayMatches, getTomorrowMatches } from './api.js';
-// إعادة استيراد قاعدة بيانات الروابط الخاصة بك
 import { streamLinks } from './streams.js';
 
-// DOM elements mapping from index.html
+// DOM elements mapping
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
-  broadcastContainer: document.getElementById('broadcast-matches'), // قسم أهم المباريات
-  todayContainer: document.getElementById('today-matches'),         // قسم جدول اليوم
-  tomorrowContainer: document.getElementById('tomorrow-matches'),   // قسم جدول الغد
+  broadcastContainer: document.getElementById('broadcast-matches'),
+  todayContainer: document.getElementById('today-matches'),
+  tomorrowContainer: document.getElementById('tomorrow-matches'),
   loadingScreen: document.getElementById('loading'),
   todayTab: document.getElementById('today-tab'),
   tomorrowTab: document.getElementById('tomorrow-tab'),
 };
 
-/**
- * Hides the main loading spinner.
- */
 function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
 
-/**
- * Creates the HTML for a single match card.
- */
+// --- دالة الترتيب الذكي (5 دقائق أولاً) ---
+function sortMatchesByPriority(a, b) {
+    const now = new Date();
+    
+    const getMatchDate = (timeStr) => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        return date;
+    };
+
+    const dateA = getMatchDate(a.time);
+    const dateB = getMatchDate(b.time);
+    const diffA = (dateA - now) / 60000; 
+    const diffB = (dateB - now) / 60000;
+
+    const getRank = (diff, score) => {
+        if (diff >= 0 && diff <= 5) return 1; // ستبدأ قريباً جداً
+        const isLive = diff < 0 && diff > -130; 
+        if (isLive) return 2; // جارية الآن
+        if (diff > 5) return 3; // قادمة
+        return 4; // انتهت
+    };
+
+    const rankA = getRank(diffA, a.score);
+    const rankB = getRank(diffB, b.score);
+
+    if (rankA !== rankB) return rankA - rankB;
+    return dateA - dateB;
+}
+
 function renderMatch(match) {
-  if (!match || !match.homeTeam || !match.awayTeam) {
-    console.error("Skipping malformed match object:", match);
-    return ''; 
-  }
+  if (!match || !match.homeTeam || !match.awayTeam) return '';
 
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
-
-  // --- المنطق الذكي لتحديد الرابط ---
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
-  // تفاصيل القناة والمعلق
+  // شارات الحالة
+  let statusBadge = '';
+  const [h, m] = match.time.split(':').map(Number);
+  const matchDate = new Date(); matchDate.setHours(h, m, 0, 0);
+  const diffMins = (matchDate - new Date()) / 60000;
+
+  if (diffMins >= 0 && diffMins <= 5) {
+      statusBadge = '<span class="live-badge soon">سيبدأ قريباً</span>';
+  } else if (diffMins < 0 && diffMins > -130) {
+      statusBadge = '<span class="live-badge live">جاري الآن</span>';
+  }
+
   const matchDetailsHTML = `
-    ${match.channel ? `
-      <div class="match-detail-item">
-        <i class="fas fa-tv" aria-hidden="true"></i>
-        <span>${match.channel}</span>
-      </div>
-    ` : ''}
-    ${match.commentator ? `
-      <div class="match-detail-item">
-        <i class="fas fa-microphone-alt" aria-hidden="true"></i>
-        <span>${match.commentator}</span>
-      </div>
-    ` : ''}
+    ${match.channel ? `<div class="match-detail-item"><i class="fas fa-tv"></i><span>${match.channel}</span></div>` : ''}
+    ${match.commentator ? `<div class="match-detail-item"><i class="fas fa-microphone-alt"></i><span>${match.commentator}</span></div>` : ''}
   `;
 
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
       <article class="match-card">
-      ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
-
-        <div class="league-info">
-            <span>${match.league}</span>
-        </div>
+        ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
+        ${statusBadge}
+        <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
             <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-info">
@@ -71,7 +91,7 @@ function renderMatch(match) {
             <span class="time">${match.time}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.onerror=null; this.src='assets/images/default-logo.png';">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
@@ -81,9 +101,6 @@ function renderMatch(match) {
   `;
 }
 
-/**
- * Renders a list of matches into a container.
- */
 function renderSection(container, matches, message) {
     if (!container) return;
     if (matches && matches.length > 0) {
@@ -93,9 +110,6 @@ function renderSection(container, matches, message) {
     }
 }
 
-/**
- * Main function to load data and render all match sections.
- */
 async function loadAndRenderMatches() {
   const [todayMatches, tomorrowMatches] = await Promise.all([
     getTodayMatches(),
@@ -104,32 +118,23 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // فلترة مباريات السهرة (اختياري: يمكنك إزالته إذا أردت عرض كل شيء في السلايدر أيضاً)
-  const featuredMatches = todayMatches.filter(match => {
+  // ترتيب المباريات
+  const sortedTodayMatches = [...todayMatches].sort(sortMatchesByPriority);
+
+  // فلترة السهرة
+  const featuredMatches = sortedTodayMatches.filter(match => {
     try {
       const [hours] = match.time.split(':').map(Number);
       return hours >= 16; 
     } catch (e) { return false; }
   });
 
-  // --- التعديل هنا: إزالة .slice(0, 20) لعرض كل المباريات ---
-  
-  // 1. مباريات السهرة (Featured)
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  
-  // 2. أهم المباريات (Broadcast) - الآن تعرض الكل بدون حد أقصى
-  renderSection(DOM.broadcastContainer, todayMatches, 'No key matches scheduled for today.');
-  
-  // 3. جدول اليوم (Tab 1)
-  renderSection(DOM.todayContainer, todayMatches, 'No matches scheduled for today.');
-  
-  // 4. جدول الغد (Tab 2)
+  renderSection(DOM.broadcastContainer, sortedTodayMatches, 'No key matches scheduled for today.');
+  renderSection(DOM.todayContainer, sortedTodayMatches, 'No matches scheduled for today.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
 }
 
-/**
- * Sets up the tab switching logic.
- */
 function setupTabs() {
     const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
         if (!activeTab || !inactiveTab || !activeContainer || !inactiveContainer) return;
@@ -148,12 +153,10 @@ function setupTabs() {
     });
 }
 
-// Start the process when the page is ready
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     loadAndRenderMatches().catch(error => {
         console.error("An error occurred while loading matches:", error);
         hideLoading();
-        // alert("Failed to load data. Please check your internet connection and try again.");
     });
 });
