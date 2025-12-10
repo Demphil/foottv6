@@ -614,3 +614,31 @@ a.match-card-link {
   font-size: 1rem;
   font-weight: 700;
 }
+/* شارات الحالة المباشرة */
+.live-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* أو right حسب التصميم */
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    z-index: 5;
+    animation: pulse 2s infinite;
+}
+
+.live-badge.soon {
+    background-color: #ffd166; /* أصفر */
+    color: #000;
+}
+
+.live-badge.live {
+    background-color: #e63946; /* أحمر */
+    color: #fff;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
