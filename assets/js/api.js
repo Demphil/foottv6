@@ -1,190 +1,161 @@
-import { getTodayMatches, getTomorrowMatches } from './api.js';
-import { streamLinks } from './streams.js';
+// --- 1. Cache Configuration ---
+const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
+const CACHE_KEY_TODAY = 'matches_cache_today';
+const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
-// DOM elements mapping
-const DOM = {
-  featuredContainer: document.getElementById('featured-matches'),
-  broadcastContainer: document.getElementById('broadcast-matches'),
-  todayContainer: document.getElementById('today-matches'),
-  tomorrowContainer: document.getElementById('tomorrow-matches'),
-  loadingScreen: document.getElementById('loading'),
-  todayTab: document.getElementById('today-tab'),
-  tomorrowTab: document.getElementById('tomorrow-tab'),
-};
 
-function hideLoading() {
-  if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
+function setCache(key, data) {
+  const cacheItem = {
+    timestamp: Date.now(),
+    data: data,
+  };
+  localStorage.setItem(key, JSON.stringify(cacheItem));
+  console.log(`💾 Data for '${key}' saved to cache.`);
 }
 
-/**
- * دالة ذكية لحساب أولوية المباراة للترتيب
- * 1. ستبدأ خلال 5 دقائق أو أقل -> الأولوية الأولى
- * 2. جارية حالياً -> الأولوية الثانية
- * 3. ستبدأ لاحقاً -> الأولوية الثالثة
- * 4. انتهت -> الأولوية الأخيرة
- */
-function sortMatchesByPriority(a, b) {
-    const now = new Date();
-    
-    // دالة مساعدة لتحويل وقت المباراة (HH:MM) إلى كائن تاريخ
-    const getMatchDate = (timeStr) => {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const date = new Date();
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-    };
+function getCache(key) {
+  const cachedItem = localStorage.getItem(key);
+  if (!cachedItem) return null;
 
-    const dateA = getMatchDate(a.time);
-    const dateB = getMatchDate(b.time);
+  const { timestamp, data } = JSON.parse(cachedItem);
+  const age = Date.now() - timestamp;
 
-    // الفرق بالدقائق (الموجب يعني في المستقبل، السالب يعني بدأت)
-    const diffA = (dateA - now) / 60000; 
-    const diffB = (dateB - now) / 60000;
-
-    // دالة لتحديد "رتبة" المباراة بناءً على طلبك
-    const getRank = (diff, score) => {
-        // الحالة 1: ستبدأ خلال 0 إلى 5 دقائق (الأهم)
-        if (diff >= 0 && diff <= 5) return 1;
-        
-        // الحالة 2: المباراة جارية (بدأت منذ أقل من 130 دقيقة والنتيجة ليست VS)
-        // أو بدأت للتو (diff سالب)
-        const isLive = diff < 0 && diff > -130; 
-        if (isLive) return 2;
-
-        // الحالة 3: مباريات المستقبل (أكثر من 5 دقائق)
-        if (diff > 5) return 3;
-
-        // الحالة 4: مباريات انتهت (مر عليها أكثر من ساعتين)
-        return 4;
-    };
-
-    const rankA = getRank(diffA, a.score);
-    const rankB = getRank(diffB, b.score);
-
-    // الترتيب حسب الرتبة أولاً
-    if (rankA !== rankB) {
-        return rankA - rankB;
-    }
-
-    // إذا تساوت الرتبة، نرتب حسب الزمن (الأقرب فالأقرب)
-    return dateA - dateB;
-}
-
-function renderMatch(match) {
-  if (!match || !match.homeTeam || !match.awayTeam) return '';
-
-  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
-  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
-  const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
-  const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const isClickable = watchUrl ? 'clickable' : 'not-clickable';
-
-  // إضافة علامة "LIVE" أو "SOON" لتمييز المباريات المهمة بصرياً
-  let statusBadge = '';
-  const [h, m] = match.time.split(':').map(Number);
-  const matchDate = new Date(); matchDate.setHours(h, m, 0, 0);
-  const diffMins = (matchDate - new Date()) / 60000;
-
-  if (diffMins >= 0 && diffMins <= 5) {
-      statusBadge = '<span class="live-badge soon">سيبدأ قريباً</span>';
-  } else if (diffMins < 0 && diffMins > -130) {
-      statusBadge = '<span class="live-badge live">جاري الآن</span>';
+  if (age > CACHE_EXPIRY_MS) {
+    localStorage.removeItem(key);
+    return null;
   }
 
-  const matchDetailsHTML = `
-    ${match.channel ? `<div class="match-detail-item"><i class="fas fa-tv"></i><span>${match.channel}</span></div>` : ''}
-    ${match.commentator ? `<div class="match-detail-item"><i class="fas fa-microphone-alt"></i><span>${match.commentator}</span></div>` : ''}
-  `;
-
-  return `
-    <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
-      <article class="match-card">
-        ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
-        ${statusBadge} <div class="league-info"><span>${match.league}</span></div>
-        <div class="teams">
-          <div class="team">
-            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
-            <span class="team-name">${match.homeTeam.name}</span>
-          </div>
-          <div class="match-info">
-            <span class="score">${match.score}</span>
-            <span class="time">${match.time}</span>
-          </div>
-          <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
-            <span class="team-name">${match.awayTeam.name}</span>
-          </div>
-        </div>
-        ${matchDetailsHTML.trim() ? `<div class="match-details-extra">${matchDetailsHTML}</div>` : ''}
-      </article>
-    </a>
-  `;
+  return data;
 }
 
-function renderSection(container, matches, message) {
-    if (!container) return;
-    if (matches && matches.length > 0) {
-        container.innerHTML = matches.map(renderMatch).join('');
-    } else {
-        container.innerHTML = `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
+// --- 2. Timezone Conversion Function ---
+/**
+ * Converts a time string from Source (likely UTC+2) to Morocco (UTC+1).
+ * @param {string} timeString - The time string, e.g., "09:30 PM".
+ * @returns {string} The converted time string, e.g., "20:30".
+ */
+function convertSourceToMoroccoTime(timeString) {
+  try {
+    if (!timeString || !timeString.includes(':')) {
+      return timeString;
     }
+
+    const [timePart, ampm] = timeString.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
+      hours += 12;
+    }
+    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
+      hours = 0;
+    }
+
+    // --- التعديل الحاسم هنا ---
+    // المصدر على الأغلب بتوقيت أوروبا (GMT+2) والمغرب (GMT+1)
+    // لذلك نقوم بطرح ساعة واحدة فقط
+    hours -= 1;
+    if (hours < 0) {
+      hours += 24;
+    }
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    return `${formattedHours}:${formattedMinutes}`;
+  } catch (error) {
+    return timeString;
+  }
 }
 
-async function loadAndRenderMatches() {
-  const [todayMatches, tomorrowMatches] = await Promise.all([
-    getTodayMatches(),
-    getTomorrowMatches()
-  ]);
+// --- 3. API Functions ---
+const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-  hideLoading();
+export async function getTodayMatches() {
+  const cachedMatches = getCache(CACHE_KEY_TODAY);
+  if (cachedMatches) {
+    console.log("⚡ Loading today's matches from cache.");
+    return cachedMatches;
+  }
+  console.log("🌐 Fetching today's matches from network.");
+  const targetUrl = 'https://www.live-match-tv.net/';
+  const newMatches = await fetchMatches(targetUrl);
+  if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
+  return newMatches;
+}
 
-  // --- تطبيق الترتيب الذكي هنا ---
-  // نقوم بنسخ المصفوفة وترتيبها حتى لا نؤثر على البيانات الأصلية بشكل خاطئ
-  const sortedTodayMatches = [...todayMatches].sort(sortMatchesByPriority);
+export async function getTomorrowMatches() {
+  const cachedMatches = getCache(CACHE_KEY_TOMORROW);
+  if (cachedMatches) {
+    console.log("⚡ Loading tomorrow's matches from cache.");
+    return cachedMatches;
+  }
+  console.log("🌐 Fetching tomorrow's matches from network.");
+  const targetUrl = 'https://www.live-match-tv.net/matches-tomorrow/';
+  const newMatches = await fetchMatches(targetUrl);
+  if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
+  return newMatches;
+}
 
-  // فلترة مباريات السهرة (اختياري)
-  const featuredMatches = sortedTodayMatches.filter(match => {
+// --- 4. Core Fetching and Parsing Logic ---
+async function fetchMatches(targetUrl) {
+
+  try {
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+    const html = await response.text();
+    return parseMatches(html);
+  } catch (error) {
+    console.error("Failed to fetch via worker:", error);
+    return [];
+  }
+}
+
+function parseMatches(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const matches = [];
+  const matchElements = doc.querySelectorAll('.AY_Match');
+  matchElements.forEach(matchEl => {
     try {
-      const [hours] = match.time.split(':').map(Number);
-      return hours >= 16; 
-    } catch (e) { return false; }
+
+      const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
+      const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+      if (!homeTeamName || !awayTeamName) return;
+      const matchLink = matchEl.querySelector('a')?.href;
+      if (!matchLink) return;
+      let score = 'VS';
+      const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
+      if (scoreSpans.length === 2) {
+        const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
+        const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
+        if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
+      }
+
+    
+      const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
+      // استخدام الدالة الجديدة
+      const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
+      const channel = infoListItems[0]?.textContent?.trim() || '';
+      const commentator = infoListItems[1]?.textContent?.trim() || '';
+      const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
+      matches.push({
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+        time: moroccoTime, // Use the converted time here
+        score: score,
+        league: league,
+        channel: channel.includes('غير معروف') ? '' : channel,
+        commentator: commentator.includes('غير معروف') ? '' : commentator,
+        matchLink: matchLink
+      });
+    } catch (e) {
+      console.error('Failed to parse a single match element:', e);
+    }
   });
-
-  // 1. مباريات السهرة (مرتبة بالأولوية أيضاً)
-  renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  
-  // 2. أهم المباريات (مرتبة: 5 دقائق > جاري > قادم)
-  renderSection(DOM.broadcastContainer, sortedTodayMatches, 'No key matches scheduled for today.');
-  
-  // 3. جدول اليوم
-  renderSection(DOM.todayContainer, sortedTodayMatches, 'No matches scheduled for today.');
-  
-  // 4. جدول الغد (يبقى بالترتيب الزمني العادي)
-  renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
+  return matches;
 }
 
-function setupTabs() {
-    const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
-        if (!activeTab || !inactiveTab || !activeContainer || !inactiveContainer) return;
-        activeTab.classList.add('active');
-        inactiveTab.classList.remove('active');
-        activeContainer.style.display = 'grid';
-        inactiveContainer.style.display = 'none';
-    };
-
-    DOM.todayTab?.addEventListener('click', () => {
-        handleTabClick(DOM.todayTab, DOM.tomorrowTab, DOM.todayContainer, DOM.tomorrowContainer);
-    });
-
-    DOM.tomorrowTab?.addEventListener('click', () => {
-        handleTabClick(DOM.tomorrowTab, DOM.todayTab, DOM.tomorrowContainer, DOM.todayContainer);
-    });
+function extractImageUrl(imgElement) {
+  if (!imgElement) return '';
+  const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
+  if (src.startsWith('http') || src.startsWith('//')) return src;
+  return `https://www.live-match-tv.net/${src.startsWith('/') ? '' : '/'}${src}`;
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    setupTabs();
-    loadAndRenderMatches().catch(error => {
-        console.error("An error occurred while loading matches:", error);
-        hideLoading();
-    });
-});
