@@ -1,5 +1,3 @@
-// assets/js/matches.js
-
 import { getTodayMatches, getTomorrowMatches } from './api.js';
 import { streamLinks } from './streams.js';
 
@@ -18,10 +16,34 @@ function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
 
-// --- دالة الترتيب الذكي (5 دقائق أولاً) ---
+/**
+ * دالة الترتيب الذكي
+ * الترتيب الجديد:
+ * 1. مباريات لها قناة + ستبدأ قريباً (0-5 دقائق)
+ * 2. مباريات لها قناة + جارية الآن
+ * 3. مباريات لها قناة + قادمة
+ * 4. مباريات انتهت
+ * 5. مباريات ليس لها قناة (في الأسفل دائماً)
+ */
 function sortMatchesByPriority(a, b) {
-    const now = new Date();
+    // 1. التحقق من وجود القناة (شرطك الجديد)
+    // نعتبر القناة غير موجودة إذا كانت فارغة أو تحتوي على كلمات تدل على عدم التحديد
+    const hasChannel = (match) => {
+        const ch = match.channel;
+        return ch && ch !== 'غير محدد' && ch !== 'Unknown' && ch !== 'غير معروف' && ch.trim() !== '';
+    };
+
+    const aHas = hasChannel(a);
+    const bHas = hasChannel(b);
+
+    // إذا كانت (أ) لها قناة و (ب) ليس لها -> (أ) تظهر أولاً
+    if (aHas && !bHas) return -1;
+    // إذا كانت (ب) لها قناة و (أ) ليس لها -> (ب) تظهر أولاً
+    if (!aHas && bHas) return 1;
+
+    // --- إذا تساوت حالة القناة، نطبق الترتيب الزمني المعتاد ---
     
+    const now = new Date();
     const getMatchDate = (timeStr) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
         const date = new Date();
@@ -35,11 +57,18 @@ function sortMatchesByPriority(a, b) {
     const diffB = (dateB - now) / 60000;
 
     const getRank = (diff, score) => {
-        if (diff >= 0 && diff <= 5) return 1; // ستبدأ قريباً جداً
+        // الأولوية 1: ستبدأ خلال 0 إلى 5 دقائق
+        if (diff >= 0 && diff <= 5) return 1;
+        
+        // الأولوية 2: جارية الآن (بدأت منذ أقل من 130 دقيقة)
         const isLive = diff < 0 && diff > -130; 
-        if (isLive) return 2; // جارية الآن
-        if (diff > 5) return 3; // قادمة
-        return 4; // انتهت
+        if (isLive) return 2;
+
+        // الأولوية 3: قادمة (أكثر من 5 دقائق)
+        if (diff > 5) return 3;
+
+        // الأولوية 4: انتهت
+        return 4;
     };
 
     const rankA = getRank(diffA, a.score);
@@ -70,9 +99,22 @@ function renderMatch(match) {
       statusBadge = '<span class="live-badge live">جاري الآن</span>';
   }
 
+  // عرض تفاصيل القناة فقط إذا كانت متوفرة
+  const hasChannelInfo = match.channel && match.channel !== 'غير محدد' && match.channel !== 'Unknown';
+  
   const matchDetailsHTML = `
-    ${match.channel ? `<div class="match-detail-item"><i class="fas fa-tv"></i><span>${match.channel}</span></div>` : ''}
-    ${match.commentator ? `<div class="match-detail-item"><i class="fas fa-microphone-alt"></i><span>${match.commentator}</span></div>` : ''}
+    ${hasChannelInfo ? `
+      <div class="match-detail-item">
+        <i class="fas fa-tv" aria-hidden="true"></i>
+        <span>${match.channel}</span>
+      </div>
+    ` : ''}
+    ${match.commentator ? `
+      <div class="match-detail-item">
+        <i class="fas fa-microphone-alt" aria-hidden="true"></i>
+        <span>${match.commentator}</span>
+      </div>
+    ` : ''}
   `;
 
   return `
@@ -118,7 +160,7 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // ترتيب المباريات
+  // ترتيب المباريات (سيتم تطبيق القاعدة الجديدة هنا)
   const sortedTodayMatches = [...todayMatches].sort(sortMatchesByPriority);
 
   // فلترة السهرة
