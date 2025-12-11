@@ -75,7 +75,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://m.yallasport.onl/';
+  const targetUrl = 'https://www.koraa-live.com/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -88,7 +88,7 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://m.yallasport.onl/matches-tomorrow/';
+  const targetUrl = 'https://www.koraa-live.com/matches-tomorrow1/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
@@ -169,5 +169,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://m.yallasport.onl/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.koraa-live.com/${src.startsWith('/') ? '' : '/'}${src}`;
 }
