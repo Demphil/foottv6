@@ -17,16 +17,16 @@ function hideLoading() {
 }
 
 /**
- * دالة الترتيب الذكي
- * الترتيب الجديد:
- * 1. مباريات لها قناة + جارية الآن (بدأت منذ أقل من 130 دقيقة)
- * 2. مباريات لها قناة + ستبدأ قريباً (0-30 دقيقة) - تم تعديل المجال الزمني قليلاً ليشمل المزيد
- * 3. مباريات لها قناة + قادمة
- * 4. مباريات لها قناة + انتهت
- * 5. مباريات ليس لها قناة (في الأسفل دائماً)
+ * دالة الترتيب الذكي (النسخة الصارمة)
+ * الترتيب:
+ * 1. (Rank 1) جارية الآن (بدأت منذ 0 وحتى 140 دقيقة) ولها قناة.
+ * 2. (Rank 2) ستبدأ قريباً (خلال 0 إلى 45 دقيقة) ولها قناة.
+ * 3. (Rank 3) قادمة (أكثر من 45 دقيقة) ولها قناة.
+ * 4. (Rank 4) انتهت (مر أكثر من 140 دقيقة) ولها قناة.
+ * 5. (Rank 5) ليس لها قناة (في الأسفل دائماً).
  */
 function sortMatchesByPriority(a, b) {
-    // 1. التحقق من وجود القناة
+    // 1. فحص وجود القناة
     const hasChannel = (match) => {
         const ch = match.channel;
         return ch && ch !== 'غير محدد' && ch !== 'Unknown' && ch !== 'غير معروف' && ch.trim() !== '';
@@ -35,11 +35,11 @@ function sortMatchesByPriority(a, b) {
     const aHas = hasChannel(a);
     const bHas = hasChannel(b);
 
-    // المباريات التي لها قناة تظهر أولاً
-    if (aHas && !bHas) return -1;
-    if (!aHas && bHas) return 1;
+    // إذا كانت إحدى المباريات بدون قناة، تذهب للأسفل مباشرة (Rank 5)
+    if (aHas && !bHas) return -1; // a فوق
+    if (!aHas && bHas) return 1;  // b فوق
 
-    // --- الترتيب الزمني ---
+    // --- حساب الفارق الزمني ---
     const now = new Date();
     const getMatchDate = (timeStr) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
@@ -53,25 +53,25 @@ function sortMatchesByPriority(a, b) {
     const diffA = (dateA - now) / 60000; // الفرق بالدقائق
     const diffB = (dateB - now) / 60000;
 
+    // دالة تحديد الرتبة
     const getRank = (diff) => {
-        // الأولوية 1: جارية الآن (بدأت منذ أقل من 130 دقيقة)
-        // الفرق السالب يعني أن الوقت الحالي بعد وقت المباراة
-        if (diff < 0 && diff > -130) return 1;
+        // جارية الآن: الوقت بالسالب (بدأت) ولكن لم يمر عليها 140 دقيقة
+        if (diff < 0 && diff > -140) return 1;
 
-        // الأولوية 2: ستبدأ قريباً (خلال 30 دقيقة)
-        if (diff >= 0 && diff <= 30) return 2;
+        // ستبدأ قريباً: الوقت بالموجب (لم تبدأ) ولكن أقل من 45 دقيقة
+        if (diff >= 0 && diff <= 45) return 2;
 
-        // الأولوية 3: قادمة (أكثر من 30 دقيقة)
-        if (diff > 30) return 3;
+        // قادمة: ستبدأ بعد أكثر من 45 دقيقة
+        if (diff > 45) return 3;
 
-        // الأولوية 4: انتهت (مر أكثر من 130 دقيقة)
+        // انتهت: مر عليها أكثر من 140 دقيقة
         return 4;
     };
 
     const rankA = getRank(diffA);
     const rankB = getRank(diffB);
 
-    // الترتيب حسب الرتبة (الأقل رتبة يظهر أولاً)
+    // الترتيب حسب الرتبة (الأصغر هو الأول)
     if (rankA !== rankB) {
         return rankA - rankB;
     }
@@ -89,31 +89,35 @@ function renderMatch(match) {
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
-  // حساب الوقت المتبقي
+  // حساب الوقت والحالة
   const [h, m] = match.time.split(':').map(Number);
   const matchDate = new Date(); matchDate.setHours(h, m, 0, 0);
   const now = new Date();
   const diffMins = (matchDate - now) / 60000;
 
-  // تحديد نص الوقت وحالة الشارة
+  // إعداد النصوص والشارات
   let timeText = match.time;
   let statusBadge = '';
+  let matchStatusClass = ''; // كلاس إضافي لتنسيق CSS إذا أردت
 
   if (diffMins >= 0 && diffMins <= 10) {
-      // إذا تبقى 10 دقائق أو أقل، نستبدل الوقت بـ "ستبدأ قريباً"
-      timeText = '<span class="soon-text">ستبدأ قريباً</span>';
+      // الحالة: ستبدأ قريباً جداً (أقل من 10 دقائق)
+      // استبدال الوقت بالنص
+      timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
       statusBadge = '<span class="live-badge soon">قريباً</span>';
-  } else if (diffMins < 0 && diffMins > -130) {
-      // المباراة جارية
+  } else if (diffMins < 0 && diffMins > -140) {
+      // الحالة: جارية الآن
       statusBadge = '<span class="live-badge live">جاري الآن</span>';
-      // يمكن إضافة النتيجة هنا إذا كانت متوفرة وتحدث مباشرة، لكن حالياً نترك الوقت أو النتيجة الثابتة
-      // إذا كانت النتيجة متوفرة من المصدر، نستخدمها بدلاً من الوقت
-      if (match.score && match.score !== 'VS' && match.score.includes('-')) {
-          timeText = match.score;
+      matchStatusClass = 'is-live'; // يمكن استخدامه لتمييز البطاقة
+      
+      // إذا كانت النتيجة متوفرة (ليست VS)، نعرضها مكان الوقت
+      // وإلا نترك الوقت الأصلي لبداية المباراة
+      if (match.score && match.score.includes('-')) {
+          timeText = `<span class="live-score">${match.score}</span>`;
       }
   }
 
-  // التحقق من وجود القناة للعرض
+  // فحص القناة للعرض
   const hasChannelInfo = match.channel && match.channel !== 'غير محدد' && match.channel !== 'Unknown' && match.channel !== 'غير معروف' && match.channel.trim() !== '';
   
   const matchDetailsHTML = `
@@ -133,7 +137,7 @@ function renderMatch(match) {
 
   return `
     <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
-      <article class="match-card">
+      <article class="match-card ${matchStatusClass}">
         ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
@@ -173,10 +177,11 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // ترتيب المباريات باستخدام الدالة المعدلة
-  const sortedTodayMatches = [...todayMatches].sort(sortMatchesByPriority);
+  // 1. ترتيب مباريات اليوم (هنا يتم تطبيق الإصلاح)
+  // نستخدم .slice() لإنشاء نسخة جديدة ثم ترتيبها
+  const sortedTodayMatches = todayMatches.slice().sort(sortMatchesByPriority);
 
-  // فلترة مباريات السهرة (اختياري، يعتمد على الوقت فقط)
+  // 2. فلترة مباريات السهرة (اختياري)
   const featuredMatches = sortedTodayMatches.filter(match => {
     try {
       const [hours] = match.time.split(':').map(Number);
@@ -184,6 +189,7 @@ async function loadAndRenderMatches() {
     } catch (e) { return false; }
   });
 
+  // 3. العرض في الأقسام
   renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
   renderSection(DOM.broadcastContainer, sortedTodayMatches, 'No key matches scheduled for today.');
   renderSection(DOM.todayContainer, sortedTodayMatches, 'No matches scheduled for today.');
