@@ -224,6 +224,19 @@
     <script src="assets/js/ad-manager.js"></script>
     <script type="module" src="assets/js/matches.js"></script>
     <script type="module" src="assets/js/news.js"></script>
-
+<div id="wait-modal" class="modal-overlay" onclick="closeWaitModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <h3>عذراً، البث غير متاح الآن</h3>
+        <p>
+            حرصاً على جودة الخدمة، سيتم تفعيل رابط المباراة تلقائياً 
+            <br>
+            <span class="highlight-time">قبل البداية بـ 10 دقائق</span>
+        </p>
+        <button class="modal-close-btn" onclick="closeWaitModal()">حسناً، فهمت</button>
+    </div>
+</div>
 </body>   
 </html>
