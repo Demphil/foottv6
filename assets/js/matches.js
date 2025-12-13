@@ -1,7 +1,9 @@
+// assets/js/matches.js
+
 import { getTodayMatches, getTomorrowMatches } from './api.js';
 import { streamLinks } from './streams.js';
 
-// DOM elements mapping
+// --- 1. تعريف عناصر DOM ---
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
   broadcastContainer: document.getElementById('broadcast-matches'),
@@ -16,17 +18,21 @@ function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
 
-/**
- * دالة الترتيب الذكي (النسخة الصارمة)
- * الترتيب:
- * 1. (Rank 1) جارية الآن (بدأت منذ 0 وحتى 140 دقيقة) ولها قناة.
- * 2. (Rank 2) ستبدأ قريباً (خلال 0 إلى 45 دقيقة) ولها قناة.
- * 3. (Rank 3) قادمة (أكثر من 45 دقيقة) ولها قناة.
- * 4. (Rank 4) انتهت (مر أكثر من 140 دقيقة) ولها قناة.
- * 5. (Rank 5) ليس لها قناة (في الأسفل دائماً).
- */
+// --- 2. دوال النافذة المنبثقة (Modal) ---
+// نجعلها Global لكي يستطيع HTML الوصول إليها عبر onclick
+window.openWaitModal = function() {
+    const modal = document.getElementById('wait-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+window.closeWaitModal = function() {
+    const modal = document.getElementById('wait-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// --- 3. دالة الترتيب الذكي (Strict Sort) ---
 function sortMatchesByPriority(a, b) {
-    // 1. فحص وجود القناة
+    // أ. التحقق من وجود القناة (المباريات بدون قناة تذهب للأسفل)
     const hasChannel = (match) => {
         const ch = match.channel;
         return ch && ch !== 'غير محدد' && ch !== 'Unknown' && ch !== 'غير معروف' && ch.trim() !== '';
@@ -35,11 +41,10 @@ function sortMatchesByPriority(a, b) {
     const aHas = hasChannel(a);
     const bHas = hasChannel(b);
 
-    // إذا كانت إحدى المباريات بدون قناة، تذهب للأسفل مباشرة (Rank 5)
     if (aHas && !bHas) return -1; // a فوق
     if (!aHas && bHas) return 1;  // b فوق
 
-    // --- حساب الفارق الزمني ---
+    // ب. حساب الفارق الزمني
     const now = new Date();
     const getMatchDate = (timeStr) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
@@ -53,18 +58,18 @@ function sortMatchesByPriority(a, b) {
     const diffA = (dateA - now) / 60000; // الفرق بالدقائق
     const diffB = (dateB - now) / 60000;
 
-    // دالة تحديد الرتبة
+    // ج. تحديد الرتبة (Rank)
     const getRank = (diff) => {
-        // جارية الآن: الوقت بالسالب (بدأت) ولكن لم يمر عليها 140 دقيقة
+        // 1. جارية الآن: (بدأت منذ أقل من 140 دقيقة)
         if (diff < 0 && diff > -140) return 1;
 
-        // ستبدأ قريباً: الوقت بالموجب (لم تبدأ) ولكن أقل من 45 دقيقة
+        // 2. ستبدأ قريباً: (خلال 0 إلى 45 دقيقة)
         if (diff >= 0 && diff <= 45) return 2;
 
-        // قادمة: ستبدأ بعد أكثر من 45 دقيقة
+        // 3. قادمة: (بعد أكثر من 45 دقيقة)
         if (diff > 45) return 3;
 
-        // انتهت: مر عليها أكثر من 140 دقيقة
+        // 4. انتهت: (مر عليها أكثر من 140 دقيقة)
         return 4;
     };
 
@@ -80,6 +85,7 @@ function sortMatchesByPriority(a, b) {
     return dateA - dateB;
 }
 
+// --- 4. دالة بناء بطاقة المباراة (Render) ---
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
@@ -87,37 +93,51 @@ function renderMatch(match) {
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const isClickable = watchUrl ? 'clickable' : 'not-clickable';
 
-  // حساب الوقت والحالة
+  // حساب الوقت المتبقي
   const [h, m] = match.time.split(':').map(Number);
   const matchDate = new Date(); matchDate.setHours(h, m, 0, 0);
   const now = new Date();
   const diffMins = (matchDate - now) / 60000;
 
-  // إعداد النصوص والشارات
+  // المتغيرات للعرض
   let timeText = match.time;
   let statusBadge = '';
-  let matchStatusClass = ''; // كلاس إضافي لتنسيق CSS إذا أردت
+  let matchStatusClass = '';
+  
+  // إعداد الرابط (النافذة المنبثقة vs الرابط المباشر)
+  let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
+  let clickAction = '';
+  let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
 
-  if (diffMins >= 0 && diffMins <= 10) {
-      // الحالة: ستبدأ قريباً جداً (أقل من 10 دقائق)
-      // استبدال الوقت بالنص
-      timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
-      statusBadge = '<span class="live-badge soon">قريباً</span>';
-  } else if (diffMins < 0 && diffMins > -140) {
-      // الحالة: جارية الآن
-      statusBadge = '<span class="live-badge live">جاري الآن</span>';
-      matchStatusClass = 'is-live'; // يمكن استخدامه لتمييز البطاقة
+  // المنطق:
+  // إذا تبقى 10 دقائق أو أقل، أو المباراة جارية -> اسمح بالدخول
+  // وإلا -> أظهر النافذة المنبثقة
+  
+  if (diffMins <= 10) {
+      // --- حالة الدخول المسموح ---
+      hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
       
-      // إذا كانت النتيجة متوفرة (ليست VS)، نعرضها مكان الوقت
-      // وإلا نترك الوقت الأصلي لبداية المباراة
-      if (match.score && match.score.includes('-')) {
-          timeText = `<span class="live-score">${match.score}</span>`;
+      if (diffMins >= 0) {
+          // ستبدأ خلال 0-10 دقائق
+          timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
+          statusBadge = '<span class="live-badge soon">قريباً</span>';
+      } else if (diffMins > -140) {
+           // جارية الآن
+           statusBadge = '<span class="live-badge live">جاري الآن</span>';
+           matchStatusClass = 'is-live';
+           // عرض النتيجة إذا توفرت
+           if (match.score && match.score.includes('-')) {
+               timeText = `<span class="live-score">${match.score}</span>`;
+           }
       }
+  } else {
+      // --- حالة الانتظار (أكثر من 10 دقائق) ---
+      hrefAttribute = `href="javascript:void(0)"`; 
+      clickAction = `onclick="openWaitModal()"`;
   }
 
-  // فحص القناة للعرض
+  // فحص معلومات القناة
   const hasChannelInfo = match.channel && match.channel !== 'غير محدد' && match.channel !== 'Unknown' && match.channel !== 'غير معروف' && match.channel.trim() !== '';
   
   const matchDetailsHTML = `
@@ -136,7 +156,7 @@ function renderMatch(match) {
   `;
 
   return `
-    <a href="${watchUrl || '#'}" target="_blank" rel="noopener noreferrer" class="match-card-link ${isClickable}">
+    <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}">
         ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
         ${statusBadge}
@@ -147,7 +167,8 @@ function renderMatch(match) {
             <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-info">
-             <span class="time">${timeText}</span>
+            <span class="score">${match.score}</span>
+            <span class="time">${timeText}</span>
           </div>
           <div class="team">
             <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
@@ -160,6 +181,7 @@ function renderMatch(match) {
   `;
 }
 
+// --- 5. دالة تعبئة الأقسام ---
 function renderSection(container, matches, message) {
     if (!container) return;
     if (matches && matches.length > 0) {
@@ -169,6 +191,7 @@ function renderSection(container, matches, message) {
     }
 }
 
+// --- 6. الدالة الرئيسية (Load & Sort) ---
 async function loadAndRenderMatches() {
   const [todayMatches, tomorrowMatches] = await Promise.all([
     getTodayMatches(),
@@ -177,11 +200,10 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // 1. ترتيب مباريات اليوم (هنا يتم تطبيق الإصلاح)
-  // نستخدم .slice() لإنشاء نسخة جديدة ثم ترتيبها
+  // 1. ترتيب مباريات اليوم (نسخة جديدة ثم ترتيب)
   const sortedTodayMatches = todayMatches.slice().sort(sortMatchesByPriority);
 
-  // 2. فلترة مباريات السهرة (اختياري)
+  // 2. فلترة مباريات السهرة (اختياري: من الساعة 4 مساءً وما بعد)
   const featuredMatches = sortedTodayMatches.filter(match => {
     try {
       const [hours] = match.time.split(':').map(Number);
@@ -190,12 +212,13 @@ async function loadAndRenderMatches() {
   });
 
   // 3. العرض في الأقسام
-  renderSection(DOM.featuredContainer, featuredMatches, 'No evening matches today.');
-  renderSection(DOM.broadcastContainer, sortedTodayMatches, 'No key matches scheduled for today.');
-  renderSection(DOM.todayContainer, sortedTodayMatches, 'No matches scheduled for today.');
-  renderSection(DOM.tomorrowContainer, tomorrowMatches, 'No matches scheduled for tomorrow.');
+  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات سهرة اليوم.');
+  renderSection(DOM.broadcastContainer, sortedTodayMatches, 'لا توجد مباريات هامة اليوم.');
+  renderSection(DOM.todayContainer, sortedTodayMatches, 'لا توجد مباريات اليوم.');
+  renderSection(DOM.tomorrowContainer, tomorrowMatches, 'لا توجد مباريات غداً.');
 }
 
+// --- 7. إعداد التبويبات ---
 function setupTabs() {
     const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
         if (!activeTab || !inactiveTab || !activeContainer || !inactiveContainer) return;
@@ -214,6 +237,7 @@ function setupTabs() {
     });
 }
 
+// تشغيل الكود عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     loadAndRenderMatches().catch(error => {
