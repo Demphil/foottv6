@@ -207,7 +207,7 @@ async function loadAndRenderMatches() {
   const featuredMatches = sortedTodayMatches.filter(match => {
     try {
       const [hours] = match.time.split(':').map(Number);
-      return hours >= 16; 
+      return hours >= 10; 
     } catch (e) { return false; }
   });
 
