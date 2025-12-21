@@ -71,6 +71,7 @@ export const streamLinks = {
   'ابوظبي الرياضية 2': 'https://demphil.github.io/adsports-primum1/',
   'Starzplay': 'https://demphil.github.io/starzplay/',
   'شاهد - Shahid VIP': 'https://demphil.github.io/shahid-vip/',
+  'beIN SPORTS MAX 1': 'https://demphil.github.io/BEINmax1/',
 
   
 
