@@ -87,7 +87,7 @@ export const streamLinks = {
   //'المغرب-جزر القمر': 'https://demphil.github.io/aryadialive/',
   'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
   'تونس-سوريا': 'https://demphil.github.io/BEINEXTRA1/',
-  'قطر-تونس': 'https://demphil.github.io/abu-dhabi-sport12/',
+  'الجزائر-السودان': 'https://demphil.github.io/BEINmax1/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
