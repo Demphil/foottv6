@@ -84,7 +84,7 @@ export const streamLinks = {
   'مانشستر يونايتد-نيوكاسل يونايتد': 'https://demphil.github.io/beinsports1/',
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
-  //'المغرب-جزر القمر': 'https://demphil.github.io/aryadialive/',
+ 'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
   'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
   'مصر-جنوب أفريقيا': 'https://demphil.github.io/BEINEXTRA1/',
   'الجزائر-السودان': 'https://demphil.github.io/BEINmax1/',
