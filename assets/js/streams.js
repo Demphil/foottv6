@@ -81,7 +81,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'جورجيا-إسبانيا': 'https://demphil.github.io/beinsports1/',
+  'مانشستر يونايتد-نيوكاسل يونايتد': 'https://demphil.github.io/beinsports1/',
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
   //'المغرب-جزر القمر': 'https://demphil.github.io/aryadialive/',
