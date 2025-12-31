@@ -56,7 +56,7 @@ export const streamLinks = {
   'ad sports premium 1': 'https://demphil.github.io/adsports-primum1/',
   'ad sports premium 2': 'https://demphil.github.io/adsports-primum1/',
   'ثمانية 1': 'https://demphil.github.io/tamania1/',
-  'تطبيق ثمانية': 'https://demphil.github.io/atalnia3',
+  'تطبيق ثمانية': 'https://demphil.github.io/tamania1/',
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
