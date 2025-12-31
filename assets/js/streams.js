@@ -89,7 +89,7 @@ export const streamLinks = {
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
   'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
   'مصر-جنوب أفريقيا': 'https://demphil.github.io/BEINmax1/',
-  'الجزائر-بوركينا فاسو': 'https://demphil.github.io/BEINmax1/',
+  'غينيا الاستوائية-الجزائر': 'https://demphil.github.io/BEINmax1/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
 };
