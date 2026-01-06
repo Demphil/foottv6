@@ -87,7 +87,7 @@ export const streamLinks = {
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
-  'الترجي-ستاد مالي': 'https://demphil.github.io/bein7/',
+  'الجزائر-الكونغو الديمقراطية': 'https://demphil.github.io/BEINmax1/',
   'مصر-جنوب أفريقيا': 'https://demphil.github.io/BEINmax1/',
   'غينيا الاستوائية-الجزائر': 'https://demphil.github.io/BEINmax1/',
 
