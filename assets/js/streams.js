@@ -71,6 +71,7 @@ export const streamLinks = {
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
   'beIN Sports HD': 'https://demphil.github.io/beinfree/',
+  'بي إن سبورت HD': 'https://demphil.github.io/beinfree/',
   'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',
   'الكأس HD1': 'https://dns2.getmoney.my/albaplayer/b2/?serv=0',
    'الجزائرية السادسة': 'https://demphil.github.io/algy6/',
@@ -89,6 +90,9 @@ export const streamLinks = {
   'beIN Sports Max 2 HD': 'https://demphil.github.io/Beinmax2/',
   'beIN Max 2': 'https://demphil.github.io/Beinmax2/',
 
+  
+  
+  
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
   // =================================================================
