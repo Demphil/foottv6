@@ -66,6 +66,7 @@ export const streamLinks = {
   'ad sports premium 2': 'https://demphil.github.io/adsports-primum1/',
   'ثمانية 1': 'https://demphil.github.io/tamania1/',
   'تطبيق ثمانية': 'https://demphil.github.io/tamania1/',
+  'قنوات ثمانية': 'https://demphil.github.io/tamania1/',
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
@@ -82,12 +83,11 @@ export const streamLinks = {
   'Starzplay': 'https://demphil.github.io/starzplay/',
   'StarzPlay': 'https://demphil.github.io/starzplay/',
   'شاهد - Shahid VIP': 'https://demphil.github.io/shahid-vip/',
+  'شاهد - VIP | رياضة': 'https://demphil.github.io/shahid-vip/',
   'beIN SPORTS MAX 1': 'https://demphil.github.io/BEINmax1/',
   'beIN Max 1': 'https://demphil.github.io/BEINmax1/',
   'beIN Sports Max 2 HD': 'https://demphil.github.io/Beinmax2/',
   'beIN Max 2': 'https://demphil.github.io/Beinmax2/',
-
-  
 
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
