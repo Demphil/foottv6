@@ -1,2 +1,2 @@
 google.com, pub-1051815609113641, DIRECT, f08c47fec0942fa0
-curl -L https://srv.adstxtmanager.com/19390/[koralive.football].com > ads.txt
+
