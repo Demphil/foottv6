@@ -75,7 +75,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.koralivc.com/';
+  const targetUrl = 'https://www.live-koorahnet.com/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -88,7 +88,7 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.koralivc.com/matches-tomorrow/';
+  const targetUrl = 'https://www.live-koorahnet.com/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
@@ -169,5 +169,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.koralivc.com/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.live-koorahnet.com/${src.startsWith('/') ? '' : '/'}${src}`;
 }
