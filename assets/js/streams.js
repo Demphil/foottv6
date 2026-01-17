@@ -104,7 +104,7 @@ export const streamLinks = {
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
   'السنغال-مصر': 'https://demphil.github.io/BEINmax1/',
-  'مصر-جنوب أفريقيا': 'https://demphil.github.io/BEINmax1/',
+  'مصر-نيجيريا': 'https://demphil.github.io/BEINmax1/',
   'غينيا الاستوائية-الجزائر': 'https://demphil.github.io/BEINmax1/',
 
   // أضف المزيد من القنوات والمباريات المخصصة هنا
