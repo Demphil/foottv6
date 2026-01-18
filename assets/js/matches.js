@@ -114,7 +114,7 @@ function renderMatch(match) {
   // إذا تبقى 10 دقائق أو أقل، أو المباراة جارية -> اسمح بالدخول
   // وإلا -> أظهر النافذة المنبثقة
   
-  if (diffMins <= 10) {
+  if (diffMins <= 120) {
       // --- حالة الدخول المسموح ---
       hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
       
