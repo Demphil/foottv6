@@ -99,7 +99,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'مانشستر يونايتد-نيوكاسل يونايتد': 'https://demphil.github.io/beinsports1/',
+  'الجيش الملكي-بانج افريكانز': 'https://demphil.github.io/bein5',
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
