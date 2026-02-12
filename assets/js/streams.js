@@ -70,6 +70,7 @@ export const streamLinks = {
   'ثمانية 2': 'https://demphil.github.io/atamina2/',
   'ثمانية 3': 'https://demphil.github.io/atalnia3/',
   'MBC Action': 'https://demphil.github.io/mbc-action/',
+
   'beIN Sports HD': 'https://demphil.github.io/beinfree/',
   'بي إن سبورت HD': 'https://demphil.github.io/beinfree/',
   'beIN SPORTS HD': 'https://demphil.github.io/beinfree/',
@@ -99,7 +100,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'الجيش الملكي-بانج افريكانز': 'https://demphil.github.io/bein5',
+  'أتلتيكو مدريد-برشلونة': 'https://demphil.github.io/mbc-action/',
   'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
