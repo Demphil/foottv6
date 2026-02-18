@@ -101,7 +101,7 @@ export const streamLinks = {
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
   'أتلتيكو مدريد-برشلونة': 'https://demphil.github.io/mbc-action/',
-  'تركيا-بلغاريا': 'https://demphil.github.io/football-live/',
+  'الاهلي-سباهان': 'https://demphil.github.io/bein6/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
   'السنغال-مصر': 'https://demphil.github.io/BEINmax1/',
