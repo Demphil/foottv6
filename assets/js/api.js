@@ -50,7 +50,7 @@ function convertSourceToMoroccoTime(timeString) {
 
     // --- التعديل الجديد هنا ---
     // قمنا بتغيير الطرح ليصبح ساعتين بدلاً من ساعة واحدة
-    hours -= 4; 
+    hours -= 2; 
 
     // معالجة الحالة إذا أصبح الوقت سالباً (مثلاً الساعة 1 ليلاً ناقص ساعتين تصبح 23)
     if (hours < 0) {
@@ -75,7 +75,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.kooorasport.live/';
+  const targetUrl = 'https://www.nkoora.online/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
@@ -88,7 +88,7 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.kooorasport.live/matches-tomorrow/';
+  const targetUrl = 'https://www.nkoora.online/matches-tomorrow/';
   const newMatches = await fetchMatches(targetUrl);
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
@@ -169,5 +169,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.kooorasport.live/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://www.nkoora.online/${src.startsWith('/') ? '' : '/'}${src}`;
 }
