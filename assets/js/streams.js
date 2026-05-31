@@ -62,6 +62,8 @@ export const streamLinks = {
   'On Time Sports 1': 'https://demphil.github.io/live-stream/',
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
   'ON TIME SPORTS 2': 'https://demphil.github.io/onesports2/',
+    'On Sport Plus': 'https://demphil.github.io/onesports2/',
+
   'أون سبورت 2': 'https://demphil.github.io/onesports2/',
   'ad sports premium 1': 'https://demphil.github.io/adsports-primum1/',
   'ad sports premium 2': 'https://demphil.github.io/adsports-primum1/',
@@ -101,7 +103,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'صن داونز-الجيش الملكي': 'https://demphil.github.io/beinsports1/',
+  'السنغال-أمريكا': 'https://demphil.github.io/onesports2/',
   'الاهلي-سباهان': 'https://demphil.github.io/bein6/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
