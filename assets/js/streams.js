@@ -103,7 +103,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'السنغال-أمريكا': 'https://demphil.github.io/onesports2/',
+  'الجزائر-هولندا': 'https://demphil.github.io/algy6/',
   'الاهلي-سباهان': 'https://demphil.github.io/bein6/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
