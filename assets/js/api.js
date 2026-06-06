@@ -33,8 +33,9 @@ function getCache(key) {
 /**
  * Converts a time string from Source (Saudi Arabia/Mecca Time - UTC+3) to Morocco Time.
  * Automatically handles Morocco's UTC+1 / UTC+0 (Ramadan) fluctuations.
+ * 'isTomorrow' helps pinning the exact target day context from the source list.
  */
-function convertSourceToMoroccoTime(timeString) {
+function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
   try {
     if (!timeString || !timeString.includes(':')) {
       return timeString;
@@ -50,13 +51,18 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // 2. الحصول على تاريخ اليوم الحالي في مكة المكرمة لضبط كائن التاريخ
-    const now = new Date();
+    // 2. الحصول على التاريخ بناءً على سياق الصفحة (اليوم أو الغد) لتجنب خلط منتصف الليل
+    const targetDateInMecca = new Date();
+    if (isTomorrow) {
+      targetDateInMecca.setDate(targetDateInMecca.getDate() + 1);
+    }
+
     const meccaFormatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Asia/Riyadh',
       year: 'numeric', month: 'numeric', day: 'numeric'
     });
-    const parts = meccaFormatter.formatToParts(now);
+    
+    const parts = meccaFormatter.formatToParts(targetDateInMecca);
     const year = parseInt(parts.find(p => p.type === 'year').value, 10);
     const month = parseInt(parts.find(p => p.type === 'month').value, 10) - 1;
     const day = parseInt(parts.find(p => p.type === 'day').value, 10);
@@ -65,7 +71,6 @@ function convertSourceToMoroccoTime(timeString) {
     const matchDateUTC = new Date(Date.UTC(year, month, day, hours - 3, minutes));
 
     // 4. تحويل الوقت الناتج مباشرة إلى توقيت المغرب المحلي (Africa/Casablanca)
-    // المتصفح سيحدد تلقائياً إن كان المغرب في فترة +1 أو 0 بناءً على تاريخ اليوم
     const moroccoFormatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Africa/Casablanca',
       hour: '2-digit',
@@ -91,7 +96,7 @@ export async function getTodayMatches() {
   }
   console.log("🌐 Fetching today's matches from network.");
   const targetUrl = 'https://www.liverscore.net/';
-  const newMatches = await fetchMatches(targetUrl);
+  const newMatches = await fetchMatches(targetUrl, false); // false تعني مباريات اليوم
   if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
   return newMatches;
 }
@@ -104,25 +109,25 @@ export async function getTomorrowMatches() {
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
   const targetUrl = 'https://www.liverscore.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl);
+  const newMatches = await fetchMatches(targetUrl, true); // true تعني مباريات الغد
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
 }
 
 // --- 4. Core Fetching and Parsing Logic ---
-async function fetchMatches(targetUrl) {
+async function fetchMatches(targetUrl, isTomorrow = false) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     const html = await response.text();
-    return parseMatches(html);
+    return parseMatches(html, isTomorrow);
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
     return [];
   }
 }
 
-function parseMatches(html) {
+function parseMatches(html, isTomorrow = false) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
@@ -147,7 +152,9 @@ function parseMatches(html) {
       }
 
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      
+      // مررنا متغير isTomorrow لضمان ربط الوقت باليوم الصحيح المستهدف من الموقع
+      const moroccoTime = convertSourceToMoroccoTime(originalTime, isTomorrow);
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       
