@@ -31,7 +31,8 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts a time string from Source to Morocco (UTC+1).
+ * Converts a time string from Source (Saudi Arabia/Mecca Time - UTC+3) to Morocco Time.
+ * Handles daylight saving (Ramadan changes) automatically via Intl API.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
@@ -39,29 +40,46 @@ function convertSourceToMoroccoTime(timeString) {
       return timeString;
     }
 
-    const [timePart, ampm] = timeString.split(' ');
+    // تنظيف النص وتفكيك الوقت (مثال: "08:45 PM" أو "20:45")
+    const cleanedString = timeString.replace(/\s+/g, ' ').trim();
+    const [timePart, ampm] = cleanedString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
-    if (ampm && ampm.toUpperCase().includes('PM') && hours !== 12) {
-      hours += 12;
-    }
-    if (ampm && ampm.toUpperCase().includes('AM') && hours === 12) {
-      hours = 0;
+
+    if (ampm) {
+      if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
+      if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // --- التعديل الجديد هنا ---
-    // قمنا بتغيير الطرح ليصبح ساعتين بدلاً من ساعة واحدة
-    hours -= 4; 
+    // إنشاء تاريخ وهمي لليوم وتعيين الوقت بناءً على توقيت مكة المكرمة (Asia/Riyadh)
+    const now = new Date();
+    const formatterMecca = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Riyadh',
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', hour12: false
+    });
 
-    // معالجة الحالة إذا أصبح الوقت سالباً (مثلاً الساعة 1 ليلاً ناقص ساعتين تصبح 23)
-    if (hours < 0) {
-      hours += 24;
-    }
-    
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(minutes).padStart(2, '0');
-    return `${formattedHours}:${formattedMinutes}`;
+    // حساب فارق التوقيت بدقة بين جهاز المستخدم وتوقيت مكة
+    const parts = formatterMecca.formatToParts(now);
+    const meccaYear = parts.find(p => p.type === 'year').value;
+    const meccaMonth = parts.find(p => p.type === 'month').value - 1;
+    const meccaDay = parts.find(p => p.type === 'day').value;
+
+    //สร้าง Date Object كأنه في مكة المكرمة
+    const targetDate = new Date(Date.UTC(meccaYear, meccaMonth, meccaDay, hours - 3, minutes));
+
+    // تحويل الوقت الناتج مباشرة إلى توقيت المغرب (Africa/Casablanca)
+    // هذه الطريقة تضمن التوقيت الصحيح حتى لو تغير توقيت المغرب في رمضان (بين UTC+0 و UTC+1)
+    const formatterMorocco = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Casablanca',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+
+    return formatterMorocco.format(targetDate);
   } catch (error) {
-    return timeString;
+    console.error("Error converting time:", error);
+    return timeString; // العودة للوقت الأصلي في حال حدوث خطأ غير متوقع
   }
 }
 
@@ -143,7 +161,6 @@ function parseMatches(html) {
       // --- جلب القناة من القائمة النصية ---
       let finalChannel = channelFromSite;
       if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-         // نرسل أسماء الفرق للدالة لتبحث عنها داخل النص الذي لصقته
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
       // ---------------------------------
