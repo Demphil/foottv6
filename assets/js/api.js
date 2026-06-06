@@ -1,9 +1,32 @@
 // --- 1. Cache Configuration ---
-import { getChannelByTeam } from './chaine.js'; // استيراد الدالة
+import { getChannelByTeam } from './chaine.js'; 
 
 const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
-const CACHE_KEY_TODAY = 'matches_cache_today';
-const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
+
+// دالة ذكية للحصول على المفتاح الصحيح للكاش بناءً على التوقيت الرياضي (الفجر هو الحد الفاصل)
+function getAdjustedCacheKeys() {
+  const now = new Date();
+  
+  // تحويل الوقت الحالي لمعرفة الساعة في المغرب بدقة
+  const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Africa/Casablanca',
+    hour: 'numeric',
+    hour12: false
+  }).format(now), 10);
+
+  // إذا كنا بعد منتصف الليل وقبل الـ 3 صباحاً، نعتبر كاش "اليوم" هو كاش الأمس رياضياً
+  if (moroccoHour >= 0 && moroccoHour < 3) {
+    return {
+      todayKey: 'matches_cache_yesterday_shifted', // مفتاح بديل لمنع تداخل التواريخ
+      tomorrowKey: 'matches_cache_today' // مباريات الغد تصبح هي مباريات اليوم الحالي
+    };
+  }
+
+  return {
+    todayKey: 'matches_cache_today',
+    tomorrowKey: 'matches_cache_tomorrow'
+  };
+}
 
 function setCache(key, data) {
   const cacheItem = {
@@ -32,8 +55,7 @@ function getCache(key) {
 // --- 2. Timezone Conversion Function ---
 /**
  * Converts a time string from Source (Saudi Arabia/Mecca Time - UTC+3) to Morocco Time.
- * Automatically handles Morocco's UTC+1 / UTC+0 (Ramadan) fluctuations.
- * 'isTomorrow' helps pinning the exact target day context from the source list.
+ * Handles midnight roll-overs accurately by looking at the logical sport day.
  */
 function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
   try {
@@ -41,7 +63,6 @@ function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
       return timeString;
     }
 
-    // 1. تنظيف النص وتفكيك الوقت (مثال: "08:45 PM" أو "20:45")
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
     const [timePart, ampm] = cleanedString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
@@ -51,9 +72,18 @@ function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // 2. الحصول على التاريخ بناءً على سياق الصفحة (اليوم أو الغد) لتجنب خلط منتصف الليل
     const targetDateInMecca = new Date();
-    if (isTomorrow) {
+    
+    // تعديل سياق التاريخ بناءً على الساعة الحالية في المغرب
+    const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Casablanca',
+      hour: 'numeric', hour12: false
+    }).format(targetDateInMecca), 10);
+
+    // إذا تصفح المستخدم بعد منتصف الليل (00:00 - 03:00) ومباراة اليوم الأمس لا زالت تعرض
+    if (moroccoHour >= 0 && moroccoHour < 3 && !isTomorrow) {
+      targetDateInMecca.setDate(targetDateInMecca.getDate() - 1); 
+    } else if (isTomorrow) {
       targetDateInMecca.setDate(targetDateInMecca.getDate() + 1);
     }
 
@@ -67,10 +97,9 @@ function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
     const month = parseInt(parts.find(p => p.type === 'month').value, 10) - 1;
     const day = parseInt(parts.find(p => p.type === 'day').value, 10);
 
-    // 3. إنشاء التاريخ وتحويله إلى التوقيت العالمي الموحد (UTC) عبر طرح 3 ساعات (توقيت مكة هو UTC+3)
+    // توقيت مكة UTC+3 وبالتالي نطرح 3 ساعات للوصول لـ UTC الموحد
     const matchDateUTC = new Date(Date.UTC(year, month, day, hours - 3, minutes));
 
-    // 4. تحويل الوقت الناتج مباشرة إلى توقيت المغرب المحلي (Africa/Casablanca)
     const moroccoFormatter = new Intl.DateTimeFormat('en-US', {
       timeZone: 'Africa/Casablanca',
       hour: '2-digit',
@@ -89,28 +118,34 @@ function convertSourceToMoroccoTime(timeString, isTomorrow = false) {
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 export async function getTodayMatches() {
-  const cachedMatches = getCache(CACHE_KEY_TODAY);
+  const { todayKey } = getAdjustedCacheKeys();
+  const cachedMatches = getCache(todayKey);
+  
   if (cachedMatches) {
-    console.log("⚡ Loading today's matches from cache.");
+    console.log(`⚡ Loading today's matches from cache key: ${todayKey}`);
     return cachedMatches;
   }
+  
   console.log("🌐 Fetching today's matches from network.");
   const targetUrl = 'https://www.liverscore.net/';
-  const newMatches = await fetchMatches(targetUrl, false); // false تعني مباريات اليوم
-  if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
+  const newMatches = await fetchMatches(targetUrl, false);
+  if (newMatches.length > 0) setCache(todayKey, newMatches);
   return newMatches;
 }
 
 export async function getTomorrowMatches() {
-  const cachedMatches = getCache(CACHE_KEY_TOMORROW);
+  const { tomorrowKey } = getAdjustedCacheKeys();
+  const cachedMatches = getCache(tomorrowKey);
+  
   if (cachedMatches) {
-    console.log("⚡ Loading tomorrow's matches from cache.");
+    console.log(`⚡ Loading tomorrow's matches from cache key: ${tomorrowKey}`);
     return cachedMatches;
   }
+  
   console.log("🌐 Fetching tomorrow's matches from network.");
   const targetUrl = 'https://www.liverscore.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl, true); // true تعني مباريات الغد
-  if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
+  const newMatches = await fetchMatches(targetUrl, true);
+  if (newMatches.length > 0) setCache(tomorrowKey, newMatches);
   return newMatches;
 }
 
@@ -152,8 +187,6 @@ function parseMatches(html, isTomorrow = false) {
       }
 
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      
-      // مررنا متغير isTomorrow لضمان ربط الوقت باليوم الصحيح المستهدف من الموقع
       const moroccoTime = convertSourceToMoroccoTime(originalTime, isTomorrow);
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
@@ -162,12 +195,10 @@ function parseMatches(html, isTomorrow = false) {
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
 
-      // --- جلب القناة من القائمة النصية ---
       let finalChannel = channelFromSite;
       if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
-      // ---------------------------------
 
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
