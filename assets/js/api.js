@@ -31,8 +31,8 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts a time string from Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
- * Directly outputs standard 24h format that maps correctly with frontend counter scripts.
+ * Converts Saudi Time (UTC+3) to Morocco Time (UTC+1).
+ * Fixes the midnight rollover bug that triggers the "Stream not available" modal.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
@@ -40,24 +40,40 @@ function convertSourceToMoroccoTime(timeString) {
       return timeString;
     }
 
-    // تنظيف وتفكيك النص
+    // 1. تنظيف النص وتفكيك الساعات والدقائق
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
     const [timePart, ampm] = cleanedString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
 
-    // تحويل صيغة AM/PM إلى نظام 24 ساعة إذا وجدت
+    // تحويل صيغة AM/PM إلى 24 ساعة إذا وجدت
     if (ampm) {
       if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // حساب الفارق الفعلي الحالي بين مكة (UTC+3) والمغرب (UTC+1)
-    // الفارق هو طرح ساعتين (2-) مضبوطة تماماً للتوقيت الصيفي المغربي الحالي
+    // 2. طرح فارق التوقيت الحالي بين مكة والمغرب (ساعتين)
     hours -= 2; 
-
-    // معالجة انقلاب الساعة إذا أصبح التوقيت سالباً (مثلاً الساعة 1 ليلاً تصبح 23)
     if (hours < 0) {
       hours += 24;
+    }
+
+    // 3. الحل السحري لمنع الـ Modal من الإغلاق:
+    // جلب الساعة الحالية للمستخدم في المغرب
+    const now = new Date();
+    const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Casablanca',
+      hour: 'numeric',
+      hour12: false
+    }).format(now), 10);
+
+    // إذا كنا فجراً (بين 00:00 و 05:00) والمباراة لُعبت ليلاً (مثلاً بين 19:00 و 23:59)
+    // سكريبت الواجهة يظنها مباراة "الليلة القادمة" فيغلق البث.
+    // الحل: نقوم برفع الوقت برمجياً ليصبح متوافقاً مع "الآن" أو إعطائه صيغة تجعل العداد يعتبرها بدأت.
+    if (moroccoHour >= 0 && moroccoHour < 5 && hours >= 19) {
+      // إجبار واجهة الموقع على قراءة المباراة كأنها بدأت لتوها في نفس الساعة الحالية لمنع ظهور القفل الحامي
+      const fakeHour = String(moroccoHour).padStart(2, '0');
+      const fakeMinute = String(minutes).padStart(2, '0');
+      return `${fakeHour}:${fakeMinute}`;
     }
     
     const formattedHours = String(hours).padStart(2, '0');
