@@ -65,7 +65,7 @@ function convertSourceToMoroccoTime(timeString) {
     }
 
     // الطرح الصحيح هو ساعتان لمطابقة توقيت المغرب الحالي (UTC+1) مع توقيت مكة (UTC+3)
-    hours -= 2; 
+    hours -= 3; 
 
     if (hours < 0) {
       hours += 24;
