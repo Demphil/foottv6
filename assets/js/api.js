@@ -1,11 +1,25 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 5 * 60 * 60 * 1000; // 5 hours
+const CACHE_EXPIRY_MS = 3 * 60 * 60 * 1000; // تقليل مدة الكاش إلى 3 ساعات لضمان التحديث المستمر
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
+// دالة لمسح الكاش تلقائياً إذا تغير تاريخ اليوم الفعلي لمنع تداخل تواريخ البارحة
+function validateCacheDate() {
+  const lastCacheDate = localStorage.getItem('cache_date_tracker');
+  const currentDateString = new Date().toLocaleDateString('en-US', { timeZone: 'Africa/Casablanca' });
+  
+  if (lastCacheDate !== currentDateString) {
+    localStorage.removeItem(CACHE_KEY_TODAY);
+    localStorage.removeItem(CACHE_KEY_TOMORROW);
+    localStorage.setItem('cache_date_tracker', currentDateString);
+    console.log("♻️ New football day detected. Cache cleared successfully.");
+  }
+}
+
 function setCache(key, data) {
+  validateCacheDate();
   const cacheItem = {
     timestamp: Date.now(),
     data: data,
@@ -15,6 +29,7 @@ function setCache(key, data) {
 }
 
 function getCache(key) {
+  validateCacheDate();
   const cachedItem = localStorage.getItem(key);
   if (!cachedItem) return null;
 
@@ -31,8 +46,8 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts Saudi Time (UTC+3) to Morocco Time (UTC+1).
- * Fixes the midnight rollover bug that triggers the "Stream not available" modal.
+ * Converts Source Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
+ * Standard 24h mathematical reduction with no dynamic shift overlays.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
@@ -40,40 +55,23 @@ function convertSourceToMoroccoTime(timeString) {
       return timeString;
     }
 
-    // 1. تنظيف النص وتفكيك الساعات والدقائق
+    // تنظيف وتفكيك النص قادماً من الموقع
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
     const [timePart, ampm] = cleanedString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
 
-    // تحويل صيغة AM/PM إلى 24 ساعة إذا وجدت
+    // تحويل نظام AM/PM إلى نظام 24 ساعة إذا وجد
     if (ampm) {
       if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // 2. طرح فارق التوقيت الحالي بين مكة والمغرب (ساعتين)
+    // الفارق الثابت والدقيق بين مكة والمغرب حالياً هو ساعتان (طرح 2)
     hours -= 2; 
+
+    // معالجة الساعات السالبة عند انقلاب التوقيت عبر منتصف الليل
     if (hours < 0) {
       hours += 24;
-    }
-
-    // 3. الحل السحري لمنع الـ Modal من الإغلاق:
-    // جلب الساعة الحالية للمستخدم في المغرب
-    const now = new Date();
-    const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Africa/Casablanca',
-      hour: 'numeric',
-      hour12: false
-    }).format(now), 10);
-
-    // إذا كنا فجراً (بين 00:00 و 05:00) والمباراة لُعبت ليلاً (مثلاً بين 19:00 و 23:59)
-    // سكريبت الواجهة يظنها مباراة "الليلة القادمة" فيغلق البث.
-    // الحل: نقوم برفع الوقت برمجياً ليصبح متوافقاً مع "الآن" أو إعطائه صيغة تجعل العداد يعتبرها بدأت.
-    if (moroccoHour >= 0 && moroccoHour < 5 && hours >= 19) {
-      // إجبار واجهة الموقع على قراءة المباراة كأنها بدأت لتوها في نفس الساعة الحالية لمنع ظهور القفل الحامي
-      const fakeHour = String(moroccoHour).padStart(2, '0');
-      const fakeMinute = String(minutes).padStart(2, '0');
-      return `${fakeHour}:${fakeMinute}`;
     }
     
     const formattedHours = String(hours).padStart(2, '0');
