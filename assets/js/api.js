@@ -1,12 +1,12 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 3 * 60 * 60 * 1000; // تقليل مدة الكاش إلى 3 ساعات لضمان التحديث المستمر
+const CACHE_EXPIRY_MS = 3 * 60 * 60 * 1000; // تم تقليله لـ 3 ساعات لضمان تحديث الحالات المباشرة
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
-// دالة لمسح الكاش تلقائياً إذا تغير تاريخ اليوم الفعلي لمنع تداخل تواريخ البارحة
-function validateCacheDate() {
+// دالة ذكية للتحقق من تاريخ اليوم ومسح الكاش تلقائياً عند تغيير اليوم لمنع تداخل المباريات فجراً
+function validateAndCleanCache() {
   const lastCacheDate = localStorage.getItem('cache_date_tracker');
   const currentDateString = new Date().toLocaleDateString('en-US', { timeZone: 'Africa/Casablanca' });
   
@@ -14,12 +14,12 @@ function validateCacheDate() {
     localStorage.removeItem(CACHE_KEY_TODAY);
     localStorage.removeItem(CACHE_KEY_TOMORROW);
     localStorage.setItem('cache_date_tracker', currentDateString);
-    console.log("♻️ New football day detected. Cache cleared successfully.");
+    console.log("♻️ New day detected. Cache refreshed for Morocco Time.");
   }
 }
 
 function setCache(key, data) {
-  validateCacheDate();
+  validateAndCleanCache();
   const cacheItem = {
     timestamp: Date.now(),
     data: data,
@@ -29,7 +29,7 @@ function setCache(key, data) {
 }
 
 function getCache(key) {
-  validateCacheDate();
+  validateAndCleanCache();
   const cachedItem = localStorage.getItem(key);
   if (!cachedItem) return null;
 
@@ -46,8 +46,8 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts Source Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
- * Standard 24h mathematical reduction with no dynamic shift overlays.
+ * Converts a time string from Source (Mecca Time - UTC+3) to Morocco Time (UTC+1).
+ * Fixes the midnight counter bugs on frontend layouts.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
@@ -55,28 +55,24 @@ function convertSourceToMoroccoTime(timeString) {
       return timeString;
     }
 
-    // تنظيف وتفكيك النص قادماً من الموقع
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
     const [timePart, ampm] = cleanedString.split(' ');
     let [hours, minutes] = timePart.split(':').map(Number);
 
-    // تحويل نظام AM/PM إلى نظام 24 ساعة إذا وجد
     if (ampm) {
       if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // الفارق الثابت والدقيق بين مكة والمغرب حالياً هو ساعتان (طرح 2)
+    // الطرح الصحيح هو ساعتان لمطابقة توقيت المغرب الحالي (UTC+1) مع توقيت مكة (UTC+3)
     hours -= 2; 
 
-    // معالجة الساعات السالبة عند انقلاب التوقيت عبر منتصف الليل
     if (hours < 0) {
       hours += 24;
     }
     
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
-    
     return `${formattedHours}:${formattedMinutes}`;
   } catch (error) {
     return timeString;
