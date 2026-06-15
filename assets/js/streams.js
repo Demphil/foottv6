@@ -103,7 +103,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'بلجيكا-مصر': 'https://demphil.github.io/Beinmax2/',
+  'السعودية-أوروغوواي': 'https://demphil.github.io/Beinmax2/',
   'الاهلي-سباهان': 'https://demphil.github.io/bein6/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
