@@ -192,21 +192,38 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
+  // 1. ترتيب مباريات اليوم
   const sortedTodayMatches = todayMatches.slice().sort(sortMatchesByPriority);
 
+  // 2. فلترة المباريات للقسم العلوي (البث المباشر / السهرة والفجر)
   const featuredMatches = sortedTodayMatches.filter(match => {
     try {
+      // استخدام الدالة الذكية لمعرفة الوقت الدقيق للمباراة
+      const matchDate = getCorrectMatchDate(match.time);
+      const now = new Date();
+      const diffMins = (matchDate - now) / 60000;
+      
+      // التحقق مما إذا كانت المباراة جارية حالياً
+      const isLive = diffMins <= 0 && diffMins > -140;
+      
       const [hours] = match.time.split(':').map(Number);
-      return hours >= 12; 
-    } catch (e) { return false; }
+      
+      // أظهر المباراة في القسم العلوي إذا تحقق أحد الشروط:
+      // - توقيتها من 12 ظهراً فما فوق (مسائية)
+      // - توقيتها من منتصف الليل حتى 6 صباحاً (فجرية / بطولات أمريكا)
+      // - المباراة جارية الآن (Live)
+      return hours >= 12 || hours <= 6 || isLive; 
+    } catch (e) { 
+      return false; 
+    }
   });
 
-  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات سهرة اليوم.');
+  // 3. العرض في الأقسام
+  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات بارزة أو جارية حالياً.');
   renderSection(DOM.broadcastContainer, sortedTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, sortedTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, tomorrowMatches, 'لا توجد مباريات غداً.');
 }
-
 // --- 7. إعداد التبويبات ---
 function setupTabs() {
     const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
