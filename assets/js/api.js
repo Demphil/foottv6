@@ -1,7 +1,7 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 15 * 60 * 1000; // تقليل الكاش لـ 15 دقيقة لتحديث النتائج والأهداف فوراً
+const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 دقائق لتحديث الحالات والأهداف المباشرة فوراً
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
@@ -31,12 +31,13 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts a time string from Source (Mecca Time - UTC+3) to Morocco Time (UTC+1).
+ * Converts Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
+ * Returns formatted string and raw minutes for accurate sorting.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
-      return timeString;
+      return { formatted: timeString, rawMinutes: 9999 };
     }
 
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
@@ -48,7 +49,7 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // طرح ساعتين للتحويل من توقيت مكة إلى توقيت المغرب الحالي
+    // طرح ساعتين (توقيت مكة UTC+3 مقابل توقيت المغرب الحالي UTC+1)
     hours -= 2; 
 
     if (hours < 0) {
@@ -57,14 +58,21 @@ function convertSourceToMoroccoTime(timeString) {
     
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
-    return `${formattedHours}:${formattedMinutes}`;
+    
+    return {
+      formatted: `${formattedHours}:${formattedMinutes}`,
+      rawMinutes: hours * 60 + minutes
+    };
   } catch (error) {
-    return timeString;
+    return { formatted: timeString, rawMinutes: 9999 };
   }
 }
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
+
+// النطاق الأساسي للموقع الجديد الذي اخترته
+const BASE_SITE_URL = 'https://koora-euro.com/';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
@@ -73,31 +81,37 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching today's matches from network.");
-  const todayUrl = 'https://koora-euro.com/';
-  const tomorrowUrl = 'https://koora-euro.com/matches-tomorrow/';
+  console.log("🌐 Fetching all matches from koora-euro...");
   
-  // جلب البيانات من الصفتين (اليوم والغد) معاً لحل مشكلة اختفاء مباريات الليل
+  // جلب صفحة اليوم والصفحة التالية (لتجنب ضياع مباريات منتصف الليل في السيرفر)
   const [todayHtml, tomorrowHtml] = await Promise.all([
-    fetchHtml(todayUrl),
-    fetchHtml(tomorrowUrl)
+    fetchHtml(BASE_SITE_URL),
+    fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`).catch(() => '') // حماية في حال اختلف الرابط الفرعي للغد
   ]);
   
-  const todayMatches = parseMatches(todayHtml);
-  const tomorrowMatches = parseMatches(tomorrowHtml);
+  const todayList = parseMatches(todayHtml);
+  const tomorrowList = parseMatches(tomorrowHtml);
   
-  // تصفية مباريات الغد: نأخذ فقط المباريات التي تبدأ فجراً بتوقيت مكة (بين 12 ليلاً و 3 صباحاً)
-  // لأنها تعني الساعة 10 و 11 ليلاً بتوقيت المغرب الحالي
-  const lateNightMatches = tomorrowMatches.filter(match => {
-    // نقوم بفحص الوقت الأصلي للمباراة قبل التحويل
-    return match.isLateNightSource; 
+  // دمج كلي وشامل للقائمتين
+  const combinedMatches = [...todayList, ...tomorrowList];
+
+  // فلترة وإزالة العناصر المكررة بناءً على أسماء الفرق
+  const uniqueMatches = [];
+  const seenMatches = new Set();
+
+  combinedMatches.forEach(match => {
+    const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`;
+    if (!seenMatches.has(matchId)) {
+      seenMatches.add(matchId);
+      uniqueMatches.push(match);
+    }
   });
 
-  // دمج القائمتين لمنع اختفاء أي مباراة
-  const finalMatches = [...todayMatches, ...lateNightMatches];
+  // ترتيب المباريات تناسقياً تصاعدياً حسب الوقت من الصباح إلى أواخر الليل
+  uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
-  if (finalMatches.length > 0) setCache(CACHE_KEY_TODAY, finalMatches);
-  return finalMatches;
+  if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
+  return uniqueMatches;
 }
 
 export async function getTomorrowMatches() {
@@ -106,19 +120,17 @@ export async function getTomorrowMatches() {
     console.log("⚡ Loading tomorrow's matches from cache.");
     return cachedMatches;
   }
+  
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://koora-euro.com/matches-tomorrow/';
-  const html = await fetchHtml(targetUrl);
+  const html = await fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`);
   const newMatches = parseMatches(html);
   
-  // في قائمة الغد، نقوم بإخفاء المباريات التي دمجناها بالفعل في قائمة اليوم منعاً للتكرار
-  const filteredTomorrow = newMatches.filter(match => !match.isLateNightSource);
+  newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
-  if (filteredTomorrow.length > 0) setCache(CACHE_KEY_TOMORROW, filteredTomorrow);
-  return filteredTomorrow;
+  if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
+  return newMatches;
 }
 
-// دالة مساعدة لجلب الـ HTML فقط
 async function fetchHtml(targetUrl) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
@@ -158,23 +170,7 @@ function parseMatches(html) {
       }
 
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      
-      // فحص هل وقت المباراة في مكة يقع بين 00:00 و 03:00 صباحاً (والذي يعني 22:00 و 23:00 في المغرب)
-      let isLateNightSource = false;
-      if (originalTime.includes(':')) {
-        const cleanedString = originalTime.replace(/\s+/g, ' ').trim();
-        const [timePart, ampm] = cleanedString.split(' ');
-        let [h] = timePart.split(':').map(Number);
-        if (ampm) {
-          if (ampm.toUpperCase().includes('PM') && h !== 12) h += 12;
-          if (ampm.toUpperCase().includes('AM') && h === 12) h = 0;
-        }
-        if (h >= 0 && h < 3) {
-          isLateNightSource = true;
-        }
-      }
-
-      const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      const timeData = convertSourceToMoroccoTime(originalTime);
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
       let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
@@ -189,13 +185,13 @@ function parseMatches(html) {
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: moroccoTime, 
+        time: timeData.formatted, 
+        rawMinutes: timeData.rawMinutes, 
         score: score,
         league: league,
         channel: finalChannel, 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
-        matchLink: matchLink,
-        isLateNightSource: isLateNightSource // علامة مخفية للتحكم بالدمج
+        matchLink: matchLink
       });
     } catch (e) {
       console.error('Failed to parse a single match element:', e);
@@ -208,5 +204,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://koora-euro.com/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `${BASE_SITE_URL}${src.startsWith('/') ? '' : '/'}${src}`;
 }
