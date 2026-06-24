@@ -1,7 +1,7 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 دقائق لتحديث الحالات والأهداف المباشرة فوراً
+const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes cache
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
@@ -70,7 +70,7 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://korats.net/';
+const BASE_SITE_URL = 'https://koora-euro.com';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
@@ -79,35 +79,33 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching yesterday, today, and tomorrow matches for complete layout...");
+  console.log("🌐 Fetching combined matches from koora-euro...");
   
-  // جلب الجداول الثلاثة معاً بالتوازي (الأمس + اليوم + الغد)
-  const [yesterdayHtml, todayHtml, tomorrowHtml] = await Promise.all([
-    fetchHtml(`${BASE_SITE_URL}matches-yesterday/`).catch(() => ''),
-    fetchHtml(BASE_SITE_URL).catch(() => ''),
-    fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`).catch(() => '')
-  ]);
+  // جلب الصفحات الثلاث بشكل تتابعي آمن لتفادي حظر البروكسي
+  const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
+  const yesterdayHtml = await fetchHtml(`${BASE_SITE_URL}/matches-yesterday`);
+  const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
   
-  const yesterdayList = parseMatches(yesterdayHtml);
   const todayList = parseMatches(todayHtml);
+  const yesterdayList = parseMatches(yesterdayHtml);
   const tomorrowList = parseMatches(tomorrowHtml);
   
-  // دمج كلي وشامل للقوائم الثلاث
+  // دمج القوائم الثلاث بالكامل
   const combinedMatches = [...yesterdayList, ...todayList, ...tomorrowList];
 
-  // فلترة وإزالة العناصر المكررة بناءً على أسماء الفرق لضمان عدم التكرار
+  // فلترة متطورة لمنع تكرار المباريات بناءً على أسماء الفرق المتواجهة
   const uniqueMatches = [];
   const seenMatches = new Set();
 
   combinedMatches.forEach(match => {
-    const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`;
+    const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase();
     if (!seenMatches.has(matchId)) {
       seenMatches.add(matchId);
       uniqueMatches.push(match);
     }
   });
 
-  // ترتيب المباريات تصاعدياً حسب الوقت (من الصباح إلى الليل)
+  // ترتيب تصاعدي مريح من الصباح الباكر إلى مباريات أواخر الليل
   uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
@@ -122,7 +120,7 @@ export async function getTomorrowMatches() {
   }
   
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const html = await fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`);
+  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
   const newMatches = parseMatches(html);
   
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
@@ -137,7 +135,7 @@ async function fetchHtml(targetUrl) {
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
     return await response.text();
   } catch (error) {
-    console.error("Failed to fetch via worker:", error);
+    console.error(`Failed to fetch URL: ${targetUrl}`, error);
     return '';
   }
 }
