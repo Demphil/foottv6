@@ -70,8 +70,6 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-
-// النطاق الأساسي للموقع الجديد الذي اخترته
 const BASE_SITE_URL = 'https://koora-euro.com/';
 
 export async function getTodayMatches() {
@@ -81,21 +79,23 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching all matches from koora-euro...");
+  console.log("🌐 Fetching yesterday, today, and tomorrow matches for complete layout...");
   
-  // جلب صفحة اليوم والصفحة التالية (لتجنب ضياع مباريات منتصف الليل في السيرفر)
-  const [todayHtml, tomorrowHtml] = await Promise.all([
-    fetchHtml(BASE_SITE_URL),
-    fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`).catch(() => '') // حماية في حال اختلف الرابط الفرعي للغد
+  // جلب الجداول الثلاثة معاً بالتوازي (الأمس + اليوم + الغد)
+  const [yesterdayHtml, todayHtml, tomorrowHtml] = await Promise.all([
+    fetchHtml(`${BASE_SITE_URL}matches-yesterday/`).catch(() => ''),
+    fetchHtml(BASE_SITE_URL).catch(() => ''),
+    fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`).catch(() => '')
   ]);
   
+  const yesterdayList = parseMatches(yesterdayHtml);
   const todayList = parseMatches(todayHtml);
   const tomorrowList = parseMatches(tomorrowHtml);
   
-  // دمج كلي وشامل للقائمتين
-  const combinedMatches = [...todayList, ...tomorrowList];
+  // دمج كلي وشامل للقوائم الثلاث
+  const combinedMatches = [...yesterdayList, ...todayList, ...tomorrowList];
 
-  // فلترة وإزالة العناصر المكررة بناءً على أسماء الفرق
+  // فلترة وإزالة العناصر المكررة بناءً على أسماء الفرق لضمان عدم التكرار
   const uniqueMatches = [];
   const seenMatches = new Set();
 
@@ -107,7 +107,7 @@ export async function getTodayMatches() {
     }
   });
 
-  // ترتيب المباريات تناسقياً تصاعدياً حسب الوقت من الصباح إلى أواخر الليل
+  // ترتيب المباريات تصاعدياً حسب الوقت (من الصباح إلى الليل)
   uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
