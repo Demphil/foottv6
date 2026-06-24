@@ -208,5 +208,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.liverscore.net/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `https://koora-euro.com/${src.startsWith('/') ? '' : '/'}${src}`;
 }
