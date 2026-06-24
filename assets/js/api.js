@@ -1,7 +1,7 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes cache
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 دقائق كاش لتحديث مباشر وسريع
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
@@ -79,33 +79,46 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching combined matches from koora-euro...");
+  console.log("🌐 Fetching live match lists...");
   
-  // جلب الصفحات الثلاث بشكل تتابعي آمن لتفادي حظر البروكسي
+  // 1. جلب الصفحة الرئيسية دائماً
   const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
-  const yesterdayHtml = await fetchHtml(`${BASE_SITE_URL}/matches-yesterday`);
-  const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
-  
-  const todayList = parseMatches(todayHtml);
-  const yesterdayList = parseMatches(yesterdayHtml);
-  const tomorrowList = parseMatches(tomorrowHtml);
-  
-  // دمج القوائم الثلاث بالكامل
-  const combinedMatches = [...yesterdayList, ...todayList, ...tomorrowList];
+  let finalMatches = parseMatches(todayHtml);
 
-  // فلترة متطورة لمنع تكرار المباريات بناءً على أسماء الفرق المتواجهة
+  // 2. فحص ذكي: إذا دخلنا في الليل بتوقيت المغرب (بين 20:00 و 23:59)
+  // نقوم فوراً بجلب صفحة الغد الخاصة بالسيرفر لأن مباراة الـ 23:00 هربت إلى هناك برمجياً
+  const now = new Date();
+  const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Africa/Casablanca',
+    hour: 'numeric',
+    hour12: false
+  }).format(now), 10);
+
+  if (moroccoHour >= 20 || moroccoHour < 3) {
+    console.log("🌙 Late night mode: Syncing midnight matches...");
+    const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
+    const tomorrowList = parseMatches(tomorrowHtml);
+    
+    // نأخذ فقط المباريات التي توقيتها الأصلي في السيرفر فجراً (00:00 إلى 03:00) لأنها تساوي (22:00 و 23:00) في المغرب
+    const midnightMatches = tomorrowList.filter(m => m.rawMinutes >= 1320 || m.rawMinutes <= 180);
+    
+    // دمج مباشر بدون شروط فلترة معقدة تحذفها
+    finalMatches = [...finalMatches, ...midnightMatches];
+  }
+
+  // 3. تنظيف نهائي وبسيط جداً للتكرار بالاسم الكامل للمباراة
   const uniqueMatches = [];
-  const seenMatches = new Set();
-
-  combinedMatches.forEach(match => {
-    const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase();
-    if (!seenMatches.has(matchId)) {
-      seenMatches.add(matchId);
+  const seen = new Set();
+  
+  finalMatches.forEach(match => {
+    const id = `${match.homeTeam.name}-${match.awayTeam.name}`.toLowerCase();
+    if (!seen.has(id)) {
+      seen.add(id);
       uniqueMatches.push(match);
     }
   });
 
-  // ترتيب تصاعدي مريح من الصباح الباكر إلى مباريات أواخر الليل
+  // ترتيب تصاعدي حسب الوقت
   uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
@@ -119,10 +132,8 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching tomorrow's matches from network.");
   const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
   const newMatches = parseMatches(html);
-  
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
@@ -198,9 +209,13 @@ function parseMatches(html) {
   return matches;
 }
 
+// تعديل جلب مسار الشعار ليتوافق مع دومين koora-euro بشكل صحيح وديناميكي
 function extractImageUrl(imgElement) {
   if (!imgElement) return '';
-  const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
+  let src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `${BASE_SITE_URL}${src.startsWith('/') ? '' : '/'}${src}`;
+  
+  // تنظيف السلاش المزدوج
+  src = src.startsWith('/') ? src.substring(1) : src;
+  return `${BASE_SITE_URL}/${src}`;
 }
