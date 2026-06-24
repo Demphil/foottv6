@@ -1,25 +1,11 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 3 * 60 * 60 * 1000; // تم تقليله لـ 3 ساعات لضمان تحديث الحالات المباشرة
+const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 دقائق لتحديث الحالات والأهداف المباشرة فوراً
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
-// دالة ذكية للتحقق من تاريخ اليوم ومسح الكاش تلقائياً عند تغيير اليوم لمنع تداخل المباريات فجراً
-function validateAndCleanCache() {
-  const lastCacheDate = localStorage.getItem('cache_date_tracker');
-  const currentDateString = new Date().toLocaleDateString('en-US', { timeZone: 'Africa/Casablanca' });
-  
-  if (lastCacheDate !== currentDateString) {
-    localStorage.removeItem(CACHE_KEY_TODAY);
-    localStorage.removeItem(CACHE_KEY_TOMORROW);
-    localStorage.setItem('cache_date_tracker', currentDateString);
-    console.log("♻️ New day detected. Cache refreshed for Morocco Time.");
-  }
-}
-
 function setCache(key, data) {
-  validateAndCleanCache();
   const cacheItem = {
     timestamp: Date.now(),
     data: data,
@@ -29,7 +15,6 @@ function setCache(key, data) {
 }
 
 function getCache(key) {
-  validateAndCleanCache();
   const cachedItem = localStorage.getItem(key);
   if (!cachedItem) return null;
 
@@ -46,13 +31,13 @@ function getCache(key) {
 
 // --- 2. Timezone Conversion Function ---
 /**
- * Converts a time string from Source (Mecca Time - UTC+3) to Morocco Time (UTC+1).
- * Fixes the midnight counter bugs on frontend layouts.
+ * Converts Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
+ * Returns formatted string and raw minutes for accurate sorting.
  */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
-      return timeString;
+      return { formatted: timeString, rawMinutes: 9999 };
     }
 
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
@@ -64,7 +49,7 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // الطرح الصحيح هو ساعتان لمطابقة توقيت المغرب الحالي (UTC+1) مع توقيت مكة (UTC+3)
+    // طرح ساعتين (توقيت مكة UTC+3 مقابل توقيت المغرب الحالي UTC+1)
     hours -= 2; 
 
     if (hours < 0) {
@@ -73,14 +58,21 @@ function convertSourceToMoroccoTime(timeString) {
     
     const formattedHours = String(hours).padStart(2, '0');
     const formattedMinutes = String(minutes).padStart(2, '0');
-    return `${formattedHours}:${formattedMinutes}`;
+    
+    return {
+      formatted: `${formattedHours}:${formattedMinutes}`,
+      rawMinutes: hours * 60 + minutes
+    };
   } catch (error) {
-    return timeString;
+    return { formatted: timeString, rawMinutes: 9999 };
   }
 }
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
+
+// النطاق الأساسي للموقع الجديد الذي اخترته
+const BASE_SITE_URL = 'https://koora-euro.com/';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
@@ -88,11 +80,38 @@ export async function getTodayMatches() {
     console.log("⚡ Loading today's matches from cache.");
     return cachedMatches;
   }
-  console.log("🌐 Fetching today's matches from network.");
-  const targetUrl = 'https://www.liverscore.net/';
-  const newMatches = await fetchMatches(targetUrl);
-  if (newMatches.length > 0) setCache(CACHE_KEY_TODAY, newMatches);
-  return newMatches;
+  
+  console.log("🌐 Fetching all matches from koora-euro...");
+  
+  // جلب صفحة اليوم والصفحة التالية (لتجنب ضياع مباريات منتصف الليل في السيرفر)
+  const [todayHtml, tomorrowHtml] = await Promise.all([
+    fetchHtml(BASE_SITE_URL),
+    fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`).catch(() => '') // حماية في حال اختلف الرابط الفرعي للغد
+  ]);
+  
+  const todayList = parseMatches(todayHtml);
+  const tomorrowList = parseMatches(tomorrowHtml);
+  
+  // دمج كلي وشامل للقائمتين
+  const combinedMatches = [...todayList, ...tomorrowList];
+
+  // فلترة وإزالة العناصر المكررة بناءً على أسماء الفرق
+  const uniqueMatches = [];
+  const seenMatches = new Set();
+
+  combinedMatches.forEach(match => {
+    const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`;
+    if (!seenMatches.has(matchId)) {
+      seenMatches.add(matchId);
+      uniqueMatches.push(match);
+    }
+  });
+
+  // ترتيب المباريات تناسقياً تصاعدياً حسب الوقت من الصباح إلى أواخر الليل
+  uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
+
+  if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
+  return uniqueMatches;
 }
 
 export async function getTomorrowMatches() {
@@ -101,27 +120,32 @@ export async function getTomorrowMatches() {
     console.log("⚡ Loading tomorrow's matches from cache.");
     return cachedMatches;
   }
+  
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.liverscore.net/matches-tomorrow/';
-  const newMatches = await fetchMatches(targetUrl);
+  const html = await fetchHtml(`${BASE_SITE_URL}matches-tomorrow/`);
+  const newMatches = parseMatches(html);
+  
+  newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
+
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
   return newMatches;
 }
 
-// --- 4. Core Fetching and Parsing Logic ---
-async function fetchMatches(targetUrl) {
+async function fetchHtml(targetUrl) {
   try {
     const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-    const html = await response.text();
-    return parseMatches(html);
+    return await response.text();
   } catch (error) {
     console.error("Failed to fetch via worker:", error);
-    return [];
+    return '';
   }
 }
 
+// --- 4. Core Parsing Logic ---
 function parseMatches(html) {
+  if (!html) return [];
+  
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
@@ -146,25 +170,23 @@ function parseMatches(html) {
       }
 
       const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
-      const moroccoTime = convertSourceToMoroccoTime(originalTime);
+      const timeData = convertSourceToMoroccoTime(originalTime);
       
       const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
-      
       let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
       const commentator = infoListItems[1]?.textContent?.trim() || '';
       const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
 
-      // --- جلب القناة من القائمة النصية ---
       let finalChannel = channelFromSite;
       if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
-      // ---------------------------------
 
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
-        time: moroccoTime, 
+        time: timeData.formatted, 
+        rawMinutes: timeData.rawMinutes, 
         score: score,
         league: league,
         channel: finalChannel, 
@@ -182,5 +204,5 @@ function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   const src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
-  return `https://www.liverscore.net/${src.startsWith('/') ? '' : '/'}${src}`;
+  return `${BASE_SITE_URL}${src.startsWith('/') ? '' : '/'}${src}`;
 }
