@@ -74,8 +74,8 @@ export async function getTodayMatches() {
   }
   
   console.log("🌐 Fetching today's matches from network.");
-  const todayUrl = 'https://www.liverscore.net/';
-  const tomorrowUrl = 'https://www.liverscore.net/matches-tomorrow/';
+  const todayUrl = 'https://koora-euro.com/';
+  const tomorrowUrl = 'https://koora-euro.com/matches-tomorrow/';
   
   // جلب البيانات من الصفتين (اليوم والغد) معاً لحل مشكلة اختفاء مباريات الليل
   const [todayHtml, tomorrowHtml] = await Promise.all([
@@ -107,7 +107,7 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   console.log("🌐 Fetching tomorrow's matches from network.");
-  const targetUrl = 'https://www.liverscore.net/matches-tomorrow/';
+  const targetUrl = 'https://koora-euro.com/matches-tomorrow/';
   const html = await fetchHtml(targetUrl);
   const newMatches = parseMatches(html);
   
