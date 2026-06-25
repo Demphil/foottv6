@@ -50,7 +50,7 @@ function convertSourceToMoroccoTime(timeString) {
     }
 
     // طرح ساعتين (توقيت مكة UTC+3 مقابل توقيت المغرب الحالي UTC+1)
-    hours -= 2; 
+    hours -= 1; 
 
     if (hours < 0) {
       hours += 24;
