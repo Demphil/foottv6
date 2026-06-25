@@ -1,7 +1,7 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 دقائق كاش لتحديث مباشر وسريع
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes cache
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
@@ -30,14 +30,10 @@ function getCache(key) {
 }
 
 // --- 2. Timezone Conversion Function ---
-/**
- * Converts Saudi Time (UTC+3) to Morocco Summer Time (UTC+1).
- * Returns formatted string and raw minutes for accurate sorting.
- */
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
-      return { formatted: timeString, rawMinutes: 9999 };
+      return { formatted: timeString, rawMinutes: 9999, originalHour: 12 };
     }
 
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
@@ -49,7 +45,9 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // طرح ساعتين (توقيت مكة UTC+3 مقابل توقيت المغرب الحالي UTC+1)
+    const originalHour = hours; // الاحتفاظ بالساعة الأصلية للسيرفر من أجل الفلترة المتقدمة
+
+    // طرح ساعتين للتحويل لتوقيت المغرب الحالي
     hours -= 2; 
 
     if (hours < 0) {
@@ -61,10 +59,11 @@ function convertSourceToMoroccoTime(timeString) {
     
     return {
       formatted: `${formattedHours}:${formattedMinutes}`,
-      rawMinutes: hours * 60 + minutes
+      rawMinutes: hours * 60 + minutes,
+      originalHour: originalHour
     };
   } catch (error) {
-    return { formatted: timeString, rawMinutes: 9999 };
+    return { formatted: timeString, rawMinutes: 9999, originalHour: 12 };
   }
 }
 
@@ -75,18 +74,14 @@ const BASE_SITE_URL = 'https://koora-euro.com';
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) {
-    console.log("⚡ Loading today's matches from cache.");
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching live match lists...");
+  console.log("🌐 Fetching today's tailored match list...");
   
-  // 1. جلب الصفحة الرئيسية دائماً
   const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
   let finalMatches = parseMatches(todayHtml);
 
-  // 2. فحص ذكي: إذا دخلنا في الليل بتوقيت المغرب (بين 20:00 و 23:59)
-  // نقوم فوراً بجلب صفحة الغد الخاصة بالسيرفر لأن مباراة الـ 23:00 هربت إلى هناك برمجياً
   const now = new Date();
   const moroccoHour = parseInt(new Intl.DateTimeFormat('en-US', {
     timeZone: 'Africa/Casablanca',
@@ -94,19 +89,18 @@ export async function getTodayMatches() {
     hour12: false
   }).format(now), 10);
 
-  if (moroccoHour >= 20 || moroccoHour < 3) {
-    console.log("🌙 Late night mode: Syncing midnight matches...");
+  // جلب ذكي ومحصور لمباريات أواخر الليل فقط دون سحب جدول الغد كاملاً
+  if (moroccoHour >= 18 || moroccoHour < 4) {
     const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
     const tomorrowList = parseMatches(tomorrowHtml);
     
-    // نأخذ فقط المباريات التي توقيتها الأصلي في السيرفر فجراً (00:00 إلى 03:00) لأنها تساوي (22:00 و 23:00) في المغرب
-    const midnightMatches = tomorrowList.filter(m => m.rawMinutes >= 1320 || m.rawMinutes <= 180);
+    // نقتنص فقط المباريات التي تلعب بين 00:00 و 02:00 ليلاً بتوقيت مكة (لأنها المقابل لـ 22:00 و 23:00 بالمغرب)
+    const midnightMatches = tomorrowList.filter(m => m.originalHour >= 0 && m.originalHour <= 2);
     
-    // دمج مباشر بدون شروط فلترة معقدة تحذفها
     finalMatches = [...finalMatches, ...midnightMatches];
   }
 
-  // 3. تنظيف نهائي وبسيط جداً للتكرار بالاسم الكامل للمباراة
+  // تنظيف التكرار إن وجد
   const uniqueMatches = [];
   const seen = new Set();
   
@@ -118,7 +112,6 @@ export async function getTodayMatches() {
     }
   });
 
-  // ترتيب تصاعدي حسب الوقت
   uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
@@ -128,12 +121,15 @@ export async function getTodayMatches() {
 export async function getTomorrowMatches() {
   const cachedMatches = getCache(CACHE_KEY_TOMORROW);
   if (cachedMatches) {
-    console.log("⚡ Loading tomorrow's matches from cache.");
     return cachedMatches;
   }
   
   const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
-  const newMatches = parseMatches(html);
+  let newMatches = parseMatches(html);
+  
+  // في قائمة الغد، نقوم بإخفاء مباريات الفجر الصغير التي تم سحبها وعرضها بالفعل في قائمة اليوم منعاً للتكرار المزعج
+  newMatches = newMatches.filter(m => !(m.originalHour >= 0 && m.originalHour <= 2));
+
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
@@ -196,6 +192,7 @@ function parseMatches(html) {
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
         time: timeData.formatted, 
         rawMinutes: timeData.rawMinutes, 
+        originalHour: timeData.originalHour, // تُستخدم للفلترة ومنع التداخل
         score: score,
         league: league,
         channel: finalChannel, 
@@ -209,13 +206,11 @@ function parseMatches(html) {
   return matches;
 }
 
-// تعديل جلب مسار الشعار ليتوافق مع دومين koora-euro بشكل صحيح وديناميكي
 function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   let src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
   
-  // تنظيف السلاش المزدوج
   src = src.startsWith('/') ? src.substring(1) : src;
   return `${BASE_SITE_URL}/${src}`;
 }
