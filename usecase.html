@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- هذه التاجز الافتراضية سيتولى السكريبت بالأسفل تعديلها فورا بمجرد دخول الزائر بناءً على رابط الصفحة -->
+    <title>بث مباشر أهم مباريات اليوم | كورة لايف</title>
+    <meta name="description" content="تابع أهم مباريات اليوم بث مباشر بجودة عالية وبدون تقطيع ملائم لجميع الأجهزة والشبكات.">
+    
+    <!-- ربط ملف الـ CSS الخاص بموقعك بناءً على مجلداتك في GitHub -->
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/matches.css">
+</head>
+<body>
+
+    <!-- الجزء العلوي لصفحة الهبوط المخفية -->
+    <header class="seo-header" style="background: #1e1e2f; color: #fff; padding: 30px 20px; text-align: center; border-bottom: 3px solid #ff4a5a; margin-bottom: 20px;">
+        <div class="container">
+            <h1 id="dynamic-title" style="font-size: 1.8rem; margin-bottom: 10px;">جاري تجهيز سيرفر البث المباشر...</h1>
+            <p id="dynamic-desc" style="font-size: 1rem; color: #bccc;">يرجى الانتظار ثواني لضبط الجودة المتوافقة تلقائياً.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- الحاوية التي سيعرض داخلها جدول مباريات اليوم المباشر -->
+        <section id="matches-container">
+            <p style="text-align: center; padding: 20px;">جاري فحص السيرفرات المتوافقة مع جهازك وبث المباريات...</p>
+        </section>
+    </main>
+
+    <!-- ربط ملفات الجافاسكريبت والـ API من المسارات الصحيحة كما بمستودعك -->
+    <script type="module">
+        import { getTodayMatches } from '/assets/js/api.js';
+
+        // خريطة السيو التقني الموجه (تحليل نية البحث في جوجل لكل صفحة)
+        const path = window.location.pathname.toLowerCase();
+        
+        const seoData = {
+            '/at-work': {
+                title: "بث مباشر للمباريات في العمل - سيرفرات خفيفة تخترق حظر الشركات والمكاتب",
+                desc: "تابع مباريات اليوم مباشرة من مكتبك أو مكان عملك. نوفر سيرفرات بث آمنة وخفيفة تتوافق مع جدران حماية شبكات الشركات الضعيفة بدون حظر أو تقطيع."
+            },
+            '/smart-tv': {
+                title: "طريقة تشغيل كورة لايف على الشاشة الذكية (Smart TV) بدون إعلانات منبثقة تعطل التلفاز",
+                desc: "دليلك الكامل لتشغيل البث المباشر للمباريات على شاشات سامسونج، LG، وشاشات أندرويد. سيرفرات نظيفة مهيأة لمتصفحات التلفزيون المحدودة."
+            },
+            '/low-internet': {
+                title: "مشاهدة مباريات اليوم بجودة ضعيفة جداً - توفير بيانات باقة إنترنت الهاتف 4G",
+                desc: "احمِ باقتك من النفاذ. سيرفرات بث مباشر مخصصة لأصحاب الإنترنت الضعيف وباقات الموبايل المحدودة بجودات متعددة تبدأ من 144p لضمان عدم التوقف."
+            },
+            '/abroad': {
+                title: "مشاهدة مباريات الأندية والمنتخبات العربية من الخارج - بث مباشر بدون حظر جغرافي",
+                desc: "إذا كنت مغترباً خارج الوطن العربي، شاهد مباريات دوريك المحلي والمنتخبات مباشرة وبدون الحاجة لبرامج VPN مع سيرفرات بث دولية فائقة السرعة."
+            }
+        };
+
+        // اقتناص البيانات أو تعيين افتراضي
+        const currentCase = seoData[path] || seoData['/at-work'];
+
+        // حقن السيو ديناميكياً ليقرأه Googlebot فوراً أثناء الزحف
+        document.title = currentCase.title;
+        document.querySelector('meta[name="description"]').setAttribute("content", currentCase.desc);
+        document.getElementById('dynamic-title').textContent = currentCase.title;
+        document.getElementById('dynamic-desc').textContent = currentCase.desc;
+
+        // استدعاء المباريات في الصفحة بنفس الطريقة المتبعة في موقعك
+        async function loadSEOMatches() {
+            const container = document.getElementById('matches-container');
+            try {
+                const matches = await getTodayMatches();
+                if (!matches || matches.length === 0) {
+                    container.innerHTML = "<p style='text-align:center;'>لا توجد مباريات جارية حالياً متوافقة مع هذا النظام.</p>";
+                    return;
+                }
+
+                // عرض المباريات (يمكنك استبدال هذا الجزء بهيكل كود العرض الموجود في ملف matches.js لديك)
+                container.innerHTML = matches.map(match => `
+                    <div class="match-card-seo" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div><strong>${match.homeTeam.name}</strong> ${match.score} <strong>${match.awayTeam.name}</strong></div>
+                        <div>الوقت: ${match.time}</div>
+                        <a href="${match.matchLink}" style="background: #ff4a5a; color: #fff; padding: 8px 12px; text-decoration: none; border-radius: 5px;">مشاهدة البث المباشر</a>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                container.innerHTML = "<p style='text-align:center; color:red;'>حدث خطأ أثناء الاتصال بسيرفر الجلب الديناميكي.</p>";
+            }
+        }
+
+        loadSEOMatches();
+    </script>
+</body>
+</html>
