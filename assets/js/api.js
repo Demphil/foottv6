@@ -45,9 +45,9 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    const originalHour = hours; // الاحتفاظ بالساعة الأصلية للسيرفر من أجل الفلترة المتقدمة
+    const originalHour = hours;
 
-    // طرح ساعتين للتحويل لتوقيت المغرب الحالي
+    // طرح ساعتين للتحويل لتوقيت المغرب الحالي (UTC+1) من توقيت مكة (UTC+3)
     hours -= 2; 
 
     if (hours < 0) {
@@ -69,7 +69,8 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://koora-euro.com';
+// تحديث النطاق الأساسي بناءً على طلبك للموقع الجديد
+const BASE_SITE_URL = 'https://koorasport.net';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
@@ -77,7 +78,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching today's tailored match list...");
+  console.log("🌐 Fetching today's match list...");
   
   const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
   let finalMatches = parseMatches(todayHtml);
@@ -89,18 +90,17 @@ export async function getTodayMatches() {
     hour12: false
   }).format(now), 10);
 
-  // جلب ذكي ومحصور لمباريات أواخر الليل فقط دون سحب جدول الغد كاملاً
+  // دمج ذكي وآمن لمباريات منتصف الليل فقط عند اقتراب نهاية اليوم بالمغرب
   if (moroccoHour >= 18 || moroccoHour < 4) {
-    const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
+    const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`);
     const tomorrowList = parseMatches(tomorrowHtml);
     
-    // نقتنص فقط المباريات التي تلعب بين 00:00 و 02:00 ليلاً بتوقيت مكة (لأنها المقابل لـ 22:00 و 23:00 بالمغرب)
+    // سحب المباريات التي تقع فجراً في مكة لتعرض ليلاً في المغرب
     const midnightMatches = tomorrowList.filter(m => m.originalHour >= 0 && m.originalHour <= 2);
-    
     finalMatches = [...finalMatches, ...midnightMatches];
   }
 
-  // تنظيف التكرار إن وجد
+  // تنظيف التكرار
   const uniqueMatches = [];
   const seen = new Set();
   
@@ -124,12 +124,12 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   
-  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
+  console.log("🌐 Fetching tomorrow's match list...");
+  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`);
   let newMatches = parseMatches(html);
   
-  // في قائمة الغد، نقوم بإخفاء مباريات الفجر الصغير التي تم سحبها وعرضها بالفعل في قائمة اليوم منعاً للتكرار المزعج
-  newMatches = newMatches.filter(m => !(m.originalHour >= 0 && m.originalHour <= 2));
-
+  // --- التعديل هنا ---
+  // تم إزالة سطر الفلترة الجائرة لتظهر مباريات الغد بالكامل دون أي نقص في صفحة الغد
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
@@ -192,7 +192,7 @@ function parseMatches(html) {
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
         time: timeData.formatted, 
         rawMinutes: timeData.rawMinutes, 
-        originalHour: timeData.originalHour, // تُستخدم للفلترة ومنع التداخل
+        originalHour: timeData.originalHour, 
         score: score,
         league: league,
         channel: finalChannel, 
