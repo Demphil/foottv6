@@ -1,7 +1,7 @@
 // --- 1. Cache Configuration ---
 import { getChannelByTeam } from './chaine.js'; 
 
-const CACHE_EXPIRY_MS = 3 * 60 * 1000; // 3 دقائق كاش لضمان تحديث الأهداف والحالات المباشرة فوراً
+const CACHE_EXPIRY_MS = 3 * 60 * 1000; // تقليل الكاش لـ 3 دقائق لتحديث الحالات المباشرة فوراً
 const CACHE_KEY_TODAY = 'matches_cache_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
 
@@ -69,7 +69,7 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://koora-euro.com';
+const BASE_SITE_URL = 'https://koorasport.net';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
@@ -77,7 +77,7 @@ export async function getTodayMatches() {
     return cachedMatches;
   }
   
-  console.log("🌐 Fetching today's tailored match list...");
+  console.log("🌐 Fetching today's dynamic match list...");
   
   const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
   let finalMatches = parseMatches(todayHtml);
@@ -89,18 +89,27 @@ export async function getTodayMatches() {
     hour12: false
   }).format(now), 10);
 
-  // جلب ذكي ومحصور لمباريات أواخر الليل فقط دون سحب جدول الغد كاملاً
+  // --- الحل السحري الجديد هنا ---
+  // إذا كنا في الليل بتوقيت المغرب وانقلب تاريخ السيرفر المصدر، نقوم بجلب الأمس والغد معاً لضمان دمج المباريات الجارية الآن
   if (moroccoHour >= 18 || moroccoHour < 4) {
-    const tomorrowHtml = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
+    const [yesterdayHtml, tomorrowHtml] = await Promise.all([
+      fetchHtml(`${BASE_SITE_URL}/matches-yesterday/`).catch(() => ''),
+      fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`).catch(() => '')
+    ]);
+
+    const yesterdayList = parseMatches(yesterdayHtml);
     const tomorrowList = parseMatches(tomorrowHtml);
     
-    // نقتنص فقط المباريات التي تلعب بين 00:00 و 02:00 ليلاً بتوقيت مكة (المقابل لـ 22:00 و 23:00 بالمغرب)
-    const midnightMatches = tomorrowList.filter(m => m.originalHour >= 0 && m.originalHour <= 2);
-    
-    finalMatches = [...finalMatches, ...midnightMatches];
+    // 1. جلب مباريات الأمس التي لُعبت متأخرة (الساعة 21:00 و 22:00 و 23:00 بتوقيت مكة) لأنها تجري الآن في المغرب
+    const lateYesterdayMatches = yesterdayList.filter(m => m.originalHour >= 20 && m.originalHour <= 23);
+
+    // 2. جلب مباريات الغد التي تلعب فجراً في مكة لتعرض ليلاً بالمغرب
+    const midnightTomorrowMatches = tomorrowList.filter(m => m.originalHour >= 0 && m.originalHour <= 2);
+
+    finalMatches = [...finalMatches, ...lateYesterdayMatches, ...midnightTomorrowMatches];
   }
 
-  // تنظيف التكرار
+  // تنظيف التكرار لضمان عدم ظهور أي مباراة مرتين
   const uniqueMatches = [];
   const seen = new Set();
   
@@ -112,6 +121,7 @@ export async function getTodayMatches() {
     }
   });
 
+  // ترتيب تصاعدي حسب الوقت
   uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
@@ -124,12 +134,10 @@ export async function getTomorrowMatches() {
     return cachedMatches;
   }
   
-  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow`);
+  console.log("🌐 Fetching tomorrow's match list...");
+  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`);
   let newMatches = parseMatches(html);
   
-  // إخفاء مباريات الفجر الصغير التي عُرضت في قائمة اليوم منعاً للتكرار
-  newMatches = newMatches.filter(m => !(m.originalHour >= 0 && m.originalHour <= 2));
-
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
   if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
@@ -187,17 +195,6 @@ function parseMatches(html) {
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
 
-      // --- قراءة حالة المباراة الحقيقية من كلاسات المصدر مباشرة ---
-      let status = 'upcoming'; // افتراضي: قريباً
-      const liveIndicator = matchEl.querySelector('.MT_Result .live, .MT_Result .live-match, .live');
-      const finishedIndicator = matchEl.querySelector('.MT_Result .match-end, .end');
-      
-      if (liveIndicator || (score !== 'VS' && !finishedIndicator)) {
-        status = 'live'; // جاري الآن
-      } else if (finishedIndicator) {
-        status = 'finished'; // انتهت
-      }
-
       matches.push({
         homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
         awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
@@ -205,7 +202,6 @@ function parseMatches(html) {
         rawMinutes: timeData.rawMinutes, 
         originalHour: timeData.originalHour, 
         score: score,
-        status: status, // المتغير الجديد المرسل للواجهة لضبط الملصقات تلقائياً
         league: league,
         channel: finalChannel, 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
@@ -218,6 +214,7 @@ function parseMatches(html) {
   return matches;
 }
 
+// تعديل جلب مسار الشعار ليتوافق مع دومين koorasport بشكل صحيح وديناميكي
 function extractImageUrl(imgElement) {
   if (!imgElement) return '';
   let src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
