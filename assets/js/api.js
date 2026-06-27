@@ -33,7 +33,7 @@ function getCache(key) {
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
-      return { formatted: timeString, rawMinutes: 9999, originalHour: 12 };
+      return { formatted: timeString, rawMinutes: 9999 };
     }
 
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
@@ -45,25 +45,21 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    const originalHour = hours;
+    // 1. إنشاء تاريخ اليوم بتوقيت مكة (المصدر) بناءً على الساعات القادمة
+    const saudiDate = new Date();
+    // تعيين الساعة والدقيقة بناءً على توقيت السعودية (UTC+3)
+    saudiDate.setUTCHours(hours - 3, minutes, 0, 0); 
 
-    // طرح ساعتين للتحويل لتوقيت المغرب الحالي
-    hours -= 2; 
-
-    if (hours < 0) {
-      hours += 24;
-    }
-    
-    const formattedHours = String(hours).padStart(2, '0');
-    const formattedMinutes = String(minutes).padStart(2, '0');
+    // 2. تحويل التاريخ تلقائياً إلى التوقيت المحلي لجهاز الزائر (المغرب)
+    const localHours = String(saudiDate.getHours()).padStart(2, '0');
+    const localMinutes = String(saudiDate.getMinutes()).padStart(2, '0');
     
     return {
-      formatted: `${formattedHours}:${formattedMinutes}`,
-      rawMinutes: hours * 60 + minutes,
-      originalHour: originalHour
+      formatted: `${localHours}:${localMinutes}`,
+      rawMinutes: saudiDate.getHours() * 60 + saudiDate.getMinutes()
     };
   } catch (error) {
-    return { formatted: timeString, rawMinutes: 9999, originalHour: 12 };
+    return { formatted: timeString, rawMinutes: 9999 };
   }
 }
 
