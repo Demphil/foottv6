@@ -70,7 +70,7 @@ function convertSourceToMoroccoTime(timeString) {
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 // تحديث النطاق الأساسي بناءً على طلبك للموقع الجديد
-const BASE_SITE_URL = 'https://koorasport.net';
+const BASE_SITE_URL = 'https://alamalkoora.info/';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
