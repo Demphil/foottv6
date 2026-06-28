@@ -38,7 +38,7 @@ function convertSourceToMoroccoTime(timeString) {
     }
 
     // هنا السر: نترك الحسابات تطرح 3 ساعات كاملة لكي يفهمها كود الـ matches.js القديم بدقة
-    hours -= 3; 
+    hours -= 2; 
     if (hours < 0) hours += 24;
     
     const formattedHours = String(hours).padStart(2, '0');
