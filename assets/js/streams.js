@@ -58,6 +58,7 @@ export const streamLinks = {
   'المغربية الرياضية': 'https://demphil.github.io/aryadialive/',
   'الرياضية المغربية (1)': 'https://demphil.github.io/aryadialive/',
   'الرياضية المغربية (3)': 'https://demphil.github.io/aryadialive/',
+  '1الرياضية المغربية (3)': 'https://demphil.github.io/aryadialive/',
   'الرياضية المغربية (2)': 'https://demphil.github.io/aryadialive/',
   'On Time Sports 1': 'https://demphil.github.io/live-stream/',
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
