@@ -2,7 +2,8 @@
 
 // --- 1. الإعدادات الأساسية ---
 const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24"; 
-const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}`;
+const PAGE_SIZE = 10;
+const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=${PAGE_SIZE}&removeduplicate=1`;
 const CACHE_DURATION = 8 * 60 * 60 * 1000; 
 
 // --- 2. دوال الكاش ---
@@ -42,7 +43,7 @@ const elements = {
   filterBtns: document.querySelectorAll('.filter-btn'), // الصفحة الرئيسية
   categoryBtns: document.querySelectorAll('.category-btn'), // صفحة الأخبار
   
-  loadMoreBtn: document.getElementById('load-more') || document.querySelector('.load-more-btn')
+  loadMoreBtn: document.getElementById('load-more')
 };
 
 let state = {
@@ -72,6 +73,8 @@ async function fetchNews(page = null) {
     }
 
     const response = await fetch(targetUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
     const result = await response.json();
 
     if (result.status !== "success") throw new Error(result.results?.message || 'API Error');
@@ -130,31 +133,37 @@ function renderNews(articles, append = false) {
 
 // دالة مساعدة لإنشاء HTML البطاقة
 function createNewsCard(article, type) {
-    const imgUrl = article.image_url || 'assets/images/default-news.jpg';
+    const title = article.title || 'خبر كرة قدم';
+    const description = article.description || article.content || '';
+    const sourceName = article.source_name || article.source_id || 'مصدر رياضي';
+    const articleUrl = sanitizeUrl(article.link);
+    const imgUrl = sanitizeUrl(article.image_url, 'assets/images/default-news.jpg');
     
     // تحديد البادج
     let badge = "عالمي";
-    if(article.title.includes("سعودي") || article.title.includes("الهلال")) badge = "السعودية";
-    if(article.title.includes("مصري") || article.title.includes("الأهلي")) badge = "مصر";
-    if(article.title.includes("إسباني") || article.title.includes("ريال")) badge = "إسبانيا";
+    if(title.includes("سعودي") || title.includes("الهلال")) badge = "السعودية";
+    if(title.includes("مصري") || title.includes("الأهلي")) badge = "مصر";
+    if(title.includes("إسباني") || title.includes("ريال")) badge = "إسبانيا";
 
-    const card = document.createElement(type === 'breaking' ? 'div' : 'article');
+    const card = document.createElement('article');
     // استخدام كلاسات موحدة ليعمل CSS الجديد
     card.className = type === 'breaking' ? 'breaking-news-card' : 'news-card'; 
     
     // HTML موحد (يعتمد على CSS الجديد)
     card.innerHTML = `
         <div class="news-image-wrapper">
-            <span class="news-category-badge">${badge}</span>
-            <img src="${imgUrl}" alt="${article.title}" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
+            <span class="news-category-badge">${escapeHTML(badge)}</span>
+            <img src="${escapeAttribute(imgUrl)}" alt="${escapeAttribute(title)}" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
         </div>
         <div class="news-content">
             <h3 class="news-title">
-                <a href="${article.link}" target="_blank">${truncateText(article.title, 60)}</a>
+                <a href="${escapeAttribute(articleUrl)}" target="_blank" rel="noopener noreferrer">${escapeHTML(truncateText(title, 82))}</a>
             </h3>
+            ${description ? `<p class="news-summary">${escapeHTML(truncateText(description, 120))}</p>` : ''}
             <div class="news-meta">
-                <span><i class="far fa-clock"></i> ${formatDate(article.pubDate)}</span>
-                <a href="${article.link}" target="_blank" class="read-more-link">اقرأ <i class="fas fa-arrow-left"></i></a>
+                <span><i class="far fa-clock"></i> ${escapeHTML(formatDate(article.pubDate))}</span>
+                <span class="news-source">${escapeHTML(truncateText(sourceName, 24))}</span>
+                <a href="${escapeAttribute(articleUrl)}" target="_blank" rel="noopener noreferrer" class="read-more-link">اقرأ <i class="fas fa-arrow-left"></i></a>
             </div>
         </div>
     `;
@@ -176,6 +185,28 @@ function truncateText(text, length) {
     return text.length > length ? text.substring(0, length) + "..." : text;
 }
 
+function sanitizeUrl(url, fallback = '#') {
+    if (!url) return fallback;
+    try {
+        const parsed = new URL(url, window.location.origin);
+        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
+    } catch (error) {}
+    return fallback;
+}
+
+function escapeHTML(value) {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function escapeAttribute(value) {
+    return escapeHTML(value).replaceAll('`', '&#096;');
+}
+
 function formatDate(dateString) {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -193,10 +224,16 @@ async function init() {
     // 1. جلب وعرض الأخبار
     const initialNews = await fetchNews();
     renderNews(initialNews);
+
+    // صفحة الأخبار تعرض دفعة إضافية تلقائياً لتظهر بطاقات أكثر بدون انتظار أول نقرة.
+    if (elements.breakingGrid && state.nextPage) {
+        const moreInitialNews = await fetchNews(state.nextPage);
+        renderNews(moreInitialNews, true);
+    }
     
     // 2. تفعيل البحث (يعمل في الصفحتين)
     const performSearch = async () => {
-        const term = elements.searchInput.value.trim();
+        const term = elements.searchInput?.value.trim();
         if (!term) return;
         state.currentKeywords = term;
         state.nextPage = null;

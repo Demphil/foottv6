@@ -30,6 +30,26 @@ body {
   margin: 0 auto;
 }
 
+.news-hero {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: clamp(18px, 4vw, 28px);
+  margin-bottom: 28px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+}
+
+.news-hero h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+}
+
+.news-hero p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.8;
+}
+
 /* ========================================= */
 /* 3. الهيدر (نفس التصميم القديم) */
 /* ========================================= */
@@ -151,14 +171,14 @@ body {
 /* إعدادات الشبكة (Grid) */
 #breaking-news, #sports-news, #news-grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
 }
 
 /* البطاقة الموحدة */
 .news-card, .breaking-news-card {
   background: var(--card-bg); /* لون الخلفية الشفاف الداكن */
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -234,6 +254,17 @@ body {
 
 .news-title a:hover { color: var(--secondary-color); /* التغيير للأصفر عند التحويم */ }
 
+.news-summary {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  margin: 0 0 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .news-meta {
   margin-top: auto;
   padding-top: 15px;
@@ -255,6 +286,13 @@ body {
   gap: 5px;
 }
 .read-more-link:hover { text-decoration: underline; color: #fff; }
+
+.news-source {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ========================================= */
 /* 6. زر تحميل المزيد */

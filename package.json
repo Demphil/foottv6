@@ -7,7 +7,10 @@
     "axios": "^1.6.0"
   },
   "scripts": {
-    "update": "node scripts/generate-matches.js"
+    "update": "node scripts/generate-matches.js",
+    "seo:apply": "node scripts/apply-seo.js",
+    "seo:check": "node scripts/check-seo.js",
+    "indexnow": "node scripts/submit-indexnow.js"
   },
   "author": "Your Name",
   "license": "MIT"
