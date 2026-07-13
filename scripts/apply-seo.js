@@ -434,22 +434,8 @@ function updateFeaturedTitle(html, page) {
   );
 }
 
-function buildIntro(page) {
-  return `    <section class="seo-intro" aria-labelledby="seo-intro-title">
-        <h2 id="seo-intro-title">${page.h1}</h2>
-        <p>${page.intro}</p>
-        <ul class="seo-benefits">
-            <li>جدول مباريات اليوم والغد بتحديث مستمر.</li>
-            <li>روابط داخلية واضحة للأخبار وصفحات البث المهمة.</li>
-            <li>بيانات منظمة تساعد محركات البحث على فهم محتوى الصفحة.</li>
-        </ul>
-    </section>
-`;
-}
-
-function insertIntro(html, page) {
-  html = html.replace(/\s*<section class="seo-intro"[\s\S]*?<\/section>\s*/i, "\n");
-  return html.replace(/<main class="matches-main">\s*/i, `<main class="matches-main">\n${buildIntro(page)}`);
+function stripGeneratedIntro(html) {
+  return html.replace(/\s*<section class="seo-intro"[\s\S]*?<\/section>\s*/i, "\n");
 }
 
 function hardenBlankTargets(html) {
@@ -461,7 +447,7 @@ function updateStreamPage(page) {
   html = updateHead(html, page);
   html = updateHeaderTitle(html, page);
   html = updateFeaturedTitle(html, page);
-  html = insertIntro(html, page);
+  html = stripGeneratedIntro(html);
   html = hardenBlankTargets(html);
   write(page.file, html);
 }
@@ -520,7 +506,6 @@ ${buildHead(page)}
     </header>
 
     <main class="matches-main">
-${buildIntro(page)}
         <section class="all-matches">
             <h2 class="section-title"><i class="fas fa-futbol"></i> جدول مباريات اليوم</h2>
             <div class="matches-tabs">

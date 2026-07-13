@@ -27,42 +27,6 @@ body {
   margin: 0 auto;
 }
 
-.seo-intro {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 8px;
-  padding: clamp(18px, 4vw, 28px);
-  margin-bottom: 28px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
-}
-
-.seo-intro h2 {
-  margin: 0 0 10px;
-  font-size: clamp(1.25rem, 3vw, 1.8rem);
-}
-
-.seo-intro p {
-  margin: 0 0 14px;
-  color: rgba(255, 255, 255, 0.84);
-  line-height: 1.8;
-}
-
-.seo-benefits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.seo-benefits li {
-  background: rgba(0, 0, 0, 0.16);
-  border-radius: 8px;
-  padding: 10px 12px;
-  line-height: 1.6;
-}
-
 /* 3. الهيدر والتنقل */
 .header {
   background: rgba(29, 53, 87, 0.8);
