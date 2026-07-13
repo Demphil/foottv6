@@ -115,8 +115,8 @@ function renderNews(articles, append = false) {
     let mainArticles = articles;
     
     if (elements.breakingGrid && !append) {
-        const breakingArticles = articles.slice(0, 4);
-        mainArticles = articles.slice(4); // الباقي للشبكة الرئيسية
+        const breakingArticles = articles.slice(0, 5);
+        mainArticles = articles.slice(5); // الباقي للشبكة الرئيسية
 
         breakingArticles.forEach(article => {
             const card = createNewsCard(article, 'breaking');
