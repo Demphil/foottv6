@@ -100,6 +100,7 @@ export const streamLinks = {
   'beIN SPORTS MAX 3': 'https://demphil.github.io/max3/',
   'beIN SPORTS MAX 1': 'https://demphil.github.io/BEINmax1/',
   'beIN SPORTS MAX 2': 'https://demphil.github.io/Beinmax2/',
+  'beIN 4K HDR': 'https://demphil.github.io/Beinmax2/',
 
   
   
