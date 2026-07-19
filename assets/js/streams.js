@@ -101,8 +101,8 @@ export const streamLinks = {
   'beIN SPORTS MAX 1': 'https://demphil.github.io/BEINmax1/',
   'beIN SPORTS MAX 2': 'https://demphil.github.io/Beinmax2/',
   'beIN 4K HDR': 'https://demphil.github.io/Beinmax2/',
-
-  
+'بين سبورت MAX 1 - بين سبورت MAX 2 - بين سبورت MAX 3': 'https://demphil.github.io/BEINmax1/',
+  'بين سبورت MAX 1 - بين سبورت MAX 2 - بين سبورت MAX 3': 'https://demphil.github.io/Beinmax2/',
   
   // =================================================================
   // === الخطة البديلة: الربط اليدوي عبر أسماء الفرق (في حال عدم توفر اسم القناة) ===
