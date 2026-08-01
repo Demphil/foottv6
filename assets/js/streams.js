@@ -110,7 +110,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'باراجواي-فرنسا': 'https://demphil.github.io/Beinmax2/',
+  'ريال مدريد-فيورنتينا': 'https://demphil.github.io/arryadia-s-d/',
   'الاهلي-سباهان': 'https://demphil.github.io/bein6/',
   'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
