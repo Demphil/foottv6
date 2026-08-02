@@ -1,7 +1,7 @@
 // assets/js/news.js
 
 // --- 1. الإعدادات الأساسية ---
-const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24"; 
+const API_KEY = "pub_157246adfe04454f85ed58e4c55f77b3"; 
 const PAGE_SIZE = 10;
 const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=${PAGE_SIZE}&removeduplicate=1`;
 const CACHE_DURATION = 8 * 60 * 60 * 1000; 
