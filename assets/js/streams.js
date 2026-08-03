@@ -112,7 +112,7 @@ export const streamLinks = {
   
   'ريال مدريد-فيورنتينا': 'https://demphil.github.io/arryadia-s-d/',
   'السنغال - سيدات-المغرب - سيدات': 'https://demphil.github.io/bein6/',
-  'أتلتيكو مدريد-ديبورتيفو ألافيس': 'https://foot966.blogspot.com/p/bein4.html',
+  'كينيا - سيدات-الجزائر - سيدات': 'https://foot966.blogspot.com/p/bein4.html',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
   'السنغال-مصر': 'https://demphil.github.io/BEINmax1/',
   'كندا-المغرب': 'https://demphil.github.io/BEINmax1/',
