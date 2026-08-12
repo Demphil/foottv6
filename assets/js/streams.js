@@ -112,7 +112,7 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'ريال مدريد-فيورنتينا': 'https://demphil.github.io/arryadia-s-d/',
+  'مانشستر يونايتد-ليدز يونايتد': 'https://demphil.github.io/onesports2/',
   'السنغال - سيدات-المغرب - سيدات': 'https://demphil.github.io/bein6/',
   'كينيا - سيدات-الجزائر - سيدات': 'https://demphil.github.io/bein5/',
  'المغرب-مالي': 'https://demphil.github.io/BEINmax1/',
