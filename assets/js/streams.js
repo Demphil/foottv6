@@ -64,7 +64,9 @@ export const streamLinks = {
   'أون سبورت 1': 'https://demphil.github.io/live-stream/',
   'ON TIME SPORTS 2': 'https://demphil.github.io/onesports2/',
     'On Sport Plus': 'https://demphil.github.io/onesports2/',
+    'أون سبورت بلس': 'https://demphil.github.io/onesports2/',
 
+    
   'أون سبورت 2': 'https://demphil.github.io/onesports2/',
   'ad sports premium 1': 'https://demphil.github.io/adsports-primum1/',
   'ad sports premium 2': 'https://demphil.github.io/adsports-primum1/',
