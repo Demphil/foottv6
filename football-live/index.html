@@ -29,20 +29,41 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px; /* تم تقليل المسافة قليلاً لتناسب التنبيه */
             width: 100%;
             max-width: 1000px;
+            padding: 20px; /* إضافة حواف داخلية للشاشات الصغيرة */
+            box-sizing: border-box;
         }
         h2 {
             font-size: 2.2em;
             margin: 0;
-            margin-top: 20px;
+            margin-top: 10px;
         }
+        
+        /* تصميم صندوق التنبيه */
+        .alert-box {
+            background-color: rgba(255, 255, 255, 0.15); /* خلفية شفافة */
+            border: 2px solid #ffd700; /* إطار ذهبي بارز */
+            color: #ffd700; /* نص ذهبي */
+            padding: 12px 20px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .alert-icon {
+            margin-left: 8px;
+            font-size: 1.2em;
+        }
+
         /* تصميم أزرار السيرفرات */
         .servers-menu {
             display: flex;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -66,7 +87,7 @@
             width: 100%;
             height: 600px;
             position: relative;
-            background-color: #000; /* خلفية سوداء أثناء التحميل */
+            background-color: #000;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -79,6 +100,16 @@
             top: 0;
             left: 0;
         }
+
+        /* جعل التصميم متجاوباً مع الهواتف */
+        @media (max-width: 768px) {
+            .iframe-container {
+                height: 250px; /* تصغير المشغل في الهواتف */
+            }
+            .alert-box {
+                font-size: 1em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -86,13 +117,15 @@
     <div class="page-container">
         <h2>اختر سيرفر المشاهدة</h2>
         
+        <!-- رسالة التنبيه للزوار -->
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span> تنبيه: في حال توقف البث أو واجهت تقطيعاً في السيرفر الأول، يرجى تجربة السيرفرات الأخرى من الأزرار أدناه.
+        </div>
+        
         <!-- أزرار اختيار السيرفر -->
         <div class="servers-menu">
-            <!-- تم دمج رابط البروكسي الخاص بك (workers.dev) مع روابط البث لتجنب مشاكل الحظر -->
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://syria-live.info/albaplayer/bnn2/?serv=0')" class="active">سيرفر 1</button>
-            
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://w1.yallabark.com/albaplayer/ch2/?serv=2')">سيرفر 2</button>
-            
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://online.aflam4you.net/zremb472.php?vid=2&aflam_s=1&aflam_w=360&aflam_h=250&aflam_k=18311111')">سيرفر 3</button>
         </div>
 
@@ -108,16 +141,13 @@
     <!-- سكريبت لتغيير البث عند الضغط على الزر -->
     <script>
         function changeServer(btn, url) {
-            // تغيير رابط الفيديو
             document.getElementById('main-player').src = url;
             
-            // إزالة اللون النشط من كل الأزرار
             var buttons = document.querySelectorAll('.servers-menu button');
             buttons.forEach(function(button) {
                 button.classList.remove('active');
             });
             
-            // إضافة اللون النشط للزر الذي تم الضغط عليه
             btn.classList.add('active');
         }
     </script>
