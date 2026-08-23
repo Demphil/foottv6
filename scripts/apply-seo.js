@@ -363,10 +363,6 @@ function buildHead(page, options = {}) {
     page.file === "index.html"
       ? '    <meta name="ezoic-site-verification" content="45zSAuwQACheMQtQ6bGh81bIrm2Rsk">\n'
       : "";
-  const adsense =
-    page.file === "index.html"
-      ? '    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1051815609113641" crossorigin="anonymous"></script>\n'
-      : "";
 
   return `<head>
     <meta charset="UTF-8">
@@ -411,7 +407,7 @@ ${css
       gtag('js', new Date());
       gtag('config', 'G-LVZ7KRDPEW');
     </script>
-${adsense}    <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
+    <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
 </head>`;
 }
 
@@ -542,7 +538,6 @@ ${buildHead(page)}
     </div>
 
     <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
-    <script src="/assets/js/ad-manager.js"></script>
     <script type="module" src="/assets/js/matches.js"></script>
 </body>
 </html>

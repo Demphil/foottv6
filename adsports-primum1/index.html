@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <style>
+        body {
+            /* 1. تعديل الخلفية: تدرج لوني من الصورة الأصلية (أرجواني داكن إلى وردي فوشيا) */
+            background: linear-gradient(to right, #4b2c64, #f83a7f);
+            margin: 0;
+            padding: 0;
+            color: white; /* لجعل النص مقروءاً على الخلفية الملونة */
+            /* 2. التمركز في منتصف الصفحة: استخدام Flexbox للتمركز العمودي والأفقي */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .page-container {
+            /* حاوية داخلية إضافية للتحكم الأفضل في التخطيط */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* مسافة بين العنوان والفيديو */
+        }
+        h2 {
+            font-size: 2.2em; /* تكبير العنوان قليلاً */
+            margin: 0;
+        }
+        .iframe {
+            /* 3. تكبير الفيديو قليلاً: زيادة max-width ليكون أوسع */
+            max-width: 1000px; /* كان 800 بكسل */
+            width: 100%;
+            margin: 0 auto;
+            direction: rtl;
+        }
+        .iframe {
+            /* 4. تكبير الفيديو قليلاً: زيادة الارتفاع */
+            width: 200% !important;
+            height: 600px !important; /* كان 450 بكسل */
+        }
+    </style>
+</head>
+    <body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<iframe 
+  src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://syria-live.info/albaplayer/bnnn5/?serv=0" 
+  style="width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0;" 
+  allowfullscreen="true">
+</iframe>
+        
+
+</body>   
+</html>
