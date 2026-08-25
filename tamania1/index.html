@@ -6,23 +6,16 @@
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <title>البث المباشر - متعدد السيرفرات</title>
 
-    <!-- مكتبة تشغيل بث m3u8 (ضرورية لتشغيل روابط HLS) -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
     <!-- شفرات إعلانات Monetag -->
     <script>(function(s){s.dataset.zone='11638896',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>
     <script>(function(s){s.dataset.zone='11639220',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            background: linear-gradient(135deg, #1f122b, #4b2c64, #f83a7f);
+            background: linear-gradient(to right, #4b2c64, #f83a7f);
             margin: 0;
-            padding: 15px;
+            padding: 0;
             color: white;
             display: flex;
             flex-direction: column;
@@ -32,189 +25,132 @@
             text-align: center;
             font-family: Arial, sans-serif;
         }
-
         .page-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 15px; /* تم تقليل المسافة قليلاً لتناسب التنبيه */
             width: 100%;
-            max-width: 950px; /* العرض المثالي لشاشات الكمبيوتر */
-            margin: auto;
+            max-width: 1000px;
+            padding: 20px; /* إضافة حواف داخلية للشاشات الصغيرة */
+            box-sizing: border-box;
+        }
+        h2 {
+            font-size: 2.2em;
+            margin: 0;
+            margin-top: 10px;
+        }
+        
+        /* تصميم صندوق التنبيه */
+        .alert-box {
+            background-color: rgba(255, 255, 255, 0.15); /* خلفية شفافة */
+            border: 2px solid #ffd700; /* إطار ذهبي بارز */
+            color: #ffd700; /* نص ذهبي */
+            padding: 12px 20px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .alert-icon {
+            margin-left: 8px;
+            font-size: 1.2em;
         }
 
-        /* تصميم أزرار السيرفرات المتجاوبة */
+        /* تصميم أزرار السيرفرات */
         .servers-menu {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 5px;
             flex-wrap: wrap;
             justify-content: center;
-            width: 100%;
         }
-
         .servers-menu button {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: #ffffff;
             color: #4b2c64;
-            border: 2px solid transparent;
-            padding: 8px 18px;
-            font-size: 1rem;
+            border: 2px solid #ffffff;
+            padding: 10px 25px;
+            font-size: 1.1em;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.25s ease-in-out;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
-
-        .servers-menu button:hover {
-            background-color: #ffffff;
-            transform: translateY(-2px);
-        }
-
-        .servers-menu button.active {
-            background-color: #f83a7f;
+        .servers-menu button:hover, .servers-menu button.active {
+            background-color: #4b2c64;
             color: #ffffff;
-            border-color: #ffffff;
-            box-shadow: 0 0 12px rgba(248, 58, 127, 0.6);
         }
-
-        .reload-btn {
-            background-color: #ffd700 !important;
-            color: #222 !important;
-        }
-
-        /* حاوية المشغل بنسبة الأبعاد السينمائية 16:9 */
-        .player-wrapper {
+        /* حاوية الفيديو */
+        .iframe-container {
             width: 100%;
+            height: 600px;
             position: relative;
             background-color: #000;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            aspect-ratio: 16 / 9; /* تضمن الحجم الطبيعي على كل الشاشات */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
-        .player-wrapper iframe,
-        .player-wrapper video {
+        .iframe-container iframe {
             width: 100%;
             height: 100%;
             border: none;
             position: absolute;
             top: 0;
             left: 0;
-            object-fit: contain;
-            background-color: #000;
         }
 
-        /* صندوق التنبيه والفوتر */
-        .alert-box {
-            background-color: rgba(0, 0, 0, 0.35);
-            border: 1px solid #ffd700;
-            color: #ffd700;
-            padding: 10px 16px;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 0.95rem;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            line-height: 1.5;
-        }
-
-        /* تحسينات الشاشات الصغيرة (الهواتف) */
-        @media (max-width: 600px) {
-            body {
-                padding: 10px 8px;
+        /* جعل التصميم متجاوباً مع الهواتف */
+        @media (max-width: 768px) {
+            .iframe-container {
+                height: 250px; /* تصغير المشغل في الهواتف */
             }
-
-            .servers-menu button {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-            }
-
             .alert-box {
-                font-size: 0.85rem;
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="page-container">
-
-    <!-- قائمة أزرار السيرفرات -->
-    <div class="servers-menu" id="btn-group">
-        <button onclick="loadStream(0, 'https://m5.kora-sami.com/splplayer/th-2/?serv=2&amp;auth=kreem0090/?serv=2&amp;auth=livepass', true)">بث 1</button>
-        <button onclick="loadStream(1, 'https://a13.kora-plus.li/live/thman2.m3u8?token=iXuwgrJZbx1PNP6AQT6UxnEO3E8&exp=1787677003', false)">بث 2</button>
-        <button onclick="loadStream(2, 'https://m5.kora-sami.com/splplayer/th-2/?serv=2&amp;auth=kreem0090/?serv=2&amp;auth=livepass', true)">بث 3</button>
-        <button onclick="loadStream(3, 'https://new.site20260.top/embed/1459?serv=2&amp;auth=kreem0090/?serv=2&amp;auth=livepass', true)">بث 4</button>
-        <button onclick="loadStream(4, 'https://3.simokora.com/my-hls/h9asfma10d5/source/index.m3u8', false)">بث 5</button>
-        <button class="reload-btn" onclick="location.reload()">🔄 تحديث</button>
-    </div>
+    <div class="page-container">
+        <h2>اختر سيرفر المشاهدة</h2>
         
-    <!-- حاوية مشغل الفيديو / الـ iframe -->
-    <div class="player-wrapper" id="player-container">
-        <video id="video" controls autoplay muted></video>
+        <!-- رسالة التنبيه للزوار -->
+        <div class="alert-box">
+            <span class="alert-icon">⚠️</span> تنبيه: في حال توقف البث أو واجهت تقطيعاً في السيرفر الأول، يرجى تجربة السيرفرات الأخرى من الأزرار أدناه.
+        </div>
+        
+        <!-- أزرار اختيار السيرفر -->
+        <div class="servers-menu">
+            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://m5.kora-sami.com/splplayer/th-2/')" class="active">سيرفر 1</button>
+            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://p3.paanda-hd.com/albaplayer/bein-1/')">سيرفر 2</button>
+            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://syria-live.info/albaplayer/bnn2/?serv=0')">سيرفر 3</button>
+        </div>
+
+        <!-- المشغل الذي ستتغير بداخله القنوات -->
+        <div class="iframe-container">
+            <iframe id="main-player" 
+                src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://w1.yallabark.com/albaplayer/ch1/?serv=2" 
+                allowfullscreen="true">
+            </iframe>
+        </div>
     </div>
 
-    <!-- صندوق التنبيه والتعليمات -->
-    <div class="alert-box">
-        ⚠️ تنبيه: إذا توقف البث قم بالضغط على زر التحديث أو اختر مشغلاً آخر من الأعلى.
-    </div>
-
-</div>
-
-<script>
-    var container = document.getElementById('player-container');
-    var hls = null;
-
-    function loadStream(index, url, isIframe) {
-        // تحديث حالة الزر النشط
-        document.querySelectorAll('.servers-menu button').forEach(btn => btn.classList.remove('active'));
-        var buttons = document.querySelectorAll('.servers-menu button');
-        if (buttons[index]) {
-            buttons[index].classList.add('active');
+    <!-- سكريبت لتغيير البث عند الضغط على الزر -->
+    <script>
+        function changeServer(btn, url) {
+            document.getElementById('main-player').src = url;
+            
+            var buttons = document.querySelectorAll('.servers-menu button');
+            buttons.forEach(function(button) {
+                button.classList.remove('active');
+            });
+            
+            btn.classList.add('active');
         }
-
-        // إيقاف وتفريغ مشغل HLS السابق إن وجد
-        if (hls) {
-            hls.destroy();
-            hls = null;
-        }
-
-        if (isIframe) {
-            container.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
-        } else {
-            container.innerHTML = `<video id="video" controls autoplay muted playsinline></video>`;
-            var video = document.getElementById('video');
-
-            if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    video.play().catch(function(e){ console.log("Autoplay blocked:", e); });
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // دعم متصفحات Safari على أجهزة Apple
-                video.src = url;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play();
-                });
-            }
-        }
-    }
-
-    // تشغيل السيرفر الأول تلقائياً عند تحميل الصفحة
-    window.addEventListener('DOMContentLoaded', function() {
-        var firstButton = document.querySelector('.servers-menu button');
-        if (firstButton) {
-            firstButton.click();
-        }
-    });
-</script>
+    </script>
 
 </body>
 </html>
