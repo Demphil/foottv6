@@ -114,43 +114,56 @@
 </head>
 <body>
 
-    <div class="page-container">
-        <h2>اختر سيرفر المشاهدة</h2>
-        
-        <!-- رسالة التنبيه للزوار -->
-        <div class="alert-box">
-            <span class="alert-icon">⚠️</span> تنبيه: في حال توقف البث أو واجهت تقطيعاً في السيرفر الأول، يرجى تجربة السيرفرات الأخرى من الأزرار أدناه.
-        </div>
-        
-        <!-- أزرار اختيار السيرفر -->
-        <div class="servers-menu">
-            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://new.site20260.top/embed/1460/0')" class="active">سيرفر 1</button>
-            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://new.site20260.top/embed/1459/0')">سيرفر 2</button>
-            <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://w1.yallabark.com/albaplayer/ch1/?serv=2')">سيرفر 3</button>
-        </div>
+<div class="controls" id="btn-group">
+    <!-- الروابط الخاصة بك هنا كما هي -->
+    <button onclick="loadStream(0, 'https://v3.site2026.top/broadcast/EP84XYS6e9kjTR8BT8JQmg/1787678295/1787678034/1/thman1.m3u8', false)">بث 1</button>
+    <button onclick="loadStream(1, 'https://v3.site2026.top/broadcast/EP84XYS6e9kjTR8BT8JQmg/1787678295/1787678034/1/thman1.m3u8', false)">بث 2</button>
+    <button onclick="loadStream(2, 'https://new.site20260.top/embed/1459?serv=2&amp;auth=kreem0090/?serv=2&amp;auth=livepass', true)">بث 3</button>
+    <button onclick="loadStream(3, 'https://new.site20260.top/embed/1459?serv=2&amp;auth=kreem0090/?serv=2&amp;auth=livepass', true)">بث 4</button>
+    <button onclick="loadStream(4, 'https://3.simokora.com/my-hls/h9asfma10d5/source/index.m3u8', false)">بث 5</button>
+    
 
-        <!-- المشغل الذي ستتغير بداخله القنوات -->
-        <div class="iframe-container">
-            <iframe id="main-player" 
-                src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://new.site20260.top/embed/1460/0" 
-                allowfullscreen="true">
-            </iframe>
-        </div>
-    </div>
+    <button onclick="location.reload()">تحديث</button>
+</div>
+    
+<div id="player-container">
+    <video id="video" controls autoplay muted></video>
+</div>
 
-    <!-- سكريبت لتغيير البث عند الضغط على الزر -->
-    <script>
-        function changeServer(btn, url) {
-            document.getElementById('main-player').src = url;
-            
-            var buttons = document.querySelectorAll('.servers-menu button');
-            buttons.forEach(function(button) {
-                button.classList.remove('active');
-            });
-            
-            btn.classList.add('active');
+<div class="footer">
+    تنبيه: إذا توقف البث قم بالضغط على زر التحديث أو إختار مشغلاً آخر في الأعلى.
+</div>
+
+<script>
+    var container = document.getElementById('player-container');
+    var hls = new Hls();
+
+    function loadStream(index, url, isIframe) {
+        document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.controls button')[index].classList.add('active');
+
+        if (hls) hls.destroy();
+
+        if (isIframe) {
+            container.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay"></iframe>`;
+        } else {
+            container.innerHTML = `<video id="video" controls autoplay muted></video>`;
+            var video = document.getElementById('video');
+            hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
         }
-    </script>
+    }
+
+    // هنا يتم محاكاة النقر على الزر الأول ليقوم بجلب الرابط الخاص به تلقائياً
+    window.onload = function() {
+        var firstButton = document.querySelector('.controls button');
+        if(firstButton) {
+            firstButton.click();
+        }
+    };
+</script>
 
 </body>
 </html>
