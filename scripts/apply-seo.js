@@ -363,6 +363,10 @@ function buildHead(page, options = {}) {
     page.file === "index.html"
       ? '    <meta name="ezoic-site-verification" content="45zSAuwQACheMQtQ6bGh81bIrm2Rsk">\n'
       : "";
+  const adScripts = `
+    <script>(function(s){s.dataset.zone='11639220',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script>(function(s){s.dataset.zone='11638896',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>`;
 
   return `<head>
     <meta charset="UTF-8">
@@ -407,6 +411,7 @@ ${css
       gtag('js', new Date());
       gtag('config', 'G-LVZ7KRDPEW');
     </script>
+${adScripts}
     <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
 </head>`;
 }
