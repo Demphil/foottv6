@@ -363,11 +363,10 @@ function buildHead(page, options = {}) {
     page.file === "index.html"
       ? '    <meta name="ezoic-site-verification" content="45zSAuwQACheMQtQ6bGh81bIrm2Rsk">\n'
       : "";
-  const adsense =
-    page.file === "index.html"
-      ? '    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1051815609113641" crossorigin="anonymous"></script>\n'
-      : "";
-
+  const adScripts = `
+    <script>(function(s){s.dataset.zone='11639220';s.src='https://nap5k.com/tag.min.js';})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script>(function(s){s.dataset.zone='11638896';s.src='https://al5sm.com/tag.min.js';})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>`;
   return `<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -411,7 +410,8 @@ ${css
       gtag('js', new Date());
       gtag('config', 'G-LVZ7KRDPEW');
     </script>
-${adsense}    <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
+${adScripts}
+    <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
 </head>`;
 }
 
@@ -438,6 +438,13 @@ function stripGeneratedIntro(html) {
   return html.replace(/\s*<section class="seo-intro"[\s\S]*?<\/section>\s*/i, "\n");
 }
 
+function stripLegacyAds(html) {
+  return html
+    .replace(/\s*<script\b[^>]*src=["'][^"']*(?:ad-manager\.js|adsbygoogle\.js|revenuecpmgate\.com|fpyf8\.com)[^"']*["'][^>]*><\/script>\s*/gi, "\n")
+    .replace(/\s*<ins\b[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>\s*/gi, "\n")
+    .replace(/\s*<script\b[^>]*>[\s\S]*?\(adsbygoogle\s*=\s*window\.adsbygoogle[^<]*<\/script>\s*/gi, "\n");
+}
+
 function hardenBlankTargets(html) {
   return html.replace(/target="_blank"(?!\s+rel=)/g, 'target="_blank" rel="noopener noreferrer"');
 }
@@ -448,6 +455,7 @@ function updateStreamPage(page) {
   html = updateHeaderTitle(html, page);
   html = updateFeaturedTitle(html, page);
   html = stripGeneratedIntro(html);
+  html = stripLegacyAds(html);
   html = hardenBlankTargets(html);
   write(page.file, html);
 }
@@ -481,6 +489,7 @@ function updateNewsPage() {
                 <i class="fas fa-plus"></i> تحميل المزيد من الأخبار
             </button>`,
   );
+  html = stripLegacyAds(html);
   html = hardenBlankTargets(html);
   write("news.html", html);
 }
@@ -542,7 +551,6 @@ ${buildHead(page)}
     </div>
 
     <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
-    <script src="/assets/js/ad-manager.js"></script>
     <script type="module" src="/assets/js/matches.js"></script>
 </body>
 </html>
@@ -564,6 +572,7 @@ function update404() {
   };
   let html = read("404.html");
   html = updateHead(html, page, { noindex: true });
+  html = stripLegacyAds(html);
   html = hardenBlankTargets(html);
   write("404.html", html);
 }
@@ -579,6 +588,7 @@ function updateLegacyUsecase() {
   };
   let html = read("usecase.html");
   html = updateHead(html, page, { noindex: true });
+  html = stripLegacyAds(html);
   html = hardenBlankTargets(html);
   write("usecase.html", html);
 }
