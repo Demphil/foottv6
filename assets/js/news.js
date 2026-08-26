@@ -1,10 +1,10 @@
 // assets/js/news.js
 
 // --- 1. الإعدادات الأساسية ---
-const API_KEY = "pub_842146e80ac6ec8f039ac3c36364fdb5dcd24"; 
+const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b"; 
 const PAGE_SIZE = 10;
 const BASE_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=${PAGE_SIZE}&removeduplicate=1`;
-const CACHE_DURATION = 8 * 60 * 60 * 1000; 
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 // --- 2. دوال الكاش ---
 function setCache(key, data) {
@@ -115,8 +115,8 @@ function renderNews(articles, append = false) {
     let mainArticles = articles;
     
     if (elements.breakingGrid && !append) {
-        const breakingArticles = articles.slice(0, 4);
-        mainArticles = articles.slice(4); // الباقي للشبكة الرئيسية
+        const breakingArticles = articles.slice(0, 5);
+        mainArticles = articles.slice(5); // الباقي للشبكة الرئيسية
 
         breakingArticles.forEach(article => {
             const card = createNewsCard(article, 'breaking');

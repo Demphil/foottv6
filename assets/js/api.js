@@ -21,7 +21,7 @@ function getCache(key) {
   return data;
 }
 
-// --- 2. دالة تحويل توقيت السيرفر ليتطابق مع طرح الـ 3 ساعات في كودك القديم ---
+// --- 2. Timezone Conversion Function ---
 function convertSourceToMoroccoTime(timeString) {
   try {
     if (!timeString || !timeString.includes(':')) {
@@ -37,7 +37,6 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
-    // هنا السر: نترك الحسابات تطرح 3 ساعات كاملة لكي يفهمها كود الـ matches.js القديم بدقة
     hours -= 2; 
     if (hours < 0) hours += 24;
     
@@ -55,32 +54,22 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://sport-extra.net/';
+const BASE_SITE_URL = 'https://sport-live.pl/';
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) return cachedMatches;
   
   try {
-    // جلب اليوم والأمس والغد لضمان دمج مباريات أواخر الليل المفقودة
-    const [todayHtml, yesterdayHtml, tomorrowHtml] = await Promise.all([
-      fetchHtml(`${BASE_SITE_URL}/`),
-      fetchHtml(`${BASE_SITE_URL}/matches-yesterday/`),
-      fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`)
-    ]);
+    // جلب الصفحة الرئيسية فقط لمنع دخول المباريات القديمة
+    const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
+    let finalMatches = parseMatches(todayHtml);
 
-    const todayList = parseMatches(todayHtml);
-    const yesterdayList = parseMatches(yesterdayHtml);
-    const tomorrowList = parseMatches(tomorrowHtml);
-
-    // دمج شامل
-    const allMatches = [...yesterdayList, ...todayList, ...tomorrowList];
-
-    // تصفية التكرار بالأسماء لتبقى الواجهة نظيفة
+    // تصفية التكرار إن وجد
     const uniqueMatches = [];
     const seen = new Set();
 
-    allMatches.forEach(match => {
+    finalMatches.forEach(match => {
       const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase().trim();
       if (!seen.has(matchId)) {
         seen.add(matchId);
@@ -88,7 +77,39 @@ export async function getTodayMatches() {
       }
     });
 
-    uniqueMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
+    // 🌟 منطق الفرز الذكي المطلوب 🌟
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    uniqueMatches.sort((a, b) => {
+      const hasChannelA = a.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(a.channel.trim());
+      const hasChannelB = b.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(b.channel.trim());
+
+      const diffA = a.rawMinutes - currentMinutes;
+      const diffB = b.rawMinutes - currentMinutes;
+
+      const getRank = (match, diff, hasChannel) => {
+        // 1. القناة غير متوفرة تُرمى في الأسفل تماماً
+        if (!hasChannel) return 4;
+
+        // 2. المباراة جارية الآن (نتيجة مسجلة أو التوقيت الحالي بين البداية والنهاية)
+        const isLive = (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
+        if (isLive) return 1;
+
+        // 3. ستبدأ قريباً (خلال 45 دقيقة قادمة)
+        if (diff > 0 && diff <= 45) return 2;
+
+        // 4. قادمة لاحقاً في اليوم
+        return 3;
+      };
+
+      const rankA = getRank(a, diffA, hasChannelA);
+      const rankB = getRank(b, diffB, hasChannelB);
+
+      if (rankA !== rankB) return rankA - rankB;
+      return a.rawMinutes - b.rawMinutes;
+    });
+
     if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
     return uniqueMatches;
 
