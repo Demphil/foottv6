@@ -66,6 +66,7 @@ export const streamLinks = {
     'On Sport Plus': 'https://koralive.football/onesports2/',
     'أون سبورت بلس': 'https://koralive.football/onesports2/',
   'أون سبورت': 'https://koralive.football/live-stream/',
+   'أون سبورت ماكس': 'https://koralive.football/live-stream/',
   
 
     
