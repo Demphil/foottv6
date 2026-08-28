@@ -118,7 +118,7 @@ export const streamLinks = {
   'النصر-التعاون': 'https://koralive.football/tamania1/',
   'السنغال - سيدات-المغرب - سيدات': 'https://koralive.football/bein6/',
   'كينيا - سيدات-الجزائر - سيدات': 'https://koralive.football/bein5/',
- 'الخليج-الهلال': 'https://koralive.football/mbc-action/',
+ 'الخليج-الهلال': 'https://koralive.football/beinfree/',
   'السنغال-مصر': 'https://koralive.football/beinmax1/',
   'كندا-المغرب': 'https://koralive.football/beinmax1/',
   'غينيا الاستوائية-الجزائر': 'https://koralive.football/beinmax1/',
