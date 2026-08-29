@@ -285,6 +285,12 @@ function scoreFrom(matchEl) {
   return scorePair ? `${scorePair[1]} - ${scorePair[2]}` : 'VS';
 }
 
+function liveStatusFrom(matchEl) {
+  const className = typeof matchEl.className === 'string' ? matchEl.className : '';
+  const statusText = textFrom(matchEl, ['.MT_Stat', '.match-status', '.status', '.date']);
+  return /\blive\b|started|جارية|جاري|مباشر|الآن|الان/i.test(`${className} ${statusText}`);
+}
+
 export function parseMatches(html) {
   if (!html) return [];
 
@@ -343,6 +349,7 @@ export function parseMatches(html) {
         time: timeData.formatted,
         rawMinutes: timeData.rawMinutes,
         score: scoreFrom(matchEl),
+        isLive: liveStatusFrom(matchEl),
         league,
         channel: finalChannel,
         commentator: commentator.includes('غير معروف') ? '' : commentator,
