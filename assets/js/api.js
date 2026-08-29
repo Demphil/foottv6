@@ -71,7 +71,7 @@ function convertSourceToMoroccoTime(timeString) {
 // --- 3. API Functions ---
 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://tvkoralive.com';
+const BASE_SITE_URL = 'https://koora-live-pluss.online/';
 
 export async function getTodayMatches() {
 
