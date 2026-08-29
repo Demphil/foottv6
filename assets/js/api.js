@@ -37,6 +37,7 @@ function convertSourceToMoroccoTime(timeString) {
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
     }
 
+    // افتراض أن توقيت الموقع المصدر هو مكة المكرمة (GMT+3) والمغرب (GMT+1) 
     hours -= 2; 
     if (hours < 0) hours += 24;
     
@@ -54,18 +55,16 @@ function convertSourceToMoroccoTime(timeString) {
 
 // --- 3. API Functions ---
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://koralovear.xyz/kora-live-today-matches-live-streaming-guide/';
+const BASE_SITE_URL = 'https://koralovear.xyz'; // تم تعديل الرابط الأساسي
 
 export async function getTodayMatches() {
   const cachedMatches = getCache(CACHE_KEY_TODAY);
   if (cachedMatches) return cachedMatches;
   
   try {
-    // جلب الصفحة الرئيسية فقط لمنع دخول المباريات القديمة
     const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
     let finalMatches = parseMatches(todayHtml);
 
-    // تصفية التكرار إن وجد
     const uniqueMatches = [];
     const seen = new Set();
 
@@ -77,7 +76,6 @@ export async function getTodayMatches() {
       }
     });
 
-    // 🌟 منطق الفرز الذكي المطلوب 🌟
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -89,17 +87,10 @@ export async function getTodayMatches() {
       const diffB = b.rawMinutes - currentMinutes;
 
       const getRank = (match, diff, hasChannel) => {
-        // 1. القناة غير متوفرة تُرمى في الأسفل تماماً
         if (!hasChannel) return 4;
-
-        // 2. المباراة جارية الآن (نتيجة مسجلة أو التوقيت الحالي بين البداية والنهاية)
         const isLive = (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
         if (isLive) return 1;
-
-        // 3. ستبدأ قريباً (خلال 45 دقيقة قادمة)
         if (diff > 0 && diff <= 45) return 2;
-
-        // 4. قادمة لاحقاً في اليوم
         return 3;
       };
 
@@ -140,56 +131,97 @@ async function fetchHtml(targetUrl) {
   }
 }
 
-// --- 4. Core Parsing Logic ---
+// --- 4. Core Parsing Logic (تم التحديث لدعم الموقع الجديد koralovear.xyz) ---
 function parseMatches(html) {
   if (!html) return [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
-  const matchElements = doc.querySelectorAll('.AY_Match');
+  
+  // استخدام الكلاس الجديد للحاوية
+  const matchElements = doc.querySelectorAll('.match-container');
   
   matchElements.forEach(matchEl => {
     try {
-      const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
-      const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+      // استخراج الفِرق
+      const homeTeamEl = matchEl.querySelector('.right-team');
+      const awayTeamEl = matchEl.querySelector('.left-team');
+
+      const homeTeamName = homeTeamEl ? homeTeamEl.textContent.trim() : '';
+      const awayTeamName = awayTeamEl ? awayTeamEl.textContent.trim() : '';
+      
       if (!homeTeamName || !awayTeamName) return;
       
+      // استخراج رابط البث
       const matchLink = matchEl.querySelector('a')?.href;
       if (!matchLink) return;
       
+      // استخراج التوقيت أو النتيجة من منطقة المنتصف
       let score = 'VS';
-      const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
-      if (scoreSpans.length === 2) {
-        const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
-        const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
-        if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
+      let originalTime = '--:--';
+      
+      const centerEl = matchEl.querySelector('.match-center');
+      const centerText = centerEl ? centerEl.textContent.trim() : '';
+
+      // البحث عن التوقيت (يحتوي على نقطتين رأسيتين)
+      const timeMatch = centerText.match(/\d{1,2}:\d{2}/);
+      if (timeMatch) {
+          originalTime = timeMatch[0];
+      }
+      
+      // البحث عن النتيجة (تحتوي على شرطة بين أرقام)
+      const scoreMatch = centerText.match(/\d+\s*-\s*\d+/);
+      if (scoreMatch) {
+          score = scoreMatch[0];
       }
 
-      const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
       const timeData = convertSourceToMoroccoTime(originalTime);
       
-      const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
-      let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
-      const commentator = infoListItems[1]?.textContent?.trim() || '';
-      const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
+      // استخراج معلومات القناة والمعلق والبطولة
+      let channelFromSite = '';
+      let commentator = '';
+      let league = '';
+      
+      const infoEl = matchEl.querySelector('.match-info');
+      if (infoEl) {
+        // الموقع الجديد قد يضع البيانات داخل قوائم <ul> و <li> أو <div> مباشرة
+        const infoItems = infoEl.querySelectorAll('li');
+        if (infoItems.length >= 3) {
+            channelFromSite = infoItems[0].textContent.trim();
+            commentator = infoItems[1].textContent.trim();
+            league = infoItems[infoItems.length - 1].textContent.trim();
+        } else {
+            // في حال عدم وجود قائمة، نسحب النص بالكامل كإسم للبطولة
+            league = infoEl.textContent.replace(/\s+/g, ' ').trim();
+        }
+      }
 
+      // جلب القناة من الملف المحلي في حال لم يوفرها الموقع المصدر
       let finalChannel = channelFromSite;
       if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
 
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+        homeTeam: { 
+            name: homeTeamName, 
+            logo: extractImageUrl(homeTeamEl?.querySelector('img')) 
+        },
+        awayTeam: { 
+            name: awayTeamName, 
+            logo: extractImageUrl(awayTeamEl?.querySelector('img')) 
+        },
         time: timeData.formatted, 
         rawMinutes: timeData.rawMinutes, 
         score: score,
-        league: league,
+        league: league || 'بطولة غير محددة',
         channel: finalChannel, 
         commentator: commentator.includes('غير معروف') ? '' : commentator,
         matchLink: matchLink
       });
-    } catch (e) {}
+    } catch (e) {
+        console.error("خطأ في معالجة مباراة:", e);
+    }
   });
   return matches;
 }
@@ -199,5 +231,7 @@ function extractImageUrl(imgElement) {
   let src = imgElement.dataset.src || imgElement.getAttribute('src') || '';
   if (src.startsWith('http') || src.startsWith('//')) return src;
   src = src.startsWith('/') ? src.substring(1) : src;
-  return `${BASE_SITE_URL}/${src}`;
+  // إزالة الشرطة المائلة الزائدة لضمان عدم تلف مسار الصورة
+  const base = BASE_SITE_URL.endsWith('/') ? BASE_SITE_URL.slice(0, -1) : BASE_SITE_URL;
+  return `${base}/${src}`;
 }
