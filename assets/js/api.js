@@ -280,8 +280,10 @@ async function fetchHtml(targetUrl) {
 // --- 4. Core Parsing Logic ---
 const MATCH_SELECTORS = [
   '.AY_Match',
+  '.match-container',
   '.match-card',
   '.match-item',
+  'article[class*="match"]',
   'article.match',
   '[data-match-id]',
   '[data-match]'
@@ -296,6 +298,8 @@ const HOME_TEAM_SELECTORS = [
   '.team-home .team-name',
   '.team1 .TM_Name',
   '.team1 .team-name',
+  '.match-team.team1 .team-name',
+  '.match-team.team1 .TM_Name',
   '.TM1 .TM_Name',
   '.TM1 .team-name'
 ];
@@ -309,6 +313,8 @@ const AWAY_TEAM_SELECTORS = [
   '.team-away .team-name',
   '.team2 .TM_Name',
   '.team2 .team-name',
+  '.match-team.team2 .team-name',
+  '.match-team.team2 .TM_Name',
   '.TM2 .TM_Name',
   '.TM2 .team-name'
 ];
