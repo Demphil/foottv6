@@ -33,8 +33,8 @@ window.closeWaitModal = function() {
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
-  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
-  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
+  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.jpg';
+  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.jpg';
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
 
@@ -94,7 +94,7 @@ function renderMatch(match) {
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
+            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-info">
@@ -102,7 +102,7 @@ function renderMatch(match) {
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>

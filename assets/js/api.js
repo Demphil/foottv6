@@ -107,7 +107,7 @@ function convertSourceToMoroccoTime(timeString) {
 // --- 3. API Functions ---
 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
-const BASE_SITE_URL = 'https://koralovear.xyz';
+const BASE_SITE_URL = 'https://tvkoralive.com';
 
 export async function getTodayMatches() {
 
@@ -300,6 +300,7 @@ const HOME_TEAM_SELECTORS = [
   '.team1 .team-name',
   '.match-team.team1 .team-name',
   '.match-team.team1 .TM_Name',
+  '.right-team .team-name',
   '.TM1 .TM_Name',
   '.TM1 .team-name'
 ];
@@ -315,6 +316,7 @@ const AWAY_TEAM_SELECTORS = [
   '.team2 .team-name',
   '.match-team.team2 .team-name',
   '.match-team.team2 .TM_Name',
+  '.left-team .team-name',
   '.TM2 .TM_Name',
   '.TM2 .team-name'
 ];
