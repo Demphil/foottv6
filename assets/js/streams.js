@@ -66,6 +66,7 @@ export const streamLinks = {
     'On Sport Plus': 'https://koralive.football/onesports2/',
     'أون سبورت بلس': 'https://koralive.football/onesports2/',
   'أون سبورت': 'https://koralive.football/live-stream/',
+   'أون سبورت ماكس': 'https://koralive.football/live-stream/',
   
 
     
@@ -114,10 +115,10 @@ export const streamLinks = {
   // المفتاح: هو "الفريق-المضيف-الفريق-الضيف"
   // القيمة: هو رابط صفحة Blogger التي أنشأتها خصيصًا لهذه المباراة
   
-  'مانشستر يونايتد-ليدز يونايتد': 'https://koralive.football/onesports2/',
+  'النصر-التعاون': 'https://koralive.football/tamania1/',
   'السنغال - سيدات-المغرب - سيدات': 'https://koralive.football/bein6/',
   'كينيا - سيدات-الجزائر - سيدات': 'https://koralive.football/bein5/',
- 'المغرب-مالي': 'https://koralive.football/beinmax1/',
+ 'الخليج-الهلال': 'https://koralive.football/beinfree/',
   'السنغال-مصر': 'https://koralive.football/beinmax1/',
   'كندا-المغرب': 'https://koralive.football/beinmax1/',
   'غينيا الاستوائية-الجزائر': 'https://koralive.football/beinmax1/',
