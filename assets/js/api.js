@@ -1,73 +1,47 @@
 // --- 1. Cache Configuration ---
 
 import { getChannelByTeam } from './chaine.js'; 
-
-
-
 const CACHE_EXPIRY_MS = 2 * 60 * 1000; 
 const CACHE_KEY_TODAY = 'matches_cache_v2_today';
 const CACHE_KEY_TOMORROW = 'matches_cache_v2_tomorrow';
 
-
-
 function setCache(key, data) {
-
-  const cacheItem = { timestamp: Date.now(), data: data };
+const cacheItem = { timestamp: Date.now(), data: data };
 
   localStorage.setItem(key, JSON.stringify(cacheItem));
 
 }
 
-
-
 function getCache(key) {
-
   const cachedItem = localStorage.getItem(key);
-
   if (!cachedItem) return null;
-
   const { timestamp, data } = JSON.parse(cachedItem);
-
   if (Date.now() - timestamp > CACHE_EXPIRY_MS) {
-
     localStorage.removeItem(key);
-
     return null;
-
   }
 
   return data;
-
 }
-
 
 
 // --- 2. Timezone Conversion Function ---
 
 function convertSourceToMoroccoTime(timeString) {
-
   try {
 
     if (!timeString || !timeString.includes(':')) {
-
       return { formatted: timeString, rawMinutes: 9999 };
 
     }
 
-
-
     const cleanedString = timeString.replace(/\s+/g, ' ').trim();
-
     const [timePart, ampm] = cleanedString.split(' ');
-
     let [hours, minutes] = timePart.split(':').map(Number);
-
-
 
     if (ampm) {
 
       if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
-
       if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
 
     }
@@ -75,33 +49,23 @@ function convertSourceToMoroccoTime(timeString) {
 
 
     hours -= 2; 
-
     if (hours < 0) hours += 24;
 
-    
-
     const formattedHours = String(hours).padStart(2, '0');
-
     const formattedMinutes = String(minutes).padStart(2, '0');
-
-    
 
     return {
 
       formatted: `${formattedHours}:${formattedMinutes}`,
-
       rawMinutes: hours * 60 + minutes
-
     };
 
   } catch (error) {
-
     return { formatted: timeString, rawMinutes: 9999 };
 
   }
 
 }
-
 
 
 // --- 3. API Functions ---
@@ -112,44 +76,30 @@ const BASE_SITE_URL = 'https://tvkoralive.com';
 export async function getTodayMatches() {
 
   const cachedMatches = getCache(CACHE_KEY_TODAY);
-
   if (cachedMatches) return cachedMatches;
-
-  
 
   try {
 
     // جلب الصفحة الرئيسية فقط لمنع دخول المباريات القديمة
 
     const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
-
     let finalMatches = parseMatches(todayHtml);
-
 
 
     // تصفية التكرار إن وجد
 
     const uniqueMatches = [];
-
     const seen = new Set();
 
 
-
     finalMatches.forEach(match => {
-
-      const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase().trim();
-
+     const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase().trim();
       if (!seen.has(matchId)) {
-
         seen.add(matchId);
-
         uniqueMatches.push(match);
-
       }
 
     });
-
-
 
     // 🌟 منطق الفرز الذكي المطلوب 🌟
 
@@ -157,48 +107,29 @@ export async function getTodayMatches() {
 
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-
-
     uniqueMatches.sort((a, b) => {
-
       const hasChannelA = a.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(a.channel.trim());
-
       const hasChannelB = b.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(b.channel.trim());
 
-
-
       const diffA = a.rawMinutes - currentMinutes;
-
       const diffB = b.rawMinutes - currentMinutes;
-
-
-
       const getRank = (match, diff, hasChannel) => {
 
         // 1. القناة غير متوفرة تُرمى في الأسفل تماماً
 
         if (!hasChannel) return 4;
-
-
-
         // 2. المباراة جارية الآن (نتيجة مسجلة أو التوقيت الحالي بين البداية والنهاية)
 
         const isLive = (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
-
         if (isLive) return 1;
-
-
 
         // 3. ستبدأ قريباً (خلال 45 دقيقة قادمة)
 
         if (diff > 0 && diff <= 45) return 2;
 
-
-
         // 4. قادمة لاحقاً في اليوم
 
         return 3;
-
       };
 
 
