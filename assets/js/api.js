@@ -436,8 +436,8 @@ export function parseMatches(html) {
       }
 
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamElement?.querySelector('img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamElement?.querySelector('img')) },
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamEl?.querySelector('img')) },
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamEl?.querySelector('img')) },
         time: timeData.formatted,
         rawMinutes: timeData.rawMinutes,
         score: scoreFrom(matchEl),
