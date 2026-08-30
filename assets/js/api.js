@@ -110,7 +110,7 @@ function convertSourceToMoroccoTime(timeString) {
 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-const BASE_SITE_URL = 'https://yalla-shooty.one/';
+const BASE_SITE_URL = 'https://kooora4city.ws/';
 
 
 
