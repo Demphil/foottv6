@@ -110,7 +110,7 @@ function convertSourceToMoroccoTime(timeString) {
 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-const BASE_SITE_URL = 'https://bein-match.homes/';
+const BASE_SITE_URL = 'https://bein-match.homes/yalla-shoot-tv/';
 
 
 
