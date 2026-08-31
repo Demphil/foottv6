@@ -141,16 +141,16 @@
         </div>
 
         <div class="iframe-container">
-            <!-- درع الحماية لامتصاص النقرة المنبثقة الأولى -->
-            <div id="click-shield" class="click-shield" title="انقر لتشغيل الفيديو"></div>
-            
-            <!-- إضافة sandbox لمنع النوافذ المنبثقة تماماً من المصدر الخارجي -->
-            <iframe id="main-player" 
-                src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://22.streemach.fun/albaplayer/live2/?serv=3" 
-                allowfullscreen="true"
-                sandbox="allow-scripts allow-same-origin allow-forms">
-            </iframe>
-        </div>
+    <!-- درع الحماية لامتصاص النقرة المنبثقة الأولى -->
+    <div id="click-shield" class="click-shield" title="انقر لتشغيل الفيديو"></div>
+    
+    <!-- المشغل بدون قيود الـ sandbox ليعمل بتوافق تام مع كود Cloudflare -->
+    <iframe id="main-player" 
+        src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://22.streemach.fun/albaplayer/live2/?serv=3" 
+        allowfullscreen="true"
+        style="width: 100%; height: 100%; border: none; position: absolute; top: 0; left: 0; z-index: 1;">
+    </iframe>
+</div>
     </div>
 
     <script>
