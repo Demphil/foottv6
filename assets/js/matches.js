@@ -33,8 +33,8 @@ window.closeWaitModal = function() {
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
-  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.jpg';
-  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.jpg';
+  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.png';
+  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.png';
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
   const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
 
@@ -51,13 +51,13 @@ function renderMatch(match) {
   let clickAction = '';
   let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
 
-  if (match.isLive || diffMins <= 20) {
+  if (diffMins <= 20) {
       hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
       
-      if (diffMins >= 0 && !match.isLive) {
+      if (diffMins >= 0) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
-      } else if (match.isLive || diffMins > -140) {
+      } else if (diffMins > -140) {
            statusBadge = '<span class="live-badge live">جاري الآن</span>';
            matchStatusClass = 'is-live';
            if (match.score && match.score.includes('-')) {
@@ -94,7 +94,7 @@ function renderMatch(match) {
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
             <span class="team-name">${match.homeTeam.name}</span>
           </div>
           <div class="match-info">
@@ -102,7 +102,7 @@ function renderMatch(match) {
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.png';">
             <span class="team-name">${match.awayTeam.name}</span>
           </div>
         </div>
@@ -170,7 +170,7 @@ async function loadAndRenderMatches() {
   // توزيع المباريات على الأيام بشكل صحيح بتوقيت المغرب
   allMatches.forEach(match => {
       const diffMins = (match.matchDate - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
+      const isLive = diffMins <= 0 && diffMins > -140;
 
       if (match.moroccoDayOffset === 0 || isLive) {
           trueTodayMatches.push(match);
@@ -192,12 +192,12 @@ async function loadAndRenderMatches() {
       const diffB = (b.matchDate - now) / 60000;
 
       // حساب الرتبة الذكية (Rank) لكل مباراة
-      const getRank = (diff, hasStream, isLive) => {
+      const getRank = (diff, hasStream) => {
           // أولاً: إذا كانت المباراة لا تملك بثاً (Stream Unavailable)، تُرمى للأسفل في الرتبة الرابعة
           if (!hasStream) return 4; 
           
           // ثانياً: المباريات الجارية حالياً (بدأت بالفعل ولم تنتهِ بعد) في الرتبة الأولى
-          if (isLive || (diff < 0 && diff > -140)) return 1;
+          if (diff < 0 && diff > -140) return 1; 
           
           // ثالثاً: المباريات التي اقترب موعدها جداً (ستبدأ خلال الـ 45 دقيقة القادمة أو قريباً) في الرتبة الثانية
           if (diff >= 0 && diff <= 45) return 2; 
@@ -208,8 +208,8 @@ async function loadAndRenderMatches() {
           return 5; // للمباريات المنتهية بالكامل
       };
 
-      const rankA = getRank(diffA, !!watchUrlA, a.isLive);
-      const rankB = getRank(diffB, !!watchUrlB, b.isLive);
+      const rankA = getRank(diffA, !!watchUrlA);
+      const rankB = getRank(diffB, !!watchUrlB);
 
       // الفرز الأساسي حسب الرتب المحددة
       if (rankA !== rankB) return rankA - rankB;
@@ -225,7 +225,7 @@ async function loadAndRenderMatches() {
   const featuredMatches = trueTodayMatches.filter(match => {
       const h = match.matchDate.getHours();
       const diffMins = (match.matchDate - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
+      const isLive = diffMins <= 0 && diffMins > -140;
       return h >= 12 || h <= 6 || isLive;
   });
 
