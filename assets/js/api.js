@@ -283,176 +283,111 @@ async function fetchHtml(targetUrl) {
 
 
 // --- 4. Core Parsing Logic ---
-const MATCH_SELECTORS = [
-  '.AY_Match',
-  '.match-container',
-  '.match-card',
-  '.match-item',
-  'article[class*="match"]',
-  'article.match',
-  '[data-match-id]',
-  '[data-match]'
-];
 
-const HOME_TEAM_SELECTORS = [
-  '.MT_Team.TM1 .TM_Name',
-  '[data-team="home"] .TM_Name',
-  '[data-team="home"] .team-name',
-  '.home-team .TM_Name',
-  '.home-team .team-name',
-  '.team-home .team-name',
-  '.team1 .TM_Name',
-  '.team1 .team-name',
-  '.match-team.team1 .team-name',
-  '.match-team.team1 .TM_Name',
-  '.right-team .team-name',
-  '.TM1 .TM_Name',
-  '.TM1 .team-name'
-];
+function parseMatches(html) {
 
-const AWAY_TEAM_SELECTORS = [
-  '.MT_Team.TM2 .TM_Name',
-  '[data-team="away"] .TM_Name',
-  '[data-team="away"] .team-name',
-  '.away-team .TM_Name',
-  '.away-team .team-name',
-  '.team-away .team-name',
-  '.team2 .TM_Name',
-  '.team2 .team-name',
-  '.match-team.team2 .team-name',
-  '.match-team.team2 .TM_Name',
-  '.left-team .team-name',
-  '.TM2 .TM_Name',
-  '.TM2 .team-name'
-];
-
-function firstElement(root, selectors) {
-  for (const selector of selectors) {
-    const element = root.querySelector(selector);
-    if (element) return element;
-  }
-  return null;
-}
-
-function textFrom(root, selectors, fallback = '') {
-  return firstElement(root, selectors)?.textContent?.replace(/\s+/g, ' ').trim() || fallback;
-}
-
-function linkFrom(matchEl) {
-  const anchor = [...matchEl.querySelectorAll('a[href]')].find((element) => {
-    const href = element.getAttribute('href') || '';
-    return href && href !== '#' && !href.toLowerCase().startsWith('javascript:');
-  });
-  if (!anchor) return '';
-  return new URL(anchor.getAttribute('href'), BASE_SITE_URL).href;
-}
-
-function scoreFrom(matchEl) {
-  const scoreElements = matchEl.querySelectorAll('.MT_Result .RS-goals, .score-home, .score-away');
-  if (scoreElements.length >= 2) {
-    const scores = [...scoreElements].slice(0, 2).map((element) => parseInt(element.textContent.trim(), 10));
-    if (scores.every((value) => !Number.isNaN(value))) return `${scores[0]} - ${scores[1]}`;
-  }
-
-  const scoreText = textFrom(matchEl, ['.MT_Result', '.match-score', '.score', '.result']);
-  const scorePair = scoreText.match(/\b(\d+)\s*[-:]\s*(\d+)\b/);
-  return scorePair ? `${scorePair[1]} - ${scorePair[2]}` : 'VS';
-}
-
-function liveStatusFrom(matchEl) {
-  const className = typeof matchEl.className === 'string' ? matchEl.className : '';
-  const statusText = textFrom(matchEl, ['.MT_Stat', '.match-status', '.status', '.date']);
-  return /\blive\b|started|جارية|جاري|مباشر|الآن|الان/i.test(`${className} ${statusText}`);
-}
-
-export function parseMatches(html) {
   if (!html) return [];
+
   const parser = new DOMParser();
+
   const doc = parser.parseFromString(html, 'text/html');
+
   const matches = [];
+
+  const matchElements = doc.querySelectorAll('.AY_Match');
+
   
-  // استخدام الكلاس الجديد للحاوية
-  const matchElements = doc.querySelectorAll('.match-container');
-  
+
   matchElements.forEach(matchEl => {
+
     try {
-      // استخراج الفِرق
-      const homeTeamEl = matchEl.querySelector('.right-team');
-      const awayTeamEl = matchEl.querySelector('.left-team');
 
-      const homeTeamName = homeTeamEl ? homeTeamEl.textContent.trim() : '';
-      const awayTeamName = awayTeamEl ? awayTeamEl.textContent.trim() : '';
-      
+      const homeTeamName = matchEl.querySelector('.MT_Team.TM1 .TM_Name')?.textContent?.trim();
+
+      const awayTeamName = matchEl.querySelector('.MT_Team.TM2 .TM_Name')?.textContent?.trim();
+
       if (!homeTeamName || !awayTeamName) return;
-      
-      // استخراج رابط البث
-      const matchLink = matchEl.querySelector('a')?.href;
-      if (!matchLink) return;
-      
-      // استخراج التوقيت أو النتيجة من منطقة المنتصف
-      let score = 'VS';
-      let originalTime = '--:--';
-      
-      const centerEl = matchEl.querySelector('.match-center');
-      const centerText = centerEl ? centerEl.textContent.trim() : '';
 
-      // البحث عن التوقيت (يحتوي على نقطتين رأسيتين)
-      const timeMatch = centerText.match(/\d{1,2}:\d{2}/);
-      if (timeMatch) {
-          originalTime = timeMatch[0];
-      }
       
-      // البحث عن النتيجة (تحتوي على شرطة بين أرقام)
-      const scoreMatch = centerText.match(/\d+\s*-\s*\d+/);
-      if (scoreMatch) {
-          score = scoreMatch[0];
+
+      const matchLink = matchEl.querySelector('a')?.href;
+
+      if (!matchLink) return;
+
+      
+
+      let score = 'VS';
+
+      const scoreSpans = matchEl.querySelectorAll('.MT_Result .RS-goals');
+
+      if (scoreSpans.length === 2) {
+
+        const score1 = parseInt(scoreSpans[0].textContent.trim(), 10);
+
+        const score2 = parseInt(scoreSpans[1].textContent.trim(), 10);
+
+        if (!isNaN(score1) && !isNaN(score2)) score = `${score1} - ${score2}`;
+
       }
+
+
+
+      const originalTime = matchEl.querySelector('.MT_Time')?.textContent?.trim() || '--:--';
 
       const timeData = convertSourceToMoroccoTime(originalTime);
+
       
-      // استخراج معلومات القناة والمعلق والبطولة
-      let channelFromSite = '';
-      let commentator = '';
-      let league = '';
-      
-      const infoEl = matchEl.querySelector('.match-info');
-      if (infoEl) {
-        // الموقع الجديد قد يضع البيانات داخل قوائم <ul> و <li> أو <div> مباشرة
-        const infoItems = infoEl.querySelectorAll('li');
-        if (infoItems.length >= 3) {
-            channelFromSite = infoItems[0].textContent.trim();
-            commentator = infoItems[1].textContent.trim();
-            league = infoItems[infoItems.length - 1].textContent.trim();
-        } else {
-            // في حال عدم وجود قائمة، نسحب النص بالكامل كإسم للبطولة
-            league = infoEl.textContent.replace(/\s+/g, ' ').trim();
-        }
+
+      const infoListItems = matchEl.querySelectorAll('.MT_Info ul li');
+
+      let channelFromSite = infoListItems[0]?.textContent?.trim() || '';
+
+      const commentator = infoListItems[1]?.textContent?.trim() || '';
+
+      const league = infoListItems[infoListItems.length - 1]?.textContent?.trim() || 'League';
+
+
+
+      let finalChannel = channelFromSite;
+
+      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
+
+         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
+
       }
 
-      // جلب القناة من الملف المحلي في حال لم يوفرها الموقع المصدر
-      let finalChannel = channelFromSite;
-      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
-      }
+
 
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamEl?.querySelector('img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamEl?.querySelector('img')) },
-        time: timeData.formatted,
-        rawMinutes: timeData.rawMinutes,
-        score: scoreFrom(matchEl),
-        isLive: liveStatusFrom(matchEl),
-        league,
-        channel: finalChannel,
+
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM1 .TM_Logo img')) },
+
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(matchEl.querySelector('.MT_Team.TM2 .TM_Logo img')) },
+
+        time: timeData.formatted, 
+
+        rawMinutes: timeData.rawMinutes, 
+
+        score: score,
+
+        league: league,
+
+        channel: finalChannel, 
+
         commentator: commentator.includes('غير معروف') ? '' : commentator,
+
         matchLink: matchLink
+
       });
-    } catch (e) {
-        console.error("خطأ في معالجة مباراة:", e);
-    }
+
+    } catch (e) {}
+
   });
+
   return matches;
+
 }
+
 
 
 function extractImageUrl(imgElement) {
