@@ -6,7 +6,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade" />
     <title>البث المباشر - متعدد السيرفرات</title>
 
-    <!-- شفرات إعلانات Monetag -->
+    <!-- شفرات إعلانات Monetag (ستعمل بشكل طبيعي لأنها خارج الـ iframe) -->
     <script>(function(s){s.dataset.zone='11638896',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>
     <script>(function(s){s.dataset.zone='11639220',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
@@ -29,10 +29,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px; /* تم تقليل المسافة قليلاً لتناسب التنبيه */
+            gap: 15px;
             width: 100%;
             max-width: 1000px;
-            padding: 20px; /* إضافة حواف داخلية للشاشات الصغيرة */
+            padding: 20px;
             box-sizing: border-box;
         }
         h2 {
@@ -41,11 +41,10 @@
             margin-top: 10px;
         }
         
-        /* تصميم صندوق التنبيه */
         .alert-box {
-            background-color: rgba(255, 255, 255, 0.15); /* خلفية شفافة */
-            border: 2px solid #ffd700; /* إطار ذهبي بارز */
-            color: #ffd700; /* نص ذهبي */
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 2px solid #ffd700;
+            color: #ffd700;
             padding: 12px 20px;
             border-radius: 8px;
             width: 100%;
@@ -59,7 +58,6 @@
             font-size: 1.2em;
         }
 
-        /* تصميم أزرار السيرفرات */
         .servers-menu {
             display: flex;
             gap: 15px;
@@ -82,16 +80,31 @@
             background-color: #4b2c64;
             color: #ffffff;
         }
+
         /* حاوية الفيديو */
         .iframe-container {
             width: 100%;
             height: 600px;
-            position: relative;
+            position: relative; /* ضروري لتموضع الدرع */
             background-color: #000;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+
+        /* تنسيق درع الحماية (الجديد) */
+        .click-shield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5; /* فوق الفيديو */
+            background: transparent;
+            cursor: pointer;
+            display: block;
+        }
+
         .iframe-container iframe {
             width: 100%;
             height: 100%;
@@ -99,12 +112,12 @@
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1; /* تحت الدرع */
         }
 
-        /* جعل التصميم متجاوباً مع الهواتف */
         @media (max-width: 768px) {
             .iframe-container {
-                height: 250px; /* تصغير المشغل في الهواتف */
+                height: 250px;
             }
             .alert-box {
                 font-size: 1em;
@@ -117,31 +130,51 @@
     <div class="page-container">
         <h2>اختر سيرفر المشاهدة</h2>
         
-        <!-- رسالة التنبيه للزوار -->
         <div class="alert-box">
             <span class="alert-icon">⚠️</span> تنبيه: في حال توقف البث أو واجهت تقطيعاً في السيرفر الأول، يرجى تجربة السيرفرات الأخرى من الأزرار أدناه.
         </div>
         
-        <!-- أزرار اختيار السيرفر -->
         <div class="servers-menu">
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://22.streemach.fun/albaplayer/live2/?serv=3')" class="active">سيرفر 1</button>
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://newslive1.homes/embed/1517/0')">سيرفر 2</button>
             <button onclick="changeServer(this, 'https://withered-mud-4e52.koora-live.workers.dev/?url=https://online.aflam4you.net/zremb472.php?vid=2&aflam_s=1&aflam_w=360&aflam_h=250&aflam_k=18311111')">سيرفر 3</button>
         </div>
 
-        <!-- المشغل الذي ستتغير بداخله القنوات -->
         <div class="iframe-container">
+            <!-- درع الحماية لامتصاص النقرة المنبثقة الأولى -->
+            <div id="click-shield" class="click-shield" title="انقر لتشغيل الفيديو"></div>
+            
+            <!-- إضافة sandbox لمنع النوافذ المنبثقة تماماً من المصدر الخارجي -->
             <iframe id="main-player" 
                 src="https://withered-mud-4e52.koora-live.workers.dev/?url=https://22.streemach.fun/albaplayer/live2/?serv=3" 
-                allowfullscreen="true">
+                allowfullscreen="true"
+                sandbox="allow-scripts allow-same-origin allow-forms">
             </iframe>
         </div>
     </div>
 
-    <!-- سكريبت لتغيير البث عند الضغط على الزر -->
     <script>
+        // تفعيل الدرع ليمتص النقرة الأولى ويختفي
+        document.addEventListener('DOMContentLoaded', () => {
+            const shield = document.getElementById('click-shield');
+            if (shield) {
+                shield.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.style.display = 'none'; // إخفاء الدرع بعد النقر
+                });
+            }
+        });
+
+        // دالة تغيير السيرفر
         function changeServer(btn, url) {
             document.getElementById('main-player').src = url;
+            
+            // إعادة إظهار الدرع مجدداً عند تغيير السيرفر تحسباً لإعلان جديد
+            const shield = document.getElementById('click-shield');
+            if (shield) {
+                shield.style.display = 'block';
+            }
             
             var buttons = document.querySelectorAll('.servers-menu button');
             buttons.forEach(function(button) {
