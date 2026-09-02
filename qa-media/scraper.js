@@ -63,9 +63,41 @@ async function resolveMatchUrlFromSource(job, source, allowlist) {
       const text = normalize(`${candidate.text} ${candidate.title}`);
       return text.includes(channel);
     })) || teamCandidates[0];
-    if (!match) throw new Error(`Match not found: ${job.homeTeam} vs ${job.awayTeam}`);
-    assertAllowed(match.href, allowlist.sourceHosts, 'resolved match URL');
-    return match.href;
+    if (match) {
+      assertAllowed(match.href, allowlist.sourceHosts, 'resolved match URL');
+      return match.href;
+    }
+
+    // Some sources render a card without an href and create the player route
+    // only after the visitor clicks the card. Follow that same navigation.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const clickableIndex = await page.evaluate(({ home, away, channel }) => {
+      const normalizeText = (value) => String(value || '').toLocaleLowerCase('ar').replace(/\s+/g, ' ').trim();
+      const nodes = [...document.querySelectorAll('a,button,[role="button"],[onclick],article,div')];
+      return nodes.findIndex((node) => {
+        const text = normalizeText(`${node.textContent} ${node.getAttribute('title') || ''}`);
+        return node.matches('a,button,[role="button"],[onclick]')
+          && text.includes(home) && text.includes(away) && (!channel || text.includes(channel));
+      });
+    }, { home, away, channel });
+
+    if (clickableIndex < 0) throw new Error(`Match not found: ${job.homeTeam} vs ${job.awayTeam}`);
+    const clickableNodes = await page.$$('a,button,[role="button"],[onclick]');
+    const clickedNode = clickableNodes[clickableIndex];
+    if (!clickedNode) throw new Error('Match control could not be selected');
+
+    let popupPage = null;
+    page.once('popup', (popup) => { popupPage = popup; });
+    await clickedNode.click({ delay: 80 });
+    await Promise.race([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: config.timeoutMs }).catch(() => null),
+      new Promise((resolve) => setTimeout(resolve, 2500))
+    ]);
+    const destination = popupPage || page;
+    if (popupPage) await popupPage.waitForNetworkIdle({ idleTime: 500, timeout: config.timeoutMs }).catch(() => {});
+    const resolvedUrl = destination.url();
+    assertAllowed(resolvedUrl, allowlist.sourceHosts, 'resolved match URL');
+    return resolvedUrl;
   } finally {
     await browser.close();
   }
