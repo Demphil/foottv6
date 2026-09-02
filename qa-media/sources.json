@@ -1,3 +1,12 @@
 {
-  "sources": []
+  "sources": [
+    {
+      "name": "livehd77",
+      "listUrl": "https://livehd77.me/",
+      "allowedHosts": [
+        "livehd77.me"
+      ],
+      "enabled": true
+    }
+  ]
 }
