@@ -12,7 +12,8 @@
       "name": "m8nstar",
       "listUrl": "https://m8nstar.com/",
       "allowedHosts": [
-        "m8nstar.com"
+        "m8nstar.com",
+        "m6.kora-sami.com"
       ],
       "enabled": true
     },
@@ -52,7 +53,8 @@
       "name": "sirrtv",
       "listUrl": "https://www.sirrtv.online/",
       "allowedHosts": [
-        "www.sirrtv.online"
+        "www.sirrtv.online",
+        "q.ltvonline.live"
       ],
       "enabled": true
     },
@@ -68,7 +70,8 @@
       "name": "syr-live",
       "listUrl": "https://m.syr.live/",
       "allowedHosts": [
-        "m.syr.live"
+        "m.syr.live",
+        "m6.kora-sami.com"
       ],
       "enabled": true
     },
@@ -76,7 +79,8 @@
       "name": "sportcityplus",
       "listUrl": "https://sportcityplus.com/",
       "allowedHosts": [
-        "sportcityplus.com"
+        "sportcityplus.com",
+        "m6.kora-sami.com"
       ],
       "enabled": true
     },
@@ -84,7 +88,8 @@
       "name": "socceritv",
       "listUrl": "https://socceritv.com/",
       "allowedHosts": [
-        "socceritv.com"
+        "socceritv.com",
+        "m6.kora-sami.com"
       ],
       "enabled": true
     }

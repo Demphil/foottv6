@@ -7,7 +7,23 @@ The optional `qa-media` service is a staging-only quality gate for sources you o
 
 1. Run `npm install`.
 2. Add authorized source hostnames to `qa-media/authorized-sources.json`, or configure the Supabase table `media_qa_authorized_sources` using `qa-media/supabase-schema.sql`.
-3. Add source pages to `qa-media/sources.json`. Set `MEDIA_QA_JOBS` as `match-id|source-name|home-team|away-team|channel|2026-09-02T20:00:00Z` entries separated by commas, or use the backward-compatible direct form `match-id|https://authorized.example/match|2026-09-02T20:00:00Z`.
+3. Add source pages to `qa-media/sources.json`. Add QA jobs to `qa-media/jobs.json` (or set `MEDIA_QA_JOBS`) using `matchId`, `homeTeam`, `awayTeam`, `channel`, `sourceName`, and `scheduledAt`. The process also accepts the compact format `match-id|source-name|home-team|away-team|channel|2026-09-02T20:00:00Z`, or the backward-compatible direct form `match-id|https://authorized.example/match|2026-09-02T20:00:00Z`.
+
+Example `qa-media/jobs.json` entry:
+
+```json
+[
+  {
+    "matchId": "home-vs-away",
+    "homeTeam": "Home Team",
+    "awayTeam": "Away Team",
+    "channel": "Authorized Channel",
+    "scheduledAt": "2026-09-02T20:00:00Z"
+  }
+]
+```
+
+When no manual job is present, automatic discovery is enabled by default: the worker reads current match cards from the authorized source pages and creates temporary QA jobs. Set `MEDIA_QA_AUTO_DISCOVER=false` to require manual jobs. When no job is due, the scheduler exits cleanly and does not write anything.
 
 Example `qa-media/sources.json` entry:
 

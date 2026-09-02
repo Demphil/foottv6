@@ -18,8 +18,13 @@ async function validateStream(url, allowlist) {
     if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
     const body = String(response.data || '');
     const isHls = /\.m3u8(?:$|[?#])/i.test(url);
+    const isMp4 = /\.mp4(?:$|[?#])/i.test(url);
+    const isIframe = !isHls && !isMp4;
     if (isHls && !body.includes('#EXTM3U')) throw new Error('Missing #EXTM3U header');
-    result.type = isHls ? 'hls' : 'mp4';
+    if (isIframe && !String(response.headers['content-type'] || '').toLowerCase().includes('text/html')) {
+      throw new Error('Embed did not return HTML');
+    }
+    result.type = isHls ? 'hls' : isMp4 ? 'mp4' : 'iframe';
     result.status = 'Passed';
   } catch (error) {
     result.error = error.message;

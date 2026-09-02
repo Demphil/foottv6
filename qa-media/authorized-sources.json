@@ -1,4 +1,9 @@
 {
-  "sourceHosts": [],
+  "sourceHosts": [
+    "koralive.football",
+    "withered-mud-4e52.koora-live.workers.dev",
+    "m6.kora-sami.com",
+    "q.ltvonline.live"
+  ],
   "mediaHosts": []
 }

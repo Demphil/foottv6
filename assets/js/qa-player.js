@@ -27,7 +27,101 @@
 
   let hlsInstance = null;
   const style = document.createElement('style');
-  style.textContent = 'html,body{margin:0;min-width:0;overflow-x:hidden;background:#10172d;color:#fff}.qa-player-stage{box-sizing:border-box;width:min(1240px,calc(100% - 24px));margin:24px auto;padding:16px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:#26345d;box-shadow:0 22px 60px rgba(8,12,30,.45);transform:perspective(1100px) rotateX(.35deg)}.qa-player-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 18px;margin-bottom:14px;border-radius:12px;background:#111f45;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.2)}.qa-player-banner strong{min-width:0;font-size:clamp(16px,2vw,24px);overflow-wrap:anywhere}.qa-player-banner span{max-width:100%;font-size:14px;color:#f6d7e8;overflow-wrap:anywhere}.qa-player-layout{display:grid;grid-template-columns:minmax(100px,180px) minmax(0,900px) minmax(100px,180px);gap:14px;align-items:stretch}.qa-player-center{width:100%;height:min(68vh,620px);aspect-ratio:16/9;min-width:0;border-radius:12px;overflow:hidden;background:#080b14;box-shadow:0 14px 35px rgba(0,0,0,.45)}.stream-server-choices{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px;background:#111827}.stream-server-button{border:0;border-radius:6px;padding:8px 14px;background:#3b2a68;color:#fff;cursor:pointer}.stream-server-button.active{background:#e74c3c}.stream-unavailable{display:grid;place-items:center;height:100%;min-height:220px;padding:18px;text-align:center;color:#fff;background:#111827;font:600 16px Arial}.qa-ad-slot{min-height:250px;border-radius:10px;background:rgba(255,255,255,.06)}@media(max-width:760px){.qa-player-stage{width:calc(100% - 16px);margin:12px auto;padding:10px;transform:none}.qa-player-banner{display:block;text-align:center}.qa-player-banner span{display:block;margin-top:7px;line-height:1.5}.qa-player-layout{display:block}.qa-ad-slot{display:none}.qa-player-center{height:auto;min-height:220px;margin-top:8px}}';
+  style.textContent = `
+    html, body {
+      margin: 0;
+      min-width: 0;
+      overflow-x: hidden;
+      background: linear-gradient(110deg, #4b2c64, #f83a7f);
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    .qa-player-stage {
+      box-sizing: border-box;
+      width: min(1240px, calc(100% - 24px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 15px;
+      text-align: center;
+    }
+    .qa-player-banner {
+      box-sizing: border-box;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 20px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 8px;
+      background: rgba(35, 23, 66, .72);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+    }
+    .qa-player-banner strong { font-size: 24px; overflow-wrap: anywhere; }
+    .qa-player-banner span { color: #ffe8a3; font-size: 14px; overflow-wrap: anywhere; }
+    .qa-player-layout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(100px, 180px) minmax(0, 900px) minmax(100px, 180px);
+      gap: 15px;
+      align-items: stretch;
+    }
+    .qa-player-center {
+      width: 100%;
+      min-width: 0;
+      aspect-ratio: 16 / 9;
+      min-height: 250px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #080b14;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+    }
+    .stream-server-choices {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 5px;
+    }
+    .stream-server-button {
+      border: 2px solid #fff;
+      border-radius: 8px;
+      padding: 10px 25px;
+      background: #fff;
+      color: #4b2c64;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+    .stream-server-button:hover, .stream-server-button.active { background: #4b2c64; color: #fff; }
+    .stream-unavailable {
+      display: grid;
+      place-items: center;
+      min-height: 250px;
+      padding: 20px;
+      color: #ffd700;
+      background: rgba(255, 255, 255, .12);
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .qa-ad-slot { min-height: 250px; border-radius: 8px; background: rgba(255, 255, 255, .08); }
+    @media (max-width: 768px) {
+      .qa-player-stage { width: 100%; min-height: 100vh; padding: 12px; }
+      .qa-player-banner { display: block; text-align: center; }
+      .qa-player-banner strong { font-size: 18px; }
+      .qa-player-banner span { display: block; margin-top: 8px; line-height: 1.5; }
+      .qa-player-layout { display: block; }
+      .qa-ad-slot { display: none; }
+      .qa-player-center { min-height: 220px; margin-top: 8px; }
+      .stream-server-button { padding: 9px 16px; }
+    }
+  `;
   document.head.appendChild(style);
   const showUnavailable = () => {
     container.innerHTML = '<div class="stream-unavailable" role="status">البث غير متاح حالياً، يرجى المحاولة لاحقاً.</div>';
