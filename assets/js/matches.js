@@ -36,7 +36,12 @@ function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.jpg';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.jpg';
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
-  const watchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+  const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`
+    .toLocaleLowerCase('ar').trim().replace(/\s+/g, '-');
+  const watchUrl = fallbackWatchUrl
+    ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(matchId)}`
+    : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = new Date();

@@ -29,6 +29,12 @@ Use `allowedHosts` for an authorized external details/player host when clicking 
 5. Keep `DRY_RUN=true` for testing. Run `npm run media:qa:dry-run`.
 6. Only after the report passes the minimum threshold, set `DRY_RUN=false`; successful results are written to the Supabase staging table `media_qa_staging`, never directly to production.
 
+Cloudflare Pages must define the server-only variables `SUPABASE_URL` and
+`SUPABASE_SERVICE_ROLE_KEY` for the `/api/media-stream` Function. Optionally set
+`SUPABASE_STAGING_TABLE` and `PUBLIC_SITE_ORIGIN`. Channel links now carry the
+match identifier; `assets/js/qa-player.js` reads only `PASSED_STAGING` results
+and keeps the existing player URL when no validated result is available.
+
 The scheduler uses `MEDIA_QA_CRON` (default: every minute) and runs jobs during the configured 15-minute lead window. Every candidate must pass the source allowlist, ad blacklist, HTTP 200 check, and `#EXTM3U` check for HLS before staging. Discovered CDN hosts may be ephemeral; they are accepted only when discovered from an authorized source page and still pass all validation checks.
 
 ## Manual Channel Links
