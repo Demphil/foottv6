@@ -51,7 +51,8 @@ function renderMatch(match) {
   let clickAction = '';
   let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
 
-  if (match.isLive || diffMins <= 20) {
+  // شرط فتح رابط المباراة عند البث أو تبقي 15 دقيقة أو أقل
+  if (match.isLive || diffMins <= 15) {
       hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
       
       if (diffMins >= 0 && !match.isLive) {
@@ -65,6 +66,7 @@ function renderMatch(match) {
            }
       }
   } else {
+      // إيقاف فتح الرابط المباشر وتفعيل النافذة المنبثقة للانتظار
       hrefAttribute = `href="javascript:void(0)"`; 
       clickAction = `onclick="openWaitModal()"`;
   }
@@ -131,7 +133,7 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // 🌟 دالة لضبط التاريخ وتصحيح اليوم (حل مشكلة مباريات 23:00) 🌟
+  // دالة ضبط التاريخ وتصحيح الأوقات المسائية
   function formatMatchDates(matches, sourceDayOffset) {
      const result = [];
      for (let match of matches) {
@@ -141,7 +143,12 @@ async function loadAndRenderMatches() {
          }
          
          let moroccoDayOffset = sourceDayOffset;
-         const [h, m] = match.time.split(':').map(Number);
+         let [h, m] = match.time.split(':').map(Number);
+         
+         // تصحيح الأوقات من 1 إلى 11 لتصبح مساءً (تتم إضافة 12 ساعة) لتفادي اعتبارها صباحاً
+         if (h >= 1 && h <= 11) {
+             h += 12;
+         }
          
          if (h >= 22) {
              moroccoDayOffset -= 1;
@@ -180,7 +187,7 @@ async function loadAndRenderMatches() {
       }
   });
 
-  // 🌟 تحديث دالة الترتيب بناءً على طلبك مع الحفاظ التام على المتغيرات الأصلية 🌟
+  // دالة الترتيب
   function sortMatches(a, b) {
       const matchSpecificKeyA = `${a.homeTeam.name}-${a.awayTeam.name}`;
       const watchUrlA = streamLinks[a.channel] || streamLinks[matchSpecificKeyA];
@@ -191,45 +198,34 @@ async function loadAndRenderMatches() {
       const diffA = (a.matchDate - now) / 60000;
       const diffB = (b.matchDate - now) / 60000;
 
-      // حساب الرتبة الذكية (Rank) لكل مباراة
       const getRank = (diff, hasStream, isLive) => {
-          // أولاً: إذا كانت المباراة لا تملك بثاً (Stream Unavailable)، تُرمى للأسفل في الرتبة الرابعة
           if (!hasStream) return 4; 
-          
-          // ثانياً: المباريات الجارية حالياً (بدأت بالفعل ولم تنتهِ بعد) في الرتبة الأولى
           if (isLive || (diff < 0 && diff > -140)) return 1;
-          
-          // ثالثاً: المباريات التي اقترب موعدها جداً (ستبدأ خلال الـ 45 دقيقة القادمة أو قريباً) في الرتبة الثانية
           if (diff >= 0 && diff <= 45) return 2; 
-          
-          // رابعاً: بقية المباريات القادمة لاحقاً في اليوم
           if (diff > 45) return 3; 
-          
-          return 5; // للمباريات المنتهية بالكامل
+          return 5;
       };
 
       const rankA = getRank(diffA, !!watchUrlA, a.isLive);
       const rankB = getRank(diffB, !!watchUrlB, b.isLive);
 
-      // الفرز الأساسي حسب الرتب المحددة
       if (rankA !== rankB) return rankA - rankB;
       
-      // إذا تساوت الرتبة (مثلاً مباراتين جاريتين معاً ولهم قنوات شغالّة)، يتم ترتيبهم حسب الوقت الأقرب
       return a.matchDate - b.matchDate;
   }
 
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  // الفلترة للقسم العلوي (البث المباشر / المباريات الهامة)
+  // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
   const featuredMatches = trueTodayMatches.filter(match => {
-      const h = match.matchDate.getHours();
       const diffMins = (match.matchDate - now) / 60000;
       const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
-      return h >= 12 || h <= 6 || isLive;
+      const isFinished = diffMins <= -140 && !isLive;
+      return !isFinished; 
   });
 
-  // 3. العرض في الأقسام
+  // العرض في الأقسام
   renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات بارزة أو جارية حالياً.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
