@@ -1,7 +1,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const admin = require('firebase-admin');
 const { config, list } = require('./config');
+const { getSupabase } = require('./supabase');
 
 async function fromFile() {
   const filePath = path.resolve(config.allowlistFile);
@@ -9,26 +9,25 @@ async function fromFile() {
   return { sourceHosts: list(data.sourceHosts), mediaHosts: list(data.mediaHosts) };
 }
 
-async function fromFirestore() {
-  if (!process.env.GOOGLE_CLOUD_PROJECT) return null;
-  if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.applicationDefault() });
-  const snapshot = await admin.firestore().collection(config.allowlistCollection).where('enabled', '==', true).get();
+async function fromSupabase() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const { data, error } = await getSupabase().from(config.allowlistCollection).select('host, source_hosts, media_hosts').eq('enabled', true);
+  if (error) throw error;
   const sourceHosts = [];
   const mediaHosts = [];
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    sourceHosts.push(...list(data.sourceHosts || data.host));
-    mediaHosts.push(...list(data.mediaHosts));
+  data.forEach((row) => {
+    sourceHosts.push(...list(row.source_hosts || row.host));
+    mediaHosts.push(...list(row.media_hosts));
   });
   return { sourceHosts, mediaHosts };
 }
 
 async function loadAllowlist() {
   try {
-    const firestoreList = await fromFirestore();
-    if (firestoreList?.sourceHosts.length) return firestoreList;
+    const supabaseList = await fromSupabase();
+    if (supabaseList?.sourceHosts.length) return supabaseList;
   } catch (error) {
-    console.warn(`Allowlist Firestore unavailable: ${error.message}`);
+    console.warn(`Allowlist Supabase unavailable: ${error.message}`);
   }
   return fromFile();
 }

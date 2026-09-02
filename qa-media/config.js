@@ -10,8 +10,8 @@ const config = {
   cron: process.env.MEDIA_QA_CRON || '* * * * *',
   leadMinutes: Number(process.env.MEDIA_QA_LEAD_MINUTES || 15),
   allowlistFile: process.env.AUTHORIZED_SOURCES_FILE || 'qa-media/authorized-sources.json',
-  allowlistCollection: process.env.FIRESTORE_ALLOWLIST_COLLECTION || 'media_qa_authorized_sources',
-  stagingCollection: process.env.FIRESTORE_STAGING_COLLECTION || 'media_qa_staging',
+  allowlistCollection: process.env.SUPABASE_ALLOWLIST_TABLE || 'media_qa_authorized_sources',
+  stagingCollection: process.env.SUPABASE_STAGING_TABLE || 'media_qa_staging',
   timeoutMs: Number(process.env.MEDIA_QA_TIMEOUT_MS || 10000),
   maxStreams: Number(process.env.MAX_STREAMS || 5)
 };

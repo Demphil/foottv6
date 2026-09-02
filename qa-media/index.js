@@ -3,7 +3,7 @@ const { config } = require('./config');
 const { loadAllowlist } = require('./allowlist');
 const { scrapeMatch } = require('./scraper');
 const { validateStreams } = require('./validator');
-const { saveStaging } = require('./firestore');
+const { saveStaging } = require('./supabase-storage');
 
 function readJobs() {
   return String(process.env.MEDIA_QA_JOBS || '').split(',').map((item) => item.trim()).filter(Boolean)
