@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const { config } = require('./config');
+const { loadAllowlist } = require('./allowlist');
 const { scrapeMatch } = require('./scraper');
 const { validateStreams } = require('./validator');
 const { saveStaging } = require('./firestore');
@@ -16,11 +17,11 @@ function isDue(job, now = Date.now()) {
   return now >= scheduled - config.leadMinutes * 60 * 1000 && now <= scheduled;
 }
 
-async function runJob(job) {
+async function runJob(job, allowlist) {
   const report = { matchId: job.matchId, source: job.url, startedAt: new Date().toISOString() };
   try {
-    const scraped = await scrapeMatch(job.url);
-    const validation = await validateStreams(scraped);
+    const scraped = await scrapeMatch(job.url, allowlist);
+    const validation = await validateStreams(scraped, allowlist);
     report.scrapedCount = scraped.length;
     report.validation = validation.report;
     report.passedCount = validation.passed.length;
@@ -44,7 +45,9 @@ async function runJob(job) {
 async function runOnce() {
   const jobs = readJobs().filter((job) => isDue(job));
   if (!jobs.length) throw new Error('MEDIA_QA_JOBS is empty; no authorized QA jobs configured');
-  return Promise.all(jobs.map(runJob));
+  const allowlist = await loadAllowlist();
+  if (!allowlist.sourceHosts.length) throw new Error('Runtime allowlist has no authorized source hosts');
+  return Promise.all(jobs.map((job) => runJob(job, allowlist)));
 }
 
 if (require.main === module) {

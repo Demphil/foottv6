@@ -1,10 +1,12 @@
 const axios = require('axios');
 const { config, assertAllowed } = require('./config');
 
-async function validateStream(url) {
+async function validateStream(url, allowlist) {
   const result = { url, status: 'Failed', code: null, error: null, type: null };
   try {
-    assertAllowed(url, config.mediaHosts, 'media URL');
+    if (allowlist.mediaHosts.length && !allowlist.mediaHosts.includes(new URL(url).hostname.toLowerCase())) {
+      throw new Error('Media host is not in the runtime allowlist');
+    }
     const response = await axios.get(url, {
       timeout: config.timeoutMs,
       responseType: 'text',
@@ -25,9 +27,9 @@ async function validateStream(url) {
   return result;
 }
 
-async function validateStreams(urls) {
+async function validateStreams(urls, allowlist) {
   const report = [];
-  for (const url of [...new Set(urls)]) report.push(await validateStream(url));
+  for (const url of [...new Set(urls)]) report.push(await validateStream(url, allowlist));
   const passed = report.filter((item) => item.status === 'Passed').slice(0, config.maxStreams);
   return { report, passed };
 }

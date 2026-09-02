@@ -18,15 +18,19 @@ function isMediaUrl(value) {
   return /\.(m3u8|mp4)(?:$|[?#])/i.test(value);
 }
 
-async function scrapeMatch(matchUrl) {
-  assertAllowed(matchUrl, config.sourceHosts, 'match URL');
+async function scrapeMatch(matchUrl, allowlist) {
+  assertAllowed(matchUrl, allowlist.sourceHosts, 'match URL');
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1365, height: 768 } });
   const candidates = new Set();
 
   const collect = (value) => {
     if (!value || isAdUrl(value) || !isMediaUrl(value)) return;
-    try { assertAllowed(value, config.mediaHosts, 'media URL'); candidates.add(value); } catch {}
+    try {
+      const host = new URL(value).hostname.toLowerCase();
+      const configured = allowlist.mediaHosts.length === 0 || allowlist.mediaHosts.includes(host);
+      if (configured) candidates.add(value);
+    } catch {}
   };
 
   page.on('response', (response) => collect(response.url()));
