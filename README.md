@@ -13,3 +13,7 @@ The optional `qa-media` service is a staging-only quality gate for sources you o
 6. Only after the report passes the minimum threshold, set `DRY_RUN=false`; successful results are written to the Supabase staging table `media_qa_staging`, never directly to production.
 
 The scheduler uses `MEDIA_QA_CRON` (default: every minute) and runs jobs during the configured 15-minute lead window. Every candidate must pass the source allowlist, ad blacklist, HTTP 200 check, and `#EXTM3U` check for HLS before staging. Discovered CDN hosts may be ephemeral; they are accepted only when discovered from an authorized source page and still pass all validation checks.
+
+## Manual Channel Links
+
+Add authorized channel or player URLs in `assets/js/manual-stream-links.js`. Use the exact channel label received from the matches source as the object key. These values override the matching aliases in `assets/js/streams.js` while preserving all existing aliases and page routing.
