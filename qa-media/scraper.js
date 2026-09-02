@@ -18,6 +18,43 @@ function isMediaUrl(value) {
   return /\.(m3u8|mp4)(?:$|[?#])/i.test(value);
 }
 
+function normalize(value) {
+  return String(value || '').toLocaleLowerCase('ar').replace(/\s+/g, ' ').trim();
+}
+
+async function resolveMatchUrl(job, sources, allowlist) {
+  const source = sources.find((item) => item.name === job.sourceName);
+  if (!source) throw new Error(`Unknown authorized source: ${job.sourceName}`);
+  assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  const page = await browser.newPage();
+  try {
+    await page.goto(source.listUrl, { waitUntil: 'networkidle2', timeout: config.timeoutMs });
+    const candidates = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map((anchor) => ({
+      href: anchor.href,
+      text: anchor.textContent || '',
+      title: anchor.title || ''
+    })));
+    const home = normalize(job.homeTeam);
+    const away = normalize(job.awayTeam);
+    const channel = normalize(job.channel);
+    const teamMatch = (candidate) => {
+      const text = normalize(`${candidate.text} ${candidate.title}`);
+      return text.includes(home) && text.includes(away);
+    };
+    const teamCandidates = candidates.filter(teamMatch);
+    const match = (channel && teamCandidates.find((candidate) => {
+      const text = normalize(`${candidate.text} ${candidate.title}`);
+      return text.includes(channel);
+    })) || teamCandidates[0];
+    if (!match) throw new Error(`Match not found in ${source.name}: ${job.homeTeam} vs ${job.awayTeam}`);
+    assertAllowed(match.href, allowlist.sourceHosts, 'resolved match URL');
+    return match.href;
+  } finally {
+    await browser.close();
+  }
+}
+
 async function scrapeMatch(matchUrl, allowlist) {
   assertAllowed(matchUrl, allowlist.sourceHosts, 'match URL');
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
@@ -48,4 +85,4 @@ async function scrapeMatch(matchUrl, allowlist) {
   return [...candidates];
 }
 
-module.exports = { scrapeMatch, isAdUrl, isMediaUrl };
+module.exports = { scrapeMatch, resolveMatchUrl, isAdUrl, isMediaUrl };

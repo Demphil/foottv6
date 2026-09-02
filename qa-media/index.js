@@ -1,13 +1,19 @@
 const cron = require('node-cron');
 const { config } = require('./config');
 const { loadAllowlist } = require('./allowlist');
-const { scrapeMatch } = require('./scraper');
+const { loadSources, sourceHosts } = require('./source-registry');
+const { scrapeMatch, resolveMatchUrl } = require('./scraper');
 const { validateStreams } = require('./validator');
 const { saveStaging } = require('./supabase-storage');
 
 function readJobs() {
   return String(process.env.MEDIA_QA_JOBS || '').split(',').map((item) => item.trim()).filter(Boolean)
-    .map((item) => { const [matchId, url, scheduledAt] = item.split('|'); return { matchId, url, scheduledAt }; });
+    .map((item) => {
+      const parts = item.split('|');
+      if (parts[1]?.startsWith('http')) return { matchId: parts[0], url: parts[1], scheduledAt: parts[2] };
+      const [matchId, sourceName, homeTeam, awayTeam, channel, scheduledAt] = parts;
+      return { matchId, sourceName, homeTeam, awayTeam, channel, scheduledAt };
+    });
 }
 
 function isDue(job, now = Date.now()) {
@@ -17,10 +23,13 @@ function isDue(job, now = Date.now()) {
   return now >= scheduled - config.leadMinutes * 60 * 1000 && now <= scheduled;
 }
 
-async function runJob(job, allowlist) {
-  const report = { matchId: job.matchId, source: job.url, startedAt: new Date().toISOString() };
+async function runJob(job, allowlist, sources = null) {
+  const report = { matchId: job.matchId, source: job.url || job.sourceName, startedAt: new Date().toISOString() };
   try {
-    const scraped = await scrapeMatch(job.url, allowlist);
+    const configuredSources = sources || await loadSources();
+    const matchUrl = job.url || await resolveMatchUrl(job, configuredSources, allowlist);
+    report.source = matchUrl;
+    const scraped = await scrapeMatch(matchUrl, allowlist);
     const validation = await validateStreams(scraped, allowlist);
     report.scrapedCount = scraped.length;
     report.validation = validation.report;
@@ -46,8 +55,11 @@ async function runOnce() {
   const jobs = readJobs().filter((job) => isDue(job));
   if (!jobs.length) throw new Error('MEDIA_QA_JOBS is empty; no authorized QA jobs configured');
   const allowlist = await loadAllowlist();
+  const sources = await loadSources();
+  allowlist.sourceHosts.push(...sourceHosts(sources));
+  allowlist.sourceHosts = [...new Set(allowlist.sourceHosts)];
   if (!allowlist.sourceHosts.length) throw new Error('Runtime allowlist has no authorized source hosts');
-  return Promise.all(jobs.map((job) => runJob(job, allowlist)));
+  return Promise.all(jobs.map((job) => runJob(job, allowlist, sources)));
 }
 
 if (require.main === module) {

@@ -7,7 +7,24 @@ The optional `qa-media` service is a staging-only quality gate for sources you o
 
 1. Run `npm install`.
 2. Add authorized source hostnames to `qa-media/authorized-sources.json`, or configure the Supabase table `media_qa_authorized_sources` using `qa-media/supabase-schema.sql`.
-3. Set `MEDIA_QA_JOBS` as dynamic `match-id|https://authorized.example/match|2026-09-02T20:00:00Z` entries separated by commas. The schedule field is optional for an immediate QA run.
+3. Add source pages to `qa-media/sources.json`. Set `MEDIA_QA_JOBS` as `match-id|source-name|home-team|away-team|channel|2026-09-02T20:00:00Z` entries separated by commas, or use the backward-compatible direct form `match-id|https://authorized.example/match|2026-09-02T20:00:00Z`.
+
+Example `qa-media/sources.json` entry:
+
+```json
+{
+  "sources": [
+    {
+      "name": "my-authorized-source",
+      "listUrl": "https://authorized.example/matches",
+      "allowedHosts": ["authorized.example", "player.authorized.example"],
+      "enabled": true
+    }
+  ]
+}
+```
+
+Use `allowedHosts` for an authorized external details/player host when clicking a match leads to another domain. The resolver first prefers a team-and-channel match, then falls back to the team names when the channel is not displayed by the source.
 4. Set server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` when using Supabase. Never expose the service-role key to the browser.
 5. Keep `DRY_RUN=true` for testing. Run `npm run media:qa:dry-run`.
 6. Only after the report passes the minimum threshold, set `DRY_RUN=false`; successful results are written to the Supabase staging table `media_qa_staging`, never directly to production.
