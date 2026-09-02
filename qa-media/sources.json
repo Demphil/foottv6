@@ -7,6 +7,62 @@
         "livehd77.me"
       ],
       "enabled": true
+    },
+    {
+      "name": "shooot",
+      "listUrl": "https://shooot.mov/",
+      "allowedHosts": [
+        "shooot.mov"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "yacinee-tv",
+      "listUrl": "https://yacinee-tv.net/",
+      "allowedHosts": [
+        "yacinee-tv.net"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "siir-tv",
+      "listUrl": "https://siir-tv.co/",
+      "allowedHosts": [
+        "siir-tv.co"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "sirrtv",
+      "listUrl": "https://www.sirrtv.online/",
+      "allowedHosts": [
+        "www.sirrtv.online"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "syr-live",
+      "listUrl": "https://m.syr.live/",
+      "allowedHosts": [
+        "m.syr.live"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "sportcityplus",
+      "listUrl": "https://sportcityplus.com/",
+      "allowedHosts": [
+        "sportcityplus.com"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "socceritv",
+      "listUrl": "https://socceritv.com/",
+      "allowedHosts": [
+        "socceritv.com"
+      ],
+      "enabled": true
     }
   ]
 }

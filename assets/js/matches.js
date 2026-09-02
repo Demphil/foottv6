@@ -1,6 +1,11 @@
 // assets/js/matches.js
 
-import { getTodayMatches, getTomorrowMatches } from './api.js';
+import {
+  getTodayMatches,
+  getTomorrowMatches,
+  getMoroccoWallClockNow,
+  getMoroccoDateForTime
+} from './api.js';
 import { streamLinks } from './streams.js';
 
 // --- 1. تعريف عناصر DOM ---
@@ -44,8 +49,8 @@ function renderMatch(match) {
     : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
-  const now = new Date();
-  const matchDate = match.matchDate || new Date(); 
+  const now = getMoroccoWallClockNow();
+  const matchDate = match.matchDate || now;
   const diffMins = (matchDate - now) / 60000;
 
   let timeText = match.time;
@@ -143,20 +148,14 @@ async function loadAndRenderMatches() {
      const result = [];
      for (let match of matches) {
          if (!match.time || !match.time.includes(':')) {
-             result.push({ ...match, matchDate: new Date(), moroccoDayOffset: sourceDayOffset });
+             result.push({ ...match, matchDate: getMoroccoWallClockNow(), moroccoDayOffset: sourceDayOffset });
              continue;
          }
          
          let moroccoDayOffset = sourceDayOffset;
          let [h, m] = match.time.split(':').map(Number);
          
-         if (h >= 22) {
-             moroccoDayOffset -= 1;
-         }
-
-         const matchDate = new Date();
-         matchDate.setDate(matchDate.getDate() + moroccoDayOffset);
-         matchDate.setHours(h, m, 0, 0);
+         const matchDate = getMoroccoDateForTime(h, m, moroccoDayOffset);
          
          result.push({ ...match, matchDate, moroccoDayOffset });
      }
@@ -169,7 +168,7 @@ async function loadAndRenderMatches() {
   
   // دمج كل المباريات لتوزيعها لاحقاً
   const allMatches = [...processedToday, ...processedTomorrow];
-  const now = new Date();
+  const now = getMoroccoWallClockNow();
 
   const trueTodayMatches = [];
   const trueTomorrowMatches = [];

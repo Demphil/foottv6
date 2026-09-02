@@ -106,11 +106,50 @@ function convertSourceToMoroccoTime(timeString) {
 
 
 
+export const MOROCCO_TIME_ZONE = 'Africa/Casablanca';
+
+function moroccoParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: MOROCCO_TIME_ZONE,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(date);
+
+  return Object.fromEntries(parts
+    .filter(({ type }) => type !== 'literal')
+    .map(({ type, value }) => [type, Number(value)]));
+}
+
+export function getMoroccoWallClockNow() {
+  const now = moroccoParts();
+  return new Date(Date.UTC(now.year, now.month - 1, now.day, now.hour, now.minute, now.second));
+}
+
+export function getMoroccoDateForTime(hours, minutes, dayOffset = 0) {
+  const now = moroccoParts();
+  return new Date(Date.UTC(now.year, now.month - 1, now.day + dayOffset, hours, minutes, 0));
+}
+
 // --- 3. API Functions ---
 
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
-const BASE_SITE_URL = 'https://yallashoot2day.online/';
+const MATCH_SOURCES = [
+  { name: 'yallashoot2day', baseUrl: 'https://yallashoot2day.online/' },
+  { name: 'livehd77', baseUrl: 'https://livehd77.me/' },
+  { name: 'shooot', baseUrl: 'https://shooot.mov/' },
+  { name: 'yacinee-tv', baseUrl: 'https://yacinee-tv.net/' },
+  { name: 'siir-tv', baseUrl: 'https://siir-tv.co/' },
+  { name: 'sirrtv', baseUrl: 'https://www.sirrtv.online/' },
+  { name: 'syr-live', baseUrl: 'https://m.syr.live/' },
+  { name: 'sportcityplus', baseUrl: 'https://sportcityplus.com/' },
+  { name: 'socceritv', baseUrl: 'https://socceritv.com/' }
+];
 
 
 
@@ -126,9 +165,8 @@ export async function getTodayMatches() {
 
     // جلب الصفحة الرئيسية فقط لمنع دخول المباريات القديمة
 
-    const todayHtml = await fetchHtml(`${BASE_SITE_URL}/`);
+    const { matches: finalMatches } = await loadFromSources('today');
 
-    let finalMatches = parseMatches(todayHtml);
 
 
 
@@ -158,9 +196,9 @@ export async function getTodayMatches() {
 
     // 🌟 منطق الفرز الذكي المطلوب 🌟
 
-    const now = new Date();
+    const now = getMoroccoWallClockNow();
 
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
 
 
 
@@ -247,9 +285,8 @@ export async function getTomorrowMatches() {
 
   
 
-  const html = await fetchHtml(`${BASE_SITE_URL}/matches-tomorrow/`);
+  const { matches: newMatches } = await loadFromSources('tomorrow');
 
-  let newMatches = parseMatches(html);
 
   newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
 
@@ -283,6 +320,27 @@ async function fetchHtml(targetUrl) {
 }
 
 
+
+async function loadFromSources(day) {
+  const path = day === 'tomorrow' ? 'matches-tomorrow/' : '';
+  const failures = [];
+
+  for (const source of MATCH_SOURCES) {
+    const targetUrl = new URL(path, source.baseUrl).href;
+    const html = await fetchHtml(targetUrl);
+    const matches = parseMatches(html, source.baseUrl);
+
+    if (matches.length > 0) {
+      console.info(`[matches] ${day} source selected: ${source.name} (${matches.length})`);
+      return { matches, source: source.name, failures };
+    }
+
+    failures.push(source.name);
+  }
+
+  console.warn(`[matches] no usable ${day} source; tried: ${failures.join(', ')}`);
+  return { matches: [], source: null, failures };
+}
 
 // --- 4. Core Parsing Logic ---
 const MATCH_SELECTORS = [
@@ -340,13 +398,13 @@ function textFrom(root, selectors, fallback = '') {
   return firstElement(root, selectors)?.textContent?.replace(/\s+/g, ' ').trim() || fallback;
 }
 
-function linkFrom(matchEl) {
+function linkFrom(matchEl, sourceBaseUrl) {
   const anchor = [...matchEl.querySelectorAll('a[href]')].find((element) => {
     const href = element.getAttribute('href') || '';
     return href && href !== '#' && !href.toLowerCase().startsWith('javascript:');
   });
   if (!anchor) return '';
-  return new URL(anchor.getAttribute('href'), BASE_SITE_URL).href;
+  return new URL(anchor.getAttribute('href'), sourceBaseUrl).href;
 }
 
 function scoreFrom(matchEl) {
@@ -367,20 +425,31 @@ function liveStatusFrom(matchEl) {
   return /\blive\b|started|جارية|جاري|مباشر|الآن|الان/i.test(`${className} ${statusText}`);
 }
 
-export function parseMatches(html) {
+function findMatchElements(doc) {
+  for (const selector of MATCH_SELECTORS) {
+    const elements = doc.querySelectorAll(selector);
+    if (elements.length) return elements;
+  }
+  return [];
+}
+
+export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
   if (!html) return [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const matches = [];
   
-  // استخدام الكلاس الجديد للحاوية
-  const matchElements = doc.querySelectorAll('.match-container');
+  const matchElements = findMatchElements(doc);
   
   matchElements.forEach(matchEl => {
     try {
       // استخراج الفِرق
-      const homeTeamEl = matchEl.querySelector('.right-team');
-      const awayTeamEl = matchEl.querySelector('.left-team');
+      const homeTeamEl = firstElement(matchEl, [
+        '.right-team', '.team-home', '.team1', '.MT_Team.TM1', ...HOME_TEAM_SELECTORS
+      ]);
+      const awayTeamEl = firstElement(matchEl, [
+        '.left-team', '.team-away', '.team2', '.MT_Team.TM2', ...AWAY_TEAM_SELECTORS
+      ]);
 
       const homeTeamName = homeTeamEl ? homeTeamEl.textContent.trim() : '';
       const awayTeamName = awayTeamEl ? awayTeamEl.textContent.trim() : '';
@@ -388,7 +457,7 @@ export function parseMatches(html) {
       if (!homeTeamName || !awayTeamName) return;
       
       // استخراج رابط البث
-      const matchLink = matchEl.querySelector('a')?.href;
+      const matchLink = linkFrom(matchEl, sourceBaseUrl);
       if (!matchLink) return;
       
       // استخراج التوقيت أو النتيجة من منطقة المنتصف
@@ -438,8 +507,8 @@ export function parseMatches(html) {
       }
 
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamEl?.querySelector('img')) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamEl?.querySelector('img')) },
+        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamEl?.querySelector('img'), sourceBaseUrl) },
+        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamEl?.querySelector('img'), sourceBaseUrl) },
         time: timeData.formatted,
         rawMinutes: timeData.rawMinutes,
         score: scoreFrom(matchEl),
@@ -457,7 +526,7 @@ export function parseMatches(html) {
 }
 
 
-function extractImageUrl(imgElement) {
+function extractImageUrl(imgElement, sourceBaseUrl) {
 
   if (!imgElement) return '';
 
@@ -467,6 +536,6 @@ function extractImageUrl(imgElement) {
 
   src = src.startsWith('/') ? src.substring(1) : src;
 
-  return `${BASE_SITE_URL}/${src}`;
+  return new URL(src, sourceBaseUrl).href;
 
 }

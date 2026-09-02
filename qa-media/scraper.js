@@ -23,8 +23,24 @@ function normalize(value) {
 }
 
 async function resolveMatchUrl(job, sources, allowlist) {
-  const source = sources.find((item) => item.name === job.sourceName);
-  if (!source) throw new Error(`Unknown authorized source: ${job.sourceName}`);
+  const preferred = job.sourceName ? sources.find((item) => item.name === job.sourceName) : null;
+  if (job.sourceName && !preferred) throw new Error(`Unknown authorized source: ${job.sourceName}`);
+  const orderedSources = preferred ? [preferred, ...sources.filter((item) => item !== preferred)] : sources;
+  const failures = [];
+
+  for (const source of orderedSources) {
+    try {
+      const matchUrl = await resolveMatchUrlFromSource(job, source, allowlist);
+      if (matchUrl) return matchUrl;
+    } catch (error) {
+      failures.push(`${source.name}: ${error.message}`);
+    }
+  }
+
+  throw new Error(`No source matched ${job.homeTeam} vs ${job.awayTeam}. ${failures.join(' | ')}`);
+}
+
+async function resolveMatchUrlFromSource(job, source, allowlist) {
   assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage();
@@ -47,7 +63,7 @@ async function resolveMatchUrl(job, sources, allowlist) {
       const text = normalize(`${candidate.text} ${candidate.title}`);
       return text.includes(channel);
     })) || teamCandidates[0];
-    if (!match) throw new Error(`Match not found in ${source.name}: ${job.homeTeam} vs ${job.awayTeam}`);
+    if (!match) throw new Error(`Match not found: ${job.homeTeam} vs ${job.awayTeam}`);
     assertAllowed(match.href, allowlist.sourceHosts, 'resolved match URL');
     return match.href;
   } finally {

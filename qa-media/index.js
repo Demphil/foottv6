@@ -20,7 +20,8 @@ function isDue(job, now = Date.now()) {
   if (!job.scheduledAt) return true;
   const scheduled = Date.parse(job.scheduledAt);
   if (Number.isNaN(scheduled)) throw new Error(`Invalid scheduledAt for ${job.matchId}`);
-  return now >= scheduled - config.leadMinutes * 60 * 1000 && now <= scheduled;
+  return now >= scheduled - config.leadMinutes * 60 * 1000
+    && now <= scheduled + config.postMatchMinutes * 60 * 1000;
 }
 
 async function runJob(job, allowlist, sources = null) {
