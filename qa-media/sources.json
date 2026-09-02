@@ -1,6 +1,22 @@
 {
   "sources": [
     {
+      "name": "yallashoot2day",
+      "listUrl": "https://yallashoot2day.online/",
+      "allowedHosts": [
+        "yallashoot2day.online"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "m8nstar",
+      "listUrl": "https://m8nstar.com/",
+      "allowedHosts": [
+        "m8nstar.com"
+      ],
+      "enabled": true
+    },
+    {
       "name": "livehd77",
       "listUrl": "https://livehd77.me/",
       "allowedHosts": [

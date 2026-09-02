@@ -141,6 +141,7 @@ const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 const MATCH_SOURCES = [
   { name: 'yallashoot2day', baseUrl: 'https://yallashoot2day.online/' },
+  { name: 'm8nstar', baseUrl: 'https://m8nstar.com/' },
   { name: 'livehd77', baseUrl: 'https://livehd77.me/' },
   { name: 'shooot', baseUrl: 'https://shooot.mov/' },
   { name: 'yacinee-tv', baseUrl: 'https://yacinee-tv.net/' },
@@ -323,23 +324,31 @@ async function fetchHtml(targetUrl) {
 
 async function loadFromSources(day) {
   const path = day === 'tomorrow' ? 'matches-tomorrow/' : '';
-  const failures = [];
-
-  for (const source of MATCH_SOURCES) {
+  const results = await Promise.all(MATCH_SOURCES.map(async (source) => {
     const targetUrl = new URL(path, source.baseUrl).href;
     const html = await fetchHtml(targetUrl);
-    const matches = parseMatches(html, source.baseUrl);
+    return { source, matches: parseMatches(html, source.baseUrl) };
+  }));
+  const merged = [];
+  const seen = new Set();
+  const failures = [];
 
-    if (matches.length > 0) {
-      console.info(`[matches] ${day} source selected: ${source.name} (${matches.length})`);
-      return { matches, source: source.name, failures };
+  for (const { source, matches } of results) {
+    if (!matches.length) {
+      failures.push(source.name);
+      continue;
     }
-
-    failures.push(source.name);
+    for (const match of matches) {
+      const key = `${match.homeTeam.name}|${match.awayTeam.name}`.toLocaleLowerCase('ar').trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push({ ...match, sourceName: source.name });
+      }
+    }
   }
 
-  console.warn(`[matches] no usable ${day} source; tried: ${failures.join(', ')}`);
-  return { matches: [], source: null, failures };
+  console.info(`[matches] ${day} sources: ${MATCH_SOURCES.length}, usable: ${MATCH_SOURCES.length - failures.length}, matches: ${merged.length}`);
+  return { matches: merged, source: merged[0]?.sourceName || null, failures };
 }
 
 // --- 4. Core Parsing Logic ---
