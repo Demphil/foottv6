@@ -188,7 +188,7 @@ export async function getTodayMatches() {
 
         // 2. المباراة جارية الآن (نتيجة مسجلة أو التوقيت الحالي بين البداية والنهاية)
 
-        const isLive = (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
+        const isLive = match.isLive || (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
 
         if (isLive) return 1;
 
@@ -230,6 +230,7 @@ export async function getTodayMatches() {
 
   } catch (error) {
 
+    console.error(`Today matches fetch failed: ${error.message}`);
     return [];
 
   }
@@ -274,6 +275,7 @@ async function fetchHtml(targetUrl) {
 
   } catch (error) {
 
+    console.error(`Source request failed for ${targetUrl}: ${error.message}`);
     return '';
 
   }

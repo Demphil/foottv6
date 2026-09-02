@@ -145,11 +145,6 @@ async function loadAndRenderMatches() {
          let moroccoDayOffset = sourceDayOffset;
          let [h, m] = match.time.split(':').map(Number);
          
-         // تصحيح الأوقات من 1 إلى 11 لتصبح مساءً (تتم إضافة 12 ساعة) لتفادي اعتبارها صباحاً
-         if (h >= 1 && h <= 11) {
-             h += 12;
-         }
-         
          if (h >= 22) {
              moroccoDayOffset -= 1;
          }
