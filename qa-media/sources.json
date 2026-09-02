@@ -57,6 +57,14 @@
       "enabled": true
     },
     {
+      "name": "aflam4you",
+      "listUrl": "https://new.aflam4you.org/",
+      "allowedHosts": [
+        "https://new.aflam4you.org/"
+      ],
+      "enabled": true
+    },
+    {
       "name": "syr-live",
       "listUrl": "https://m.syr.live/",
       "allowedHosts": [
