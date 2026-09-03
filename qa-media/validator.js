@@ -10,7 +10,8 @@ async function validateStream(url, allowlist) {
     const response = await axios.get(url, {
       timeout: config.timeoutMs,
       responseType: 'text',
-      maxContentLength: 1024 * 1024,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       validateStatus: () => true,
       headers: { Accept: '*/*', 'User-Agent': 'Media-Integration-QA/1.0' }
     });

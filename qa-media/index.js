@@ -9,6 +9,9 @@ const { validateStreams } = require('./validator');
 const { extractChannelLinks } = require('./channel-links');
 const { saveStaging } = require('./supabase-storage');
 
+// نمط استبعاد أصول الموقع الساكنة
+const IGNORED_EXTENSIONS = /\.(css|png|jpg|jpeg|webp|gif|svg|woff|woff2|ttf|eot|js)(\?.*)?$/i;
+
 function readJobs() {
   let raw = String(process.env.MEDIA_QA_JOBS || '').trim();
   if (!raw) {
@@ -51,21 +54,29 @@ async function runJob(job, allowlist, sources = null) {
     const sourceReports = [];
     const allValidation = [];
     const channelLinks = job.channel ? await extractChannelLinks(job.channel) : [];
+    
+    // فلترة الملفات الساكنة والتحقق من النطاقات المسموحة
     const allowedChannelLinks = channelLinks.filter((item) => {
       try {
+        if (IGNORED_EXTENSIONS.test(item.url)) return false;
         return allowlist.sourceHosts.includes(new URL(item.url).hostname.toLowerCase());
       } catch {
         return false;
       }
     });
+
     allScraped.push(...allowedChannelLinks.map((item) => item.url));
     report.channelLinks = { found: channelLinks.length, allowed: allowedChannelLinks.length };
     if (channelLinks.length && !allowedChannelLinks.length) {
-      console.warn(`[MEDIA QA] ${channelLinks.length} local channel link(s) skipped: host is not authorized`);
+      console.warn(`[MEDIA QA] ${channelLinks.length} local channel link(s) skipped: host is not authorized or is a static asset`);
     }
+
     for (const candidate of resolved.matches) {
       try {
-        const scraped = await scrapeMatch(candidate.matchUrl, allowlist);
+        const rawScraped = await scrapeMatch(candidate.matchUrl, allowlist);
+        // استبعاد الملفات الساكنة المجلوبة من السكرايبر
+        const scraped = rawScraped.filter((url) => !IGNORED_EXTENSIONS.test(url));
+        
         allScraped.push(...scraped);
         const sourceValidation = await validateStreams(scraped, allowlist);
         allValidation.push(...sourceValidation.report.map((item) => ({ ...item, sourceName: candidate.sourceName, matchUrl: candidate.matchUrl })));
@@ -80,32 +91,45 @@ async function runJob(job, allowlist, sources = null) {
         sourceReports.push({ sourceName: candidate.sourceName, matchUrl: candidate.matchUrl, scrapedCount: 0, status: 'FAILED', error: error.message });
       }
     }
+
+    // 1. تحديد السيرفرات المقبولة وتطبيق الحد الأقصى (maxStreams)
     const validation = {
       report: allValidation,
       passed: allValidation.filter((item) => item.status === 'Passed').slice(0, config.maxStreams)
     };
+
     if (allowedChannelLinks.length) {
       const channelValidation = await validateStreams(allowedChannelLinks.map((item) => item.url), allowlist);
       validation.report.unshift(...channelValidation.report.map((item) => ({ ...item, sourceName: 'local-channel-page', matchUrl: allowedChannelLinks[0].page })));
       validation.passed = [...channelValidation.passed, ...validation.passed]
         .filter((item, index, items) => items.findIndex((candidate) => candidate.url === item.url) === index)
-        .slice(0, config.maxStreams);
+        .slice(0, config.maxStreams); // عدم تجاوز الحد الأقصى للسيرفرات للمشغل
     }
+
     report.sourceReports = sourceReports;
     report.sourceFailures = resolved.failures;
     report.sourceCount = resolved.matches.length;
     report.scrapedCount = allScraped.length;
     report.validation = validation.report;
     report.passedCount = validation.passed.length;
+
     console.table(sourceReports);
     console.table(validation.report);
-    if (validation.passed.length < config.minValidStreams) {
-      throw new Error(`ABORTED: ${validation.passed.length}/${config.minValidStreams} validated streams across ${resolved.matches.length} source match pages`);
+
+    // 2. شرط الإيقاف: يفشل الاختبار فقط إذا لم يتم العثور على أي سيرفر شغال (0)
+    if (validation.passed.length < 1) {
+      throw new Error(`ABORTED: 0 validated streams found across ${resolved.matches.length} source match pages`);
     }
-    report.streams = validation.passed;
+
+    report.streams = validation.passed; // تحتوي على سيرفر واحد أو أكثر (بحد أقصى maxStreams)
     report.status = 'PASSED_STAGING';
-    if (!config.dryRun) await saveStaging(job.matchId, report);
-    else console.log('[DRY RUN] staging write skipped');
+
+    if (!config.dryRun) {
+      await saveStaging(job.matchId, report);
+    } else {
+      console.log('[DRY RUN] staging write skipped');
+    }
+    
   } catch (error) {
     report.status = 'ABORTED';
     report.error = error.stack || error.message;

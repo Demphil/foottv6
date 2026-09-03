@@ -3,6 +3,21 @@ const path = require('node:path');
 const { config, list } = require('./config');
 const { getSupabase } = require('./supabase');
 
+/**
+ * دالة التحقق من النطاق ودعم النطاقات الفرعية (Subdomains)
+ * مثال: 21.yallalives.fun تُطابق yallalives.fun
+ */
+function isHostAllowed(hostname, allowedHosts = []) {
+  if (!hostname) return false;
+  const host = hostname.toLowerCase().trim();
+
+  return allowedHosts.some((allowed) => {
+    const cleanAllowed = allowed.toLowerCase().trim();
+    if (!cleanAllowed) return false;
+    return host === cleanAllowed || host.endsWith('.' + cleanAllowed);
+  });
+}
+
 async function fromFile() {
   const filePath = path.resolve(config.allowlistFile);
   const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -23,13 +38,36 @@ async function fromSupabase() {
 }
 
 async function loadAllowlist() {
+  let allowlistData = null;
   try {
     const supabaseList = await fromSupabase();
-    if (supabaseList?.sourceHosts.length) return supabaseList;
+    if (supabaseList?.sourceHosts.length) {
+      allowlistData = supabaseList;
+    }
   } catch (error) {
     console.warn(`Allowlist Supabase unavailable: ${error.message}`);
   }
-  return fromFile();
+
+  if (!allowlistData) {
+    allowlistData = await fromFile();
+  }
+
+  // إضافة دالة مساعدة للتحقق المباشر مع دعم الـ Subdomains
+  allowlistData.isAllowed = (urlOrHost, listType = 'sourceHosts') => {
+    let hostname = urlOrHost;
+    try {
+      if (typeof urlOrHost === 'string' && (urlOrHost.startsWith('http://') || urlOrHost.startsWith('https://'))) {
+        hostname = new URL(urlOrHost).hostname;
+      }
+    } catch {
+      return false;
+    }
+
+    const targetList = listType === 'mediaHosts' ? allowlistData.mediaHosts : allowlistData.sourceHosts;
+    return isHostAllowed(hostname, targetList);
+  };
+
+  return allowlistData;
 }
 
-module.exports = { loadAllowlist };
+module.exports = { loadAllowlist, isHostAllowed };

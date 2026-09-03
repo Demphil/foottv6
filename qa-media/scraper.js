@@ -5,6 +5,9 @@ const AD_HOSTS = new Set([
   'monetag.com', 'popads.net', 'propellerads.com', 'popcash.net', 'adsterra.com', 'onclicka.com'
 ]);
 
+// نمط استبعاد الملفات الساكنة للموقع
+const IGNORED_EXTENSIONS = /\.(css|png|jpg|jpeg|webp|gif|svg|woff|woff2|ttf|eot|js)(\?.*)?$/i;
+
 function launchOptions(extra = {}) {
   return {
     headless: true,
@@ -40,7 +43,8 @@ async function discoverJobs(sources, allowlist) {
         );
         for (const card of cards) {
           if (!card.homeTeam || !card.awayTeam) continue;
-          const matchId = `${card.homeTeam}_vs_${card.awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
+          // التعديل: تغيير _vs_ إلى _ضد_
+             const matchId = `${card.homeTeam}_ضد_${card.awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
           if (seen.has(matchId)) continue;
           seen.add(matchId);
           jobs.push({ matchId, homeTeam: card.homeTeam, awayTeam: card.awayTeam, channel: card.channel, sourceName: source.name });
@@ -68,7 +72,10 @@ function isAdUrl(value) {
 }
 
 function isMediaUrl(value) {
-  return /\.(m3u8|mp4)(?:$|[?#])/i.test(value);
+  if (!value) return false;
+  return /\.(m3u8|mp4)(?:$|[?#])/i.test(value) ||
+         /\/(embed|player|live|stream|b-\d+|watch)/i.test(value) ||
+         /\?m=\d+/i.test(value);
 }
 
 function normalize(value) {
@@ -131,8 +138,6 @@ async function resolveMatchUrlFromSource(job, source, allowlist) {
       return match.href;
     }
 
-    // Some sources render a card without an href and create the player route
-    // only after the visitor clicks the card. Follow that same navigation.
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const clickableIndex = await page.evaluate(({ home, away, channel }) => {
       const normalizeText = (value) => String(value || '').toLocaleLowerCase('ar').replace(/\s+/g, ' ').trim();
@@ -173,23 +178,52 @@ async function scrapeMatch(matchUrl, allowlist) {
   const candidates = new Set();
 
   const collect = (value) => {
-    if (!value || isAdUrl(value) || !isMediaUrl(value)) return;
+    if (!value || isAdUrl(value) || IGNORED_EXTENSIONS.test(value)) return;
     try {
       const host = new URL(value).hostname.toLowerCase();
-      const configured = allowlist.mediaHosts.length === 0 || allowlist.mediaHosts.includes(host);
-      if (configured) candidates.add(value);
+      
+      // فحص المسموحية مع دعم النطاقات الفرعية (Subdomains)
+      const isAllowed = allowlist.isAllowed
+        ? allowlist.isAllowed(value, 'mediaHosts')
+        : allowlist.mediaHosts.length === 0 || allowlist.mediaHosts.some((h) => host === h || host.endsWith('.' + h));
+
+      if (isAllowed) candidates.add(value);
     } catch {}
   };
 
-  page.on('response', (response) => collect(response.url()));
-  page.on('frameattached', (frame) => collect(frame.url()));
+  page.on('response', (response) => {
+    const url = response.url();
+    if (isMediaUrl(url)) collect(url);
+  });
+
   try {
     await page.goto(matchUrl, { waitUntil: 'networkidle2', timeout: config.timeoutMs });
+
+    // 1. استخراج الروابط المباشرة والمخفية داخل خصائص التبويبات (data-src, data-url, data-stream)
+    const dynamicSrcs = await page.$$eval(
+      'iframe, [data-src], [data-url], [data-stream], [data-player]',
+      (elements) => elements.map((el) => {
+        return el.src || el.getAttribute('data-src') || el.getAttribute('data-url') || el.getAttribute('data-stream') || el.getAttribute('data-player');
+      }).filter((src) => src && !src.startsWith('javascript:'))
+    );
+    dynamicSrcs.forEach((src) => collect(src));
+
+    // 2. النقر على أزرار التبويبات والسيرفرات لإنشاء المشغلات عند الطلب
     await page.evaluate(() => {
-      document.querySelectorAll('button, [role="button"], .play, .play-button').forEach((element) => element.click());
+      const selectors = 'button, [role="button"], .play, .play-button, .btn-play, .server, [class*="server"], [data-src], [data-url]';
+      document.querySelectorAll(selectors).forEach((element) => {
+        try { element.click(); } catch (e) {}
+      });
     });
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    for (const frame of page.frames()) collect(frame.url());
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
+    // 3. فحص كافة الإطارات المضمنة (Frames) بعد الضغط على السيرفرات
+    for (const frame of page.frames()) {
+      const frameUrl = frame.url();
+      if (frameUrl && frameUrl !== 'about:blank' && frameUrl !== matchUrl) {
+        collect(frameUrl);
+      }
+    }
   } finally {
     await browser.close();
   }
