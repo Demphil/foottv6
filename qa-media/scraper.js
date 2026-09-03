@@ -43,8 +43,7 @@ async function discoverJobs(sources, allowlist) {
         );
         for (const card of cards) {
           if (!card.homeTeam || !card.awayTeam) continue;
-          // التعديل: تغيير _vs_ إلى _ضد_
-             const matchId = `${card.homeTeam}_ضد_${card.awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
+                   const matchId = `${card.homeTeam}_vs_${card.awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
           if (seen.has(matchId)) continue;
           seen.add(matchId);
           jobs.push({ matchId, homeTeam: card.homeTeam, awayTeam: card.awayTeam, channel: card.channel, sourceName: source.name });
