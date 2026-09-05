@@ -8,6 +8,8 @@ import {
 } from './api.js';
 import { streamLinks } from './streams.js';
 
+const DEFAULT_WATCH_URL = streamLinks['beIN SPORTS HD'] || 'https://koralive.football/beinfree/';
+
 // --- 1. تعريف عناصر DOM ---
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
@@ -21,6 +23,21 @@ const DOM = {
 
 function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
+}
+
+function normalizeMatchId(value) {
+  return String(value || '')
+    .toLocaleLowerCase('ar')
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[إأآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, '_')
+    .replace(/-+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
 }
 
 // --- 2. دوال النافذة المنبثقة (Modal) ---
@@ -41,19 +58,18 @@ function renderMatch(match) {
   const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.jpg';
   const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.jpg';
   const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
-  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`
-    .toLocaleLowerCase('ar').trim().replace(/\s+/g, '-');
+  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey] || DEFAULT_WATCH_URL;
+  const matchId = normalizeMatchId(`${match.homeTeam.name}_vs_${match.awayTeam.name}`);
   const watchUrl = fallbackWatchUrl
     ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(matchId)}`
     : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = getMoroccoWallClockNow();
-  const matchDate = match.matchDate || now;
+  const matchDate = match.matchDate instanceof Date && !Number.isNaN(match.matchDate.getTime()) ? match.matchDate : now;
   const diffMins = (matchDate - now) / 60000;
 
-  let timeText = match.time;
+  let timeText = match.isValidTime === false ? '--:--' : match.time;
   let statusBadge = '';
   let matchStatusClass = '';
   
@@ -61,14 +77,18 @@ function renderMatch(match) {
   let clickAction = '';
   let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
 
+  const hasReliableTime = match.isValidTime !== false;
+  const sourceLiveNow = match.isLive && match.moroccoDayOffset === 0 && hasReliableTime && diffMins <= 15 && diffMins > -140;
+  const isActiveWindow = sourceLiveNow || (hasReliableTime && diffMins <= 15 && diffMins > -140);
+
   // شرط فتح رابط المباراة عند البث أو تبقي 15 دقيقة أو أقل
-  if (match.isLive || diffMins <= 15) {
+  if (isActiveWindow) {
       hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
       
       if (diffMins >= 0 && !match.isLive) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
-      } else if (match.isLive || diffMins > -140) {
+      } else if (sourceLiveNow || diffMins > -140) {
            statusBadge = '<span class="live-badge live">جاري الآن</span>';
            matchStatusClass = 'is-live';
            if (match.score && match.score.includes('-')) {
@@ -143,17 +163,34 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // دالة ضبط التاريخ وتصحيح الأوقات المسائية
+  // دالة ضبط التاريخ بتوقيت المغرب بعد تحويل كل مصدر إلى نفس المرجع الزمني
   function formatMatchDates(matches, sourceDayOffset) {
      const result = [];
      for (let match of matches) {
-         if (!match.time || !match.time.includes(':')) {
-             result.push({ ...match, matchDate: getMoroccoWallClockNow(), moroccoDayOffset: sourceDayOffset });
+         if (!match.time || !match.time.includes(':') || match.isValidTime === false) {
+             const trustedLive = match.isLive && sourceDayOffset === 0;
+             const fallbackDate = match.isLive && sourceDayOffset === 0
+               ? getMoroccoWallClockNow()
+               : getMoroccoDateForTime(23, 59, sourceDayOffset);
+             result.push({
+               ...match,
+               matchDate: fallbackDate,
+               moroccoDayOffset: sourceDayOffset,
+               isValidTime: false,
+               isLive: trustedLive,
+               score: trustedLive ? match.score : 'VS'
+             });
              continue;
          }
          
-         let moroccoDayOffset = sourceDayOffset;
-         let [h, m] = match.time.split(':').map(Number);
+         let moroccoDayOffset = sourceDayOffset + Number(match.moroccoDayShift || 0);
+         const rawMinutes = Number(match.rawMinutes);
+         if (!Number.isFinite(rawMinutes) || rawMinutes < 0 || rawMinutes >= 1440) {
+             result.push({ ...match, matchDate: getMoroccoDateForTime(23, 59, moroccoDayOffset), moroccoDayOffset, isValidTime: false });
+             continue;
+         }
+         const h = Math.floor(rawMinutes / 60);
+         const m = rawMinutes % 60;
          
          const matchDate = getMoroccoDateForTime(h, m, moroccoDayOffset);
          
@@ -172,41 +209,47 @@ async function loadAndRenderMatches() {
 
   const trueTodayMatches = [];
   const trueTomorrowMatches = [];
+  const activeTodayMatches = [];
 
   // توزيع المباريات على الأيام بشكل صحيح بتوقيت المغرب
   allMatches.forEach(match => {
       const diffMins = (match.matchDate - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
+      const hasReliableTime = match.isValidTime !== false;
+      const isLive = (match.moroccoDayOffset === 0 && match.isLive && hasReliableTime) || (hasReliableTime && diffMins <= 0 && diffMins > -140);
+      const isFinished = diffMins <= -140 && !match.isLive;
 
       if (match.moroccoDayOffset === 0 || isLive) {
           trueTodayMatches.push(match);
       } 
-      else if (match.moroccoDayOffset === 1) {
+      else if (match.moroccoDayOffset === 1 && diffMins > -140) {
           trueTomorrowMatches.push(match);
+      }
+      if ((match.moroccoDayOffset === 0 && !isFinished) || isLive) {
+          activeTodayMatches.push(match);
       }
   });
 
   // دالة الترتيب
   function sortMatches(a, b) {
       const matchSpecificKeyA = `${a.homeTeam.name}-${a.awayTeam.name}`;
-      const watchUrlA = streamLinks[a.channel] || streamLinks[matchSpecificKeyA];
+      const watchUrlA = streamLinks[a.channel] || streamLinks[matchSpecificKeyA] || DEFAULT_WATCH_URL;
 
       const matchSpecificKeyB = `${b.homeTeam.name}-${b.awayTeam.name}`;
-      const watchUrlB = streamLinks[b.channel] || streamLinks[matchSpecificKeyB];
+      const watchUrlB = streamLinks[b.channel] || streamLinks[matchSpecificKeyB] || DEFAULT_WATCH_URL;
 
       const diffA = (a.matchDate - now) / 60000;
       const diffB = (b.matchDate - now) / 60000;
 
-      const getRank = (diff, hasStream, isLive) => {
+      const getRank = (diff, hasStream, isLive, dayOffset) => {
           if (!hasStream) return 4; 
-          if (isLive || (diff < 0 && diff > -140)) return 1;
+          if ((dayOffset === 0 && isLive) || (diff < 0 && diff > -140)) return 1;
           if (diff >= 0 && diff <= 45) return 2; 
           if (diff > 45) return 3; 
           return 5;
       };
 
-      const rankA = getRank(diffA, !!watchUrlA, a.isLive);
-      const rankB = getRank(diffB, !!watchUrlB, b.isLive);
+      const rankA = getRank(diffA, !!watchUrlA, a.isLive, a.moroccoDayOffset);
+      const rankB = getRank(diffB, !!watchUrlB, b.isLive, b.moroccoDayOffset);
 
       if (rankA !== rankB) return rankA - rankB;
       
@@ -215,14 +258,20 @@ async function loadAndRenderMatches() {
 
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
+  activeTodayMatches.sort(sortMatches);
 
-  // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
-  const featuredMatches = trueTodayMatches.filter(match => {
+  // القسم العلوي يفضل الجارية/القادمة، لكنه لا يختفي إذا كانت كل مباريات اليوم خارج نافذة الوقت
+  const liveOrUpcomingFeatured = activeTodayMatches.filter(match => {
       const diffMins = (match.matchDate - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
+      const hasReliableTime = match.isValidTime !== false;
+      const isLive = (match.moroccoDayOffset === 0 && match.isLive && hasReliableTime) || (hasReliableTime && diffMins <= 0 && diffMins > -140);
       const isFinished = diffMins <= -140 && !isLive;
       return !isFinished; 
   });
+  const featuredMatches = [
+      ...liveOrUpcomingFeatured,
+      ...trueTodayMatches.filter((match) => !liveOrUpcomingFeatured.includes(match))
+  ].slice(0, 12);
 
   // العرض في الأقسام
   renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات بارزة أو جارية حالياً.');
