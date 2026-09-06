@@ -8,7 +8,6 @@ import {
 } from './api.js';
 import { streamLinks } from './streams.js';
 
-// The Supabase anon key is safe to expose in browser code for read-only access when RLS is enabled.
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
 const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
   ? window.supabase.createClient(publicSupabaseConfig.url, publicSupabaseConfig.anonKey, {
@@ -18,7 +17,6 @@ const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url
 
 if (!supabaseClient) console.info('[MATCHES] Public Supabase client is not configured; using the server match feed.');
 
-// --- 1. تعريف عناصر DOM ---
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
   broadcastContainer: document.getElementById('broadcast-matches'),
@@ -33,7 +31,6 @@ function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
 
-// --- 2. دوال النافذة المنبثقة (Modal) ---
 window.openWaitModal = function() {
     const modal = document.getElementById('wait-modal');
     if (modal) modal.style.display = 'flex';
@@ -57,7 +54,6 @@ function matchStartDate(match) {
   return localDate;
 }
 
-// --- 3. دالة بناء بطاقة المباراة (Render) ---
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
@@ -79,10 +75,10 @@ function renderMatch(match) {
       ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
       : '';
 
-  // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = new Date();
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
+  // إظهار رابط المشاهدة قبل 15 دقيقة فقط
   const withinMatchWindow = diffMins <= 15 && diffMins >= -180;
   const isLive = diffMins <= 0 && diffMins >= -180;
   const channelName = typeof match.channel === 'string' && match.channel.trim()
@@ -94,9 +90,9 @@ function renderMatch(match) {
   let statusBadge = '';
   let matchStatusClass = '';
   
-    let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
+  let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
   let clickAction = '';
-    let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
+  let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
 
     if (withinMatchWindow && watchUrl) {
       if (diffMins >= 0) {
@@ -156,7 +152,6 @@ function renderMatch(match) {
   `;
 }
 
-// --- 4. دالة تعبئة الأقسام ---
 function matchIdentity(match) {
   return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
 }
@@ -198,7 +193,6 @@ function renderSection(container, matches, message) {
   }
 }
 
-// --- 5. الدالة الرئيسية (Load & Sort) ---
 async function loadAndRenderMatches() {
   const [rawTodayMatches, rawTomorrowMatches] = await Promise.all([
     getTodayMatches(),
@@ -213,22 +207,17 @@ async function loadAndRenderMatches() {
   const trueTodayMatches = [];
   const trueTomorrowMatches = [];
 
-    // توزيع المباريات على الأيام بشكل صحيح بتوقيت المغرب
     const seenMatches = new Set();
     allMatches.forEach(match => {
       const matchKey = match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
       if (seenMatches.has(matchKey)) return;
       seenMatches.add(matchKey);
-      const matchDate = matchStartDate(match);
-      const diffMins = (matchDate - now) / 60000;
-      const isLive = diffMins <= 0 && diffMins >= -180;
-
+      
       const day = getMoroccoDay(match.scheduledAt, new Date());
-      if (day === 'today' || (isLive && day === 'today')) trueTodayMatches.push(match);
+      if (day === 'today') trueTodayMatches.push(match);
       else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });
 
-  // دالة الترتيب
   function sortMatches(a, b) {
       const matchSpecificKeyA = `${a.homeTeam.name}-${a.awayTeam.name}`;
       const watchUrlA = Array.isArray(a.streams) && a.streams.length > 0;
@@ -258,28 +247,36 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  const availableMatches = [...trueTodayMatches, ...trueTomorrowMatches].filter(match => (matchStartDate(match) - now) / 60000 > -180);
+  // تم إزالة الفلتر الصارم لكي تظهر جميع مباريات اليوم
+  const availableMatches = [...trueTodayMatches]; 
+
   const liveMatches = availableMatches.filter(match => {
     const diffMins = (matchStartDate(match) - now) / 60000;
     return diffMins <= 0 && diffMins >= -180;
   });
   const upcomingMatches = availableMatches.filter(match => (matchStartDate(match) - now) > 0);
+  const finishedMatches = availableMatches.filter(match => (matchStartDate(match) - now) / 60000 < -180);
+
   const featuredPool = [];
 
+  // إعطاء الأولوية للمباريات المباشرة ثم القادمة، وإذا لم توجد نظهر المباريات المنتهية لليوم
   liveMatches.forEach(match => featuredPool.push(match));
   for (const match of upcomingMatches) {
     if (featuredPool.length >= 5) break;
     featuredPool.push(match);
   }
+  for (const match of finishedMatches) {
+     if (featuredPool.length >= 5) break;
+     featuredPool.push(match);
+  }
 
-  // العرض في الأقسام
+
   renderSection(DOM.featuredContainer, featuredPool, 'لا توجد مباريات بارزة أو جارية حالياً.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
 }
 
-// --- 6. إعداد التبويبات ---
 function setupTabs() {
     const handleTabClick = (activeTab, inactiveTab, activeContainer, inactiveContainer) => {
         if (!activeTab || !inactiveTab || !activeContainer || !inactiveContainer) return;
@@ -298,7 +295,6 @@ function setupTabs() {
     });
 }
 
-// تشغيل الكود عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
     loadAndRenderMatches().catch(error => {

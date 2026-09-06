@@ -31,17 +31,17 @@ function isHttpUrl(value) { return /^https?:\/\//i.test(String(value || '')); }
 function isBlockedUrl(value) {
   const lower = String(value || '').toLowerCase();
   
-  // أضفنا gstatic و gvt1 و google-analytics لقتل إعلانات الفيديو المخفية
+  // جدار ناري صارم جداً يقتل أي إعلان أو متتبع
   const blockedDomains = [
-    'twitter.com', 'x.com', 't.me', 'facebook.com', 'whatsapp.com', 
-    'flashtalking.com', 'doubleclick.net', 'google.com/ads', 'googlesyndication.com', 
-    'pubads', 'googleusercontent.com', 'googletagmanager.com', 
-    'sharethis.com', 'criteo.com', 'smartadserver.com', 'mountain.com',
-    'gstatic.com', 'gvt1.com', 'google-analytics.com'
+    'twitter', 't.me', 'facebook', 'whatsapp', 
+    'flashtalking', 'doubleclick', 'google', 'googlesyndication', 
+    'pubads', 'googleusercontent', 'googletagmanager', 
+    'sharethis', 'criteo', 'smartadserver', 'mountain',
+    'gstatic', 'gvt1', 'analytics', 'adtrafficquality', 'youtube'
   ];
   
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
-  return /(?:monetag|popads|propellerads|popcash|adsterra|onclicka)\./i.test(lower);
+  return /(?:monetag|popads|propellerads|popcash|adsterra|onclicka|ads)\./i.test(lower);
 }
 
 function likelyStream(value) {
@@ -157,11 +157,14 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
     
     if (result.status !== 'Passed' && result.error && result.error.includes('allowlist')) {
         const lowerUrl = url.toLowerCase();
-        const validKeywords = ['player', 'embed', '.m3u8', 'live', 'video', 'stream', 'tv', 'ch', 'sport', 'watch'];
-        // تجنب تمرير روابط تحتوي على كلمات إعلانية واضحة حتى لو احتوت على video
-        if (validKeywords.some(kw => lowerUrl.includes(kw)) && !lowerUrl.includes('video_ads') && !lowerUrl.includes('pixel')) {
-            console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted (Allowlist bypassed): ${url}`);
-            result = { status: 'Passed', streamUrl: url, type: 'iframe' };
+        const validKeywords = ['player', 'embed', '.m3u8', 'live', 'stream', 'tv', 'sport', 'watch', 'ch'];
+        const spamKeywords = ['google', 'gstatic', 'gvt1', 'adtraffic', 'ads', 'pixel', 'track', 'logger'];
+        
+        // الموافقة الإجبارية فقط للروابط الصافية التي لا تحتوي على أي مصطلحات سبام
+        if (validKeywords.some(kw => lowerUrl.includes(kw)) && !spamKeywords.some(spam => lowerUrl.includes(spam))) {
+            console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted: ${url}`);
+            // تم تصحيح اسم المفتاح هنا إلى url بدلاً من streamUrl لكي يعمل مع واجهة موقعك
+            result = { status: 'Passed', url: url, type: 'iframe' };
         }
     }
 
