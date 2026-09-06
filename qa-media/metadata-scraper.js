@@ -83,14 +83,36 @@ function parseSchedule(html) {
 }
 
 async function fetchScheduleHtml() {
-  const response = await fetch(SCHEDULE_URL, {
-    headers: {
-      accept: 'text/html,application/xhtml+xml',
-      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36'
+  try {
+    const response = await fetch(SCHEDULE_URL, {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'accept-language': 'en-US,en;q=0.9,ar;q=0.8',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+        'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'none',
+        'upgrade-insecure-requests': '1',
+        connection: 'keep-alive'
+      },
+      redirect: 'follow'
+    });
+    const body = await response.text();
+    if (!response.ok) {
+      console.error(`[METADATA] Schedule request failed: HTTP ${response.status} ${response.statusText}`);
+      console.error(`[METADATA] Response body: ${body.slice(0, 1000)}`);
+      throw new Error(`Schedule HTML HTTP ${response.status}`);
     }
-  });
-  if (!response.ok) throw new Error(`Schedule HTML HTTP ${response.status}`);
-  return response.text();
+    return body;
+  } catch (error) {
+    console.error(`[METADATA] Schedule request error for ${SCHEDULE_URL}: ${error.stack || error.message}`);
+    throw error;
+  }
 }
 
 function metadataKey(match) { return `${clean(match.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(match.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${match.scheduledAt.slice(0, 10)}`; }
