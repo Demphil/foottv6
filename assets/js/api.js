@@ -119,7 +119,10 @@ function normalizeStagingMatch(match) {
     rawMinutes: dateParts.hour * 60 + dateParts.minute,
     score: match.score || 'VS',
     league: match.league || '',
-    channel: match.channel || ''
+    channel: match.channel || match.channels?.[0] || '',
+    streams: Array.isArray(match.streams) ? match.streams : [],
+    isLive: Boolean(match.isLive),
+    commentator: match.commentator || ''
   };
 }
 

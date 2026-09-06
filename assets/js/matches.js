@@ -44,13 +44,16 @@ function renderMatch(match) {
   const homeLogo = homeTeam.logo || 'assets/images/default-logo.jpg';
   const awayLogo = awayTeam.logo || 'assets/images/default-logo.jpg';
   const matchSpecificKey = `${homeTeamName}-${awayTeamName}`;
-  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
-  const watchUrl = fallbackWatchUrl
-    ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
-    : '';
+  const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
+  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+  const watchUrl = hasStreams
+    ? `/live-stream/?matchId=${encodeURIComponent(stableId)}`
+    : fallbackWatchUrl
+      ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
+      : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = getMoroccoWallClockNow();
@@ -79,7 +82,7 @@ function renderMatch(match) {
                timeText = `<span class="live-score">${match.score}</span>`;
            }
       }
-  } else {
+  } else if (!hasStreams && !watchUrl) {
       // إيقاف فتح الرابط المباشر وتفعيل النافذة المنبثقة للانتظار
       hrefAttribute = `href="javascript:void(0)"`; 
       clickAction = `onclick="openWaitModal()"`;
@@ -105,7 +108,7 @@ function renderMatch(match) {
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
-        ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
+        ${!hasStreams ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
@@ -141,6 +144,7 @@ function matchRenderSignature(match) {
     match.score || '',
     match.isLive ? 'live' : 'scheduled',
     match.channel || '',
+    Array.isArray(match.streams) ? match.streams.map((stream) => stream.url || '').join(',') : '',
     match.homeTeam?.logo || '',
     match.awayTeam?.logo || ''
   ].join('|');
@@ -210,8 +214,6 @@ async function loadAndRenderMatches() {
     getTomorrowMatches()
   ]);
 
-  hideLoading();
-
   const allMatches = [...rawTodayMatches, ...rawTomorrowMatches]
     .filter(match => match?.scheduledAt && !Number.isNaN(new Date(match.scheduledAt).getTime()))
     .filter(match => /^https?:\/\//i.test(match.homeTeam?.logo || '') && /^https?:\/\//i.test(match.awayTeam?.logo || ''));
@@ -238,10 +240,10 @@ async function loadAndRenderMatches() {
   // دالة الترتيب
   function sortMatches(a, b) {
       const matchSpecificKeyA = `${a.homeTeam.name}-${a.awayTeam.name}`;
-      const watchUrlA = streamLinks[a.channel] || streamLinks[matchSpecificKeyA];
+      const watchUrlA = Array.isArray(a.streams) && a.streams.length > 0;
 
       const matchSpecificKeyB = `${b.homeTeam.name}-${b.awayTeam.name}`;
-      const watchUrlB = streamLinks[b.channel] || streamLinks[matchSpecificKeyB];
+      const watchUrlB = Array.isArray(b.streams) && b.streams.length > 0;
 
       const diffA = (new Date(a.scheduledAt) - now) / 60000;
       const diffB = (new Date(b.scheduledAt) - now) / 60000;
@@ -278,6 +280,7 @@ async function loadAndRenderMatches() {
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
+  hideLoading();
 }
 
 // --- 6. إعداد التبويبات ---
