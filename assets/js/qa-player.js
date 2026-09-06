@@ -32,6 +32,9 @@
   stage.querySelector('.qa-player-center').appendChild(container);
 
   let hlsInstance = null;
+  let fallbackStreams = [];
+  let fallbackIndex = 0;
+  let switchingToFallback = false;
   const style = document.createElement('style');
   style.textContent = `
     html, body {
@@ -152,6 +155,19 @@
     document.head.appendChild(script);
   });
 
+  const playNextFallback = async () => {
+    if (switchingToFallback || fallbackIndex >= fallbackStreams.length) return false;
+    switchingToFallback = true;
+    const fallback = fallbackStreams[fallbackIndex++];
+    try {
+      await playStream(fallback);
+      return true;
+    } catch {
+      switchingToFallback = false;
+      return playNextFallback();
+    }
+  };
+
   const playStream = async (stream) => {
     if (hlsInstance) {
       hlsInstance.destroy();
@@ -167,7 +183,9 @@
       iframe.allowFullscreen = true;
       iframe.referrerPolicy = 'no-referrer-when-downgrade';
       iframe.style.cssText = 'width:100%;height:100%;border:0;';
+      iframe.addEventListener('error', () => { void playNextFallback(); }, { once: true });
       container.appendChild(iframe);
+      switchingToFallback = false;
       return;
     }
 
@@ -182,14 +200,24 @@
 
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = stream.url;
+      video.addEventListener('error', () => { void playNextFallback(); }, { once: true });
+      switchingToFallback = false;
       return;
     }
 
     const Hls = await loadHls();
     if (!Hls || !Hls.isSupported()) throw new Error('HLS playback is not supported');
     hlsInstance = new Hls();
+    hlsInstance.on(Hls.Events.ERROR, (_event, details) => {
+      if (details.fatal) {
+        hlsInstance?.destroy();
+        hlsInstance = null;
+        void playNextFallback();
+      }
+    });
     hlsInstance.loadSource(stream.url);
     hlsInstance.attachMedia(video);
+    switchingToFallback = false;
   };
 
   const renderServerChoices = (streams) => {
@@ -198,19 +226,21 @@
     controls.setAttribute('role', 'group');
     controls.setAttribute('aria-label', 'اختيار سيرفر البث');
 
-    streams.forEach((stream, index) => {
+    fallbackStreams = streams.slice(3);
+    fallbackIndex = 0;
+    streams.slice(0, 3).forEach((stream, index) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'stream-server-button';
-      button.textContent = `سيرفر ${index + 1}`;
+      button.textContent = `Server ${index + 1}`;
       button.addEventListener('click', async () => {
         controls.querySelectorAll('button').forEach((item) => item.classList.remove('active'));
         button.classList.add('active');
         try {
           await playStream(stream);
         } catch (error) {
-          console.warn('Selected validated stream could not be played.', error);
           button.classList.remove('active');
+          void playNextFallback();
         }
       });
       controls.appendChild(button);
@@ -230,7 +260,7 @@
     if (error) throw new Error(JSON.stringify(error));
 
     const streams = Array.isArray(data?.payload?.streams)
-      ? data.payload.streams.filter((stream) => stream && typeof stream.url === 'string').slice(0, 4)
+      ? data.payload.streams.filter((stream) => stream && typeof stream.url === 'string').slice(0, 5)
       : [];
     if (!streams.length) return showUnavailable();
     renderServerChoices(streams);

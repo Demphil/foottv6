@@ -7,6 +7,8 @@ puppeteer.use(StealthPlugin());
 const { config } = require('./config');
 const { getSupabase } = require('./supabase');
 const { loadAllowlist } = require('./allowlist');
+const { loadSources, sourceHosts } = require('./source-registry');
+const { resolveMatchUrls } = require('./scraper');
 const { saveStaging } = require('./supabase-storage');
 const { validateStream } = require('./validator');
 
@@ -30,7 +32,7 @@ function likelyStream(value) {
   return isHttpUrl(value) && !isBlockedUrl(value) && (
     /\.m3u8(?:$|[?#])/i.test(value) ||
     /\.mp4(?:$|[?#])/i.test(value) ||
-    /\/(?:embed|player|live|stream|watch)\b/i.test(value) ||
+    /\/(?:embed|player|live|stream)\b/i.test(value) ||
     /[?&](?:url|src|stream)=/i.test(value)
   );
 }
@@ -84,48 +86,64 @@ function isWithinActiveWindow(row, now = Date.now()) {
   return currentTime >= matchTime - (120 * 60 * 1000) && currentTime <= matchTime + (150 * 60 * 1000);
 }
 
-async function discoverStreamCandidates(browser, match) {
-  const page = await browser.newPage();
+async function discoverStreamCandidates(browser, matches) {
   const candidates = new Set();
+  const sourcePages = new Set(matches.map((match) => match.matchUrl));
   const collect = (value) => {
-    if (likelyStream(value)) candidates.add(value);
+    if (likelyStream(value) && !sourcePages.has(value)) candidates.add(value);
   };
-  page.on('response', (response) => collect(response.url()));
-  page.on('request', (request) => collect(request.url()));
-  try {
-    await page.goto(match.matchUrl, { waitUntil: 'domcontentloaded', timeout: config.timeoutMs });
-    const urls = await page.$$eval('iframe[src], video[src], source[src], a[href], [data-src], [data-url], [data-stream], [data-player]', (elements) => elements.flatMap((element) => [
-      element.getAttribute('src'), element.getAttribute('href'), element.getAttribute('data-src'),
-      element.getAttribute('data-url'), element.getAttribute('data-stream'), element.getAttribute('data-player')
-    ].filter(Boolean)));
-    urls.forEach(collect);
-    await page.evaluate(() => {
-      document.querySelectorAll('button, [role="button"], .play, .play-button, .server, [class*="server"]').forEach((element) => {
-        try { element.click(); } catch {}
-      });
-    });
-    await new Promise((resolve) => setTimeout(resolve, Math.min(config.timeoutMs, 3000)));
-    for (const frame of page.frames()) collect(frame.url());
-    return [...candidates];
-  } finally {
-    await page.close().catch(() => {});
+  for (const match of matches) {
+    const page = await browser.newPage();
+    page.on('response', (response) => collect(response.url()));
+    page.on('request', (request) => collect(request.url()));
+    try {
+      console.log(`[RESOLVER] Deep-scraping ${match.sourceName}: ${match.matchUrl}`);
+      await page.goto(match.matchUrl, { waitUntil: 'domcontentloaded', timeout: config.timeoutMs });
+      const collectDomUrls = async () => {
+        const urls = await page.$$eval('iframe[src], video[src], source[src], a[href], button, [role="button"], [data-src], [data-url], [data-stream], [data-player]', (elements) => elements.flatMap((element) => [
+          element.getAttribute('src'), element.getAttribute('href'), element.getAttribute('data-src'),
+          element.getAttribute('data-url'), element.getAttribute('data-stream'), element.getAttribute('data-player')
+        ].filter(Boolean).map((value) => {
+          try { return new URL(value, location.href).href; } catch { return ''; }
+        }).filter(Boolean)));
+        urls.forEach(collect);
+        for (const frame of page.frames()) collect(frame.url());
+      };
+
+      await collectDomUrls();
+      const serverCount = await page.$$eval('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]', (elements) => elements.length);
+      for (let index = 0; index < serverCount; index += 1) {
+        await page.evaluate((serverIndex) => {
+          const elements = [...document.querySelectorAll('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]')];
+          try { elements[serverIndex]?.click(); } catch {}
+        }, index);
+        await new Promise((resolve) => setTimeout(resolve, Math.min(config.timeoutMs, 1500)));
+        await collectDomUrls();
+      }
+    } catch (error) {
+      console.warn(`[RESOLVER] ${match.sourceName} deep scrape failed: ${error.message}`);
+    } finally {
+      await page.close().catch(() => {});
+    }
   }
+  return [...candidates];
 }
 
-async function resolveOne(browser, row, allowlist) {
+async function resolveOne(browser, row, allowlist, matchPages = []) {
   const payload = row.payload || {};
-  if (!payload.matchUrl) {
+  const pages = matchPages.length ? matchPages : payload.matchUrl ? [{ sourceName: payload.sourceName || 'metadata', matchUrl: payload.matchUrl }] : [];
+  if (!pages.length) {
     return { ...payload, status: 'RESOLVER_WAITING', resolverStatus: 'NO_MATCH_URL', updatedBy: 'stream-resolver' };
   }
-  const candidates = await discoverStreamCandidates(browser, payload);
+  const candidates = await discoverStreamCandidates(browser, pages);
   const report = [];
-  for (const url of candidates.slice(0, config.maxStreams * 2)) {
+  for (const url of candidates) {
     const result = await validateStream(url, allowlist);
     report.push(result);
-    if (report.filter((item) => item.status === 'Passed').length >= config.maxStreams) break;
+    if (report.filter((item) => item.status === 'Passed').length >= config.streamTarget) break;
   }
-  const passed = report.filter((item) => item.status === 'Passed').slice(0, config.maxStreams);
-  const fallback = passed.length ? passed : [...candidates].slice(0, config.maxStreams).map((url) => ({
+  const passed = report.filter((item) => item.status === 'Passed').slice(0, config.streamTarget);
+  const fallback = passed.length ? passed : [...candidates].slice(0, config.streamTarget).map((url) => ({
     url,
     status: 'Passed',
     type: /\.m3u8(?:$|[?#])/i.test(url) ? 'hls' : 'iframe',
@@ -156,6 +174,9 @@ async function pendingRows() {
 
 async function runResolverOnce() {
   const allowlist = await loadAllowlist();
+  const sources = await loadSources();
+  allowlist.sourceHosts.push(...sourceHosts(sources));
+  allowlist.sourceHosts = [...new Set(allowlist.sourceHosts)];
   const rows = await pendingRows();
   if (!rows.length) {
     console.log('[RESOLVER] No pending metadata rows');
@@ -178,7 +199,8 @@ async function runResolverOnce() {
   try {
     for (const row of activeRows) {
       try {
-        const payload = await resolveOne(browser, row, allowlist);
+        const resolved = await resolveMatchUrls(row.payload, sources, allowlist);
+        const payload = await resolveOne(browser, row, allowlist, resolved.matches);
         await saveStaging(row.match_id, payload);
         results.push({ matchId: row.match_id, status: payload.status, streams: payload.streams?.length || 0 });
         console.log(`[RESOLVER] ${row.match_id}: ${payload.status}, streams=${payload.streams?.length || 0}`);

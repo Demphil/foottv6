@@ -17,7 +17,8 @@ const config = {
   allowlistCollection: process.env.SUPABASE_ALLOWLIST_TABLE || 'media_qa_authorized_sources',
   stagingCollection: process.env.SUPABASE_STAGING_TABLE || 'media_qa_staging',
   timeoutMs: Number(process.env.MEDIA_QA_TIMEOUT_MS || 10000),
-  maxStreams: Number(process.env.MAX_STREAMS || 4),
+  maxStreams: Number(process.env.MAX_STREAMS || 5),
+  streamTarget: Number(process.env.MEDIA_QA_STREAM_TARGET || 5),
   browserExecutablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '',
   autoDiscoverJobs: process.env.MEDIA_QA_AUTO_DISCOVER !== 'false',
   autoDiscoverLimit: Number(process.env.MEDIA_QA_AUTO_DISCOVER_LIMIT || 20)
