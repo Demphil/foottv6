@@ -48,9 +48,10 @@ function renderMatch(match) {
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
+  const isResolved = match.status === 'PASSED_STAGING' || hasStreams;
   const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const watchUrl = hasStreams
-    ? `/live-stream/?matchId=${encodeURIComponent(stableId)}`
+  const watchUrl = isResolved
+    ? `watch.html?id=${encodeURIComponent(stableId)}`
     : fallbackWatchUrl
       ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
       : '';
@@ -69,9 +70,7 @@ function renderMatch(match) {
   let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
 
   // شرط فتح رابط المباراة عند البث أو تبقي 15 دقيقة أو أقل
-  if (match.isLive || diffMins <= 15) {
-      hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
-      
+    if (match.isLive || diffMins <= 15) {
       if (diffMins >= 0 && !match.isLive) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
@@ -82,7 +81,7 @@ function renderMatch(match) {
                timeText = `<span class="live-score">${match.score}</span>`;
            }
       }
-  } else if (!hasStreams && !watchUrl) {
+  } else if (!isResolved && !watchUrl) {
       // إيقاف فتح الرابط المباشر وتفعيل النافذة المنبثقة للانتظار
       hrefAttribute = `href="javascript:void(0)"`; 
       clickAction = `onclick="openWaitModal()"`;

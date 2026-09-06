@@ -12,12 +12,12 @@ const { saveStaging } = require('./supabase-storage');
 
 const MATCH_SELECTORS = '.AY_Match, .match-container, .match-card, .match-item, article[class*="match"], article.match, [data-match-id], [data-match]';
 const TEAM_SELECTORS = {
-  home: ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name', '[data-team="home"] .TM_Name'],
-  away: ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name', '[data-team="away"] .TM_Name']
+  home: ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.c3-team--home .team-name', '.c3-team--home .c3-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name', '[data-team="home"] .TM_Name'],
+  away: ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.c3-team--away .team-name', '.c3-team--away .c3-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name', '[data-team="away"] .TM_Name']
 };
 const CONTAINER_SELECTORS = {
-  home: ['.right-team', '.home-team', '.team-home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'],
-  away: ['.left-team', '.away-team', '.team-away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]']
+  home: ['.right-team', '.home-team', '.team-home', '.c3-team--home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'],
+  away: ['.left-team', '.away-team', '.team-away', '.c3-team--away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]']
 };
 const TRUSTED_METADATA_SOURCES = new Set(['yallashoot2day', 'm8nstar', 'shooot', 'yacinee-tv']);
 const BROWSER_HEADERS = {
@@ -138,11 +138,14 @@ function parseSchedule(html, source) {
     }
 
     const link = $(card).find('a[href]').map((__, anchor) => $(anchor).attr('href')).get().find((href) => href && href !== '#');
-    const time = extractTime($(card).text());
+    const time = extractTime($(card).find('.match-time, .c3-time').first().text() || $(card).text());
     const date = sourceToday(source.timeZone);
     const scheduledAt = time ? localToUtcIso(date.year, date.month, date.day, time.hour, time.minute, source.timeZone) : '';
-    const channel = clean($(card).find('.channel, .match-channel, [class*="channel"], .match-info li, [data-channel]').first().text());
-    const league = clean($(card).find('.league, .match-league, .match-info').last().text());
+    const chyronRoot = $(card).find('.c3-chyron, .match-chyron, .match-meta, .match-info').first();
+    const chyron = clean(chyronRoot.find('span').first().text() || chyronRoot.text());
+    const chyronParts = chyron.split(/\s*[·|]\s*/).map(clean).filter(Boolean);
+    const channel = clean($(card).find('.channel, .match-channel, [data-channel], .c3-channel').first().text()) || chyronParts.at(-1) || '';
+    const league = clean($(card).find('.league, .match-league, .c3-league').first().text()) || chyronParts.slice(0, -1).join(' · ');
 
     jobs.push({
       matchId: matchIdFor(homeTeam, awayTeam, scheduledAt),
