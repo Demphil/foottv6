@@ -1,126 +1,113 @@
 require('dotenv').config({ path: require('node:path').resolve(process.cwd(), '.env') });
 
 const cron = require('node-cron');
+const cheerio = require('cheerio');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 const { config } = require('./config');
 const { saveStaging } = require('./supabase-storage');
 
-function clean(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim();
-}
+const SCHEDULE_URL = 'https://yallashoot2day.online/';
+const TIME_ZONE = 'Africa/Casablanca';
+const MATCH_SELECTORS = '.BoxContent .AY_Match, .BoxContent .match-card, .BoxContent .match-container, .BoxContent .match-item, .AY_Match, .match-card, .match-container, article[class*="match"], [data-match-id]';
+const HOME_SELECTORS = ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.team1 .team-name', '.team1 .TM_Name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name'];
+const AWAY_SELECTORS = ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.team2 .team-name', '.team2 .TM_Name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name'];
+const HOME_CONTAINERS = ['.right-team', '.home-team', '.team-home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'];
+const AWAY_CONTAINERS = ['.left-team', '.away-team', '.team-away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]'];
+const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]', '[class*="channel"]', '[class*="broadcast"]'];
+const LEAGUE_SELECTORS = ['.league', '.match-league', '.c3-league', '.competition', '.tournament', '.league-name'];
 
-function valueFrom(object, keys) {
-  for (const key of keys) {
-    const value = object?.[key];
-    if (value !== undefined && value !== null && value !== '') return value;
+function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
+function sameTeam(left, right) { return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar'); }
+function first($, root, selectors) { for (const selector of selectors) { const item = $(root).find(selector).first()[0]; if (item) return item; } return null; }
+function absoluteUrl(value, baseUrl) { try { const url = new URL(value, baseUrl); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
+function slug(value) { return clean(value).toLocaleLowerCase('ar').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); }
+function sourceDate() { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return parts; }
+function localTimeToIso(time) {
+  const date = sourceDate();
+  const [hour, minute] = time.split(':').map(Number);
+  const localTimestamp = Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)), hour, minute, 0);
+  let estimate = new Date(localTimestamp);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(estimate);
+    const values = Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, Number(value)]));
+    const displayedTimestamp = Date.UTC(values.year, values.month - 1, values.day, values.hour, values.minute, values.second);
+    estimate = new Date(localTimestamp - (displayedTimestamp - estimate.getTime()));
   }
-  return '';
+  return estimate.toISOString();
+}
+function matchIdFor(homeTeam, awayTeam, scheduledAt) { return `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || sourceDate()}`; }
+function imageUrl($, element) { return absoluteUrl($(element).attr('data-src') || $(element).attr('data-lazy-src') || $(element).attr('src') || '', SCHEDULE_URL); }
+function titleTeams(value) { const parts = clean(value).split(/\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i).map(clean); return parts.length >= 2 ? { homeTeam: parts[0], awayTeam: parts[1] } : null; }
+
+function parseSchedule(html) {
+  const $ = cheerio.load(html);
+  const matches = [];
+  $(MATCH_SELECTORS).each((_, card) => {
+    const homeElement = first($, card, HOME_SELECTORS);
+    const awayElement = first($, card, AWAY_SELECTORS);
+    const homeContainer = first($, card, HOME_CONTAINERS) || homeElement;
+    const awayContainer = first($, card, AWAY_CONTAINERS) || awayElement;
+    const title = clean($(card).attr('title') || $(card).find('[title]').first().attr('title') || $(card).text());
+    const fallback = titleTeams(title);
+    const homeTeam = clean($(homeElement || homeContainer).text()) || fallback?.homeTeam || '';
+    const awayTeam = clean($(awayElement || awayContainer).text()) || fallback?.awayTeam || '';
+    if (!homeTeam || !awayTeam || sameTeam(homeTeam, awayTeam)) return;
+
+    const cardText = clean($(card).text());
+    const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
+    const time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
+    const scheduledAt = time ? localTimeToIso(time) : '';
+    if (!scheduledAt) return;
+
+    const channelElement = first($, card, CHANNEL_SELECTORS);
+    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || 'تحدد لاحقا';
+    const league = clean($(first($, card, LEAGUE_SELECTORS)).text()) || clean($(card).find('.match-info, .match-details, .match-meta').first().text()) || '';
+    const link = $(card).find('a[href]').map((__, anchor) => $(anchor).attr('href')).get().find((href) => href && href !== '#' && !/^javascript:/i.test(href));
+    const matchUrl = absoluteUrl(link || '', SCHEDULE_URL);
+    matches.push({
+      matchId: matchIdFor(homeTeam, awayTeam, scheduledAt),
+      homeTeam,
+      awayTeam,
+      homeLogo: imageUrl($, $(homeContainer).find('img').first()[0]),
+      awayLogo: imageUrl($, $(awayContainer).find('img').first()[0]),
+      time,
+      scheduledAt,
+      timeZone: TIME_ZONE,
+      league,
+      channel,
+      matchUrl,
+      matchUrls: matchUrl ? [matchUrl] : [],
+      sourceName: 'yallashoot2day'
+    });
+  });
+  return matches;
 }
 
-function teamName(value) {
-  return clean(typeof value === 'object' ? value.name || value.title || value.team : value);
-}
-
-function absoluteUrl(value, baseUrl) {
-  if (!value) return '';
+async function fetchScheduleHtml() {
+  const response = await fetch(SCHEDULE_URL, { headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0' } });
+  if (response.ok) {
+    const html = await response.text();
+    if (parseSchedule(html).length) return html;
+  }
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   try {
-    const url = new URL(String(value), baseUrl);
-    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
-  } catch {
-    return '';
-  }
+    const page = await browser.newPage();
+    await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: config.timeoutMs });
+    return page.content();
+  } finally { await browser.close().catch(() => {}); }
 }
 
-function slug(value) {
-  return clean(value).toLocaleLowerCase('ar')
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function normalizeScheduledAt(value, timeZone = 'Africa/Casablanca') {
-  const text = clean(value);
-  if (!text) return '';
-  if (/\d{4}-\d{2}-\d{2}/.test(text)) {
-    const parsed = /[zZ]|[+-]\d{2}:?\d{2}$/.test(text) ? new Date(text) : new Date(`${text.replace(' ', 'T')}+00:00`);
-    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
-  }
-  const time = text.match(/^(\d{1,2}):(\d{2})$/);
-  if (!time) return '';
-  const now = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  const local = new Date(`${now}T${String(time[1]).padStart(2, '0')}:${time[2]}:00`);
-  return Number.isNaN(local.getTime()) ? '' : local.toISOString();
-}
-
-function metadataKey(job) {
-  return `${clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.scheduledAt).slice(0, 10) || 'undated'}`;
-}
-
-function normalizeMatch(raw, index, baseUrl) {
-  const homeValue = valueFrom(raw, ['homeTeam', 'home_team', 'team_home', 'home', 'team1']);
-  const awayValue = valueFrom(raw, ['awayTeam', 'away_team', 'team_away', 'away', 'team2']);
-  const homeTeam = teamName(homeValue);
-  const awayTeam = teamName(awayValue);
-  if (!homeTeam || !awayTeam || homeTeam.normalize('NFKC').toLocaleLowerCase('ar') === awayTeam.normalize('NFKC').toLocaleLowerCase('ar')) return null;
-
-  const timeZone = clean(valueFrom(raw, ['timeZone', 'timezone'])) || 'Africa/Casablanca';
-  const scheduledAt = normalizeScheduledAt(valueFrom(raw, ['scheduledAt', 'scheduled_at', 'date', 'matchDate', 'match_date', 'time']), timeZone);
-  const homeLogo = absoluteUrl(valueFrom(typeof homeValue === 'object' ? homeValue : {}, ['logo', 'logoUrl', 'logo_url']) || valueFrom(raw, ['homeLogo', 'home_logo']), baseUrl);
-  const awayLogo = absoluteUrl(valueFrom(typeof awayValue === 'object' ? awayValue : {}, ['logo', 'logoUrl', 'logo_url']) || valueFrom(raw, ['awayLogo', 'away_logo']), baseUrl);
-  const channel = clean(valueFrom(raw, ['channel', 'channelName', 'channel_name', 'broadcaster', 'tvChannel', 'tv_channel'])) || 'تحدد لاحقاً';
-  const matchUrl = absoluteUrl(valueFrom(raw, ['matchUrl', 'match_url', 'url', 'link']), baseUrl);
-  const matchId = `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || `undated-${index}`}`;
-
-  return {
-    matchId,
-    homeTeam,
-    awayTeam,
-    homeLogo,
-    awayLogo,
-    time: clean(valueFrom(raw, ['time', 'matchTime', 'match_time'])) || (scheduledAt ? new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(scheduledAt)) : '--:--'),
-    scheduledAt,
-    timeZone,
-    channel,
-    league: clean(valueFrom(raw, ['league', 'competition', 'tournament'])) || '',
-    matchUrl,
-    matchUrls: matchUrl ? [matchUrl] : [],
-    sourceName: 'schedule-api'
-  };
-}
-
-function extractMatches(body) {
-  if (Array.isArray(body)) return body;
-  return body?.matches || body?.data || body?.results || [];
-}
-
-async function fetchSchedule() {
-  if (!config.scheduleApiUrl) throw new Error('SCHEDULE_API_URL is required for JSON schedule ingestion');
-  const response = await fetch(config.scheduleApiUrl, { headers: { accept: 'application/json' }, cache: 'no-store' });
-  if (!response.ok) throw new Error(`Schedule API HTTP ${response.status}`);
-  return response.json();
-}
+function metadataKey(match) { return `${clean(match.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(match.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${match.scheduledAt.slice(0, 10)}`; }
 
 async function runMetadataOnce() {
-  const body = await fetchSchedule();
   const deduplicated = new Map();
-  const rawMatches = extractMatches(body);
-  if (!Array.isArray(rawMatches)) throw new Error('Schedule API response must contain an array of matches');
-
-  rawMatches.forEach((raw, index) => {
-    const match = normalizeMatch(raw, index, config.scheduleApiUrl);
-    if (match) deduplicated.set(metadataKey(match), match);
-  });
-
+  const rawMatches = parseSchedule(await fetchScheduleHtml());
+  for (const match of rawMatches) deduplicated.set(metadataKey(match), match);
   const jobs = [...deduplicated.values()].slice(0, config.autoDiscoverLimit);
-  for (const job of jobs) {
-    await saveStaging(job.matchId, {
-      ...job,
-      status: 'METADATA_READY',
-      resolverStatus: 'PENDING',
-      streams: [],
-      sourceReports: [],
-      updatedBy: 'schedule-api'
-    });
-  }
-  console.log(`[METADATA] Schedule API returned ${rawMatches.length} match(es); saved ${jobs.length} unique match(es)`);
+  for (const job of jobs) await saveStaging(job.matchId, { ...job, status: 'METADATA_READY', resolverStatus: 'PENDING', streams: [], sourceReports: [], updatedBy: 'yallashoot2day-html' });
+  console.log(`[METADATA] ${rawMatches.length} scraped match(es); saved ${jobs.length} unique match(es) from ${SCHEDULE_URL}`);
   return jobs;
 }
 
@@ -129,4 +116,4 @@ if (require.main === module) {
   else { cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); console.log(`[METADATA] Scheduler active: ${config.cron}`); }
 }
 
-module.exports = { fetchSchedule, normalizeMatch, metadataKey, runMetadataOnce };
+module.exports = { fetchScheduleHtml, parseSchedule, metadataKey, runMetadataOnce };
