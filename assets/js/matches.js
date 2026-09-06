@@ -4,7 +4,7 @@ import {
   getTodayMatches,
   getTomorrowMatches,
   getMoroccoWallClockNow,
-  getMoroccoDateForTime
+  getMoroccoDay
 } from './api.js';
 import { streamLinks } from './streams.js';
 
@@ -38,19 +38,23 @@ window.closeWaitModal = function() {
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
-  const homeLogo = match.homeTeam.logo || 'assets/images/default-logo.jpg';
-  const awayLogo = match.awayTeam.logo || 'assets/images/default-logo.jpg';
-  const matchSpecificKey = `${match.homeTeam.name}-${match.awayTeam.name}`;
+  const { homeTeam, awayTeam } = match;
+  const homeTeamName = homeTeam.name;
+  const awayTeamName = awayTeam.name;
+  const homeLogo = homeTeam.logo || 'assets/images/default-logo.jpg';
+  const awayLogo = awayTeam.logo || 'assets/images/default-logo.jpg';
+  const matchSpecificKey = `${homeTeamName}-${awayTeamName}`;
   const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`
-    .toLocaleLowerCase('ar').trim().replace(/\s+/g, '-');
+  const matchId = `${homeTeamName}_vs_${awayTeamName}`
+    .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
+  const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   const watchUrl = fallbackWatchUrl
-    ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(matchId)}`
+    ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
     : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = getMoroccoWallClockNow();
-  const matchDate = match.matchDate || now;
+  const matchDate = match.scheduledAt ? new Date(match.scheduledAt) : now;
   const diffMins = (matchDate - now) / 60000;
 
   let timeText = match.time;
@@ -100,22 +104,22 @@ function renderMatch(match) {
 
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
-      <article class="match-card ${matchStatusClass}">
+      <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
         ${!watchUrl ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${homeLogo}" alt="${match.homeTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
-            <span class="team-name">${match.homeTeam.name}</span>
+            <img src="${homeLogo}" alt="${homeTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <span class="team-name">${homeTeamName}</span>
           </div>
           <div class="match-info">
             <span class="score">${match.score}</span>
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${match.awayTeam.name}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
-            <span class="team-name">${match.awayTeam.name}</span>
+            <img src="${awayLogo}" alt="${awayTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <span class="team-name">${awayTeamName}</span>
           </div>
         </div>
         ${matchDetailsHTML.trim() ? `<div class="match-details-extra">${matchDetailsHTML}</div>` : ''}
@@ -125,13 +129,78 @@ function renderMatch(match) {
 }
 
 // --- 4. دالة تعبئة الأقسام ---
+function matchIdentity(match) {
+  return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+}
+
+function matchRenderSignature(match) {
+  return [
+    matchIdentity(match),
+    match.scheduledAt || '',
+    match.time || '',
+    match.score || '',
+    match.isLive ? 'live' : 'scheduled',
+    match.channel || '',
+    match.homeTeam?.logo || '',
+    match.awayTeam?.logo || ''
+  ].join('|');
+}
+
+function createMatchElement(match) {
+  const template = document.createElement('template');
+  template.innerHTML = renderMatch({ ...match, matchId: matchIdentity(match) }).trim();
+  return template.content.firstElementChild;
+}
+
 function renderSection(container, matches, message) {
     if (!container) return;
-    if (matches && matches.length > 0) {
-        container.innerHTML = matches.map(renderMatch).join('');
+  const nextMatches = matches || [];
+  const nextSignature = nextMatches.map(matchRenderSignature).join('||');
+  if (container.dataset.matchSignature === nextSignature) return;
+
+  const currentCards = new Map();
+  container.querySelectorAll('article[data-match-id]').forEach((article) => {
+    const link = article.closest('a.match-card-link');
+    if (link) currentCards.set(article.dataset.matchId, link);
+  });
+  const nextIds = new Set(nextMatches.map(matchIdentity));
+
+  for (const [matchId, link] of currentCards) {
+    if (!nextIds.has(matchId)) link.remove();
+  }
+
+  const emptyMessage = container.querySelector('.no-matches');
+  if (!nextMatches.length) {
+    if (emptyMessage) {
+      if (emptyMessage.textContent !== message) emptyMessage.innerHTML = `<i class="fas fa-futbol"></i><p>${message}</p>`;
     } else {
-        container.innerHTML = `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
+      const placeholder = document.createElement('div');
+      placeholder.className = 'no-matches';
+      placeholder.innerHTML = `<i class="fas fa-futbol"></i><p>${message}</p>`;
+      container.appendChild(placeholder);
     }
+    container.dataset.matchSignature = nextSignature;
+    return;
+    }
+
+  emptyMessage?.remove();
+  for (const match of nextMatches) {
+    const matchId = matchIdentity(match);
+    const nextElement = createMatchElement(match);
+    const currentElement = currentCards.get(matchId);
+    if (currentElement) {
+      const currentSignature = currentElement.dataset.renderSignature;
+      if (currentSignature !== matchRenderSignature(match)) currentElement.replaceWith(nextElement);
+    } else {
+      container.appendChild(nextElement);
+    }
+    const element = container.querySelector(`article[data-match-id="${CSS.escape(matchId)}"]`)?.closest('a.match-card-link');
+    if (element) {
+      element.dataset.renderSignature = matchRenderSignature(match);
+      container.appendChild(element);
+    }
+  }
+  container.dataset.matchSignature = nextSignature;
 }
 
 // --- 5. الدالة الرئيسية (Load & Sort) ---
@@ -143,47 +212,27 @@ async function loadAndRenderMatches() {
 
   hideLoading();
 
-  // دالة ضبط التاريخ وتصحيح الأوقات المسائية
-  function formatMatchDates(matches, sourceDayOffset) {
-     const result = [];
-     for (let match of matches) {
-         if (!match.time || !match.time.includes(':')) {
-             result.push({ ...match, matchDate: getMoroccoWallClockNow(), moroccoDayOffset: sourceDayOffset });
-             continue;
-         }
-         
-         let moroccoDayOffset = sourceDayOffset;
-         let [h, m] = match.time.split(':').map(Number);
-         
-         const matchDate = getMoroccoDateForTime(h, m, moroccoDayOffset);
-         
-         result.push({ ...match, matchDate, moroccoDayOffset });
-     }
-     return result;
-  }
-
-  // معالجة القوائم
-  const processedToday = formatMatchDates(rawTodayMatches, 0);
-  const processedTomorrow = formatMatchDates(rawTomorrowMatches, 1);
-  
-  // دمج كل المباريات لتوزيعها لاحقاً
-  const allMatches = [...processedToday, ...processedTomorrow];
+  const allMatches = [...rawTodayMatches, ...rawTomorrowMatches]
+    .filter(match => match?.scheduledAt && !Number.isNaN(new Date(match.scheduledAt).getTime()))
+    .filter(match => /^https?:\/\//i.test(match.homeTeam?.logo || '') && /^https?:\/\//i.test(match.awayTeam?.logo || ''));
   const now = getMoroccoWallClockNow();
 
   const trueTodayMatches = [];
   const trueTomorrowMatches = [];
 
-  // توزيع المباريات على الأيام بشكل صحيح بتوقيت المغرب
-  allMatches.forEach(match => {
-      const diffMins = (match.matchDate - now) / 60000;
+    // توزيع المباريات على الأيام بشكل صحيح بتوقيت المغرب
+    const seenMatches = new Set();
+    allMatches.forEach(match => {
+      const matchKey = match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+      if (seenMatches.has(matchKey)) return;
+      seenMatches.add(matchKey);
+      const matchDate = new Date(match.scheduledAt);
+      const diffMins = (matchDate - now) / 60000;
       const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
 
-      if (match.moroccoDayOffset === 0 || isLive) {
-          trueTodayMatches.push(match);
-      } 
-      else if (match.moroccoDayOffset === 1) {
-          trueTomorrowMatches.push(match);
-      }
+      const day = getMoroccoDay(match.scheduledAt, new Date());
+      if (day === 'today' || (isLive && day === 'today')) trueTodayMatches.push(match);
+      else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });
 
   // دالة الترتيب
@@ -194,8 +243,8 @@ async function loadAndRenderMatches() {
       const matchSpecificKeyB = `${b.homeTeam.name}-${b.awayTeam.name}`;
       const watchUrlB = streamLinks[b.channel] || streamLinks[matchSpecificKeyB];
 
-      const diffA = (a.matchDate - now) / 60000;
-      const diffB = (b.matchDate - now) / 60000;
+      const diffA = (new Date(a.scheduledAt) - now) / 60000;
+      const diffB = (new Date(b.scheduledAt) - now) / 60000;
 
       const getRank = (diff, hasStream, isLive) => {
           if (!hasStream) return 4; 
@@ -210,7 +259,7 @@ async function loadAndRenderMatches() {
 
       if (rankA !== rankB) return rankA - rankB;
       
-      return a.matchDate - b.matchDate;
+      return new Date(a.scheduledAt) - new Date(b.scheduledAt);
   }
 
   trueTodayMatches.sort(sortMatches);
@@ -218,7 +267,7 @@ async function loadAndRenderMatches() {
 
   // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
   const featuredMatches = trueTodayMatches.filter(match => {
-      const diffMins = (match.matchDate - now) / 60000;
+      const diffMins = (new Date(match.scheduledAt) - now) / 60000;
       const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
       const isFinished = diffMins <= -140 && !isLive;
       return !isFinished; 

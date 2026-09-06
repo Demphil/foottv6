@@ -5,11 +5,12 @@ function list(value) {
 }
 
 const config = {
-  dryRun: process.env.DRY_RUN !== 'false',
   minValidStreams: Number(process.env.MIN_VALID_STREAMS || 3),
   cron: process.env.MEDIA_QA_CRON || '*/5 * * * *',
   leadMinutes: Number(process.env.MEDIA_QA_LEAD_MINUTES || 15),
   postMatchMinutes: Number(process.env.MEDIA_QA_POST_MATCH_MINUTES || 180),
+  futureWindowHours: Number(process.env.MEDIA_QA_FUTURE_WINDOW_HOURS || 48),
+  resolverBatchSize: Number(process.env.MEDIA_QA_RESOLVER_BATCH_SIZE || 20),
   allowlistFile: process.env.AUTHORIZED_SOURCES_FILE || 'qa-media/authorized-sources.json',
   jobsFile: process.env.MEDIA_QA_JOBS_FILE || 'qa-media/jobs.json',
   allowlistCollection: process.env.SUPABASE_ALLOWLIST_TABLE || 'media_qa_authorized_sources',

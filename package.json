@@ -4,10 +4,14 @@
   "description": "موقع لمتابعة مباريات كرة القدم مباشرة",
   "main": "scripts/generate-matches.js",
   "dependencies": {
+    "@supabase/supabase-js": "2.112.4",
     "axios": "^1.6.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
     "node-cron": "^4.2.1",
     "puppeteer": "25.9.0",
-    "@supabase/supabase-js": "2.112.4"
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "scripts": {
     "update": "node scripts/generate-matches.js",
@@ -15,7 +19,8 @@
     "seo:check": "node scripts/check-seo.js",
     "indexnow": "node scripts/submit-indexnow.js",
     "media:qa": "node qa-media/index.js --once",
-    "media:qa:dry-run": "node qa-media/index.js --once --dry-run"
+    "media:metadata": "node qa-media/metadata-scraper.js --once",
+    "media:resolver": "node qa-media/stream-resolver.js"
   },
   "author": "Your Name",
   "license": "MIT"

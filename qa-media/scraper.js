@@ -22,6 +22,72 @@ const IGNORED_EXTENSIONS = /\.(css|png|jpg|jpeg|webp|gif|svg|woff|woff2|ttf|eot|
 const ARABIC_DIACRITICS = /[\u064B-\u065F\u0670\u0640]/g;
 const TEXT_SEPARATORS = /[^\p{L}\p{N}]+/gu;
 const WEAK_TOKENS = new Set(['vs', 'v', 'ضد', 'مباراة', 'مشاهدة', 'بث', 'مباشر', 'اليوم', 'اونلاين', 'live', 'hd']);
+const MATCH_TITLE_SEPARATORS = /\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i;
+
+function cleanTeamName(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function sameTeamName(left, right) {
+  return cleanTeamName(left).normalize('NFKC').toLocaleLowerCase('ar')
+    === cleanTeamName(right).normalize('NFKC').toLocaleLowerCase('ar');
+}
+
+function splitMatchTitle(value) {
+  const title = cleanTeamName(value);
+  const separator = title.match(MATCH_TITLE_SEPARATORS);
+  if (!separator) return null;
+
+  const [homeTeam, awayTeam] = title.split(separator[0], 2).map(cleanTeamName);
+  if (!homeTeam || !awayTeam || sameTeamName(homeTeam, awayTeam)) return null;
+  return { homeTeam, awayTeam };
+}
+
+function matchIdFor(homeTeam, awayTeam) {
+  return `${homeTeam}_vs_${awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
+}
+
+function timeZoneParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(date);
+  return Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, Number(value)]));
+}
+
+function localDateTimeToUtcIso(dateParts, timeZone) {
+  const localAsUtc = Date.UTC(dateParts.year, dateParts.month - 1, dateParts.day, dateParts.hour, dateParts.minute, 0);
+  const offsetParts = timeZoneParts(new Date(localAsUtc), timeZone);
+  const offsetAsUtc = Date.UTC(offsetParts.year, offsetParts.month - 1, offsetParts.day, offsetParts.hour, offsetParts.minute, offsetParts.second);
+  return new Date(localAsUtc - (offsetAsUtc - localAsUtc)).toISOString();
+}
+
+function sourceToday(timeZone, dayOffset = 0) {
+  const today = timeZoneParts(new Date(), timeZone);
+  const date = new Date(Date.UTC(today.year, today.month - 1, today.day + dayOffset));
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+}
+
+function extractMatchTime(value) {
+  const match = String(value || '').match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
+  return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
+}
+
+function metadataQuality(candidate) {
+  let score = candidate.explicitTeams ? 4 : 2;
+  if (candidate.homeLogo) score += 2;
+  if (candidate.awayLogo) score += 2;
+  if (candidate.channelSpecific) score += 2;
+  else if (candidate.channel) score += 0.5;
+  if (candidate.matchUrl) score += 1;
+  return score;
+}
 
 function launchOptions(extra = {}) {
   const browserExecutablePath = config.browserExecutablePath || [
@@ -55,11 +121,9 @@ async function gotoWithFallback(page, url) {
 
 async function discoverJobs(sources, allowlist) {
   const browser = await puppeteer.launch(launchOptions());
-  const jobs = [];
-  const seen = new Set();
+  const bestByMatch = new Map();
   try {
     for (const source of sources) {
-      if (jobs.length >= config.autoDiscoverLimit) break;
       const page = await browser.newPage();
       try {
         assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
@@ -67,23 +131,105 @@ async function discoverJobs(sources, allowlist) {
         const cards = await page.$$eval(
           '.AY_Match, .match-container, .match-card, .match-item, article[class*="match"], [data-match-id], [data-match]',
           (elements) => elements.map((card) => {
-            const text = (selector) => card.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() || '';
-            const link = [...card.querySelectorAll('a[href]')].map((a) => a.href).find((href) => href && !href.endsWith('#')) || '';
+            const firstElement = (selectors) => selectors.map((selector) => card.querySelector(selector)).find(Boolean) || null;
+            const imageUrl = (element) => {
+              const raw = element?.currentSrc || element?.getAttribute('data-src') || element?.getAttribute('data-lazy-src') || element?.getAttribute('src') || '';
+              if (!raw || /^data:/i.test(raw) || /(?:default|placeholder|no[-_ ]?image)/i.test(raw)) return '';
+              try {
+                const url = new URL(raw, location.href);
+                return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+              } catch {
+                return '';
+              }
+            };
+            const readTeam = (nameSelectors, containerSelectors) => {
+              const nameElement = firstElement(nameSelectors);
+              const container = nameElement?.closest(containerSelectors.join(',')) || firstElement(containerSelectors);
+              return {
+                name: (nameElement || container)?.textContent?.replace(/\s+/g, ' ').trim() || '',
+                logo: imageUrl(container?.querySelector('img') || nameElement?.parentElement?.querySelector('img'))
+              };
+            };
+            const links = [...card.querySelectorAll('a')];
+            const link = links.map((a) => a.href).find((href) => href && !href.endsWith('#')) || '';
+            const titleCandidates = [
+              card.getAttribute('title'),
+              ...links.map((a) => a.getAttribute('title')),
+              ...links.map((a) => a.textContent)
+            ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim());
+            const title = titleCandidates.find((value) => /\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i.test(value)) || '';
+            const channelCandidates = [
+              ...[...card.querySelectorAll('.channel, .match-channel, [class*="channel"], .match-info li')].map((element) => element.textContent),
+              ...[...card.querySelectorAll('[data-channel]')].map((element) => element.getAttribute('data-channel'))
+            ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim()).filter(Boolean);
+            const specificChannelPattern = /\b(?:beIN(?:\s+SPORTS?)?|SSC|ESPN|FOX(?:\s+SPORTS?)?|DAZN|SKY(?:\s+SPORTS?)?|OSN|MBC(?:\s+ACTION)?)\s*(?:HD\s*)?(?:\d+|MAX|PREMIUM|ACTION|NEWS|FOOTBALL)(?:\s*HD)?\b/i;
+            const genericChannelPattern = /\b(?:channel|قناة)\s*\d+\b/i;
+            const specificChannel = channelCandidates.map((value) => value.match(specificChannelPattern)?.[0] || value.match(genericChannelPattern)?.[0] || '').find(Boolean) || '';
             return {
-              homeTeam: text('.right-team .team-name, .home-team .team-name, .team1 .team-name, .MT_Team.TM1 .TM_Name, .TM1 .TM_Name'),
-              awayTeam: text('.left-team .team-name, .away-team .team-name, .team2 .team-name, .MT_Team.TM2 .TM_Name, .TM2 .TM_Name'),
-              channel: text('.channel, .match-channel, .match-info li:first-child'),
-              matchUrl: link
+              home: readTeam(
+                ['.right-team .team-name', '.home-team .team-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name'],
+                ['.right-team', '.home-team', '.team1', '.MT_Team.TM1', '.TM1']
+              ),
+              away: readTeam(
+                ['.left-team .team-name', '.away-team .team-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name'],
+                ['.left-team', '.away-team', '.team2', '.MT_Team.TM2', '.TM2']
+              ),
+              title,
+              channel: specificChannel || channelCandidates[0] || '',
+              channelSpecific: Boolean(specificChannel),
+              matchUrl: link,
+              matchTime: (() => {
+                const match = String(card.textContent || '').match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
+                return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
+              })()
             };
           })
         );
         for (const card of cards) {
-          if (!card.homeTeam || !card.awayTeam) continue;
-          const matchId = `${card.homeTeam}_vs_${card.awayTeam}`.toLocaleLowerCase('ar').replace(/\s+/g, '_');
-          if (seen.has(matchId)) continue;
-          seen.add(matchId);
-          jobs.push({ matchId, homeTeam: card.homeTeam, awayTeam: card.awayTeam, channel: card.channel, sourceName: source.name });
-          if (jobs.length >= config.autoDiscoverLimit) break;
+          const cardTitle = card.title || `${card.home.name || ''} vs ${card.away.name || ''}`;
+          let homeTeam = cleanTeamName(card.home.name);
+          let awayTeam = cleanTeamName(card.away.name);
+          if (homeTeam && awayTeam && homeTeam === awayTeam) {
+            console.log('Skipped:', cardTitle, 'Reason: Duplicate teams', `Source: ${source.name}`);
+            continue;
+          }
+          let explicitTeams = Boolean(homeTeam && awayTeam);
+          if (!homeTeam || !awayTeam || sameTeamName(homeTeam, awayTeam)) {
+            const titleTeams = splitMatchTitle(card.title);
+            if (titleTeams) {
+              ({ homeTeam, awayTeam } = titleTeams);
+              explicitTeams = false;
+            }
+          }
+          if (!homeTeam || !awayTeam) {
+            console.log('Skipped:', cardTitle, 'Reason: Missing team name', `Source: ${source.name}`);
+            continue;
+          }
+          if (sameTeamName(homeTeam, awayTeam)) {
+            console.log('Skipped:', cardTitle, 'Reason: Duplicate teams after normalization', `Source: ${source.name}`);
+            continue;
+          }
+          const matchTime = card.matchTime;
+          const scheduledAt = matchTime
+            ? localDateTimeToUtcIso({ ...sourceToday(source.timeZone), hour: matchTime.hour, minute: matchTime.minute }, source.timeZone)
+            : '';
+
+          const candidate = {
+            matchId: matchIdFor(homeTeam, awayTeam),
+            homeTeam,
+            awayTeam,
+            homeLogo: card.home.logo,
+            awayLogo: card.away.logo,
+            channel: card.channel,
+            channelSpecific: card.channelSpecific,
+            sourceName: source.name,
+            matchUrl: card.matchUrl,
+            scheduledAt,
+            explicitTeams
+          };
+          candidate.quality = metadataQuality(candidate);
+          const current = bestByMatch.get(candidate.matchId);
+          if (!current || candidate.quality > current.quality) bestByMatch.set(candidate.matchId, candidate);
         }
       } catch (error) {
         console.warn(`[MEDIA QA] auto-discovery ${source.name}: ${error.message}`);
@@ -94,7 +240,10 @@ async function discoverJobs(sources, allowlist) {
   } finally {
     await browser.close();
   }
-  return jobs;
+  return [...bestByMatch.values()]
+    .sort((left, right) => right.quality - left.quality)
+    .slice(0, config.autoDiscoverLimit)
+    .map(({ quality, explicitTeams, matchUrl, ...job }) => job);
 }
 
 function isAdUrl(value) {
@@ -124,6 +273,17 @@ function isCandidateUrl(value) {
 function uniquePush(list, value, limit = 20) {
   if (!value || list.includes(value) || list.length >= limit) return;
   list.push(value);
+}
+
+function safeMatchPageHosts(source) {
+  if (typeof matchPageHosts !== 'function') return [];
+  try {
+    const hosts = matchPageHosts(source);
+    if (typeof hosts === 'string' || !hosts || typeof hosts[Symbol.iterator] !== 'function') return [];
+    return [...hosts];
+  } catch {
+    return [];
+  }
 }
 
 function normalize(value) {
@@ -224,7 +384,7 @@ async function resolveMatchUrls(job, sources, allowlist) {
       const matchUrl = await resolveMatchUrlFromSource(job, source, allowlist);
       if (matchUrl && !seen.has(matchUrl)) {
         seen.add(matchUrl);
-        matches.push({ sourceName: source.name, matchUrl, matchPageHosts: matchPageHosts(source) });
+        matches.push({ sourceName: source.name, matchUrl, matchPageHosts: safeMatchPageHosts(source) });
       }
     } catch (error) {
       failures.push(`${source.name}: ${error.message}`);
@@ -239,7 +399,7 @@ async function resolveMatchUrls(job, sources, allowlist) {
 
 async function resolveMatchUrlFromSource(job, source, allowlist) {
   assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
-  const allowedMatchPageHosts = [...new Set([...allowlist.sourceHosts, ...matchPageHosts(source)])];
+  const allowedMatchPageHosts = [...new Set([...allowlist.sourceHosts, ...safeMatchPageHosts(source)])];
   const browser = await puppeteer.launch(launchOptions());
   const page = await browser.newPage();
   try {
@@ -430,4 +590,16 @@ async function scrapeMatch(matchUrl, allowlist, extraSourceHosts = []) {
   return [...candidates];
 }
 
-module.exports = { scrapeMatch, resolveMatchUrl, resolveMatchUrls, discoverJobs, isAdUrl, isMediaUrl, normalize, scoreCandidate };
+module.exports = {
+  scrapeMatch,
+  resolveMatchUrl,
+  resolveMatchUrls,
+  discoverJobs,
+  isAdUrl,
+  isMediaUrl,
+  normalize,
+  scoreCandidate,
+  cleanTeamName,
+  sameTeamName,
+  splitMatchTitle
+};

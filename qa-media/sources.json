@@ -3,6 +3,8 @@
     {
       "name": "yallashoot2day",
       "listUrl": "https://yallashoot2day.online/",
+      "timeZone": "Asia/Riyadh",
+      "metadataQuality": "trusted",
       "allowedHosts": [
         "yallashoot2day.online"
       ],
@@ -11,6 +13,8 @@
     {
       "name": "m8nstar",
       "listUrl": "https://m8nstar.com/",
+      "timeZone": "Asia/Riyadh",
+      "metadataQuality": "trusted",
       "allowedHosts": [
         "m8nstar.com",
         "m6.kora-sami.com"
@@ -20,6 +24,7 @@
     {
       "name": "livehd77",
       "listUrl": "https://livehd77.me/",
+      "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "livehd77.me"
       ],
@@ -28,6 +33,8 @@
     {
       "name": "shooot",
       "listUrl": "https://shooot.mov/",
+      "timeZone": "Africa/Cairo",
+      "metadataQuality": "trusted",
       "allowedHosts": [
         "shooot.mov"
       ],
@@ -36,6 +43,8 @@
     {
       "name": "yacinee-tv",
       "listUrl": "https://yacinee-tv.net/",
+      "timeZone": "Africa/Cairo",
+      "metadataQuality": "trusted",
       "allowedHosts": [
         "yacinee-tv.net"
       ],
@@ -44,6 +53,8 @@
     {
       "name": "siir-tv",
       "listUrl": "https://siir-tv.co/",
+      "timeZone": "Africa/Cairo",
+      "metadataQuality": "fallback",
       "allowedHosts": [
         "siir-tv.co"
       ],
@@ -52,6 +63,7 @@
     {
       "name": "sirrtv",
       "listUrl": "https://www.sirrtv.online/",
+      "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "www.sirrtv.online",
         "q.ltvonline.live"
@@ -61,6 +73,7 @@
     {
       "name": "aflam4you",
       "listUrl": "https://new.aflam4you.org/",
+      "timeZone": "Africa/Cairo",
       "allowedHosts": [
         "https://new.aflam4you.org/"
       ],
@@ -69,6 +82,7 @@
     {
       "name": "syr-live",
       "listUrl": "https://m.syr.live/",
+      "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "m.syr.live",
         "m6.kora-sami.com"
@@ -78,6 +92,7 @@
     {
       "name": "sportcityplus",
       "listUrl": "https://sportcityplus.com/",
+      "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "sportcityplus.com",
         "m6.kora-sami.com"
@@ -87,6 +102,7 @@
     {
       "name": "socceritv",
       "listUrl": "https://socceritv.com/",
+      "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "socceritv.com",
         "m6.kora-sami.com"

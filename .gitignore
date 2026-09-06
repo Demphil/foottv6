@@ -55,3 +55,4 @@ logs/
 # استثناءات خاصة بالمشروع
 /assets/data/temp/
 .htaccess
+.env

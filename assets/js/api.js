@@ -4,104 +4,30 @@ import { getChannelByTeam } from './chaine.js';
 
 
 
-const CACHE_EXPIRY_MS = 2 * 60 * 1000; 
+const CACHE_EXPIRY_MS = 2 * 60 * 1000;
 
-const CACHE_KEY_TODAY = 'matches_cache_today';
+const CACHE_KEY_TODAY = 'matches_cache_today_v2';
 
-const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow';
+const CACHE_KEY_TOMORROW = 'matches_cache_tomorrow_v2';
 
 
 
 function setCache(key, data) {
-
-  const cacheItem = { timestamp: Date.now(), data: data };
-
-  localStorage.setItem(key, JSON.stringify(cacheItem));
+  // Match data must always reflect the current staging table.
+  localStorage.removeItem(key);
 
 }
 
 
 
 function getCache(key) {
-
-  const cachedItem = localStorage.getItem(key);
-
-  if (!cachedItem) return null;
-
-  const { timestamp, data } = JSON.parse(cachedItem);
-
-  if (Date.now() - timestamp > CACHE_EXPIRY_MS) {
-
-    localStorage.removeItem(key);
-
-    return null;
-
-  }
-
-  return data;
+  localStorage.removeItem(key);
+  return null;
 
 }
 
-
-
-// --- 2. Timezone Conversion Function ---
-
-function convertSourceToMoroccoTime(timeString) {
-
-  try {
-
-    if (!timeString || !timeString.includes(':')) {
-
-      return { formatted: timeString, rawMinutes: 9999 };
-
-    }
-
-
-
-    const cleanedString = timeString.replace(/\s+/g, ' ').trim();
-
-    const [timePart, ampm] = cleanedString.split(' ');
-
-    let [hours, minutes] = timePart.split(':').map(Number);
-
-
-
-    if (ampm) {
-
-      if (ampm.toUpperCase().includes('PM') && hours !== 12) hours += 12;
-
-      if (ampm.toUpperCase().includes('AM') && hours === 12) hours = 0;
-
-    }
-
-
-
-    hours -= 2; 
-
-    if (hours < 0) hours += 24;
-
-    
-
-    const formattedHours = String(hours).padStart(2, '0');
-
-    const formattedMinutes = String(minutes).padStart(2, '0');
-
-    
-
-    return {
-
-      formatted: `${formattedHours}:${formattedMinutes}`,
-
-      rawMinutes: hours * 60 + minutes
-
-    };
-
-  } catch (error) {
-
-    return { formatted: timeString, rawMinutes: 9999 };
-
-  }
-
+for (const key of Object.keys(localStorage)) {
+  if (key.startsWith('matches_cache_')) localStorage.removeItem(key);
 }
 
 
@@ -130,9 +56,44 @@ export function getMoroccoWallClockNow() {
   return new Date(Date.UTC(now.year, now.month - 1, now.day, now.hour, now.minute, now.second));
 }
 
-export function getMoroccoDateForTime(hours, minutes, dayOffset = 0) {
-  const now = moroccoParts();
-  return new Date(Date.UTC(now.year, now.month - 1, now.day + dayOffset, hours, minutes, 0));
+function zonedParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+  }).formatToParts(date);
+  return Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, Number(value)]));
+}
+
+function sourceDateParts(timeZone, dayOffset) {
+  const today = zonedParts(new Date(), timeZone);
+  const date = new Date(Date.UTC(today.year, today.month - 1, today.day + dayOffset));
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
+}
+
+function localDateTimeToUtcIso(parts, timeZone) {
+  const localAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, 0);
+  const zoned = zonedParts(new Date(localAsUtc), timeZone);
+  const offsetAsUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, zoned.hour, zoned.minute, zoned.second);
+  return new Date(localAsUtc - (offsetAsUtc - localAsUtc)).toISOString();
+}
+
+export function getMoroccoDay(timestamp, reference = new Date()) {
+  const value = new Date(timestamp);
+  if (Number.isNaN(value.getTime())) return null;
+  const target = zonedParts(value, MOROCCO_TIME_ZONE);
+  const current = zonedParts(reference, MOROCCO_TIME_ZONE);
+  const difference = (Date.UTC(target.year, target.month - 1, target.day) - Date.UTC(current.year, current.month - 1, current.day)) / 86400000;
+  return difference === 0 ? 'today' : difference === 1 ? 'tomorrow' : difference === -1 ? 'yesterday' : 'other';
+}
+
+function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
+  const slug = (value) => String(value || '').trim().toLocaleLowerCase('ar')
+    .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  const date = scheduledAt && /^\d{4}-\d{2}-\d{2}/.test(scheduledAt)
+    ? scheduledAt.slice(0, 10)
+    : 'undated';
+  return `${slug(homeTeam)}-${slug(awayTeam)}-${date}`;
 }
 
 // --- 3. API Functions ---
@@ -140,16 +101,14 @@ export function getMoroccoDateForTime(hours, minutes, dayOffset = 0) {
 const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
 
 const MATCH_SOURCES = [
-  { name: 'yallashoot2day', baseUrl: 'https://yallashoot2day.online/' },
-  { name: 'm8nstar', baseUrl: 'https://m8nstar.com/' },
-  { name: 'livehd77', baseUrl: 'https://livehd77.me/' },
-  { name: 'shooot', baseUrl: 'https://shooot.mov/' },
-  { name: 'yacinee-tv', baseUrl: 'https://yacinee-tv.net/' },
-  { name: 'siir-tv', baseUrl: 'https://siir-tv.co/' },
-  { name: 'sirrtv', baseUrl: 'https://www.sirrtv.online/' },
-  { name: 'syr-live', baseUrl: 'https://m.syr.live/' },
-  { name: 'sportcityplus', baseUrl: 'https://sportcityplus.com/' },
-  { name: 'socceritv', baseUrl: 'https://socceritv.com/' }
+  { name: 'yallashoot2day', baseUrl: 'https://yallashoot2day.online/', timeZone: 'Asia/Riyadh' },
+  { name: 'm8nstar', baseUrl: 'https://m8nstar.com/', timeZone: 'Asia/Riyadh' },
+  { name: 'shooot', baseUrl: 'https://shooot.mov/', timeZone: 'Africa/Cairo' },
+  { name: 'yacinee-tv', baseUrl: 'https://yacinee-tv.net/', timeZone: 'Africa/Cairo' },
+  { name: 'sirrtv', baseUrl: 'https://www.sirrtv.online/', timeZone: 'Asia/Riyadh' },
+  { name: 'syr-live', baseUrl: 'https://m.syr.live/', timeZone: 'Asia/Riyadh' },
+  { name: 'sportcityplus', baseUrl: 'https://sportcityplus.com/', timeZone: 'Asia/Riyadh' },
+  { name: 'socceritv', baseUrl: 'https://socceritv.com/', timeZone: 'Asia/Riyadh' }
 ];
 
 
@@ -181,7 +140,7 @@ export async function getTodayMatches() {
 
     finalMatches.forEach(match => {
 
-      const matchId = `${match.homeTeam.name}_vs_${match.awayTeam.name}`.toLowerCase().trim();
+      const matchId = match.matchId || match.match_id || stableMatchId(match.homeTeam.name, match.awayTeam.name, match.scheduledAt);
 
       if (!seen.has(matchId)) {
 
@@ -305,7 +264,10 @@ async function fetchHtml(targetUrl) {
 
   try {
 
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}&_fresh=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'cache-control': 'no-cache' }
+    });
 
     if (!response.ok) throw new Error(`Status: ${response.status}`);
 
@@ -327,7 +289,7 @@ async function loadFromSources(day) {
   const results = await Promise.all(MATCH_SOURCES.map(async (source) => {
     const targetUrl = new URL(path, source.baseUrl).href;
     const html = await fetchHtml(targetUrl);
-    return { source, matches: parseMatches(html, source.baseUrl) };
+    return { source, matches: parseMatches(html, source.baseUrl, source.timeZone, day === 'tomorrow' ? 1 : 0) };
   }));
   const merged = [];
   const seen = new Set();
@@ -339,7 +301,7 @@ async function loadFromSources(day) {
       continue;
     }
     for (const match of matches) {
-      const key = `${match.homeTeam.name}|${match.awayTeam.name}`.toLocaleLowerCase('ar').trim();
+      const key = match.matchId || match.match_id || stableMatchId(match.homeTeam.name, match.awayTeam.name, match.scheduledAt);
       if (!seen.has(key)) {
         seen.add(key);
         merged.push({ ...match, sourceName: source.name });
@@ -442,7 +404,7 @@ function findMatchElements(doc) {
   return [];
 }
 
-export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
+export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl, sourceTimeZone = 'Africa/Casablanca', sourceDayOffset = 0) {
   if (!html) return [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -464,6 +426,8 @@ export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
       const awayTeamName = awayTeamEl ? awayTeamEl.textContent.trim() : '';
       
       if (!homeTeamName || !awayTeamName) return;
+      if (homeTeamName.trim() === awayTeamName.trim()) return;
+      if (homeTeamName.normalize('NFKC').toLocaleLowerCase('ar') === awayTeamName.normalize('NFKC').toLocaleLowerCase('ar')) return;
       
       // استخراج رابط البث
       const matchLink = linkFrom(matchEl, sourceBaseUrl);
@@ -471,15 +435,15 @@ export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
       
       // استخراج التوقيت أو النتيجة من منطقة المنتصف
       let score = 'VS';
-      let originalTime = '--:--';
+      let originalTime = '';
       
       const centerEl = matchEl.querySelector('.match-center');
       const centerText = centerEl ? centerEl.textContent.trim() : '';
 
       // البحث عن التوقيت (يحتوي على نقطتين رأسيتين)
-      const timeMatch = centerText.match(/\d{1,2}:\d{2}/);
+        const timeMatch = centerText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
       if (timeMatch) {
-          originalTime = timeMatch[0];
+          originalTime = `${timeMatch[1]}:${timeMatch[2]}`;
       }
       
       // البحث عن النتيجة (تحتوي على شرطة بين أرقام)
@@ -488,7 +452,13 @@ export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
           score = scoreMatch[0];
       }
 
-      const timeData = convertSourceToMoroccoTime(originalTime);
+      const scheduledAt = timeMatch
+        ? localDateTimeToUtcIso({ ...sourceDateParts(sourceTimeZone, sourceDayOffset), hour: Number(timeMatch[1]), minute: Number(timeMatch[2]) }, sourceTimeZone)
+        : '';
+      const moroccoTime = scheduledAt ? zonedParts(new Date(scheduledAt), MOROCCO_TIME_ZONE) : null;
+      const timeData = moroccoTime
+        ? { formatted: `${String(moroccoTime.hour).padStart(2, '0')}:${String(moroccoTime.minute).padStart(2, '0')}`, rawMinutes: moroccoTime.hour * 60 + moroccoTime.minute }
+        : { formatted: '--:--', rawMinutes: 9999 };
       
       // استخراج معلومات القناة والمعلق والبطولة
       let channelFromSite = '';
@@ -515,11 +485,17 @@ export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl) {
          finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
       }
 
+      const homeLogo = extractImageUrl(homeTeamEl?.querySelector('img'), sourceBaseUrl);
+      const awayLogo = extractImageUrl(awayTeamEl?.querySelector('img'), sourceBaseUrl);
+      if (!isValidImageUrl(homeLogo) || !isValidImageUrl(awayLogo)) return;
+
       matches.push({
-        homeTeam: { name: homeTeamName, logo: extractImageUrl(homeTeamEl?.querySelector('img'), sourceBaseUrl) },
-        awayTeam: { name: awayTeamName, logo: extractImageUrl(awayTeamEl?.querySelector('img'), sourceBaseUrl) },
+        homeTeam: { name: homeTeamName, logo: homeLogo },
+        awayTeam: { name: awayTeamName, logo: awayLogo },
         time: timeData.formatted,
         rawMinutes: timeData.rawMinutes,
+        scheduledAt,
+        matchId: stableMatchId(homeTeamName, awayTeamName, scheduledAt),
         score: scoreFrom(matchEl),
         isLive: liveStatusFrom(matchEl),
         league,
@@ -547,4 +523,13 @@ function extractImageUrl(imgElement, sourceBaseUrl) {
 
   return new URL(src, sourceBaseUrl).href;
 
+}
+
+function isValidImageUrl(value) {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
 }

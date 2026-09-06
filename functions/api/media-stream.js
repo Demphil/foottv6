@@ -3,7 +3,9 @@ function json(body, status, origin = '*') {
     status,
     headers: {
       'content-type': 'application/json; charset=utf-8',
-      'cache-control': 'no-store',
+      'cache-control': 'no-store, max-age=0, s-maxage=0, must-revalidate',
+      pragma: 'no-cache',
+      expires: '0',
       'access-control-allow-origin': origin,
       'access-control-allow-methods': 'GET, OPTIONS'
     }
@@ -61,7 +63,15 @@ export async function onRequestOptions({ request, env }) {
 export async function onRequestGet({ request, env }) {
   const maxStreamAgeMs = Number.parseInt(env.MEDIA_STREAM_MAX_AGE_MS || '900000', 10);
   const origin = env.PUBLIC_SITE_ORIGIN || request.headers.get('origin') || '*';
-  const matchId = new URL(request.url).searchParams.get('matchId')?.trim();
+  const encodedMatchId = new URL(request.url).searchParams.get('matchId');
+  let matchId;
+  try {
+    matchId = encodedMatchId ? decodeURIComponent(encodedMatchId).trim() : '';
+  } catch {
+    return json({ error: 'A valid matchId is required' }, 400, origin);
+  }
+
+  matchId = matchId.replace(/\s+/g, '_').replace(/_+vs_+/i, '_vs_');
   if (!matchId || !/^[\p{L}\p{N}_-]{1,180}$/u.test(matchId)) {
     return json({ error: 'A valid matchId is required' }, 400, origin);
   }
@@ -84,10 +94,12 @@ export async function onRequestGet({ request, env }) {
   let response;
   try {
     response = await fetch(endpoint, {
+      cache: 'no-store',
       headers: {
         apikey: env.SUPABASE_SERVICE_ROLE_KEY,
         authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-        accept: 'application/json'
+        accept: 'application/json',
+        'cache-control': 'no-cache'
       }
     });
   } catch {
@@ -116,6 +128,11 @@ export async function onRequestGet({ request, env }) {
 
   return json({
     matchId: data.match_id,
+    homeTeam: data.payload.homeTeam || '',
+    awayTeam: data.payload.awayTeam || '',
+    homeLogo: data.payload.homeLogo || '',
+    awayLogo: data.payload.awayLogo || '',
+    channel: data.payload.channel || '',
     updatedAt: data.updated_at,
     streams: freshStreams
   }, 200, origin);
