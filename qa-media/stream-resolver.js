@@ -35,6 +35,13 @@ function likelyStream(value) {
   );
 }
 
+function isWithinActiveWindow(row, now = Date.now()) {
+  const scheduledAt = row?.payload?.scheduledAt;
+  const matchTime = Date.parse(scheduledAt || '');
+  if (!Number.isFinite(matchTime)) return false;
+  return now >= matchTime - (120 * 60 * 1000) && now <= matchTime + (150 * 60 * 1000);
+}
+
 async function discoverStreamCandidates(browser, match) {
   const page = await browser.newPage();
   const candidates = new Set();
@@ -112,10 +119,17 @@ async function runResolverOnce() {
     console.log('[RESOLVER] No pending metadata rows');
     return [];
   }
+  const activeRows = rows.filter((row) => {
+    if (isWithinActiveWindow(row)) return true;
+    console.log(`[RESOLVER] ${row.match_id}: Skipped: Outside active window`);
+    return false;
+  });
+  if (!activeRows.length) return [];
+
   const browser = await puppeteer.launch(launchOptions());
   const results = [];
   try {
-    for (const row of rows) {
+    for (const row of activeRows) {
       try {
         const payload = await resolveOne(browser, row, allowlist);
         await saveStaging(row.match_id, payload);
@@ -133,4 +147,4 @@ async function runResolverOnce() {
 
 if (require.main === module) runResolverOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
 
-module.exports = { runResolverOnce, resolveOne, discoverStreamCandidates };
+module.exports = { runResolverOnce, resolveOne, discoverStreamCandidates, isWithinActiveWindow };
