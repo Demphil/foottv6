@@ -2,8 +2,13 @@ require('dotenv').config({ path: require('node:path').resolve(process.cwd(), '.e
 
 const cron = require('node-cron');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { config } = require('./config');
 const { saveStaging } = require('./supabase-storage');
+
+// تفعيل إضافة التخفي لتجاوز حماية Cloudflare
+puppeteer.use(StealthPlugin());
 
 const SCHEDULE_URL = 'https://yallashoot2day.online/';
 const TIME_ZONE = 'Africa/Casablanca';
@@ -21,6 +26,7 @@ function first($, root, selectors) { for (const selector of selectors) { const i
 function absoluteUrl(value, baseUrl) { try { const url = new URL(value, baseUrl); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
 function slug(value) { return clean(value).toLocaleLowerCase('ar').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); }
 function sourceDate() { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return parts; }
+
 function localTimeToIso(time) {
   const date = sourceDate();
   const [hour, minute] = time.split(':').map(Number);
@@ -34,6 +40,7 @@ function localTimeToIso(time) {
   }
   return estimate.toISOString();
 }
+
 function matchIdFor(homeTeam, awayTeam, scheduledAt) { return `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || sourceDate()}`; }
 function imageUrl($, element) { return absoluteUrl($(element).attr('data-src') || $(element).attr('data-lazy-src') || $(element).attr('src') || '', SCHEDULE_URL); }
 function titleTeams(value) { const parts = clean(value).split(/\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i).map(clean); return parts.length >= 2 ? { homeTeam: parts[0], awayTeam: parts[1] } : null; }
@@ -63,6 +70,7 @@ function parseSchedule(html) {
     const league = clean($(first($, card, LEAGUE_SELECTORS)).text()) || clean($(card).find('.match-info, .match-details, .match-meta').first().text()) || '';
     const link = $(card).find('a[href]').map((__, anchor) => $(anchor).attr('href')).get().find((href) => href && href !== '#' && !/^javascript:/i.test(href));
     const matchUrl = absoluteUrl(link || '', SCHEDULE_URL);
+    
     matches.push({
       matchId: matchIdFor(homeTeam, awayTeam, scheduledAt),
       homeTeam,
@@ -83,33 +91,37 @@ function parseSchedule(html) {
 }
 
 async function fetchScheduleHtml() {
+  let browser;
   try {
-    const response = await fetch(SCHEDULE_URL, {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'accept-language': 'en-US,en;q=0.9,ar;q=0.8',
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-        'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
-        'sec-fetch-dest': 'document',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-site': 'none',
-        'upgrade-insecure-requests': '1',
-        connection: 'keep-alive'
-      },
-      redirect: 'follow'
+    console.log(`[METADATA] Launching stealth browser to bypass Cloudflare...`);
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+        // CRITICAL: No --single-process here to prevent Target closed errors!
+      ]
     });
-    const body = await response.text();
-    if (!response.ok) {
-      console.error(`[METADATA] Schedule request failed: HTTP ${response.status} ${response.statusText}`);
-      console.error(`[METADATA] Response body: ${body.slice(0, 1000)}`);
-      throw new Error(`Schedule HTML HTTP ${response.status}`);
-    }
-    return body;
+
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
+    
+    console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
+    await page.goto(SCHEDULE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    console.log(`[METADATA] Waiting for Cloudflare challenge to resolve (looking for .BoxContent)...`);
+    // ننتظر 45 ثانية بحد أقصى حتى يقوم كلاودفلير بتحويلنا للصفحة المطلوبة
+    await page.waitForSelector('.BoxContent', { timeout: 45000 });
+
+    const html = await page.content();
+    await browser.close();
+    
+    console.log(`[METADATA] Successfully bypassed Cloudflare and extracted HTML.`);
+    return html;
   } catch (error) {
+    if (browser) await browser.close();
     console.error(`[METADATA] Schedule request error for ${SCHEDULE_URL}: ${error.stack || error.message}`);
     throw error;
   }
@@ -122,14 +134,22 @@ async function runMetadataOnce() {
   const rawMatches = parseSchedule(await fetchScheduleHtml());
   for (const match of rawMatches) deduplicated.set(metadataKey(match), match);
   const jobs = [...deduplicated.values()].slice(0, config.autoDiscoverLimit);
-  for (const job of jobs) await saveStaging(job.matchId, { ...job, status: 'METADATA_READY', resolverStatus: 'PENDING', streams: [], sourceReports: [], updatedBy: 'yallashoot2day-html' });
+  
+  for (const job of jobs) {
+    await saveStaging(job.matchId, { ...job, status: 'METADATA_READY', resolverStatus: 'PENDING', streams: [], sourceReports: [], updatedBy: 'yallashoot2day-puppeteer' });
+  }
+  
   console.log(`[METADATA] ${rawMatches.length} scraped match(es); saved ${jobs.length} unique match(es) from ${SCHEDULE_URL}`);
   return jobs;
 }
 
 if (require.main === module) {
-  if (process.argv.includes('--once')) runMetadataOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
-  else { cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); console.log(`[METADATA] Scheduler active: ${config.cron}`); }
+  if (process.argv.includes('--once')) {
+    runMetadataOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
+  } else { 
+    cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); 
+    console.log(`[METADATA] Scheduler active: ${config.cron}`); 
+  }
 }
 
 module.exports = { fetchScheduleHtml, parseSchedule, metadataKey, runMetadataOnce };
