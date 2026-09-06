@@ -37,6 +37,10 @@ function likelyStream(value) {
   );
 }
 
+function likelyEmbed(value) {
+  return isHttpUrl(value) && !isBlockedUrl(value) && /\/(?:embed|player|live|stream)(?:\/|\?|$)/i.test(value);
+}
+
 function zonedParts(date, timeZone) {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone,
@@ -89,36 +93,65 @@ function isWithinActiveWindow(row, now = Date.now()) {
 async function discoverStreamCandidates(browser, matches) {
   const candidates = new Set();
   const sourcePages = new Set(matches.map((match) => match.matchUrl));
-  const collect = (value) => {
-    if (likelyStream(value) && !sourcePages.has(value)) candidates.add(value);
+  const collect = (value, kind = 'network') => {
+    if (sourcePages.has(value)) return;
+    if (likelyStream(value) || (kind === 'iframe' && likelyEmbed(value))) candidates.add(value);
   };
   for (const match of matches) {
     const page = await browser.newPage();
-    page.on('response', (response) => collect(response.url()));
-    page.on('request', (request) => collect(request.url()));
+    page.on('response', (response) => collect(response.url(), 'network'));
+    page.on('request', (request) => collect(request.url(), 'network'));
     try {
       console.log(`[RESOLVER] Deep-scraping ${match.sourceName}: ${match.matchUrl}`);
       await page.goto(match.matchUrl, { waitUntil: 'domcontentloaded', timeout: config.timeoutMs });
-      const collectDomUrls = async () => {
-        const urls = await page.$$eval('iframe[src], video[src], source[src], a[href], button, [role="button"], [data-src], [data-url], [data-stream], [data-player]', (elements) => elements.flatMap((element) => [
-          element.getAttribute('src'), element.getAttribute('href'), element.getAttribute('data-src'),
-          element.getAttribute('data-url'), element.getAttribute('data-stream'), element.getAttribute('data-player')
-        ].filter(Boolean).map((value) => {
-          try { return new URL(value, location.href).href; } catch { return ''; }
-        }).filter(Boolean)));
-        urls.forEach(collect);
-        for (const frame of page.frames()) collect(frame.url());
+      await page.waitForNetworkIdle({ idleTime: 800, timeout: Math.min(config.timeoutMs, 5000) }).catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      const collectFrame = async (frame) => {
+        collect(frame.url(), 'iframe');
+        const frameData = await frame.evaluate(() => {
+          const selectors = 'iframe[src], video[src], video source[src], source[src], a[href], [data-src], [data-url], [data-stream], [data-player], [data-embed]';
+          const toUrl = (value) => {
+            try { return new URL(value, location.href).href; } catch { return ''; }
+          };
+          const urls = [...document.querySelectorAll(selectors)].flatMap((element) => [
+            element.getAttribute('src'), element.getAttribute('href'), element.getAttribute('data-src'),
+            element.getAttribute('data-url'), element.getAttribute('data-stream'), element.getAttribute('data-player'),
+            element.getAttribute('data-embed')
+          ].filter(Boolean).map(toUrl).filter(Boolean));
+          const controls = [...document.querySelectorAll('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]')]
+            .filter((element) => !element.disabled)
+            .map((element, index) => ({ index, text: element.textContent?.trim() || '', label: element.getAttribute('aria-label') || '' }));
+          return { urls, controls };
+        });
+        frameData.urls.forEach((url) => collect(url, 'iframe'));
+        return frameData.controls;
       };
 
-      await collectDomUrls();
-      const serverCount = await page.$$eval('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]', (elements) => elements.length);
-      for (let index = 0; index < serverCount; index += 1) {
-        await page.evaluate((serverIndex) => {
-          const elements = [...document.querySelectorAll('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]')];
-          try { elements[serverIndex]?.click(); } catch {}
-        }, index);
-        await new Promise((resolve) => setTimeout(resolve, Math.min(config.timeoutMs, 1500)));
-        await collectDomUrls();
+      const clickControls = async () => {
+        for (const frame of page.frames()) {
+          try {
+            const controls = await collectFrame(frame);
+            for (let index = 0; index < controls.length; index += 1) {
+              await frame.evaluate((controlIndex) => {
+                const elements = [...document.querySelectorAll('button, [role="button"], .play, .play-button, .server, [class*="server"], [data-server]')]
+                  .filter((element) => !element.disabled);
+                elements[controlIndex]?.click();
+              }, index);
+              await new Promise((resolve) => setTimeout(resolve, 900));
+              for (const refreshedFrame of page.frames()) {
+                try { (await collectFrame(refreshedFrame)).forEach(() => {}); } catch {}
+              }
+            }
+          } catch (error) {
+            console.debug(`[RESOLVER] Frame inspection skipped: ${error.message}`);
+          }
+        }
+      };
+
+      await clickControls();
+      for (const frame of page.frames()) {
+        try { await collectFrame(frame); } catch {}
       }
     } catch (error) {
       console.warn(`[RESOLVER] ${match.sourceName} deep scrape failed: ${error.message}`);
@@ -143,20 +176,13 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
     if (report.filter((item) => item.status === 'Passed').length >= config.streamTarget) break;
   }
   const passed = report.filter((item) => item.status === 'Passed').slice(0, config.streamTarget);
-  const fallback = passed.length ? passed : [...candidates].slice(0, config.streamTarget).map((url) => ({
-    url,
-    status: 'Passed',
-    type: /\.m3u8(?:$|[?#])/i.test(url) ? 'hls' : 'iframe',
-    fallback: true,
-    error: 'Strict validation failed; raw playable candidate retained'
-  }));
 
   return {
     ...payload,
-    streams: fallback,
+    streams: passed,
     validation: report,
-    status: fallback.length ? 'PASSED_STAGING' : 'RESOLVER_FAILED',
-    resolverStatus: fallback.length ? 'COMPLETE' : 'NO_STREAM_CANDIDATE',
+    status: passed.length ? 'PASSED_STAGING' : 'RESOLVER_FAILED',
+    resolverStatus: passed.length ? 'COMPLETE' : 'NO_STREAM_CANDIDATE',
     updatedBy: 'stream-resolver',
     resolvedAt: new Date().toISOString()
   };
