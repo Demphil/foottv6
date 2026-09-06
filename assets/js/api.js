@@ -96,241 +96,72 @@ function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
   return `${slug(homeTeam)}-${slug(awayTeam)}-${date}`;
 }
 
-// --- 3. API Functions ---
+// --- 3. Database API ---
 
-const PROXY_URL = 'https://foottv-proxy-1.koora-live.workers.dev/?url=';
+let stagingMatchesPromise = null;
 
-const MATCH_SOURCES = [
-  { name: 'yallashoot2day', baseUrl: 'https://yallashoot2day.online/', timeZone: 'Asia/Riyadh' },
-  { name: 'm8nstar', baseUrl: 'https://m8nstar.com/', timeZone: 'Asia/Riyadh' },
-  { name: 'shooot', baseUrl: 'https://shooot.mov/', timeZone: 'Africa/Cairo' },
-  { name: 'yacinee-tv', baseUrl: 'https://yacinee-tv.net/', timeZone: 'Africa/Cairo' },
-  { name: 'sirrtv', baseUrl: 'https://www.sirrtv.online/', timeZone: 'Asia/Riyadh' },
-  { name: 'syr-live', baseUrl: 'https://m.syr.live/', timeZone: 'Asia/Riyadh' },
-  { name: 'sportcityplus', baseUrl: 'https://sportcityplus.com/', timeZone: 'Asia/Riyadh' },
-  { name: 'socceritv', baseUrl: 'https://socceritv.com/', timeZone: 'Asia/Riyadh' }
-];
+function normalizeStagingMatch(match) {
+  const homeName = typeof match.homeTeam === 'object' ? match.homeTeam.name : match.homeTeam;
+  const awayName = typeof match.awayTeam === 'object' ? match.awayTeam.name : match.awayTeam;
+  const scheduledAt = match.scheduledAt || '';
+  const homeLogo = typeof match.homeTeam === 'object' ? match.homeTeam.logo : match.homeLogo;
+  const awayLogo = typeof match.awayTeam === 'object' ? match.awayTeam.logo : match.awayLogo;
+  if (!homeName || !awayName || !scheduledAt) return null;
+  if (String(homeName).trim().toLocaleLowerCase('ar') === String(awayName).trim().toLocaleLowerCase('ar')) return null;
+  const dateParts = zonedParts(new Date(scheduledAt), MOROCCO_TIME_ZONE);
+  return {
+    ...match,
+    matchId: match.match_id || match.matchId || stableMatchId(homeName, awayName, scheduledAt),
+    homeTeam: { name: homeName, logo: homeLogo || '' },
+    awayTeam: { name: awayName, logo: awayLogo || '' },
+    scheduledAt,
+    time: match.time || `${String(dateParts.hour).padStart(2, '0')}:${String(dateParts.minute).padStart(2, '0')}`,
+    rawMinutes: dateParts.hour * 60 + dateParts.minute,
+    score: match.score || 'VS',
+    league: match.league || '',
+    channel: match.channel || ''
+  };
+}
+
+async function getStagingMatches() {
+  if (!stagingMatchesPromise) {
+    stagingMatchesPromise = fetch(`/api/matches?t=${Date.now()}`, { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Status: ${response.status}`);
+        return response.json();
+      })
+      .then((body) => (Array.isArray(body.matches) ? body.matches : []).map(normalizeStagingMatch).filter(Boolean))
+      .catch((error) => {
+        stagingMatchesPromise = null;
+        throw error;
+      });
+  }
+  return stagingMatchesPromise;
+}
 
 
 
 export async function getTodayMatches() {
-
-  const cachedMatches = getCache(CACHE_KEY_TODAY);
-
-  if (cachedMatches) return cachedMatches;
-
-  
-
   try {
-
-    // جلب الصفحة الرئيسية فقط لمنع دخول المباريات القديمة
-
-    const { matches: finalMatches } = await loadFromSources('today');
-
-
-
-
-    // تصفية التكرار إن وجد
-
-    const uniqueMatches = [];
-
-    const seen = new Set();
-
-
-
-    finalMatches.forEach(match => {
-
-      const matchId = match.matchId || match.match_id || stableMatchId(match.homeTeam.name, match.awayTeam.name, match.scheduledAt);
-
-      if (!seen.has(matchId)) {
-
-        seen.add(matchId);
-
-        uniqueMatches.push(match);
-
-      }
-
-    });
-
-
-
-    // 🌟 منطق الفرز الذكي المطلوب 🌟
-
-    const now = getMoroccoWallClockNow();
-
-    const currentMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
-
-
-
-    uniqueMatches.sort((a, b) => {
-
-      const hasChannelA = a.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(a.channel.trim());
-
-      const hasChannelB = b.channel && !['غير محدد', 'Unknown', 'غير معروف', ''].includes(b.channel.trim());
-
-
-
-      const diffA = a.rawMinutes - currentMinutes;
-
-      const diffB = b.rawMinutes - currentMinutes;
-
-
-
-      const getRank = (match, diff, hasChannel) => {
-
-        // 1. القناة غير متوفرة تُرمى في الأسفل تماماً
-
-        if (!hasChannel) return 4;
-
-
-
-        // 2. المباراة جارية الآن (نتيجة مسجلة أو التوقيت الحالي بين البداية والنهاية)
-
-        const isLive = match.isLive || (match.score && match.score !== 'VS') || (diff <= 0 && diff > -130);
-
-        if (isLive) return 1;
-
-
-
-        // 3. ستبدأ قريباً (خلال 45 دقيقة قادمة)
-
-        if (diff > 0 && diff <= 45) return 2;
-
-
-
-        // 4. قادمة لاحقاً في اليوم
-
-        return 3;
-
-      };
-
-
-
-      const rankA = getRank(a, diffA, hasChannelA);
-
-      const rankB = getRank(b, diffB, hasChannelB);
-
-
-
-      if (rankA !== rankB) return rankA - rankB;
-
-      return a.rawMinutes - b.rawMinutes;
-
-    });
-
-
-
-    if (uniqueMatches.length > 0) setCache(CACHE_KEY_TODAY, uniqueMatches);
-
-    return uniqueMatches;
-
-
-
+    const matches = await getStagingMatches();
+    return matches.filter((match) => getMoroccoDay(match.scheduledAt) === 'today');
   } catch (error) {
-
     console.error(`Today matches fetch failed: ${error.message}`);
     return [];
-
   }
-
 }
-
-
 
 export async function getTomorrowMatches() {
-
-  const cachedMatches = getCache(CACHE_KEY_TOMORROW);
-
-  if (cachedMatches) return cachedMatches;
-
-  
-
-  const { matches: newMatches } = await loadFromSources('tomorrow');
-
-
-  newMatches.sort((a, b) => a.rawMinutes - b.rawMinutes);
-
-
-
-  if (newMatches.length > 0) setCache(CACHE_KEY_TOMORROW, newMatches);
-
-  return newMatches;
-
-}
-
-
-
-async function fetchHtml(targetUrl) {
-
   try {
-
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}&t=${Date.now()}`, {
-      cache: 'no-store'
-    });
-
-    if (!response.ok) throw new Error(`Status: ${response.status}`);
-
-    return await response.text();
-
+    const matches = await getStagingMatches();
+    return matches.filter((match) => getMoroccoDay(match.scheduledAt) === 'tomorrow');
   } catch (error) {
-
-    console.error(`Source request failed for ${targetUrl}: ${error.message}`);
-    return '';
-
+    console.error(`Tomorrow matches fetch failed: ${error.message}`);
+    return [];
   }
-
 }
-
-
-
-async function loadFromSources(day) {
-  const path = day === 'tomorrow' ? 'matches-tomorrow/' : '';
-  const results = await Promise.all(MATCH_SOURCES.map(async (source) => {
-    const targetUrl = new URL(path, source.baseUrl).href;
-    const html = await fetchHtml(targetUrl);
-    return { source, matches: parseMatches(html, source.baseUrl, source.timeZone, day === 'tomorrow' ? 1 : 0) };
-  }));
-  const merged = [];
-  const seen = new Set();
-  const failures = [];
-
-  for (const { source, matches } of results) {
-    if (!matches.length) {
-      failures.push(source.name);
-      continue;
-    }
-    for (const match of matches) {
-      const key = match.matchId || match.match_id || stableMatchId(match.homeTeam.name, match.awayTeam.name, match.scheduledAt);
-      if (!seen.has(key)) {
-        seen.add(key);
-        merged.push({ ...match, sourceName: source.name });
-      }
-    }
-  }
-
-  console.info(`[matches] ${day} sources: ${MATCH_SOURCES.length}, usable: ${MATCH_SOURCES.length - failures.length}, matches: ${merged.length}`);
-  return { matches: merged, source: merged[0]?.sourceName || null, failures };
-}
-
-// --- 4. Core Parsing Logic ---
-const MATCH_SELECTORS = [
-  '.AY_Match',
-  '.match-container',
-  '.match-card',
-  '.match-item',
-  'article[class*="match"]',
-  'article.match',
-  '[data-match-id]',
-  '[data-match]'
-];
 
 const HOME_TEAM_SELECTORS = [
-  '.MT_Team.TM1 .TM_Name',
-  '[data-team="home"] .TM_Name',
-  '[data-team="home"] .team-name',
-  '.home-team .TM_Name',
-  '.home-team .team-name',
-  '.team-home .team-name',
   '.team1 .TM_Name',
   '.team1 .team-name',
   '.match-team.team1 .team-name',
@@ -403,7 +234,7 @@ function findMatchElements(doc) {
   return [];
 }
 
-export function parseMatches(html, sourceBaseUrl = MATCH_SOURCES[0].baseUrl, sourceTimeZone = 'Africa/Casablanca', sourceDayOffset = 0) {
+export function parseMatches(html, sourceBaseUrl = '', sourceTimeZone = 'Africa/Casablanca', sourceDayOffset = 0) {
   if (!html) return [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
