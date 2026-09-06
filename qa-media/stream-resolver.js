@@ -16,7 +16,14 @@ function launchOptions() {
   return {
     headless: true,
     protocolTimeout: Math.max(config.timeoutMs, 30000),
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--single-process'
+    ]
   };
 }
 

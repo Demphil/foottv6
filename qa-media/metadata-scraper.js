@@ -91,7 +91,17 @@ async function fetchScheduleHtml() {
     const html = await response.text();
     if (parseSchedule(html).length) return html;
   }
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--single-process'
+    ]
+  });
   try {
     const page = await browser.newPage();
     await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: config.timeoutMs });
