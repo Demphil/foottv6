@@ -34,6 +34,19 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+function matchStartDate(match) {
+  if (match?.scheduledAt) {
+    const scheduledDate = new Date(match.scheduledAt);
+    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
+  }
+
+  const timeMatch = String(match?.time || '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!timeMatch) return null;
+  const localDate = new Date();
+  localDate.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+  return localDate;
+}
+
 // --- 3. دالة بناء بطاقة المباراة (Render) ---
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
@@ -58,9 +71,10 @@ function renderMatch(match) {
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
   const now = new Date();
-  const matchDate = match.scheduledAt ? new Date(match.scheduledAt) : now;
+  const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
   const withinMatchWindow = diffMins <= 15 && diffMins >= -180;
+  const isLive = diffMins <= 0 && diffMins >= -180;
 
   let timeText = match.time;
   let statusBadge = '';
@@ -71,10 +85,10 @@ function renderMatch(match) {
     let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
 
     if (withinMatchWindow && watchUrl) {
-      if (diffMins >= 0 && !match.isLive) {
+      if (diffMins >= 0) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
-      } else if (match.isLive || diffMins > -140) {
+      } else if (isLive) {
            statusBadge = '<span class="live-badge live">جاري الآن</span>';
            matchStatusClass = 'is-live';
            if (match.score && match.score.includes('-')) {
@@ -143,7 +157,7 @@ function matchRenderSignature(match) {
     match.scheduledAt || '',
     match.time || '',
     match.score || '',
-    match.isLive ? 'live' : 'scheduled',
+    matchStartDate(match) && matchStartDate(match) <= new Date() ? 'live' : 'scheduled',
     match.channel || '',
     Array.isArray(match.streams) ? match.streams.map((stream) => stream.url || '').join(',') : '',
     match.homeTeam?.logo || '',
@@ -160,52 +174,18 @@ function createMatchElement(match) {
 function renderSection(container, matches, message) {
     if (!container) return;
   const nextMatches = matches || [];
-  const nextSignature = nextMatches.map(matchRenderSignature).join('||');
-  if (container.dataset.matchSignature === nextSignature) return;
-
-  const currentCards = new Map();
-  container.querySelectorAll('article[data-match-id]').forEach((article) => {
-    const link = article.closest('a.match-card-link');
-    if (link) currentCards.set(article.dataset.matchId, link);
-  });
-  const nextIds = new Set(nextMatches.map(matchIdentity));
-
-  for (const [matchId, link] of currentCards) {
-    if (!nextIds.has(matchId)) link.remove();
-  }
-
-  const emptyMessage = container.querySelector('.no-matches');
+  container.innerHTML = '';
+  container.dataset.matchSignature = nextMatches.map(matchRenderSignature).join('||');
   if (!nextMatches.length) {
-    if (emptyMessage) {
-      if (emptyMessage.textContent !== message) emptyMessage.innerHTML = `<i class="fas fa-futbol"></i><p>${message}</p>`;
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'no-matches';
-      placeholder.innerHTML = `<i class="fas fa-futbol"></i><p>${message}</p>`;
-      container.appendChild(placeholder);
-    }
-    container.dataset.matchSignature = nextSignature;
+    container.innerHTML = `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
     return;
-    }
-
-  emptyMessage?.remove();
-  for (const match of nextMatches) {
-    const matchId = matchIdentity(match);
-    const nextElement = createMatchElement(match);
-    const currentElement = currentCards.get(matchId);
-    if (currentElement) {
-      const currentSignature = currentElement.dataset.renderSignature;
-      if (currentSignature !== matchRenderSignature(match)) currentElement.replaceWith(nextElement);
-    } else {
-      container.appendChild(nextElement);
-    }
-    const element = container.querySelector(`article[data-match-id="${CSS.escape(matchId)}"]`)?.closest('a.match-card-link');
-    if (element) {
-      element.dataset.renderSignature = matchRenderSignature(match);
-      container.appendChild(element);
-    }
   }
-  container.dataset.matchSignature = nextSignature;
+
+  for (const match of nextMatches) {
+    const element = createMatchElement(match);
+    element.dataset.renderSignature = matchRenderSignature(match);
+    container.appendChild(element);
+  }
 }
 
 // --- 5. الدالة الرئيسية (Load & Sort) ---
@@ -215,10 +195,10 @@ async function loadAndRenderMatches() {
     getTomorrowMatches()
   ]);
 
+  hideLoading();
   const allMatches = [...rawTodayMatches, ...rawTomorrowMatches]
-    .filter(match => match?.scheduledAt && !Number.isNaN(new Date(match.scheduledAt).getTime()))
-    .filter(match => /^https?:\/\//i.test(match.homeTeam?.logo || '') && /^https?:\/\//i.test(match.awayTeam?.logo || ''));
-  const now = getMoroccoWallClockNow();
+    .filter(match => match?.homeTeam?.name && match?.awayTeam?.name && matchStartDate(match));
+  const now = new Date();
 
   const trueTodayMatches = [];
   const trueTomorrowMatches = [];
@@ -229,9 +209,9 @@ async function loadAndRenderMatches() {
       const matchKey = match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
       if (seenMatches.has(matchKey)) return;
       seenMatches.add(matchKey);
-      const matchDate = new Date(match.scheduledAt);
+      const matchDate = matchStartDate(match);
       const diffMins = (matchDate - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
+      const isLive = diffMins <= 0 && diffMins >= -180;
 
       const day = getMoroccoDay(match.scheduledAt, new Date());
       if (day === 'today' || (isLive && day === 'today')) trueTodayMatches.push(match);
@@ -246,8 +226,8 @@ async function loadAndRenderMatches() {
       const matchSpecificKeyB = `${b.homeTeam.name}-${b.awayTeam.name}`;
       const watchUrlB = Array.isArray(b.streams) && b.streams.length > 0;
 
-      const diffA = (new Date(a.scheduledAt) - now) / 60000;
-      const diffB = (new Date(b.scheduledAt) - now) / 60000;
+      const diffA = (matchStartDate(a) - now) / 60000;
+      const diffB = (matchStartDate(b) - now) / 60000;
 
       const getRank = (diff, hasStream, isLive) => {
           if (!hasStream) return 4; 
@@ -257,12 +237,12 @@ async function loadAndRenderMatches() {
           return 5;
       };
 
-      const rankA = getRank(diffA, !!watchUrlA, a.isLive);
-      const rankB = getRank(diffB, !!watchUrlB, b.isLive);
+      const rankA = getRank(diffA, !!watchUrlA, diffA <= 0 && diffA >= -180);
+      const rankB = getRank(diffB, !!watchUrlB, diffB <= 0 && diffB >= -180);
 
       if (rankA !== rankB) return rankA - rankB;
       
-      return new Date(a.scheduledAt) - new Date(b.scheduledAt);
+      return matchStartDate(a) - matchStartDate(b);
   }
 
   trueTodayMatches.sort(sortMatches);
@@ -270,9 +250,8 @@ async function loadAndRenderMatches() {
 
   // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
   const featuredMatches = trueTodayMatches.filter(match => {
-      const diffMins = (new Date(match.scheduledAt) - now) / 60000;
-      const isLive = match.isLive || (diffMins <= 0 && diffMins > -140);
-      const isFinished = diffMins <= -140 && !isLive;
+      const diffMins = (matchStartDate(match) - now) / 60000;
+      const isFinished = diffMins <= -180;
       return !isFinished; 
   });
 
@@ -281,7 +260,6 @@ async function loadAndRenderMatches() {
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
-  hideLoading();
 }
 
 // --- 6. إعداد التبويبات ---

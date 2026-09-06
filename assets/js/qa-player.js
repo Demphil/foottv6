@@ -133,6 +133,15 @@
     container.innerHTML = '<div class="stream-unavailable" role="status">البث غير متاح حالياً، يرجى المحاولة لاحقاً.</div>';
   };
 
+  const supabaseConfig = window.__SUPABASE_CONFIG__ || {};
+  if (!window.supabase?.createClient || !supabaseConfig.url || !supabaseConfig.anonKey) {
+    console.error('Supabase browser configuration is missing. Configure __SUPABASE_CONFIG__ with the public URL and anon key.');
+    return showUnavailable();
+  }
+  const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+
   const loadHls = () => new Promise((resolve, reject) => {
     if (window.Hls) return resolve(window.Hls);
     const script = document.createElement('script');
@@ -211,15 +220,16 @@
   };
 
   try {
-    const response = await fetch(`/api/media-stream?matchId=${encodeURIComponent(matchId)}`, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store'
-    });
-    if (!response.ok) return showUnavailable();
+    const { data, error } = await supabaseClient
+      .from('media_qa_staging')
+      .select('payload')
+      .eq('match_id', matchId)
+      .eq('environment', 'staging')
+      .single();
+    if (error) throw new Error(JSON.stringify(error));
 
-    const data = await response.json();
-    const streams = Array.isArray(data.streams)
-      ? data.streams.filter((stream) => stream && typeof stream.url === 'string').slice(0, 4)
+    const streams = Array.isArray(data?.payload?.streams)
+      ? data.payload.streams.filter((stream) => stream && typeof stream.url === 'string').slice(0, 4)
       : [];
     if (!streams.length) return showUnavailable();
     renderServerChoices(streams);
