@@ -30,15 +30,12 @@ function isHttpUrl(value) { return /^https?:\/\//i.test(String(value || '')); }
 
 function isBlockedUrl(value) {
   const lower = String(value || '').toLowerCase();
-  
-  // قائمة سوداء موسعة تشمل كل أدوات التتبع التي ظهرت في السجل
   const blockedDomains = [
     'twitter.com', 'x.com', 't.me', 'facebook.com', 'whatsapp.com', 
     'flashtalking.com', 'doubleclick.net', 'google.com/ads', 'googlesyndication.com', 
     'pubads', 'googleusercontent.com', 'googletagmanager.com', 
     'sharethis.com', 'criteo.com', 'smartadserver.com', 'mountain.com'
   ];
-  
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
   return /(?:monetag|popads|propellerads|popcash|adsterra|onclicka)\./i.test(lower);
 }
@@ -62,14 +59,15 @@ function likelyEmbed(value) {
 
 function parseMatchTime(value, timeZone = config.resolverTimeZone) { return Date.now(); }
 function formatMatchTime(timestamp, timeZone = config.resolverTimeZone) { return 'Now'; }
-function isWithinActiveWindow(row, now = Date.now()) { return true; /* إجبار الاختبار */ }
+function isWithinActiveWindow(row, now = Date.now()) { return true; }
 
 async function discoverStreamCandidates(browser, matches) {
   const candidates = new Set();
   const sourcePages = new Set(matches.map((match) => match.matchUrl));
   const collect = (value, kind = 'network') => {
-    if (sourcePages.has(value)) return;
-    if (likelyStream(value) || (kind === 'iframe' && likelyEmbed(value))) candidates.add(value);
+    if (!isHttpUrl(value) || sourcePages.has(value) || isBlockedUrl(value)) return;
+    // إذا تم استخراجه كإطار (iframe)، نعتبره مرشحاً قوياً فوراً حتى لو لم يحتوي على كلمة player
+    if (kind === 'iframe' || likelyStream(value)) candidates.add(value);
   };
 
   for (const match of matches) {
@@ -107,23 +105,25 @@ async function discoverStreamCandidates(browser, matches) {
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      const collectFrame = async (frame) => {
-        collect(frame.url(), 'iframe');
-        const frameData = await frame.evaluate(() => {
-          const selectors = 'iframe[allowfullscreen], iframe[src], video[src], source[src], [data-src], [data-url], [data-stream], [data-player]';
-          const toUrl = (value) => {
-            try { return new URL(value, location.href).href; } catch { return ''; }
-          };
-          const urls = [...document.querySelectorAll(selectors)].flatMap((element) => [
-            element.getAttribute('src'), element.getAttribute('data-src'), element.getAttribute('data-url'), element.getAttribute('data-stream'), element.getAttribute('data-player')
-          ].filter(Boolean).map(toUrl).filter(Boolean));
-          return { urls };
-        });
-        frameData.urls.forEach((url) => collect(url, 'iframe'));
-      };
+      console.log(`[RESOLVER] Extracting iframe sources directly from DOM...`);
+      const domUrls = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('iframe[src]')).map(f => f.src);
+      }).catch(() => []);
+      
+      domUrls.forEach(url => collect(url, 'iframe'));
 
+      // تكرار آمن للإطارات لتجنب خطأ (Detached Frame)
       for (const frame of page.frames()) {
-        try { await collectFrame(frame); } catch {}
+        if (frame.isDetached()) continue; // الحماية الأساسية من الانهيار
+        try {
+          collect(frame.url(), 'iframe');
+          const frameUrls = await frame.evaluate(() => {
+            return Array.from(document.querySelectorAll('iframe[src], video[src], source[src]')).map(el => el.src);
+          });
+          frameUrls.forEach(url => collect(url, 'iframe'));
+        } catch (error) {
+          // نتجاهل الإطارات التي يتم تدميرها بصمت ولا نوقف السكربت
+        }
       }
     } catch (error) {
       console.warn(`[RESOLVER] ${match.sourceName} deep scrape failed: ${error.message}`);
@@ -153,10 +153,11 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
       result = { status: 'Failed' };
     }
     
-    // شرط التجاوز الذكي: لا نتجاوز القائمة البيضاء إلا إذا كان الرابط يبدو كمشغل فيديو حقيقي
     if (result.status !== 'Passed' && result.error && result.error.includes('allowlist')) {
         const lowerUrl = url.toLowerCase();
-        if (lowerUrl.includes('player') || lowerUrl.includes('embed') || lowerUrl.includes('.m3u8') || lowerUrl.includes('live')) {
+        // توسيع الكلمات المفتاحية لتشمل الروابط العربية الشائعة
+        const validKeywords = ['player', 'embed', '.m3u8', 'live', 'video', 'stream', 'tv', 'ch', 'sport', 'watch'];
+        if (validKeywords.some(kw => lowerUrl.includes(kw))) {
             console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted (Allowlist bypassed): ${url}`);
             result = { status: 'Passed', streamUrl: url, type: 'iframe' };
         }
