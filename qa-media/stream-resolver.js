@@ -31,11 +31,12 @@ function isHttpUrl(value) { return /^https?:\/\//i.test(String(value || '')); }
 function isBlockedUrl(value) {
   const lower = String(value || '').toLowerCase();
   
-  // قائمة سوداء شاملة للإعلانات والمواقع الاجتماعية
+  // قائمة سوداء موسعة تشمل كل أدوات التتبع التي ظهرت في السجل
   const blockedDomains = [
-    'twitter.com', 't.me', 'facebook.com', 'whatsapp.com', 'flashtalking.com',
-    'doubleclick.net', 'google.com/ads', 'googlesyndication.com', 'pubads',
-    'googleusercontent.com', 'googletagmanager.com'
+    'twitter.com', 'x.com', 't.me', 'facebook.com', 'whatsapp.com', 
+    'flashtalking.com', 'doubleclick.net', 'google.com/ads', 'googlesyndication.com', 
+    'pubads', 'googleusercontent.com', 'googletagmanager.com', 
+    'sharethis.com', 'criteo.com', 'smartadserver.com', 'mountain.com'
   ];
   
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
@@ -96,12 +97,11 @@ async function discoverStreamCandidates(browser, matches) {
           });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // محاولة النقر على أي أزرار "سيرفر" لفتح المشغل إذا كان مخفياً
       console.log(`[RESOLVER] Clicking potential server buttons...`);
       await page.evaluate(() => {
-        const buttons = [...document.querySelectorAll('.server, [class*="server"], li[data-server], .btn-play, .play-btn')];
+        const buttons = [...document.querySelectorAll('.server, [class*="server"], li[data-server], .btn-play, .play-btn, #server-list li')];
         if (buttons.length > 0) buttons[0].click();
       }).catch(() => {});
 
@@ -110,7 +110,6 @@ async function discoverStreamCandidates(browser, matches) {
       const collectFrame = async (frame) => {
         collect(frame.url(), 'iframe');
         const frameData = await frame.evaluate(() => {
-          // استخراج إطارات الفيديو فقط (غالباً تحتوي على allowfullscreen)
           const selectors = 'iframe[allowfullscreen], iframe[src], video[src], source[src], [data-src], [data-url], [data-stream], [data-player]';
           const toUrl = (value) => {
             try { return new URL(value, location.href).href; } catch { return ''; }
@@ -154,10 +153,13 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
       result = { status: 'Failed' };
     }
     
-    // إجبار التخطي المؤقت للقائمة البيضاء إذا وجدنا رابطاً ليس إعلاناً
+    // شرط التجاوز الذكي: لا نتجاوز القائمة البيضاء إلا إذا كان الرابط يبدو كمشغل فيديو حقيقي
     if (result.status !== 'Passed' && result.error && result.error.includes('allowlist')) {
-        console.log(`[RESOLVER] FORCED PASS: Valid stream extracted (Allowlist bypassed): ${url}`);
-        result = { status: 'Passed', streamUrl: url, type: 'iframe' };
+        const lowerUrl = url.toLowerCase();
+        if (lowerUrl.includes('player') || lowerUrl.includes('embed') || lowerUrl.includes('.m3u8') || lowerUrl.includes('live')) {
+            console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted (Allowlist bypassed): ${url}`);
+            result = { status: 'Passed', streamUrl: url, type: 'iframe' };
+        }
     }
 
     report.push(result);
