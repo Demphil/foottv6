@@ -264,9 +264,8 @@ async function fetchHtml(targetUrl) {
 
   try {
 
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}&_fresh=${Date.now()}`, {
-      cache: 'no-store',
-      headers: { 'cache-control': 'no-cache' }
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}&t=${Date.now()}`, {
+      cache: 'no-store'
     });
 
     if (!response.ok) throw new Error(`Status: ${response.status}`);
