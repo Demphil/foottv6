@@ -34,6 +34,20 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+window.enforceMatchWindow = function(event, startTimestamp) {
+  const minutesUntilStart = (startTimestamp - Date.now()) / 60000;
+  if (minutesUntilStart > 15) {
+    event.preventDefault();
+    alert("تبدأ التغطية قبل 15 دقيقة من المباراة");
+    return false;
+  }
+  if (minutesUntilStart < -180) {
+    event.preventDefault();
+    return false;
+  }
+  return true;
+}
+
 // --- 3. دالة بناء بطاقة المباراة (Render) ---
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
@@ -57,9 +71,10 @@ function renderMatch(match) {
       : '';
 
   // استخدام التاريخ الفعلي المدمج داخل كائن المباراة
-  const now = getMoroccoWallClockNow();
+  const now = new Date();
   const matchDate = match.scheduledAt ? new Date(match.scheduledAt) : now;
   const diffMins = (matchDate - now) / 60000;
+  const withinMatchWindow = diffMins <= 15 && diffMins >= -180;
 
   let timeText = match.time;
   let statusBadge = '';
@@ -67,10 +82,11 @@ function renderMatch(match) {
   
   let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
   let clickAction = '';
-  let isClickableClass = watchUrl ? 'clickable' : 'not-clickable';
+  let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
 
-  // شرط فتح رابط المباراة عند البث أو تبقي 15 دقيقة أو أقل
-    if (match.isLive || diffMins <= 15) {
+  if (!withinMatchWindow) {
+      clickAction = `onclick="return enforceMatchWindow(event, ${matchDate.getTime()})"`;
+  } else if (withinMatchWindow && watchUrl) {
       if (diffMins >= 0 && !match.isLive) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';

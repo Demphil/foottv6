@@ -19,7 +19,6 @@ const CONTAINER_SELECTORS = {
   home: ['.right-team', '.home-team', '.team-home', '.c3-team--home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'],
   away: ['.left-team', '.away-team', '.team-away', '.c3-team--away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]']
 };
-const TRUSTED_METADATA_SOURCES = new Set(['yallashoot2day', 'm8nstar', 'shooot', 'yacinee-tv']);
 const BROWSER_HEADERS = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -43,6 +42,24 @@ function clean(value) {
 
 function sameTeam(left, right) {
   return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar');
+}
+
+function metadataKey(job) {
+  return `${clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}`;
+}
+
+function mergeMetadata(primary, fallback) {
+  return {
+    ...primary,
+    homeLogo: primary.homeLogo || fallback.homeLogo || '',
+    awayLogo: primary.awayLogo || fallback.awayLogo || '',
+    channel: primary.channel || fallback.channel || '',
+    league: primary.league || fallback.league || '',
+    time: primary.time !== '--:--' ? primary.time : fallback.time || primary.time,
+    scheduledAt: primary.scheduledAt || fallback.scheduledAt || '',
+    matchUrl: primary.matchUrl || fallback.matchUrl || '',
+    sourceName: primary.sourceName || fallback.sourceName || ''
+  };
 }
 
 function slug(value) {
@@ -203,14 +220,14 @@ async function runMetadataOnce() {
   allowlist.sourceHosts = [...new Set(allowlist.sourceHosts)];
   const best = new Map();
 
-  const trustedSources = sources.filter((source) => TRUSTED_METADATA_SOURCES.has(source.name) && source.metadataQuality === 'trusted');
-  const metadataSources = trustedSources.length ? trustedSources : sources.filter((source) => source.metadataQuality !== 'fallback');
+  const metadataSources = sources.filter((source) => source.enabled !== false);
   for (const source of metadataSources) {
     try {
       const jobs = parseSchedule(await fetchSchedule(source), source);
       for (const job of jobs) {
-        const previous = best.get(job.matchId);
-        if (!previous || (job.homeLogo && job.awayLogo && !(previous.homeLogo && previous.awayLogo))) best.set(job.matchId, job);
+        const key = metadataKey(job);
+        const previous = best.get(key);
+        best.set(key, previous ? mergeMetadata(previous, job) : job);
       }
       console.log(`[METADATA] ${source.name}: ${jobs.length} match(es)`);
     } catch (error) {
@@ -238,4 +255,4 @@ if (require.main === module) {
   else { cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); console.log(`[METADATA] Scheduler active: ${config.cron}`); }
 }
 
-module.exports = { parseSchedule, runMetadataOnce };
+module.exports = { parseSchedule, runMetadataOnce, mergeMetadata, metadataKey };
