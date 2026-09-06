@@ -8,6 +8,16 @@ import {
 } from './api.js';
 import { streamLinks } from './streams.js';
 
+// The Supabase anon key is safe to expose in browser code for read-only access when RLS is enabled.
+const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
+const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
+  ? window.supabase.createClient(publicSupabaseConfig.url, publicSupabaseConfig.anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+  : null;
+
+if (!supabaseClient) console.info('[MATCHES] Public Supabase client is not configured; using the server match feed.');
+
 // --- 1. تعريف عناصر DOM ---
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),

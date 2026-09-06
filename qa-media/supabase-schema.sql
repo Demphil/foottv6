@@ -20,3 +20,11 @@ alter table public.media_qa_authorized_sources enable row level security;
 
 revoke all on public.media_qa_staging from anon, authenticated;
 revoke all on public.media_qa_authorized_sources from anon, authenticated;
+
+grant select on public.media_qa_staging to anon, authenticated;
+drop policy if exists "Public can read validated staging streams" on public.media_qa_staging;
+create policy "Public can read validated staging streams"
+  on public.media_qa_staging
+  for select
+  to anon, authenticated
+  using (environment = 'staging' and payload->>'status' = 'PASSED_STAGING');

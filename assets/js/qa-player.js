@@ -138,6 +138,7 @@
     console.error('Supabase browser configuration is missing. Configure __SUPABASE_CONFIG__ with the public URL and anon key.');
     return showUnavailable();
   }
+  // The anon key is safe to expose in the frontend for read-only access when Supabase RLS is enabled.
   const supabaseClient = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
