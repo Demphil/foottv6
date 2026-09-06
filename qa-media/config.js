@@ -10,6 +10,7 @@ const config = {
   leadMinutes: Number(process.env.MEDIA_QA_LEAD_MINUTES || 15),
   postMatchMinutes: Number(process.env.MEDIA_QA_POST_MATCH_MINUTES || 180),
   futureWindowHours: Number(process.env.MEDIA_QA_FUTURE_WINDOW_HOURS || 48),
+  resolverTimeZone: process.env.MEDIA_QA_RESOLVER_TIME_ZONE || 'Africa/Casablanca',
   resolverBatchSize: Number(process.env.MEDIA_QA_RESOLVER_BATCH_SIZE || 20),
   allowlistFile: process.env.AUTHORIZED_SOURCES_FILE || 'qa-media/authorized-sources.json',
   jobsFile: process.env.MEDIA_QA_JOBS_FILE || 'qa-media/jobs.json',

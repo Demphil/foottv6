@@ -58,7 +58,8 @@ function mergeMetadata(primary, fallback) {
     time: primary.time !== '--:--' ? primary.time : fallback.time || primary.time,
     scheduledAt: primary.scheduledAt || fallback.scheduledAt || '',
     matchUrl: primary.matchUrl || fallback.matchUrl || '',
-    sourceName: primary.sourceName || fallback.sourceName || ''
+    sourceName: primary.sourceName || fallback.sourceName || '',
+    timeZone: primary.timeZone || fallback.timeZone || ''
   };
 }
 
@@ -174,6 +175,7 @@ function parseSchedule(html, source) {
       scheduledAt,
       league,
       channel,
+      timeZone: source.timeZone,
       sourceName: source.name,
       matchUrl: link ? new URL(link, source.listUrl).href : ''
     });

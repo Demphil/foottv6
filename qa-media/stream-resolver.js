@@ -35,11 +35,53 @@ function likelyStream(value) {
   );
 }
 
+function zonedParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(date);
+  return Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, Number(value)]));
+}
+
+function parseMatchTime(value, timeZone = config.resolverTimeZone) {
+  const text = String(value || '').trim();
+  if (!text) return NaN;
+  if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(text)) return Date.parse(text);
+
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!match) return Date.parse(text);
+  const localTimestamp = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5]), Number(match[6] || 0));
+  let estimate = new Date(localTimestamp);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const parts = zonedParts(estimate, timeZone);
+    const displayedAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+    estimate = new Date(localTimestamp - (displayedAsUtc - estimate.getTime()));
+  }
+  return estimate.getTime();
+}
+
+function formatMatchTime(timestamp, timeZone = config.resolverTimeZone) {
+  if (!Number.isFinite(timestamp)) return 'Invalid';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    dateStyle: 'short',
+    timeStyle: 'medium'
+  }).format(new Date(timestamp));
+}
+
 function isWithinActiveWindow(row, now = Date.now()) {
   const scheduledAt = row?.payload?.scheduledAt;
-  const matchTime = Date.parse(scheduledAt || '');
+  const timeZone = row?.payload?.timeZone || config.resolverTimeZone;
+  const matchTime = parseMatchTime(scheduledAt, timeZone);
+  const currentTime = now instanceof Date ? now.getTime() : now;
   if (!Number.isFinite(matchTime)) return false;
-  return now >= matchTime - (120 * 60 * 1000) && now <= matchTime + (150 * 60 * 1000);
+  return currentTime >= matchTime - (120 * 60 * 1000) && currentTime <= matchTime + (150 * 60 * 1000);
 }
 
 async function discoverStreamCandidates(browser, match) {
@@ -119,10 +161,15 @@ async function runResolverOnce() {
     console.log('[RESOLVER] No pending metadata rows');
     return [];
   }
+  const now = Date.now();
   const activeRows = rows.filter((row) => {
-    if (isWithinActiveWindow(row)) return true;
-    console.log(`[RESOLVER] ${row.match_id}: Skipped: Outside active window`);
-    return false;
+    const timeZone = row.payload?.timeZone || config.resolverTimeZone;
+    const matchTime = parseMatchTime(row.payload?.scheduledAt, timeZone);
+    const currentLabel = formatMatchTime(now, timeZone);
+    const matchLabel = formatMatchTime(matchTime, timeZone);
+    const active = isWithinActiveWindow(row, now);
+    console.log(`[RESOLVER] ${row.match_id}: Current Time (Normalized): ${currentLabel} (${timeZone}), Match Time: ${matchLabel} -> Action: ${active ? 'Resolving' : 'Skipped: Outside active window'}`);
+    return active;
   });
   if (!activeRows.length) return [];
 
@@ -147,4 +194,11 @@ async function runResolverOnce() {
 
 if (require.main === module) runResolverOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
 
-module.exports = { runResolverOnce, resolveOne, discoverStreamCandidates, isWithinActiveWindow };
+module.exports = {
+  runResolverOnce,
+  resolveOne,
+  discoverStreamCandidates,
+  isWithinActiveWindow,
+  parseMatchTime,
+  formatMatchTime
+};
