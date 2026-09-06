@@ -7,7 +7,6 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { config } = require('./config');
 const { saveStaging } = require('./supabase-storage');
 
-// تفعيل إضافة التخفي لتجاوز حماية Cloudflare
 puppeteer.use(StealthPlugin());
 
 const SCHEDULE_URL = 'https://yallashoot2day.online/';
@@ -61,9 +60,16 @@ function parseSchedule(html) {
 
     const cardText = clean($(card).text());
     const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
-    const time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
-    const scheduledAt = time ? localTimeToIso(time) : '';
-    if (!scheduledAt) return;
+    
+    // إصلاح مشكلة المباريات الجارية (Live) التي لا يظهر فيها وقت
+    let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
+    let scheduledAt = time ? localTimeToIso(time) : '';
+    
+    if (!scheduledAt) {
+      // إذا لم يجد وقتاً، نعطيها وقت افتراضي لكي يتم حفظها بنجاح ولا يتم تجاهلها
+      time = 'مباشر الآن';
+      scheduledAt = localTimeToIso('00:00'); // تعيين وقت منتصف الليل كقيمة افتراضية
+    }
 
     const channelElement = first($, card, CHANNEL_SELECTORS);
     const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || 'تحدد لاحقا';
@@ -93,7 +99,7 @@ function parseSchedule(html) {
 async function fetchScheduleHtml() {
   let browser;
   try {
-    console.log(`[METADATA] Launching stealth browser to investigate...`);
+    console.log(`[METADATA] Launching stealth browser to bypass Cloudflare...`);
     browser = await puppeteer.launch({
       headless: 'new',
       args: [
@@ -110,21 +116,11 @@ async function fetchScheduleHtml() {
     console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
     await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    // كشف اللغز: طباعة العنوان والرابط النهائي
-    const currentUrl = await page.url();
-    const pageTitle = await page.title();
-    console.log(`[METADATA] Current URL after navigation: ${currentUrl}`);
-    console.log(`[METADATA] Page Title: "${pageTitle}"`);
-
-    if (pageTitle.includes('Just a moment') || pageTitle.includes('Cloudflare')) {
-      console.log(`[METADATA] WARNING: The bot is stuck on a Cloudflare challenge page!`);
-    }
-
     console.log(`[METADATA] Waiting for matches to fully render...`);
-    // توسيع دائرة البحث لتشمل أي عنصر يشبه المباريات
-    await page.waitForSelector('.AY_Match, .match-card, article, div[class*="match"], div[class*="Match"]', { timeout: 15000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors, proceeding anyway.'));
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await page.waitForSelector('.AY_Match, .match-card, article', { timeout: 25000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors.'));
+    
+    // انتظار إضافي لتأكيد تحميل كل السكربتات الخاصة بالبث
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const html = await page.content();
     await browser.close();
