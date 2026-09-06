@@ -13,7 +13,7 @@ const SCHEDULE_URL = 'https://yallashoot2day.online/';
 const TIME_ZONE = 'Africa/Casablanca';
 
 const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
-const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]', '[class*="channel"]', '[class*="broadcast"]'];
+const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]'];
 const LEAGUE_SELECTORS = ['.league', '.match-league', '.c3-league', '.competition', '.tournament', '.league-name'];
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
@@ -89,27 +89,31 @@ function parseSchedule(html) {
       scheduledAt = localTimeToIso('00:00');
     }
 
-    // استخراج الدوري والقناة بشكل ذكي
     let league = '';
     let channel = '';
 
-    const channelElement = first($, card, CHANNEL_SELECTORS);
-    if (channelElement) channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text());
-
-    const leagueElement = first($, card, LEAGUE_SELECTORS);
-    if (leagueElement) league = clean($(leagueElement).text());
-
-    // البحث في النصوص عن الفاصل (• أو -) إذا لم يجد القناة بالكلاسات
-    if (!channel || !league) {
-      const allTexts = $(card).find('div, span, p').map((_, el) => clean($(el).text())).get();
-      for (const text of allTexts) {
-        if (text.includes('•')) {
-          const parts = text.split('•').map(clean);
-          if (!league) league = parts[0];
-          if (!channel) channel = parts[1];
-          break;
-        }
+    // قراءة الـ span الأول فقط لتجنب كلمة "مباشر الآن"
+    const chyronSpan = clean($(card).find('.c3-chyron span').first().text());
+    
+    if (chyronSpan) {
+      // قص النص بناءً على النقطة الوسطية، العريضة، أو الشرطة
+      const parts = chyronSpan.split(/[·•\-]/).map(clean);
+      if (parts.length >= 2) {
+        league = parts[0];
+        channel = parts[1];
+      } else {
+        league = chyronSpan;
       }
+    }
+
+    if (!channel) {
+      const channelElement = first($, card, CHANNEL_SELECTORS);
+      if (channelElement) channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text());
+    }
+    
+    if (!league) {
+      const leagueElement = first($, card, LEAGUE_SELECTORS);
+      if (leagueElement) league = clean($(leagueElement).text());
     }
 
     if (!channel) channel = 'تحدد لاحقا';
