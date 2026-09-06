@@ -31,7 +31,6 @@ function isHttpUrl(value) { return /^https?:\/\//i.test(String(value || '')); }
 function isBlockedUrl(value) {
   const lower = String(value || '').toLowerCase();
   
-  // جدار ناري صارم جداً يقتل أي إعلان أو متتبع
   const blockedDomains = [
     'twitter', 't.me', 'facebook', 'whatsapp', 
     'flashtalking', 'doubleclick', 'google', 'googlesyndication', 
@@ -41,7 +40,12 @@ function isBlockedUrl(value) {
   ];
   
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
-  return /(?:monetag|popads|propellerads|popcash|adsterra|onclicka|ads)\./i.test(lower);
+  if (/(?:monetag|popads|propellerads|popcash|adsterra|onclicka|ads)\./i.test(lower)) return true;
+
+  // جدار ناري لملفات التصميم الثابتة (خطوط، صور، ستايلات) لمنع سحبها كروابط بث
+  if (/\.(woff2?|ttf|otf|eot|css|js|png|jpe?g|gif|svg|ico|webmanifest)(?:\?|$)/i.test(lower)) return true;
+
+  return false;
 }
 
 function likelyStream(value) {
@@ -160,10 +164,8 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
         const validKeywords = ['player', 'embed', '.m3u8', 'live', 'stream', 'tv', 'sport', 'watch', 'ch'];
         const spamKeywords = ['google', 'gstatic', 'gvt1', 'adtraffic', 'ads', 'pixel', 'track', 'logger'];
         
-        // الموافقة الإجبارية فقط للروابط الصافية التي لا تحتوي على أي مصطلحات سبام
         if (validKeywords.some(kw => lowerUrl.includes(kw)) && !spamKeywords.some(spam => lowerUrl.includes(spam))) {
             console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted: ${url}`);
-            // تم تصحيح اسم المفتاح هنا إلى url بدلاً من streamUrl لكي يعمل مع واجهة موقعك
             result = { status: 'Passed', url: url, type: 'iframe' };
         }
     }
