@@ -2,9 +2,6 @@ require('dotenv').config({ path: require('node:path').resolve(process.cwd(), '.e
 
 const cron = require('node-cron');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
 const { config } = require('./config');
 const { saveStaging } = require('./supabase-storage');
 
@@ -86,27 +83,14 @@ function parseSchedule(html) {
 }
 
 async function fetchScheduleHtml() {
-  const response = await fetch(SCHEDULE_URL, { headers: { accept: 'text/html', 'user-agent': 'Mozilla/5.0' } });
-  if (response.ok) {
-    const html = await response.text();
-    if (parseSchedule(html).length) return html;
-  }
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--single-process'
-    ]
+  const response = await fetch(SCHEDULE_URL, {
+    headers: {
+      accept: 'text/html,application/xhtml+xml',
+      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36'
+    }
   });
-  try {
-    const page = await browser.newPage();
-    await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: config.timeoutMs });
-    return page.content();
-  } finally { await browser.close().catch(() => {}); }
+  if (!response.ok) throw new Error(`Schedule HTML HTTP ${response.status}`);
+  return response.text();
 }
 
 function metadataKey(match) { return `${clean(match.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(match.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${match.scheduledAt.slice(0, 10)}`; }
