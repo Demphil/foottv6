@@ -13,12 +13,15 @@ const SCHEDULE_URL = 'https://yallashoot2day.online/';
 const TIME_ZONE = 'Africa/Casablanca';
 
 const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
+const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]', '[class*="channel"]', '[class*="broadcast"]'];
+const LEAGUE_SELECTORS = ['.league', '.match-league', '.c3-league', '.competition', '.tournament', '.league-name'];
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
 function sameTeam(left, right) { return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar'); }
 function absoluteUrl(value, baseUrl) { try { const url = new URL(value, baseUrl); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
 function slug(value) { return clean(value).toLocaleLowerCase('ar').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); }
 function sourceDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function first($, root, selectors) { for (const selector of selectors) { const item = $(root).find(selector).first()[0]; if (item) return item; } return null; }
 
 function localTimeToIso(time) {
   const date = sourceDate();
@@ -50,7 +53,6 @@ function parseSchedule(html) {
     let homeTeam = '';
     let awayTeam = '';
 
-    // استخراج أسماء الفرق من aria-label (مثل: يوفنتوس ضد ميلان)
     if (ariaLabel.includes('ضد') || ariaLabel.includes('vs') || ariaLabel.includes('v')) {
       const parts = ariaLabel.split(/\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i).map(clean);
       if (parts.length >= 2) {
@@ -59,7 +61,6 @@ function parseSchedule(html) {
       }
     }
 
-    // محاولة بديلة من العنوان title إذا لم يتوفر aria-label
     if (!homeTeam || !awayTeam) {
       const matchTitle = titleAttr.match(/مباراة\s+([^\s]+(?:\s+[^\s]+)*?)\s+(?:و|ضد|vs)\s+([^\s]+(?:\s+[^\s]+)*?)\s+بتاريخ/i);
       if (matchTitle) {
@@ -68,9 +69,7 @@ function parseSchedule(html) {
       }
     }
 
-    // استخراج يدوي من داخل بطاقة المباراة إذا لزم الأمر
     if (!homeTeam || !awayTeam) {
-      const teamTexts = $(card).find('.c3-card_main, .team-name, div[class*="team"]').text();
       const rawNames = $(card).find('img[alt]').map((__, img) => $(img).attr('alt')).get().filter(Boolean);
       if (rawNames.length >= 2) {
         homeTeam = clean(rawNames[0]);
@@ -80,7 +79,6 @@ function parseSchedule(html) {
 
     if (!homeTeam || !awayTeam || sameTeam(homeTeam, awayTeam)) return;
 
-    // استخراج التوقيت
     const cardText = clean($(card).text());
     const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
     let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
@@ -91,26 +89,31 @@ function parseSchedule(html) {
       scheduledAt = localTimeToIso('00:00');
     }
 
-    // استخراج الدوري والقناة من شريط .c3-chyron
-    const chyronText = clean($(card).find('.c3-chyron').text());
+    // استخراج الدوري والقناة بشكل ذكي
     let league = '';
-    let channel = 'تحدد لاحقا';
+    let channel = '';
 
-    if (chyronText) {
-      if (chyronText.includes('•')) {
-        const parts = chyronText.split('•').map(clean);
-        league = parts[0] || '';
-        channel = parts[1] || 'تحدد لاحقا';
-      } else if (chyronText.includes('-')) {
-        const parts = chyronText.split('-').map(clean);
-        league = parts[0] || '';
-        channel = parts[1] || 'تحدد لاحقا';
-      } else {
-        league = chyronText;
+    const channelElement = first($, card, CHANNEL_SELECTORS);
+    if (channelElement) channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text());
+
+    const leagueElement = first($, card, LEAGUE_SELECTORS);
+    if (leagueElement) league = clean($(leagueElement).text());
+
+    // البحث في النصوص عن الفاصل (• أو -) إذا لم يجد القناة بالكلاسات
+    if (!channel || !league) {
+      const allTexts = $(card).find('div, span, p').map((_, el) => clean($(el).text())).get();
+      for (const text of allTexts) {
+        if (text.includes('•')) {
+          const parts = text.split('•').map(clean);
+          if (!league) league = parts[0];
+          if (!channel) channel = parts[1];
+          break;
+        }
       }
     }
 
-    // استخراج شعارات الفرق والرابط
+    if (!channel) channel = 'تحدد لاحقا';
+
     const images = $(card).find('img').map((__, img) => $(img).attr('data-src') || $(img).attr('src') || '').get().filter(Boolean);
     const homeLogo = absoluteUrl(images[0] || '', SCHEDULE_URL);
     const awayLogo = absoluteUrl(images[1] || '', SCHEDULE_URL);
