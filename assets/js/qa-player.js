@@ -263,6 +263,9 @@
       ? data.payload.streams.filter((stream) => stream && typeof stream.url === 'string').slice(0, 5)
       : [];
     if (!streams.length) return showUnavailable();
+    const channel = data.payload.channel || data.payload.channels?.[0] || '';
+    const banner = stage.querySelector('.qa-player-banner span');
+    if (banner && channel) banner.textContent = `القناة: ${channel} | إذا توقف السيرفر الحالي، اختر سيرفراً آخر من الخيارات أسفل العنوان.`;
     renderServerChoices(streams);
   } catch (error) {
     console.warn('Validated stream lookup unavailable; hiding the unverified fallback player.', error);

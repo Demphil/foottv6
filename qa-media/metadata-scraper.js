@@ -45,7 +45,10 @@ function sameTeam(left, right) {
 }
 
 function metadataKey(job) {
-  return `${clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}`;
+  const home = clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar');
+  const away = clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar');
+  const date = clean(job.scheduledAt).slice(0, 10) || 'undated';
+  return `${home}|${away}|${date}`;
 }
 
 function mergeMetadata(primary, fallback) {
@@ -58,6 +61,7 @@ function mergeMetadata(primary, fallback) {
     time: primary.time !== '--:--' ? primary.time : fallback.time || primary.time,
     scheduledAt: primary.scheduledAt || fallback.scheduledAt || '',
     matchUrl: primary.matchUrl || fallback.matchUrl || '',
+    matchUrls: [...new Set([...(primary.matchUrls || []), primary.matchUrl, ...(fallback.matchUrls || []), fallback.matchUrl].filter(Boolean))],
     sourceName: primary.sourceName || fallback.sourceName || '',
     timeZone: primary.timeZone || fallback.timeZone || ''
   };
@@ -159,10 +163,15 @@ function parseSchedule(html, source) {
     const time = extractTime($(card).find('.match-time, .c3-time').first().text() || $(card).text());
     const date = sourceToday(source.timeZone);
     const scheduledAt = time ? localToUtcIso(date.year, date.month, date.day, time.hour, time.minute, source.timeZone) : '';
-    const chyronRoot = $(card).find('.c3-chyron, .match-chyron, .match-meta, .match-info').first();
+    const chyronRoot = $(card).find('.c3-chyron, .match-chyron, .match-meta, .match-info, .match-details, .broadcast, .tv-channel, .channel-info').first();
     const chyron = clean(chyronRoot.find('span').first().text() || chyronRoot.text());
     const chyronParts = chyron.split(/\s*[·|]\s*/).map(clean).filter(Boolean);
-    const channel = clean($(card).find('.channel, .match-channel, [data-channel], .c3-channel').first().text()) || chyronParts.at(-1) || '';
+    const channelElement = first($, card, [
+      '.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel',
+      '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]',
+      '[class*="channel"]', '[class*="broadcast"]'
+    ]);
+    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || chyronParts.at(-1) || '';
     const league = clean($(card).find('.league, .match-league, .c3-league').first().text()) || chyronParts.slice(0, -1).join(' · ');
 
     jobs.push({
@@ -177,7 +186,8 @@ function parseSchedule(html, source) {
       channel,
       timeZone: source.timeZone,
       sourceName: source.name,
-      matchUrl: link ? new URL(link, source.listUrl).href : ''
+      matchUrl: link ? new URL(link, source.listUrl).href : '',
+      matchUrls: link ? [new URL(link, source.listUrl).href] : []
     });
   });
   return jobs;
@@ -241,6 +251,7 @@ async function runMetadataOnce() {
   for (const job of jobs) {
     await saveStaging(job.matchId, {
       ...job,
+      matchUrls: job.matchUrls || (job.matchUrl ? [job.matchUrl] : []),
       status: 'METADATA_READY',
       resolverStatus: 'PENDING',
       streams: [],

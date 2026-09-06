@@ -32,13 +32,13 @@ function likelyStream(value) {
   return isHttpUrl(value) && !isBlockedUrl(value) && (
     /\.m3u8(?:$|[?#])/i.test(value) ||
     /\.mp4(?:$|[?#])/i.test(value) ||
-    /\/(?:embed|player|live|stream)\b/i.test(value) ||
+    /\/(?:embed|player)(?:\/|\?|$)/i.test(value) ||
     /[?&](?:url|src|stream)=/i.test(value)
   );
 }
 
 function likelyEmbed(value) {
-  return isHttpUrl(value) && !isBlockedUrl(value) && /\/(?:embed|player|live|stream)(?:\/|\?|$)/i.test(value);
+  return isHttpUrl(value) && !isBlockedUrl(value) && /\/(?:embed|player)(?:\/|\?|$)/i.test(value);
 }
 
 function zonedParts(date, timeZone) {
@@ -164,7 +164,8 @@ async function discoverStreamCandidates(browser, matches) {
 
 async function resolveOne(browser, row, allowlist, matchPages = []) {
   const payload = row.payload || {};
-  const pages = matchPages.length ? matchPages : payload.matchUrl ? [{ sourceName: payload.sourceName || 'metadata', matchUrl: payload.matchUrl }] : [];
+  const storedPages = Array.isArray(payload.matchUrls) ? payload.matchUrls : payload.matchUrl ? [payload.matchUrl] : [];
+  const pages = matchPages.length ? matchPages : storedPages.map((matchUrl) => ({ sourceName: payload.sourceName || 'metadata', matchUrl }));
   if (!pages.length) {
     return { ...payload, status: 'RESOLVER_WAITING', resolverStatus: 'NO_MATCH_URL', updatedBy: 'stream-resolver' };
   }

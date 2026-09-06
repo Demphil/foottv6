@@ -67,11 +67,18 @@ export async function onRequestGet({ request, env }) {
 
   if (!response.ok) return json({ error: 'Unable to read match storage' }, 502, origin);
   const rows = await response.json();
+  const seen = new Set();
   const matches = (Array.isArray(rows) ? rows : [])
     .map((row) => ({ ...(row.payload || {}), match_id: row.match_id, updatedAt: row.updated_at }))
     .filter((match) => match.homeTeam && match.awayTeam && match.scheduledAt)
     .filter((match) => String(match.homeTeam).trim() !== String(match.awayTeam).trim())
-    .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'));
+    .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'))
+    .filter((match) => {
+      const key = `${String(match.homeTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.awayTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.scheduledAt).slice(0, 10)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   const day = new URL(request.url).searchParams.get('day');
   const today = moroccoDate(new Date());
