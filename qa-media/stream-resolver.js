@@ -30,12 +30,16 @@ function isHttpUrl(value) { return /^https?:\/\//i.test(String(value || '')); }
 
 function isBlockedUrl(value) {
   const lower = String(value || '').toLowerCase();
+  
+  // أضفنا gstatic و gvt1 و google-analytics لقتل إعلانات الفيديو المخفية
   const blockedDomains = [
     'twitter.com', 'x.com', 't.me', 'facebook.com', 'whatsapp.com', 
     'flashtalking.com', 'doubleclick.net', 'google.com/ads', 'googlesyndication.com', 
     'pubads', 'googleusercontent.com', 'googletagmanager.com', 
-    'sharethis.com', 'criteo.com', 'smartadserver.com', 'mountain.com'
+    'sharethis.com', 'criteo.com', 'smartadserver.com', 'mountain.com',
+    'gstatic.com', 'gvt1.com', 'google-analytics.com'
   ];
+  
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
   return /(?:monetag|popads|propellerads|popcash|adsterra|onclicka)\./i.test(lower);
 }
@@ -66,7 +70,6 @@ async function discoverStreamCandidates(browser, matches) {
   const sourcePages = new Set(matches.map((match) => match.matchUrl));
   const collect = (value, kind = 'network') => {
     if (!isHttpUrl(value) || sourcePages.has(value) || isBlockedUrl(value)) return;
-    // إذا تم استخراجه كإطار (iframe)، نعتبره مرشحاً قوياً فوراً حتى لو لم يحتوي على كلمة player
     if (kind === 'iframe' || likelyStream(value)) candidates.add(value);
   };
 
@@ -112,9 +115,8 @@ async function discoverStreamCandidates(browser, matches) {
       
       domUrls.forEach(url => collect(url, 'iframe'));
 
-      // تكرار آمن للإطارات لتجنب خطأ (Detached Frame)
       for (const frame of page.frames()) {
-        if (frame.isDetached()) continue; // الحماية الأساسية من الانهيار
+        if (frame.isDetached()) continue; 
         try {
           collect(frame.url(), 'iframe');
           const frameUrls = await frame.evaluate(() => {
@@ -122,7 +124,7 @@ async function discoverStreamCandidates(browser, matches) {
           });
           frameUrls.forEach(url => collect(url, 'iframe'));
         } catch (error) {
-          // نتجاهل الإطارات التي يتم تدميرها بصمت ولا نوقف السكربت
+          // Ignore detached frames
         }
       }
     } catch (error) {
@@ -155,9 +157,9 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
     
     if (result.status !== 'Passed' && result.error && result.error.includes('allowlist')) {
         const lowerUrl = url.toLowerCase();
-        // توسيع الكلمات المفتاحية لتشمل الروابط العربية الشائعة
         const validKeywords = ['player', 'embed', '.m3u8', 'live', 'video', 'stream', 'tv', 'ch', 'sport', 'watch'];
-        if (validKeywords.some(kw => lowerUrl.includes(kw))) {
+        // تجنب تمرير روابط تحتوي على كلمات إعلانية واضحة حتى لو احتوت على video
+        if (validKeywords.some(kw => lowerUrl.includes(kw)) && !lowerUrl.includes('video_ads') && !lowerUrl.includes('pixel')) {
             console.log(`[RESOLVER] FORCED PASS: Valid video stream extracted (Allowlist bypassed): ${url}`);
             result = { status: 'Passed', streamUrl: url, type: 'iframe' };
         }
