@@ -101,7 +101,6 @@ async function fetchScheduleHtml() {
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu'
-        // CRITICAL: No --single-process here to prevent Target closed errors!
       ]
     });
 
@@ -109,16 +108,20 @@ async function fetchScheduleHtml() {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     
     console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
-    await page.goto(SCHEDULE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // ننتظر حتى تهدأ تحميلات الشبكة (networkidle2)
+    await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    console.log(`[METADATA] Waiting for Cloudflare challenge to resolve (looking for .BoxContent)...`);
-    // ننتظر 45 ثانية بحد أقصى حتى يقوم كلاودفلير بتحويلنا للصفحة المطلوبة
-    await page.waitForSelector('.BoxContent', { timeout: 45000 });
+    console.log(`[METADATA] Waiting for matches to fully render...`);
+    // ننتظر ظهور عنصر المباراة نفسها وليس الصندوق الخارجي فقط
+    await page.waitForSelector('.AY_Match, .match-card, article', { timeout: 45000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors, proceeding anyway.'));
+
+    // إضافة ثانيتين كأمان إضافي لتكتمل السكربتات الداخلية للموقع (مثل جلب أسماء القنوات)
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const html = await page.content();
     await browser.close();
     
-    console.log(`[METADATA] Successfully bypassed Cloudflare and extracted HTML.`);
+    console.log(`[METADATA] Successfully bypassed Cloudflare and extracted HTML (Length: ${html.length}).`);
     return html;
   } catch (error) {
     if (browser) await browser.close();
