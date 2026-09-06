@@ -258,17 +258,22 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
-  const availableToday = trueTodayMatches.filter(match => (matchStartDate(match) - now) / 60000 > -180);
-  const liveMatches = availableToday.filter(match => {
+  const availableMatches = [...trueTodayMatches, ...trueTomorrowMatches].filter(match => (matchStartDate(match) - now) / 60000 > -180);
+  const liveMatches = availableMatches.filter(match => {
     const diffMins = (matchStartDate(match) - now) / 60000;
     return diffMins <= 0 && diffMins >= -180;
   });
-  const upcomingMatches = availableToday.filter(match => (matchStartDate(match) - now) > 0);
-  const featuredMatches = [...liveMatches, ...upcomingMatches].slice(0, Math.min(5, availableToday.length));
+  const upcomingMatches = availableMatches.filter(match => (matchStartDate(match) - now) > 0);
+  const featuredPool = [];
+
+  liveMatches.forEach(match => featuredPool.push(match));
+  for (const match of upcomingMatches) {
+    if (featuredPool.length >= 5) break;
+    featuredPool.push(match);
+  }
 
   // العرض في الأقسام
-  renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات بارزة أو جارية حالياً.');
+  renderSection(DOM.featuredContainer, featuredPool, 'لا توجد مباريات بارزة أو جارية حالياً.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
