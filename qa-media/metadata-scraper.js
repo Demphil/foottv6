@@ -11,7 +11,7 @@ puppeteer.use(StealthPlugin());
 
 const SCHEDULE_URL = 'https://yallashoot2day.online/';
 const TIME_ZONE = 'Africa/Casablanca';
-const MATCH_SELECTORS = '.BoxContent .AY_Match, .BoxContent .match-card, .BoxContent .match-container, .BoxContent .match-item, .AY_Match, .match-card, .match-container, article[class*="match"], [data-match-id]';
+const MATCH_SELECTORS = '.BoxContent .AY_Match, .BoxContent .match-card, .BoxContent .match-container, .BoxContent .match-item, .AY_Match, .match-card, .match-container, article[class*="match"], div[class*="match"], [data-match-id]';
 const HOME_SELECTORS = ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.team1 .team-name', '.team1 .TM_Name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name'];
 const AWAY_SELECTORS = ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.team2 .team-name', '.team2 .TM_Name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name'];
 const HOME_CONTAINERS = ['.right-team', '.home-team', '.team-home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'];
@@ -61,14 +61,12 @@ function parseSchedule(html) {
     const cardText = clean($(card).text());
     const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
     
-    // إصلاح مشكلة المباريات الجارية (Live) التي لا يظهر فيها وقت
     let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
     let scheduledAt = time ? localTimeToIso(time) : '';
     
     if (!scheduledAt) {
-      // إذا لم يجد وقتاً، نعطيها وقت افتراضي لكي يتم حفظها بنجاح ولا يتم تجاهلها
       time = 'مباشر الآن';
-      scheduledAt = localTimeToIso('00:00'); // تعيين وقت منتصف الليل كقيمة افتراضية
+      scheduledAt = localTimeToIso('00:00'); 
     }
 
     const channelElement = first($, card, CHANNEL_SELECTORS);
@@ -114,23 +112,22 @@ async function fetchScheduleHtml() {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     
     console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
-    await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
+    // استخدام domcontentloaded للسرعة بدلاً من networkidle2 الذي يسبب التعليق
+    await page.goto(SCHEDULE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    console.log(`[METADATA] Waiting for matches to fully render...`);
-    await page.waitForSelector('.AY_Match, .match-card, article', { timeout: 25000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors.'));
-    
-    // انتظار إضافي لتأكيد تحميل كل السكربتات الخاصة بالبث
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    console.log(`[METADATA] Waiting 6 seconds for page to settle...`);
+    // ننتظر 6 ثوانٍ فقط (بدون البحث عن كلاس معين لتجنب التعليق)
+    await new Promise(resolve => setTimeout(resolve, 6000));
 
     const html = await page.content();
-    await browser.close();
-    
     console.log(`[METADATA] Successfully extracted HTML (Length: ${html.length}).`);
     return html;
   } catch (error) {
-    if (browser) await browser.close();
     console.error(`[METADATA] Schedule request error for ${SCHEDULE_URL}: ${error.stack || error.message}`);
     throw error;
+  } finally {
+    // إغلاق المتصفح بالقوة دائماً لتجنب تعليق السيرفر
+    if (browser) await browser.close();
   }
 }
 
@@ -152,7 +149,10 @@ async function runMetadataOnce() {
 
 if (require.main === module) {
   if (process.argv.includes('--once')) {
-    runMetadataOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
+    // إجبار السكربت على الخروج (الإغلاق) بعد الانتهاء بنجاح لتجنب بقائه معلقاً
+    runMetadataOnce()
+      .then(() => process.exit(0))
+      .catch((error) => { console.error(error.stack); process.exit(1); });
   } else { 
     cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); 
     console.log(`[METADATA] Scheduler active: ${config.cron}`); 
