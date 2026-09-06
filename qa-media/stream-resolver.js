@@ -14,15 +14,15 @@ const { validateStream } = require('./validator');
 
 function launchOptions() {
   return {
-    headless: true,
+    headless: 'new',
     protocolTimeout: Math.max(config.timeoutMs, 30000),
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--single-process'
+      '--disable-gpu'
+      // تم حذف '--single-process' عمداً لتجنب الانهيار في سيرفرات GitHub
     ]
   };
 }
@@ -89,12 +89,8 @@ function formatMatchTime(timestamp, timeZone = config.resolverTimeZone) {
 }
 
 function isWithinActiveWindow(row, now = Date.now()) {
-  const scheduledAt = row?.payload?.scheduledAt;
-  const timeZone = row?.payload?.timeZone || config.resolverTimeZone;
-  const matchTime = parseMatchTime(scheduledAt, timeZone);
-  const currentTime = now instanceof Date ? now.getTime() : now;
-  if (!Number.isFinite(matchTime)) return false;
-  return currentTime >= matchTime - (120 * 60 * 1000) && currentTime <= matchTime + (150 * 60 * 1000);
+  // تم التعديل مؤقتاً: إجبار الروبوت على فحص كل المباريات بغض النظر عن وقتها لاختبار جلب الروابط
+  return true;
 }
 
 async function discoverStreamCandidates(browser, matches) {
@@ -233,7 +229,7 @@ async function runResolverOnce() {
     const currentLabel = formatMatchTime(now, timeZone);
     const matchLabel = formatMatchTime(matchTime, timeZone);
     const active = isWithinActiveWindow(row, now);
-    console.log(`[RESOLVER] ${row.match_id}: Current Time (Normalized): ${currentLabel} (${timeZone}), Match Time: ${matchLabel} -> Action: ${active ? 'Resolving' : 'Skipped: Outside active window'}`);
+    console.log(`[RESOLVER] ${row.match_id}: Current Time (Normalized): ${currentLabel} (${timeZone}), Match Time: ${matchLabel} -> Action: ${active ? 'Forced Resolving' : 'Skipped'}`);
     return active;
   });
   if (!activeRows.length) return [];
@@ -258,7 +254,11 @@ async function runResolverOnce() {
   return results;
 }
 
-if (require.main === module) runResolverOnce().catch((error) => { console.error(error.stack); process.exitCode = 1; });
+if (require.main === module) {
+  runResolverOnce()
+    .then(() => process.exit(0))
+    .catch((error) => { console.error(error.stack); process.exit(1); });
+}
 
 module.exports = {
   runResolverOnce,
