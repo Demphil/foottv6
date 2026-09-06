@@ -21,7 +21,11 @@ function launchOptions() {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
-      '--disable-gpu'
+      '--disable-gpu',
+      // الأوامر الجديدة لاختراق الإطارات الخارجية (iframes)
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-site-isolation-trials'
     ]
   };
 }
