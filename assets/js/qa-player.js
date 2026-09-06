@@ -1,7 +1,13 @@
 // Load only streams that passed the server-side freshness and health checks.
 (async function loadValidatedStreams() {
   const params = new URLSearchParams(window.location.search);
-  const matchId = params.get('matchId');
+  const encodedMatchId = params.get('id') || params.get('matchId');
+  let matchId = '';
+  try {
+    matchId = encodedMatchId ? decodeURIComponent(encodedMatchId) : '';
+  } catch {
+    return;
+  }
   if (!matchId) return;
 
   const playerFrame = document.querySelector('#player-container iframe, .iframe-container iframe, body > iframe');

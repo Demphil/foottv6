@@ -34,20 +34,6 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-window.enforceMatchWindow = function(event, startTimestamp) {
-  const minutesUntilStart = (startTimestamp - Date.now()) / 60000;
-  if (minutesUntilStart > 15) {
-    event.preventDefault();
-    alert("تبدأ التغطية قبل 15 دقيقة من المباراة");
-    return false;
-  }
-  if (minutesUntilStart < -180) {
-    event.preventDefault();
-    return false;
-  }
-  return true;
-}
-
 // --- 3. دالة بناء بطاقة المباراة (Render) ---
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
@@ -80,13 +66,11 @@ function renderMatch(match) {
   let statusBadge = '';
   let matchStatusClass = '';
   
-  let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
+    let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
   let clickAction = '';
-  let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
+    let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
 
-  if (!withinMatchWindow) {
-      clickAction = `onclick="return enforceMatchWindow(event, ${matchDate.getTime()})"`;
-  } else if (withinMatchWindow && watchUrl) {
+    if (withinMatchWindow && watchUrl) {
       if (diffMins >= 0 && !match.isLive) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
@@ -97,8 +81,10 @@ function renderMatch(match) {
                timeText = `<span class="live-score">${match.score}</span>`;
            }
       }
-  } else if (!isResolved && !watchUrl) {
-      // إيقاف فتح الرابط المباشر وتفعيل النافذة المنبثقة للانتظار
+    } else if (watchUrl) {
+      hrefAttribute = 'href="javascript:void(0)"';
+      clickAction = 'onclick="return false"';
+    } else if (!isResolved && !watchUrl) {
       hrefAttribute = `href="javascript:void(0)"`; 
       clickAction = `onclick="openWaitModal()"`;
   }
