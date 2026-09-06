@@ -1,75 +1,33 @@
 require('dotenv').config({ path: require('node:path').resolve(process.cwd(), '.env') });
 
 const cron = require('node-cron');
-const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
 const { config } = require('./config');
-const { loadAllowlist } = require('./allowlist');
-const { loadSources, sourceHosts } = require('./source-registry');
 const { saveStaging } = require('./supabase-storage');
 
-const MATCH_SELECTORS = '.AY_Match, .match-container, .match-card, .match-item, article[class*="match"], article.match, [data-match-id], [data-match]';
-const TEAM_SELECTORS = {
-  home: ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.c3-team--home .team-name', '.c3-team--home .c3-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name', '[data-team="home"] .TM_Name'],
-  away: ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.c3-team--away .team-name', '.c3-team--away .c3-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name', '[data-team="away"] .TM_Name']
-};
-const CONTAINER_SELECTORS = {
-  home: ['.right-team', '.home-team', '.team-home', '.c3-team--home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'],
-  away: ['.left-team', '.away-team', '.team-away', '.c3-team--away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]']
-};
-const BROWSER_HEADERS = {
-  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-  'accept-language': 'en-US,en;q=0.9,ar;q=0.8',
-  'accept-encoding': 'gzip, deflate, br',
-  'cache-control': 'no-cache',
-  pragma: 'no-cache',
-  'sec-ch-ua': '"Chromium";v="131", "Google Chrome";v="131", "Not_A Brand";v="24"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'sec-fetch-dest': 'document',
-  'sec-fetch-mode': 'navigate',
-  'sec-fetch-site': 'none',
-  'sec-fetch-user': '?1',
-  referer: 'https://www.google.com/'
-};
-
 function clean(value) {
-  return String(value || '').replace(/\s+/g, ' ').trim();
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
 }
 
-function sameTeam(left, right) {
-  return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar');
+function valueFrom(object, keys) {
+  for (const key of keys) {
+    const value = object?.[key];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return '';
 }
 
-function usableChannel(value) {
-  const channel = clean(value);
-  return channel && !['تحدد لاحقاً', 'غير محدد', 'Unknown', 'غير معروف'].includes(channel) ? channel : '';
+function teamName(value) {
+  return clean(typeof value === 'object' ? value.name || value.title || value.team : value);
 }
 
-function metadataKey(job) {
-  const home = clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar');
-  const away = clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar');
-  const date = clean(job.scheduledAt).slice(0, 10) || 'undated';
-  return `${home}|${away}|${date}`;
-}
-
-function mergeMetadata(primary, fallback) {
-  return {
-    ...primary,
-    homeLogo: primary.homeLogo || fallback.homeLogo || '',
-    awayLogo: primary.awayLogo || fallback.awayLogo || '',
-    channel: usableChannel(primary.channel) || usableChannel(fallback.channel) || 'تحدد لاحقاً',
-    league: primary.league || fallback.league || '',
-    time: primary.time !== '--:--' ? primary.time : fallback.time || primary.time,
-    scheduledAt: primary.scheduledAt || fallback.scheduledAt || '',
-    matchUrl: primary.matchUrl || fallback.matchUrl || '',
-    matchUrls: [...new Set([...(primary.matchUrls || []), primary.matchUrl, ...(fallback.matchUrls || []), fallback.matchUrl].filter(Boolean))],
-    sourceName: primary.sourceName || fallback.sourceName || '',
-    timeZone: primary.timeZone || fallback.timeZone || ''
-  };
+function absoluteUrl(value, baseUrl) {
+  if (!value) return '';
+  try {
+    const url = new URL(String(value), baseUrl);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
 }
 
 function slug(value) {
@@ -78,193 +36,91 @@ function slug(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function matchIdFor(homeTeam, awayTeam, scheduledAt = '') {
-  const date = scheduledAt ? scheduledAt.slice(0, 10) : sourceToday('Africa/Casablanca');
-  const dateValue = typeof date === 'string' ? date : `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
-  return `${slug(homeTeam)}-${slug(awayTeam)}-${dateValue}`;
+function normalizeScheduledAt(value, timeZone = 'Africa/Casablanca') {
+  const text = clean(value);
+  if (!text) return '';
+  if (/\d{4}-\d{2}-\d{2}/.test(text)) {
+    const parsed = /[zZ]|[+-]\d{2}:?\d{2}$/.test(text) ? new Date(text) : new Date(`${text.replace(' ', 'T')}+00:00`);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+  }
+  const time = text.match(/^(\d{1,2}):(\d{2})$/);
+  if (!time) return '';
+  const now = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const local = new Date(`${now}T${String(time[1]).padStart(2, '0')}:${time[2]}:00`);
+  return Number.isNaN(local.getTime()) ? '' : local.toISOString();
 }
 
-function zonedParts(date, timeZone) {
-  const parts = new Intl.DateTimeFormat('en-GB', {
+function metadataKey(job) {
+  return `${clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(job.scheduledAt).slice(0, 10) || 'undated'}`;
+}
+
+function normalizeMatch(raw, index, baseUrl) {
+  const homeValue = valueFrom(raw, ['homeTeam', 'home_team', 'team_home', 'home', 'team1']);
+  const awayValue = valueFrom(raw, ['awayTeam', 'away_team', 'team_away', 'away', 'team2']);
+  const homeTeam = teamName(homeValue);
+  const awayTeam = teamName(awayValue);
+  if (!homeTeam || !awayTeam || homeTeam.normalize('NFKC').toLocaleLowerCase('ar') === awayTeam.normalize('NFKC').toLocaleLowerCase('ar')) return null;
+
+  const timeZone = clean(valueFrom(raw, ['timeZone', 'timezone'])) || 'Africa/Casablanca';
+  const scheduledAt = normalizeScheduledAt(valueFrom(raw, ['scheduledAt', 'scheduled_at', 'date', 'matchDate', 'match_date', 'time']), timeZone);
+  const homeLogo = absoluteUrl(valueFrom(typeof homeValue === 'object' ? homeValue : {}, ['logo', 'logoUrl', 'logo_url']) || valueFrom(raw, ['homeLogo', 'home_logo']), baseUrl);
+  const awayLogo = absoluteUrl(valueFrom(typeof awayValue === 'object' ? awayValue : {}, ['logo', 'logoUrl', 'logo_url']) || valueFrom(raw, ['awayLogo', 'away_logo']), baseUrl);
+  const channel = clean(valueFrom(raw, ['channel', 'channelName', 'channel_name', 'broadcaster', 'tvChannel', 'tv_channel'])) || 'تحدد لاحقاً';
+  const matchUrl = absoluteUrl(valueFrom(raw, ['matchUrl', 'match_url', 'url', 'link']), baseUrl);
+  const matchId = `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || `undated-${index}`}`;
+
+  return {
+    matchId,
+    homeTeam,
+    awayTeam,
+    homeLogo,
+    awayLogo,
+    time: clean(valueFrom(raw, ['time', 'matchTime', 'match_time'])) || (scheduledAt ? new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(scheduledAt)) : '--:--'),
+    scheduledAt,
     timeZone,
-    hourCycle: 'h23',
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
-  }).formatToParts(date);
-  return Object.fromEntries(parts.filter(({ type }) => type !== 'literal').map(({ type, value }) => [type, Number(value)]));
+    channel,
+    league: clean(valueFrom(raw, ['league', 'competition', 'tournament'])) || '',
+    matchUrl,
+    matchUrls: matchUrl ? [matchUrl] : [],
+    sourceName: 'schedule-api'
+  };
 }
 
-function localToUtcIso(year, month, day, hour, minute, timeZone) {
-  const localAsUtc = Date.UTC(year, month - 1, day, hour, minute, 0);
-  const actual = zonedParts(new Date(localAsUtc), timeZone);
-  const offsetAsUtc = Date.UTC(actual.year, actual.month - 1, actual.day, actual.hour, actual.minute, actual.second);
-  return new Date(localAsUtc - (offsetAsUtc - localAsUtc)).toISOString();
+function extractMatches(body) {
+  if (Array.isArray(body)) return body;
+  return body?.matches || body?.data || body?.results || [];
 }
 
-function sourceToday(timeZone) {
-  const today = zonedParts(new Date(), timeZone);
-  return { year: today.year, month: today.month, day: today.day };
-}
-
-function extractTime(text) {
-  const match = clean(text).match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
-  return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
-}
-
-function teamsFromTitle(title) {
-  const value = clean(title);
-  const match = value.match(/(?:مباراة|match)\s+(.+?)\s+(?:و|vs|v|-|ضد)\s+(.+?)(?=\s+(?:بتاريخ|في|اليوم|غداً|tomorrow|today)(?:\s|$)|$)/i);
-  if (!match) return null;
-  const homeTeam = clean(match[1]);
-  const awayTeam = clean(match[2]);
-  return homeTeam && awayTeam ? { homeTeam, awayTeam } : null;
-}
-
-function imageUrl($, element, baseUrl) {
-  if (!element) return '';
-  const raw = $(element).attr('data-src') || $(element).attr('data-lazy-src') || $(element).attr('src') || '';
-  if (!raw || /^data:/i.test(raw) || /(?:default|placeholder|no[-_ ]?image)/i.test(raw)) return '';
-  try {
-    const url = new URL(raw, baseUrl);
-    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
-  } catch {
-    return '';
-  }
-}
-
-function first($, root, selectors) {
-  for (const selector of selectors) {
-    const element = $(root).find(selector).first()[0];
-    if (element) return element;
-  }
-  return null;
-}
-
-function parseSchedule(html, source) {
-  const $ = cheerio.load(html);
-  const jobs = [];
-  $(MATCH_SELECTORS).each((_, card) => {
-    const homeElement = first($, card, TEAM_SELECTORS.home);
-    const awayElement = first($, card, TEAM_SELECTORS.away);
-    const homeContainer = first($, card, CONTAINER_SELECTORS.home) || homeElement;
-    const awayContainer = first($, card, CONTAINER_SELECTORS.away) || awayElement;
-    const title = clean($(card).attr('title') || $(card).find('a[title]').first().attr('title') || $(card).text());
-    const titleTeams = teamsFromTitle(title);
-    const homeTeam = clean($(homeElement || homeContainer).text()) || titleTeams?.homeTeam || '';
-    const awayTeam = clean($(awayElement || awayContainer).text()) || titleTeams?.awayTeam || '';
-    if (!homeTeam || !awayTeam) {
-      console.log('[METADATA] Skipped:', title, 'Reason:', !homeTeam || !awayTeam ? 'Missing team name' : 'Duplicate teams');
-      return;
-    }
-    if (homeTeam.trim() === awayTeam.trim()) {
-      console.log('[METADATA] Skipped:', title, 'Reason: Duplicate teams');
-      return;
-    }
-    if (sameTeam(homeTeam, awayTeam)) {
-      console.log('[METADATA] Skipped:', title, 'Reason: Duplicate teams after normalization');
-      return;
-    }
-
-    const link = $(card).find('a[href]').map((__, anchor) => $(anchor).attr('href')).get().find((href) => href && href !== '#');
-    const time = extractTime($(card).find('.match-time, .c3-time').first().text() || $(card).text());
-    const date = sourceToday(source.timeZone);
-    const scheduledAt = time ? localToUtcIso(date.year, date.month, date.day, time.hour, time.minute, source.timeZone) : '';
-    const chyronRoot = $(card).find('.c3-chyron, .match-chyron, .match-meta, .match-info, .match-details, .broadcast, .tv-channel, .channel-info').first();
-    const chyron = clean(chyronRoot.find('span').first().text() || chyronRoot.text());
-    const chyronParts = chyron.split(/\s*[·|]\s*/).map(clean).filter(Boolean);
-    const channelElement = first($, card, [
-      '.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel',
-      '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]',
-      '[class*="channel"]', '[class*="broadcast"]'
-    ]);
-    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || chyronParts.at(-1) || 'تحدد لاحقاً';
-    const league = clean($(card).find('.league, .match-league, .c3-league').first().text()) || chyronParts.slice(0, -1).join(' · ');
-
-    jobs.push({
-      matchId: matchIdFor(homeTeam, awayTeam, scheduledAt),
-      homeTeam,
-      awayTeam,
-      homeLogo: imageUrl($, $(homeContainer).find('img').first()[0], source.listUrl),
-      awayLogo: imageUrl($, $(awayContainer).find('img').first()[0], source.listUrl),
-      time: time ? `${String(time.hour).padStart(2, '0')}:${String(time.minute).padStart(2, '0')}` : '--:--',
-      scheduledAt,
-      league,
-      channel,
-      timeZone: source.timeZone,
-      sourceName: source.name,
-      matchUrl: link ? new URL(link, source.listUrl).href : '',
-      matchUrls: link ? [new URL(link, source.listUrl).href] : []
-    });
-  });
-  return jobs;
-}
-
-async function fetchSchedule(source) {
-  const referer = new URL(source.listUrl).origin + '/';
-  const headers = { ...BROWSER_HEADERS, referer };
-  const response = await fetch(source.listUrl, { headers, redirect: 'follow' });
-  if (response.ok) return response.text();
-  if (![401, 403, 429].includes(response.status)) throw new Error(`HTTP ${response.status}`);
-  console.warn(`[METADATA] ${source.name}: fetch returned HTTP ${response.status}; trying stealth HTML fallback`);
-  return fetchScheduleWithBrowser(source);
-}
-
-async function fetchScheduleWithBrowser(source) {
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      headless: true,
-      protocolTimeout: Math.max(config.timeoutMs, 30000),
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
-    const page = await browser.newPage();
-    try {
-      await page.setExtraHTTPHeaders({ ...BROWSER_HEADERS, referer: new URL(source.listUrl).origin + '/' });
-      await page.setUserAgent(BROWSER_HEADERS['user-agent']);
-      await page.goto(source.listUrl, { waitUntil: 'domcontentloaded', timeout: config.timeoutMs });
-      return await page.content();
-    } finally {
-      await page.close().catch(() => {});
-    }
-  } finally {
-    if (browser) await browser.close().catch(() => {});
-  }
+async function fetchSchedule() {
+  if (!config.scheduleApiUrl) throw new Error('SCHEDULE_API_URL is required for JSON schedule ingestion');
+  const response = await fetch(config.scheduleApiUrl, { headers: { accept: 'application/json' }, cache: 'no-store' });
+  if (!response.ok) throw new Error(`Schedule API HTTP ${response.status}`);
+  return response.json();
 }
 
 async function runMetadataOnce() {
-  const allowlist = await loadAllowlist();
-  const sources = await loadSources();
-  allowlist.sourceHosts.push(...sourceHosts(sources));
-  allowlist.sourceHosts = [...new Set(allowlist.sourceHosts)];
-  const best = new Map();
+  const body = await fetchSchedule();
+  const deduplicated = new Map();
+  const rawMatches = extractMatches(body);
+  if (!Array.isArray(rawMatches)) throw new Error('Schedule API response must contain an array of matches');
 
-  const metadataSources = sources.filter((source) => source.enabled !== false);
-  for (const source of metadataSources) {
-    try {
-      const jobs = parseSchedule(await fetchSchedule(source), source);
-      for (const job of jobs) {
-        const key = metadataKey(job);
-        const previous = best.get(key);
-        best.set(key, previous ? mergeMetadata(previous, job) : job);
-      }
-      console.log(`[METADATA] ${source.name}: ${jobs.length} match(es)`);
-    } catch (error) {
-      console.warn(`[METADATA] ${source.name} failed: ${error.message}`);
-    }
-  }
+  rawMatches.forEach((raw, index) => {
+    const match = normalizeMatch(raw, index, config.scheduleApiUrl);
+    if (match) deduplicated.set(metadataKey(match), match);
+  });
 
-  const jobs = [...best.values()].slice(0, config.autoDiscoverLimit);
+  const jobs = [...deduplicated.values()].slice(0, config.autoDiscoverLimit);
   for (const job of jobs) {
     await saveStaging(job.matchId, {
       ...job,
-      matchUrls: job.matchUrls || (job.matchUrl ? [job.matchUrl] : []),
       status: 'METADATA_READY',
       resolverStatus: 'PENDING',
       streams: [],
       sourceReports: [],
-      updatedBy: 'metadata-scraper'
+      updatedBy: 'schedule-api'
     });
   }
-  console.log(`[METADATA] Saved ${jobs.length} metadata record(s) to ${config.stagingCollection}`);
+  console.log(`[METADATA] Schedule API returned ${rawMatches.length} match(es); saved ${jobs.length} unique match(es)`);
   return jobs;
 }
 
@@ -273,4 +129,4 @@ if (require.main === module) {
   else { cron.schedule(config.cron, () => runMetadataOnce().catch((error) => console.error(error.stack))); console.log(`[METADATA] Scheduler active: ${config.cron}`); }
 }
 
-module.exports = { parseSchedule, runMetadataOnce, mergeMetadata, metadataKey };
+module.exports = { fetchSchedule, normalizeMatch, metadataKey, runMetadataOnce };

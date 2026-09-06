@@ -13,6 +13,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       SUPABASE_STAGING_TABLE: media_qa_staging
+      SCHEDULE_API_URL: ${{ vars.SCHEDULE_API_URL }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,6 +31,7 @@ jobs:
         run: |
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
+          echo "SCHEDULE_API_URL=${{ vars.SCHEDULE_API_URL }}" >> .env
 
       - name: Scrape match metadata
         run: npm run media:metadata

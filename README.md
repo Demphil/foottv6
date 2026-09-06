@@ -43,6 +43,7 @@ Example `qa-media/sources.json` entry:
 Use `allowedHosts` for an authorized external details/player host when clicking a match leads to another domain. The resolver first prefers a team-and-channel match, then falls back to the team names when the channel is not displayed by the source.
 4. Set server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` when using Supabase. Never expose the service-role key to the browser.
 5. Run `npm run media:qa`; successful validated results are written to the Supabase staging table `media_qa_staging`, never directly to production.
+6. Set `SCHEDULE_API_URL` to the JSON endpoint used by `npm run media:metadata`. The metadata job maps that response and upserts unique matches into `media_qa_staging`.
 
 Cloudflare Pages must define the server-only variables `SUPABASE_URL` and
 `SUPABASE_SERVICE_ROLE_KEY` for the `/api/media-stream` Function. Optionally set
