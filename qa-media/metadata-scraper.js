@@ -93,7 +93,7 @@ function parseSchedule(html) {
 async function fetchScheduleHtml() {
   let browser;
   try {
-    console.log(`[METADATA] Launching stealth browser to bypass Cloudflare...`);
+    console.log(`[METADATA] Launching stealth browser to investigate...`);
     browser = await puppeteer.launch({
       headless: 'new',
       args: [
@@ -108,20 +108,28 @@ async function fetchScheduleHtml() {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     
     console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
-    // ننتظر حتى تهدأ تحميلات الشبكة (networkidle2)
     await page.goto(SCHEDULE_URL, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    console.log(`[METADATA] Waiting for matches to fully render...`);
-    // ننتظر ظهور عنصر المباراة نفسها وليس الصندوق الخارجي فقط
-    await page.waitForSelector('.AY_Match, .match-card, article', { timeout: 45000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors, proceeding anyway.'));
+    // كشف اللغز: طباعة العنوان والرابط النهائي
+    const currentUrl = await page.url();
+    const pageTitle = await page.title();
+    console.log(`[METADATA] Current URL after navigation: ${currentUrl}`);
+    console.log(`[METADATA] Page Title: "${pageTitle}"`);
 
-    // إضافة ثانيتين كأمان إضافي لتكتمل السكربتات الداخلية للموقع (مثل جلب أسماء القنوات)
+    if (pageTitle.includes('Just a moment') || pageTitle.includes('Cloudflare')) {
+      console.log(`[METADATA] WARNING: The bot is stuck on a Cloudflare challenge page!`);
+    }
+
+    console.log(`[METADATA] Waiting for matches to fully render...`);
+    // توسيع دائرة البحث لتشمل أي عنصر يشبه المباريات
+    await page.waitForSelector('.AY_Match, .match-card, article, div[class*="match"], div[class*="Match"]', { timeout: 15000 }).catch(() => console.log('[METADATA] Timeout waiting for match selectors, proceeding anyway.'));
+
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const html = await page.content();
     await browser.close();
     
-    console.log(`[METADATA] Successfully bypassed Cloudflare and extracted HTML (Length: ${html.length}).`);
+    console.log(`[METADATA] Successfully extracted HTML (Length: ${html.length}).`);
     return html;
   } catch (error) {
     if (browser) await browser.close();
