@@ -11,20 +11,14 @@ puppeteer.use(StealthPlugin());
 
 const SCHEDULE_URL = 'https://yallashoot2day.online/';
 const TIME_ZONE = 'Africa/Casablanca';
-const MATCH_SELECTORS = '.BoxContent .AY_Match, .BoxContent .match-card, .BoxContent .match-container, .BoxContent .match-item, .AY_Match, .match-card, .match-container, article[class*="match"], div[class*="match"], [data-match-id]';
-const HOME_SELECTORS = ['.right-team .team-name', '.home-team .team-name', '.team-home .team-name', '.team1 .team-name', '.team1 .TM_Name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name', '[data-team="home"] .team-name'];
-const AWAY_SELECTORS = ['.left-team .team-name', '.away-team .team-name', '.team-away .team-name', '.team2 .team-name', '.team2 .TM_Name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name', '[data-team="away"] .team-name'];
-const HOME_CONTAINERS = ['.right-team', '.home-team', '.team-home', '.team1', '.MT_Team.TM1', '.TM1', '[data-team="home"]'];
-const AWAY_CONTAINERS = ['.left-team', '.away-team', '.team-away', '.team2', '.MT_Team.TM2', '.TM2', '[data-team="away"]'];
-const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]', '[class*="channel"]', '[class*="broadcast"]'];
-const LEAGUE_SELECTORS = ['.league', '.match-league', '.c3-league', '.competition', '.tournament', '.league-name'];
+
+const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
 
 function clean(value) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
 function sameTeam(left, right) { return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar'); }
-function first($, root, selectors) { for (const selector of selectors) { const item = $(root).find(selector).first()[0]; if (item) return item; } return null; }
 function absoluteUrl(value, baseUrl) { try { const url = new URL(value, baseUrl); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
 function slug(value) { return clean(value).toLocaleLowerCase('ar').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); }
-function sourceDate() { const parts = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); return parts; }
+function sourceDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 
 function localTimeToIso(time) {
   const date = sourceDate();
@@ -40,47 +34,94 @@ function localTimeToIso(time) {
   return estimate.toISOString();
 }
 
-function matchIdFor(homeTeam, awayTeam, scheduledAt) { return `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || sourceDate()}`; }
-function imageUrl($, element) { return absoluteUrl($(element).attr('data-src') || $(element).attr('data-lazy-src') || $(element).attr('src') || '', SCHEDULE_URL); }
-function titleTeams(value) { const parts = clean(value).split(/\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i).map(clean); return parts.length >= 2 ? { homeTeam: parts[0], awayTeam: parts[1] } : null; }
+function matchIdFor(homeTeam, awayTeam, scheduledAt) { 
+  return `${slug(homeTeam)}-${slug(awayTeam)}-${scheduledAt.slice(0, 10) || sourceDate()}`; 
+}
 
 function parseSchedule(html) {
   const $ = cheerio.load(html);
   const matches = [];
-  $(MATCH_SELECTORS).each((_, card) => {
-    const homeElement = first($, card, HOME_SELECTORS);
-    const awayElement = first($, card, AWAY_SELECTORS);
-    const homeContainer = first($, card, HOME_CONTAINERS) || homeElement;
-    const awayContainer = first($, card, AWAY_CONTAINERS) || awayElement;
-    const title = clean($(card).attr('title') || $(card).find('[title]').first().attr('title') || $(card).text());
-    const fallback = titleTeams(title);
-    const homeTeam = clean($(homeElement || homeContainer).text()) || fallback?.homeTeam || '';
-    const awayTeam = clean($(awayElement || awayContainer).text()) || fallback?.awayTeam || '';
-    if (!homeTeam || !awayTeam || sameTeam(homeTeam, awayTeam)) return;
 
-    const cardText = clean($(card).text());
-    const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
-    
-    let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
-    let scheduledAt = time ? localTimeToIso(time) : '';
-    
-    if (!scheduledAt) {
-      time = 'مباشر الآن';
-      scheduledAt = localTimeToIso('00:00'); 
+  $(MATCH_SELECTORS).each((_, card) => {
+    const hitAnchor = $(card).find('a.hit, a[aria-label]').first();
+    const ariaLabel = clean(hitAnchor.attr('aria-label') || '');
+    const titleAttr = clean(hitAnchor.attr('title') || $(card).attr('title') || '');
+
+    let homeTeam = '';
+    let awayTeam = '';
+
+    // استخراج أسماء الفرق من aria-label (مثل: يوفنتوس ضد ميلان)
+    if (ariaLabel.includes('ضد') || ariaLabel.includes('vs') || ariaLabel.includes('v')) {
+      const parts = ariaLabel.split(/\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i).map(clean);
+      if (parts.length >= 2) {
+        homeTeam = parts[0];
+        awayTeam = parts[1];
+      }
     }
 
-    const channelElement = first($, card, CHANNEL_SELECTORS);
-    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || 'تحدد لاحقا';
-    const league = clean($(first($, card, LEAGUE_SELECTORS)).text()) || clean($(card).find('.match-info, .match-details, .match-meta').first().text()) || '';
-    const link = $(card).find('a[href]').map((__, anchor) => $(anchor).attr('href')).get().find((href) => href && href !== '#' && !/^javascript:/i.test(href));
-    const matchUrl = absoluteUrl(link || '', SCHEDULE_URL);
-    
+    // محاولة بديلة من العنوان title إذا لم يتوفر aria-label
+    if (!homeTeam || !awayTeam) {
+      const matchTitle = titleAttr.match(/مباراة\s+([^\s]+(?:\s+[^\s]+)*?)\s+(?:و|ضد|vs)\s+([^\s]+(?:\s+[^\s]+)*?)\s+بتاريخ/i);
+      if (matchTitle) {
+        homeTeam = clean(matchTitle[1]);
+        awayTeam = clean(matchTitle[2]);
+      }
+    }
+
+    // استخراج يدوي من داخل بطاقة المباراة إذا لزم الأمر
+    if (!homeTeam || !awayTeam) {
+      const teamTexts = $(card).find('.c3-card_main, .team-name, div[class*="team"]').text();
+      const rawNames = $(card).find('img[alt]').map((__, img) => $(img).attr('alt')).get().filter(Boolean);
+      if (rawNames.length >= 2) {
+        homeTeam = clean(rawNames[0]);
+        awayTeam = clean(rawNames[1]);
+      }
+    }
+
+    if (!homeTeam || !awayTeam || sameTeam(homeTeam, awayTeam)) return;
+
+    // استخراج التوقيت
+    const cardText = clean($(card).text());
+    const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
+    let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
+    let scheduledAt = time ? localTimeToIso(time) : '';
+
+    if (!scheduledAt) {
+      time = 'مباشر الآن';
+      scheduledAt = localTimeToIso('00:00');
+    }
+
+    // استخراج الدوري والقناة من شريط .c3-chyron
+    const chyronText = clean($(card).find('.c3-chyron').text());
+    let league = '';
+    let channel = 'تحدد لاحقا';
+
+    if (chyronText) {
+      if (chyronText.includes('•')) {
+        const parts = chyronText.split('•').map(clean);
+        league = parts[0] || '';
+        channel = parts[1] || 'تحدد لاحقا';
+      } else if (chyronText.includes('-')) {
+        const parts = chyronText.split('-').map(clean);
+        league = parts[0] || '';
+        channel = parts[1] || 'تحدد لاحقا';
+      } else {
+        league = chyronText;
+      }
+    }
+
+    // استخراج شعارات الفرق والرابط
+    const images = $(card).find('img').map((__, img) => $(img).attr('data-src') || $(img).attr('src') || '').get().filter(Boolean);
+    const homeLogo = absoluteUrl(images[0] || '', SCHEDULE_URL);
+    const awayLogo = absoluteUrl(images[1] || '', SCHEDULE_URL);
+    const matchUrl = absoluteUrl(hitAnchor.attr('href') || '', SCHEDULE_URL);
+
     matches.push({
       matchId: matchIdFor(homeTeam, awayTeam, scheduledAt),
       homeTeam,
       awayTeam,
-      homeLogo: imageUrl($, $(homeContainer).find('img').first()[0]),
-      awayLogo: imageUrl($, $(awayContainer).find('img').first()[0]),
+      homeLogo,
+      awayLogo,
       time,
       scheduledAt,
       timeZone: TIME_ZONE,
@@ -91,6 +132,7 @@ function parseSchedule(html) {
       sourceName: 'yallashoot2day'
     });
   });
+
   return matches;
 }
 
@@ -112,12 +154,12 @@ async function fetchScheduleHtml() {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
     
     console.log(`[METADATA] Navigating to ${SCHEDULE_URL}...`);
-    // استخدام domcontentloaded للسرعة بدلاً من networkidle2 الذي يسبب التعليق
     await page.goto(SCHEDULE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    console.log(`[METADATA] Waiting 6 seconds for page to settle...`);
-    // ننتظر 6 ثوانٍ فقط (بدون البحث عن كلاس معين لتجنب التعليق)
-    await new Promise(resolve => setTimeout(resolve, 6000));
+    console.log(`[METADATA] Waiting for .match-container or .c3-card to render...`);
+    await page.waitForSelector('.match-container, .c3-card, #today', { timeout: 30000 }).catch(() => console.log('[METADATA] Selector wait timeout, proceeding...'));
+    
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const html = await page.content();
     console.log(`[METADATA] Successfully extracted HTML (Length: ${html.length}).`);
@@ -126,12 +168,13 @@ async function fetchScheduleHtml() {
     console.error(`[METADATA] Schedule request error for ${SCHEDULE_URL}: ${error.stack || error.message}`);
     throw error;
   } finally {
-    // إغلاق المتصفح بالقوة دائماً لتجنب تعليق السيرفر
     if (browser) await browser.close();
   }
 }
 
-function metadataKey(match) { return `${clean(match.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(match.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${match.scheduledAt.slice(0, 10)}`; }
+function metadataKey(match) { 
+  return `${clean(match.homeTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${clean(match.awayTeam).normalize('NFKC').toLocaleLowerCase('ar')}|${match.scheduledAt.slice(0, 10)}`; 
+}
 
 async function runMetadataOnce() {
   const deduplicated = new Map();
@@ -149,7 +192,6 @@ async function runMetadataOnce() {
 
 if (require.main === module) {
   if (process.argv.includes('--once')) {
-    // إجبار السكربت على الخروج (الإغلاق) بعد الانتهاء بنجاح لتجنب بقائه معلقاً
     runMetadataOnce()
       .then(() => process.exit(0))
       .catch((error) => { console.error(error.stack); process.exit(1); });
