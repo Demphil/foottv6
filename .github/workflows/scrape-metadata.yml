@@ -1,12 +1,12 @@
-name: Resolve Active Streams
+name: Scrape Match Metadata
 
 on:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '0 */5 * * *'
   workflow_dispatch:
 
 jobs:
-  resolve-streams:
+  scrape-metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -26,5 +26,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Resolve active streams
-        run: npm run media:resolver
+      - name: Scrape match metadata
+        run: npm run media:metadata
