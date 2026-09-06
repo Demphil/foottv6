@@ -44,6 +44,11 @@ function sameTeam(left, right) {
   return clean(left).normalize('NFKC').toLocaleLowerCase('ar') === clean(right).normalize('NFKC').toLocaleLowerCase('ar');
 }
 
+function usableChannel(value) {
+  const channel = clean(value);
+  return channel && !['تحدد لاحقاً', 'غير محدد', 'Unknown', 'غير معروف'].includes(channel) ? channel : '';
+}
+
 function metadataKey(job) {
   const home = clean(job.homeTeam).normalize('NFKC').toLocaleLowerCase('ar');
   const away = clean(job.awayTeam).normalize('NFKC').toLocaleLowerCase('ar');
@@ -56,7 +61,7 @@ function mergeMetadata(primary, fallback) {
     ...primary,
     homeLogo: primary.homeLogo || fallback.homeLogo || '',
     awayLogo: primary.awayLogo || fallback.awayLogo || '',
-    channel: primary.channel || fallback.channel || '',
+    channel: usableChannel(primary.channel) || usableChannel(fallback.channel) || 'تحدد لاحقاً',
     league: primary.league || fallback.league || '',
     time: primary.time !== '--:--' ? primary.time : fallback.time || primary.time,
     scheduledAt: primary.scheduledAt || fallback.scheduledAt || '',
@@ -171,7 +176,7 @@ function parseSchedule(html, source) {
       '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]',
       '[class*="channel"]', '[class*="broadcast"]'
     ]);
-    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || chyronParts.at(-1) || '';
+    const channel = clean($(channelElement).attr('data-channel') || $(channelElement).attr('data-broadcaster') || $(channelElement).text()) || chyronParts.at(-1) || 'تحدد لاحقاً';
     const league = clean($(card).find('.league, .match-league, .c3-league').first().text()) || chyronParts.slice(0, -1).join(' · ');
 
     jobs.push({

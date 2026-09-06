@@ -85,6 +85,10 @@ function renderMatch(match) {
   const diffMins = (matchDate - now) / 60000;
   const withinMatchWindow = diffMins <= 15 && diffMins >= -180;
   const isLive = diffMins <= 0 && diffMins >= -180;
+  const channelName = typeof match.channel === 'string' && match.channel.trim()
+    && !['غير محدد', 'Unknown', 'غير معروف'].includes(match.channel.trim())
+    ? match.channel.trim()
+    : 'تحدد لاحقاً';
 
   let timeText = match.time;
   let statusBadge = '';
@@ -113,15 +117,11 @@ function renderMatch(match) {
       clickAction = `onclick="openWaitModal()"`;
   }
 
-  const hasChannelInfo = match.channel && match.channel !== 'غير محدد' && match.channel !== 'Unknown' && match.channel !== 'غير معروف' && match.channel.trim() !== '';
-  
   const matchDetailsHTML = `
-    ${hasChannelInfo ? `
-      <div class="match-detail-item">
-        <i class="fas fa-tv" aria-hidden="true"></i>
-        <span>${match.channel}</span>
-      </div>
-    ` : ''}
+    <div class="match-detail-item">
+      <i class="fas fa-tv" aria-hidden="true"></i>
+      <span>${channelName}</span>
+    </div>
     ${match.commentator ? `
       <div class="match-detail-item">
         <i class="fas fa-microphone-alt" aria-hidden="true"></i>
@@ -259,11 +259,13 @@ async function loadAndRenderMatches() {
   trueTomorrowMatches.sort(sortMatches);
 
   // الفلترة الصحيحة للقسم العلوي لعرض المباريات التي لم تنتهِ
-  const featuredMatches = trueTodayMatches.filter(match => {
-      const diffMins = (matchStartDate(match) - now) / 60000;
-      const isFinished = diffMins <= -180;
-      return !isFinished; 
+  const availableToday = trueTodayMatches.filter(match => (matchStartDate(match) - now) / 60000 > -180);
+  const liveMatches = availableToday.filter(match => {
+    const diffMins = (matchStartDate(match) - now) / 60000;
+    return diffMins <= 0 && diffMins >= -180;
   });
+  const upcomingMatches = availableToday.filter(match => (matchStartDate(match) - now) > 0);
+  const featuredMatches = [...liveMatches, ...upcomingMatches].slice(0, Math.min(5, availableToday.length));
 
   // العرض في الأقسام
   renderSection(DOM.featuredContainer, featuredMatches, 'لا توجد مباريات بارزة أو جارية حالياً.');

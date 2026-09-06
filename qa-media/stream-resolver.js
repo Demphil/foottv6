@@ -169,14 +169,24 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
   if (!pages.length) {
     return { ...payload, status: 'RESOLVER_WAITING', resolverStatus: 'NO_MATCH_URL', updatedBy: 'stream-resolver' };
   }
-  const candidates = await discoverStreamCandidates(browser, pages);
+  let candidates = await discoverStreamCandidates(browser, pages);
+  if (!candidates.length) {
+    console.warn(`[RESOLVER] ${row.match_id}: No media candidates found after DOM/network extraction; retrying all ${pages.length} source page(s)`);
+    candidates = await discoverStreamCandidates(browser, pages);
+  }
+  console.log(`[RESOLVER] ${row.match_id}: extracted ${candidates.length} candidate URL(s) from ${pages.length} source page(s)`);
+  if (!candidates.length) {
+    console.error(`[RESOLVER] ${row.match_id}: extraction failed; checked iframe[src], video/source[src], data-player/data-stream, nested frames, server controls, and network requests`);
+  }
   const report = [];
   for (const url of candidates) {
     const result = await validateStream(url, allowlist);
     report.push(result);
+    if (result.status !== 'Passed') console.warn(`[RESOLVER] ${row.match_id}: rejected candidate ${url} -> ${result.error || 'validation failed'}`);
     if (report.filter((item) => item.status === 'Passed').length >= config.streamTarget) break;
   }
   const passed = report.filter((item) => item.status === 'Passed').slice(0, config.streamTarget);
+  console.log(`[RESOLVER] ${row.match_id}: ${passed.length} validated stream(s), ${report.length - passed.length} rejected candidate(s)`);
 
   return {
     ...payload,

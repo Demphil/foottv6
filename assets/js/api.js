@@ -119,7 +119,7 @@ function normalizeStagingMatch(match) {
     rawMinutes: dateParts.hour * 60 + dateParts.minute,
     score: match.score || 'VS',
     league: match.league || '',
-    channel: match.channel || match.channels?.[0] || '',
+    channel: match.channel || match.channels?.[0] || 'تحدد لاحقاً',
     streams: Array.isArray(match.streams) ? match.streams : [],
     isLive: Boolean(match.isLive),
     commentator: match.commentator || ''
