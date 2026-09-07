@@ -146,7 +146,7 @@ function renderMatch(match) {
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
-        ${!hasStreams && !fallbackWatchUrl ? '<span class="no-stream-badge">بدون رابط</span>' : ''}
+        ${!hasStreams && !fallbackWatchUrl ? '<span class="no-stream-badge">غير جاهز الان</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
