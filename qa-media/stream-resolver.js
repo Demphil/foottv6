@@ -73,7 +73,7 @@ function parseMatchTime(value, timeZone = config.resolverTimeZone) { return Date
 function formatMatchTime(timestamp, timeZone = config.resolverTimeZone) { return 'Now'; }
 function isWithinActiveWindow(row, now = Date.now()) { return true; }
 
-aasync function discoverStreamCandidates(browser, matches) {
+async function discoverStreamCandidates(browser, matches) {
   const candidates = new Set();
   const sourcePages = new Set(matches.map((match) => match.matchUrl));
   const collect = (value, kind = 'network') => {
