@@ -110,11 +110,12 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    if (stream.url.includes('.m3u8')) {
-        // إذا كان فيديو خام: نطبق مقاس 16:9 السينمائي
-        container.style.paddingBottom = '56.25%'; 
-        container.style.height = 'auto';
+    // السر هنا: فرض مقاس 16:9 السينمائي دائماً لجميع الروابط لحل مشكلة القص
+    container.style.paddingBottom = '56.25%'; 
+    container.style.height = '0';
+    container.style.minHeight = '0';
 
+    if (stream.url.includes('.m3u8')) {
         const video = document.createElement('video');
         video.controls = true;
         video.style.position = 'absolute';
@@ -141,16 +142,11 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(video);
     } 
     else {
-        // إذا كان صفحة ويب (iframe): نلغي مقاس 16:9 ونعطيه ارتفاعاً كبيراً
-        container.style.paddingBottom = '0';
-        container.style.height = '75vh'; // يأخذ 75% من طول الشاشة
-        container.style.minHeight = '600px';
-
         const iframe = document.createElement('iframe');
         iframe.setAttribute('src', stream.url);
         iframe.setAttribute('frameborder', '0');
-        // السماح بالتمرير (scrolling) في حال كان المشغل في أسفل صفحة المصدر
-        iframe.setAttribute('scrolling', 'yes'); 
+        // منع التمرير لكي لا يظهر شريط جانبي مزعج داخل الفيديو
+        iframe.setAttribute('scrolling', 'no'); 
         iframe.setAttribute('allowfullscreen', 'true');
         
         iframe.style.position = 'absolute';
