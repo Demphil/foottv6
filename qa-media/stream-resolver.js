@@ -73,7 +73,7 @@ function parseMatchTime(value, timeZone = config.resolverTimeZone) { return Date
 function formatMatchTime(timestamp, timeZone = config.resolverTimeZone) { return 'Now'; }
 function isWithinActiveWindow(row, now = Date.now()) { return true; }
 
-async function discoverStreamCandidates(browser, matches) {
+aasync function discoverStreamCandidates(browser, matches) {
   const candidates = new Set();
   const sourcePages = new Set(matches.map((match) => match.matchUrl));
   const collect = (value, kind = 'network') => {
@@ -85,11 +85,12 @@ async function discoverStreamCandidates(browser, matches) {
     const page = await browser.newPage();
     page.on('response', (response) => collect(response.url(), 'network'));
     page.on('request', (request) => collect(request.url(), 'network'));
+    
     try {
       console.log(`[RESOLVER] Deep-scraping ${match.sourceName}: ${match.matchUrl}`);
       await page.goto(match.matchUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
       
-      console.log(`[RESOLVER] Scrolling down to trigger lazy-loaded players...`);
+      console.log(`[RESOLVER] Scrolling to trigger lazy-loaded players...`);
       await page.evaluate(async () => {
           await new Promise((resolve) => {
               let totalHeight = 0;
@@ -108,17 +109,34 @@ async function discoverStreamCandidates(browser, matches) {
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      console.log(`[RESOLVER] Clicking potential server buttons...`);
-      await page.evaluate(() => {
-        const buttons = [...document.querySelectorAll('.server, [class*="server"], li[data-server], .btn-play, .play-btn, #server-list li')];
-        if (buttons.length > 0) buttons[0].click();
-      }).catch(() => {});
+      console.log(`[RESOLVER] Finding and clicking ALL server tabs...`);
+      // خوارزمية جديدة للضغط على جميع السيرفرات المتوفرة (سيرفر 1، متعدد، جوال...)
+      await page.evaluate(async () => {
+        const buttons = Array.from(document.querySelectorAll('.server, [class*="server"], li[data-server], .btn-play, ul.servers li, .servers-list li, ul.list-servers li, [id*="server"]'));
+        
+        // فلترة الأزرار لتشمل فقط الأزرار التي تبدو كأزرار بث لتجنب ضغط إعلانات
+        const streamButtons = buttons.filter(b => {
+            const text = b.innerText.toLowerCase();
+            return text.includes('server') || text.includes('سيرفر') || text.includes('بث') || text.includes('متعدد') || text.includes('جوال') || b.hasAttribute('data-server');
+        });
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+        // الضغط على كل سيرفر والانتظار ثانية ليتحمل المشغل
+        for (let i = 0; i < streamButtons.length; i++) {
+           try {
+               streamButtons[i].click();
+               await new Promise(r => setTimeout(r, 1500)); 
+           } catch(e) {}
+        }
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       console.log(`[RESOLVER] Extracting iframe sources directly from DOM...`);
       const domUrls = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('iframe[src]')).map(f => f.src);
+        // تجاهل الإطارات المخفية (التي غالباً تكون إعلانات)
+        return Array.from(document.querySelectorAll('iframe[src]'))
+             .filter(iframe => iframe.style.display !== 'none' && iframe.style.visibility !== 'hidden')
+             .map(f => f.src);
       }).catch(() => []);
       
       domUrls.forEach(url => collect(url, 'iframe'));
