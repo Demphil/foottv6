@@ -1,5 +1,3 @@
-// assets/js/matches.js
-
 import {
   getTodayMatches,
   getTomorrowMatches,
@@ -67,18 +65,17 @@ function renderMatch(match) {
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
-  const isResolved = match.status === 'PASSED_STAGING' || hasStreams;
+  
   const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
-  const watchUrl = isResolved
-    ? `watch.html?id=${encodeURIComponent(stableId)}`
-    : fallbackWatchUrl
+  
+  // جعل الرابط يتجه لصفحة المشاهدة دائماً لكي يتمكن الزائر من الدخول
+  const watchUrl = fallbackWatchUrl
       ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
-      : '';
+      : `watch.html?id=${encodeURIComponent(stableId)}`;
 
   const now = new Date();
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
-  // إظهار رابط المشاهدة قبل 15 دقيقة فقط
   const withinMatchWindow = diffMins <= 15 && diffMins >= -180;
   const isLive = diffMins <= 0 && diffMins >= -180;
   const channelName = typeof match.channel === 'string' && match.channel.trim()
@@ -90,11 +87,12 @@ function renderMatch(match) {
   let statusBadge = '';
   let matchStatusClass = '';
   
-  let hrefAttribute = `href="${watchUrl || '#'}" target="_blank"`;
+  // إزالة القيود التي كانت تمنع الضغط على المباريات
+  let hrefAttribute = `href="${watchUrl}" target="_blank"`;
   let clickAction = '';
-  let isClickableClass = watchUrl && withinMatchWindow ? 'clickable' : 'not-clickable';
+  let isClickableClass = 'clickable';
 
-    if (withinMatchWindow && watchUrl) {
+    if (withinMatchWindow) {
       if (diffMins >= 0) {
           timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
           statusBadge = '<span class="live-badge soon">قريباً</span>';
@@ -105,13 +103,7 @@ function renderMatch(match) {
                timeText = `<span class="live-score">${match.score}</span>`;
            }
       }
-    } else if (watchUrl) {
-      hrefAttribute = 'href="javascript:void(0)"';
-      clickAction = 'onclick="return false"';
-    } else if (!isResolved && !watchUrl) {
-      hrefAttribute = `href="javascript:void(0)"`; 
-      clickAction = `onclick="openWaitModal()"`;
-  }
+    }
 
   const matchDetailsHTML = `
     <div class="match-detail-item">
@@ -129,7 +121,7 @@ function renderMatch(match) {
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
-        ${!hasStreams ? '<span class="no-stream-badge">Stream Unavailable</span>' : ''}
+        ${!hasStreams && !fallbackWatchUrl ? '<span class="no-stream-badge">Stream Pending</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
@@ -218,26 +210,20 @@ async function loadAndRenderMatches() {
       else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });
 
+  // خوارزمية فرز جديدة تعطي الأولوية القصوى للمباريات الجارية
   function sortMatches(a, b) {
-      const matchSpecificKeyA = `${a.homeTeam.name}-${a.awayTeam.name}`;
-      const watchUrlA = Array.isArray(a.streams) && a.streams.length > 0;
-
-      const matchSpecificKeyB = `${b.homeTeam.name}-${b.awayTeam.name}`;
-      const watchUrlB = Array.isArray(b.streams) && b.streams.length > 0;
-
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      const getRank = (diff, hasStream, isLive) => {
-          if (!hasStream) return 4; 
-          if (isLive || (diff < 0 && diff > -140)) return 1;
-          if (diff >= 0 && diff <= 45) return 2; 
-          if (diff > 45) return 3; 
-          return 5;
+      const getRank = (diff) => {
+          if (diff <= 0 && diff >= -180) return 1; // 1. جارية الآن تتصدر
+          if (diff > 0 && diff <= 120) return 2;   // 2. ستبدأ قريباً
+          if (diff > 120) return 3;                // 3. قادمة لاحقاً
+          return 4;                                // 4. انتهت
       };
 
-      const rankA = getRank(diffA, !!watchUrlA, diffA <= 0 && diffA >= -180);
-      const rankB = getRank(diffB, !!watchUrlB, diffB <= 0 && diffB >= -180);
+      const rankA = getRank(diffA);
+      const rankB = getRank(diffB);
 
       if (rankA !== rankB) return rankA - rankB;
       
@@ -247,7 +233,6 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  // تم إزالة الفلتر الصارم لكي تظهر جميع مباريات اليوم
   const availableMatches = [...trueTodayMatches]; 
 
   const liveMatches = availableMatches.filter(match => {
@@ -259,7 +244,6 @@ async function loadAndRenderMatches() {
 
   const featuredPool = [];
 
-  // إعطاء الأولوية للمباريات المباشرة ثم القادمة، وإذا لم توجد نظهر المباريات المنتهية لليوم
   liveMatches.forEach(match => featuredPool.push(match));
   for (const match of upcomingMatches) {
     if (featuredPool.length >= 5) break;
@@ -269,7 +253,6 @@ async function loadAndRenderMatches() {
      if (featuredPool.length >= 5) break;
      featuredPool.push(match);
   }
-
 
   renderSection(DOM.featuredContainer, featuredPool, 'لا توجد مباريات بارزة أو جارية حالياً.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
