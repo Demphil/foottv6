@@ -90,18 +90,23 @@
 </header>
 
       <main class="matches-main">
-<section class="featured-section">
+        
+    <!-- تم دمج المباريات العلوية هنا بناءً على طلبك لتعرض القائمة كاملة -->
+    <section class="featured-section">
         <div class="section-header">
-            <h2 class="section-title"><i class="fas fa-moon"></i>بث مباشر مباريات اليوم</h2>
+            <h2 class="section-title"><i class="fas fa-tv"></i> بث مباشر مباريات اليوم</h2>
         </div>
-        <div id="featured-matches" class="featured-slider">
-            <div class="loading-placeholder">
+        
+        <!-- الحاوية التي سيعرض فيها الجافاسكريبت جميع المباريات (بدل الـ 5 فقط) -->
+        <div id="featured-matches" class="featured-slider matches-grid">
+            <div class="loading-placeholder" id="loading" style="grid-column: 1/-1;">
                 <i class="fas fa-spinner fa-spin"></i>
                 <p>جاري تحميل مباريات اليوم ...</p>
             </div>
         </div>
     </section>
 
+    <!-- قسم الأخبار -->
     <section class="news-controls-section">
         <div class="news-search-container">
             <input type="text" id="news-search-input" placeholder="ابحث في الأخبار...">
@@ -135,6 +140,7 @@
         </div>
     </section>
 
+    <!-- قسم جدول المباريات السفلي (اليوم / الغد) -->
     <section class="all-matches">
         <h2 class="section-title">جدول المباريات</h2>
         <div class="matches-tabs">
@@ -142,6 +148,7 @@
             <button id="tomorrow-tab" class="tab-btn" data-tab="tomorrow">مباريات الغد</button>
         </div>
         <div class="matches-grid">
+            <!-- تمت إزالة broadcast-matches لأنه زائد، ونستخدم today و tomorrow فقط -->
             <div id="today-matches" class="tab-content active"></div>
             <div id="tomorrow-matches" class="tab-content" style="display: none;"></div>
         </div>
@@ -206,16 +213,19 @@
     </script>
     <script type="module" src="assets/js/matches.js"></script>
     <script type="module" src="assets/js/news.js"></script>
+    
+<!-- النافذة المنبثقة للانتظار (محدثة لتعرض رسائل متغيرة) -->
 <div id="wait-modal" class="modal-overlay" onclick="closeWaitModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-icon">
             <i class="fas fa-clock"></i>
         </div>
         <h3>عذراً، البث غير متاح الآن</h3>
+        <!-- سيقوم الجافاسكريبت بتغيير هذا النص بناءً على حالة المباراة -->
         <p>
             حرصاً على جودة الخدمة، سيتم تفعيل رابط المباراة تلقائياً 
             <br>
-            <span class="highlight-time">قبل البداية بـ 10 دقائق</span>
+            <span class="highlight-time">قبل البداية بـ 20 دقيقة</span>
         </p>
         <button class="modal-close-btn" onclick="closeWaitModal()">حسناً، فهمت</button>
     </div>
