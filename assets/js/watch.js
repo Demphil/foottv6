@@ -1,5 +1,27 @@
 // assets/js/watch.js
 
+// ==========================================
+// 1. نظام حماية الصفحة من الاختطاف (Anti-Hijack)
+// ==========================================
+let isLegitNavigation = false;
+
+// تسجيل أي نقرة شرعية من الزائر على روابط أو أزرار موقعنا
+document.addEventListener('click', (e) => {
+    if (e.target.closest('a') || e.target.closest('button')) {
+        isLegitNavigation = true;
+    }
+});
+
+// نصب الفخ: منع أي إعلان من تغيير رابط صفحتنا
+window.addEventListener('beforeunload', (e) => {
+    if (!isLegitNavigation) {
+        e.preventDefault();
+        e.returnValue = 'هناك محاولة لإعادة توجيهك لموقع آخر، هل تريد البقاء؟';
+        return 'هناك محاولة لإعادة توجيهك لموقع آخر، هل تريد البقاء؟';
+    }
+});
+// ==========================================
+
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
 const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
   ? window.supabase.createClient(publicSupabaseConfig.url, publicSupabaseConfig.anonKey, {
@@ -110,7 +132,7 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    // السر هنا: فرض مقاس 16:9 السينمائي دائماً لجميع الروابط لحل مشكلة القص
+    // فرض مقاس 16:9 السينمائي دائماً لجميع الروابط لحل مشكلة القص
     container.style.paddingBottom = '56.25%'; 
     container.style.height = '0';
     container.style.minHeight = '0';
@@ -161,5 +183,27 @@ function loadPlayer(stream, container, loader) {
         };
         
         container.appendChild(iframe);
+
+        // ==========================================
+        // 2. فخ النقرة الأولى (First Click Trap Overlay)
+        // ==========================================
+        const clickTrap = document.createElement('div');
+        clickTrap.style.position = 'absolute';
+        clickTrap.style.top = '0';
+        clickTrap.style.left = '0';
+        clickTrap.style.width = '100%';
+        clickTrap.style.height = '100%';
+        clickTrap.style.zIndex = '999'; // نضعه فوق المشغل مباشرة
+        clickTrap.style.cursor = 'pointer';
+        clickTrap.style.backgroundColor = 'transparent'; // مخفي تماماً
+
+        // بمجرد أن ينقر الزائر، يتم تدمير الغشاء وامتصاص النقرة الإعلانية
+        clickTrap.addEventListener('click', (e) => {
+            e.stopPropagation(); // منع النقرة من الوصول للـ iframe
+            clickTrap.remove();  // تدمير الغشاء ليصبح المشغل قابلاً للاستخدام
+            console.log("تم امتصاص النقرة الأولى بنجاح!");
+        });
+
+        container.appendChild(clickTrap);
     }
 }
