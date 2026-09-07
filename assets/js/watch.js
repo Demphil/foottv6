@@ -1,6 +1,5 @@
 // assets/js/watch.js
 
-// 1. إعداد الاتصال بقاعدة البيانات (نفس الطريقة المستخدمة في المباريات)
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
 const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
   ? window.supabase.createClient(publicSupabaseConfig.url, publicSupabaseConfig.anonKey, {
@@ -12,22 +11,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playerContainer = document.getElementById('player-container');
     const playerLoader = document.getElementById('player-loader');
     
-    // إنشاء حاوية لأزرار السيرفرات إذا لم تكن موجودة في HTML
     const serversContainer = document.getElementById('servers-container') || createServersContainer(playerContainer);
 
     if (!playerContainer || !playerLoader) {
-        console.error("العناصر الأساسية للمشغل غير موجودة في HTML!");
         return;
     }
 
-    // 2. قراءة المعرفات من الرابط
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id'); 
-    const matchLink = urlParams.get('matchLink'); // للتوافق مع الروابط القديمة
+    const matchLink = urlParams.get('matchLink'); 
 
     let streams = [];
 
-    // 3. جلب الروابط المتعددة من Supabase
     if (matchId && supabaseClient) {
         try {
             const { data, error } = await supabaseClient
@@ -43,25 +38,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("خطأ في جلب بيانات البث:", err);
         }
     } 
-    // إذا لم يجد في القاعدة، يستخدم الرابط القديم كحل بديل
     else if (matchLink) {
         streams = [{ url: decodeURIComponent(matchLink), type: 'iframe' }];
     }
 
     if (streams.length === 0) {
-        playerContainer.innerHTML = '<p class="error-message" style="color:#fff; text-align:center;">عذراً، البث غير متوفر حالياً أو لم يبدأ بعد.</p>';
-        playerLoader.style.display = 'none';
+        playerContainer.innerHTML = '<p class="error-message" style="color:#fff; text-align:center; padding: 40px;">عذراً، البث غير متوفر حالياً أو لم يبدأ بعد.</p>';
+        if(playerLoader) playerLoader.style.display = 'none';
         return;
     }
 
-    // 4. تطبيق تنسيق 16:9 للقضاء على الحواف السوداء
-    applyResponsiveCSS(playerContainer);
-
-    // 5. رسم أزرار السيرفرات وتشغيل الأول تلقائياً
+    // تطبيق التنسيق الأساسي للحاوية
+    applyBaseCSS(playerContainer);
     renderServers(streams, playerContainer, playerLoader, serversContainer);
 });
-
-// --- الدوال المساعدة ---
 
 function createServersContainer(playerContainer) {
     const div = document.createElement('div');
@@ -75,14 +65,13 @@ function createServersContainer(playerContainer) {
     return div;
 }
 
-function applyResponsiveCSS(container) {
+function applyBaseCSS(container) {
     container.style.position = 'relative';
     container.style.width = '100%';
-    container.style.paddingBottom = '56.25%'; // السر هنا: يحافظ على أبعاد 16:9 الخاصة بالفيديو
-    container.style.overflow = 'hidden';
     container.style.backgroundColor = '#000';
-    container.style.borderRadius = '12px'; // حواف دائرية أنيقة للمشغل
+    container.style.borderRadius = '12px';
     container.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+    container.style.overflow = 'hidden'; 
 }
 
 function renderServers(streams, playerContainer, playerLoader, serversContainer) {
@@ -92,7 +81,6 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
         const btn = document.createElement('button');
         btn.innerText = `سيرفر ${index + 1}`;
         btn.className = 'server-btn';
-        // تنسيق مبدئي للأزرار (يمكنك تغييره في ملف CSS لاحقاً)
         btn.style.padding = '10px 20px';
         btn.style.cursor = 'pointer';
         btn.style.border = 'none';
@@ -104,7 +92,6 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
         btn.style.transition = 'background 0.3s ease';
 
         btn.onclick = () => {
-            // تلوين الزر النشط
             document.querySelectorAll('.server-btn').forEach(b => b.style.backgroundColor = '#222');
             btn.style.backgroundColor = '#e50914';
             loadPlayer(stream, playerContainer, playerLoader);
@@ -113,16 +100,21 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
         serversContainer.appendChild(btn);
     });
 
-    // تشغيل السيرفر الأول كوضع افتراضي
     loadPlayer(streams[0], playerContainer, playerLoader);
 }
 
 function loadPlayer(stream, container, loader) {
-    container.innerHTML = ''; // تفريغ المشغل القديم
-    loader.style.display = 'block';
+    container.innerHTML = ''; 
+    if(loader) {
+        loader.style.display = 'block';
+        container.appendChild(loader);
+    }
 
-    // دعم الروابط المباشرة (m3u8)
     if (stream.url.includes('.m3u8')) {
+        // إذا كان فيديو خام: نطبق مقاس 16:9 السينمائي
+        container.style.paddingBottom = '56.25%'; 
+        container.style.height = 'auto';
+
         const video = document.createElement('video');
         video.controls = true;
         video.style.position = 'absolute';
@@ -131,37 +123,35 @@ function loadPlayer(stream, container, loader) {
         video.style.width = '100%';
         video.style.height = '100%';
         
-        // التحقق من وجود مكتبة HLS (لتشغيل m3u8)
         if (window.Hls && Hls.isSupported()) {
             const hls = new Hls();
             hls.loadSource(stream.url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                loader.style.display = 'none';
+                if(loader) loader.style.display = 'none';
                 video.play().catch(()=>console.log("Auto-play blocked"));
             });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) { // لأجهزة أبل
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) { 
             video.src = stream.url;
             video.addEventListener('loadedmetadata', () => {
-                loader.style.display = 'none';
+                if(loader) loader.style.display = 'none';
                 video.play().catch(()=>console.log("Auto-play blocked"));
             });
-        } else {
-            container.innerHTML = '<p class="error-message" style="color:#fff; text-align:center;">متصفحك لا يدعم هذا السيرفر.</p>';
-            loader.style.display = 'none';
-            return;
         }
         container.appendChild(video);
     } 
-    // دعم الإطارات (iframes)
     else {
+        // إذا كان صفحة ويب (iframe): نلغي مقاس 16:9 ونعطيه ارتفاعاً كبيراً
+        container.style.paddingBottom = '0';
+        container.style.height = '75vh'; // يأخذ 75% من طول الشاشة
+        container.style.minHeight = '600px';
+
         const iframe = document.createElement('iframe');
         iframe.setAttribute('src', stream.url);
         iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('scrolling', 'no');
+        // السماح بالتمرير (scrolling) في حال كان المشغل في أسفل صفحة المصدر
+        iframe.setAttribute('scrolling', 'yes'); 
         iframe.setAttribute('allowfullscreen', 'true');
-        
-        // تم إزالة sandbox لأنه يمنع مشغلات الفيديو من العمل وعرض الشاشة الكاملة
         
         iframe.style.position = 'absolute';
         iframe.style.top = '0';
@@ -171,14 +161,8 @@ function loadPlayer(stream, container, loader) {
         iframe.style.border = 'none';
 
         iframe.onload = () => {
-            loader.style.display = 'none';
-            container.style.visibility = 'visible';
-            container.style.opacity = '1';
+            if(loader) loader.style.display = 'none';
         };
-        
-        container.style.visibility = 'hidden';
-        container.style.opacity = '0';
-        container.style.transition = 'opacity 0.5s ease-in-out';
         
         container.appendChild(iframe);
     }
