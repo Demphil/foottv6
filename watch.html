@@ -1,18 +1,29 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>مشاهدة المباراة</title>
+  <title>مشاهدة المباراة - البث المباشر</title>
+  
+  <!-- مكتبة تشغيل الروابط المباشرة m3u8 -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  
   <link rel="stylesheet" href="assets/css/watch.css">
+  
+  <!-- الاتصال بقاعدة البيانات -->
   <script src="assets/js/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <main id="player-container" class="iframe-container" aria-live="polite">
-    <p id="player-loader">جاري تحميل البث...</p>
-  </main>
-  <script src="assets/js/qa-player.js"></script>
+<body style="background-color: #111; color: #fff; margin: 0; padding: 20px; font-family: sans-serif;">
+  
+  <!-- حاوية المشغل -->
+  <div style="max-width: 1000px; margin: 0 auto;">
+      <main id="player-container" class="iframe-container" aria-live="polite">
+        <p id="player-loader" style="text-align: center; padding: 50px;">جاري تحميل البث وأفضل السيرفرات...</p>
+      </main>
+  </div>
+
+  <!-- هنا كان الخطأ: قمنا بتغييره إلى watch.js بدلاً من qa-player.js -->
+  <script src="assets/js/watch.js"></script>
 </body>
 </html>
