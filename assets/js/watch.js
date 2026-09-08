@@ -186,7 +186,7 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
     serversContainer.appendChild(topBar);
 
     // تشغيل السيرفر الأول تلقائياً
-    loadPlayer(streams[2], playerContainer, playerLoader);
+    loadPlayer(streams[1], playerContainer, playerLoader);
 }
 function loadPlayer(stream, container, loader) {
     container.innerHTML = ''; 
