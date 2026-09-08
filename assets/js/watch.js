@@ -223,25 +223,29 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // التعديل 2: جلب الأخبار من جدول 'articles' الصحيح
 // ==========================================
+// ==========================================
+// جلب الأخبار من ملف أو رابط news.api
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
-    if (!newsContainer || !supabaseClient) return;
+    if (!newsContainer) return;
 
     try {
-        // تم تغيير اسم الجدول من news إلى articles
-        const { data, error } = await supabaseClient
-            .from('articles') 
-            .select('title, slug, created_at')
-            .order('created_at', { ascending: false })
-            .limit(4);
+        // الاتصال بملف API الأخبار (إذا كان المسار مختلفاً، قم بتعديل 'news.api' إلى المسار الصحيح مثل '/api/news' أو 'assets/js/news.api')
+        const response = await fetch('news.api'); 
+        
+        if (!response.ok) throw new Error('فشل الاتصال بملف الأخبار');
+        
+        const data = await response.json();
+        
+        // استخراج المصفوفة (سواء كانت البيانات مباشرة أو داخل كائن مثل data.articles) وأخذ أحدث 4 مقالات
+        const articles = Array.isArray(data) ? data.slice(0, 4) : (data.articles ? data.articles.slice(0, 4) : []);
 
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-            newsContainer.innerHTML = data.map(article => `
-                <a href="/news.html?slug=${article.slug}" class="watch-news-card">
+        if (articles && articles.length > 0) {
+            newsContainer.innerHTML = articles.map(article => `
+                <a href="/news.html?slug=${article.slug || article.id}" class="watch-news-card">
                     <h4>${article.title}</h4>
-                    <span>${new Date(article.created_at).toLocaleDateString('ar-MA')}</span>
+                    <span>${article.created_at ? new Date(article.created_at).toLocaleDateString('ar-MA') : ''}</span>
                 </a>
             `).join('');
         } else {
@@ -249,6 +253,6 @@ async function loadWatchNews() {
         }
     } catch (err) {
         console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
-        newsContainer.innerHTML = '<p class="news-empty-msg">حدث خطأ في جلب الأخبار.</p>';
+        newsContainer.innerHTML = '<p class="news-empty-msg">حدث خطأ أثناء تحميل الأخبار.</p>';
     }
 }
