@@ -98,11 +98,11 @@ function displayNews(append = false) {
     // إذا كنا في صفحة الأخبار الرئيسية (فيها العاجل) والتحميل من الصفر
     if (!append && elements.breakingGrid) {
         // أخذ أول 5 للعاجل
-        const breaking = state.filteredArticles.slice(0, 5);
+        const breaking = state.filteredArticles.slice(0, 10);
         breaking.forEach(article => {
             elements.breakingGrid.appendChild(createNewsCard(article, 'breaking'));
         });
-        state.currentIndex = 5;
+        state.currentIndex = 10;
     }
 
     // أخذ الدفعة التالية للشبكة
