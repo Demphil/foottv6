@@ -81,7 +81,23 @@ function parseSchedule(html) {
 
     const cardText = clean($(card).text());
     const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
-    let time = timeMatch ? `${String(timeMatch[1]).padStart(2, '0')}:${timeMatch[2]}` : '';
+    
+    // ==========================================
+    // التعديل: تصحيح التوقيت المسائي قبل حفظه في القاعدة
+    // ==========================================
+    let time = '';
+    if (timeMatch) {
+      let hour = Number(timeMatch[1]);
+      const minute = timeMatch[2];
+      
+      // إذا كان التوقيت بين 1 و 11، نضيف 12 ليصبح توقيتاً مسائياً (مثلاً 10 تصبح 22)
+      if (hour >= 1 && hour <= 11) {
+        hour += 12;
+      }
+      
+      time = `${String(hour).padStart(2, '0')}:${minute}`;
+    }
+    
     let scheduledAt = time ? localTimeToIso(time) : '';
 
     if (!scheduledAt) {
@@ -92,11 +108,9 @@ function parseSchedule(html) {
     let league = '';
     let channel = '';
 
-    // قراءة الـ span الأول فقط لتجنب كلمة "مباشر الآن"
     const chyronSpan = clean($(card).find('.c3-chyron span').first().text());
     
     if (chyronSpan) {
-      // قص النص بناءً على النقطة الوسطية، العريضة، أو الشرطة
       const parts = chyronSpan.split(/[·•\-]/).map(clean);
       if (parts.length >= 2) {
         league = parts[0];

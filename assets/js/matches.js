@@ -50,16 +50,19 @@ window.closeWaitModal = function() {
 // ==========================================
 // التعديل 1: نظام ذكي لمعالجة خطأ (AM/PM)
 // ==========================================
+// تصحيح التوقيت الذكي سواء من scheduledAt أو time النصي
 function matchStartDate(match) {
   let finalDate = null;
 
   if (match?.scheduledAt) {
     const scheduledDate = new Date(match.scheduledAt);
-    if (!Number.isNaN(scheduledDate.getTime())) finalDate = scheduledDate;
+    if (!Number.isNaN(scheduledDate.getTime())) {
+      finalDate = new Date(scheduledDate);
+    }
   }
 
-  if (!finalDate) {
-    const timeMatch = String(match?.time || '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!finalDate && match?.time) {
+    const timeMatch = String(match.time).match(/^(\d{1,2}):(\d{2})$/);
     if (timeMatch) {
       finalDate = new Date();
       finalDate.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
@@ -67,10 +70,10 @@ function matchStartDate(match) {
   }
 
   if (finalDate) {
-    // إذا كان التوقيت بين 1 و 11 صباحاً، نحوله تلقائياً للمساء (+12 ساعة)
-    const hours = finalDate.getHours();
-    if (hours >= 1 && hours <= 11) {
-        finalDate.setHours(hours + 12);
+    const now = new Date();
+    // إذا كان الوقت المسجل صباحياً (1 إلى 11) ويبدو في الماضي بأكثر من ساعتين، فهو بالتأكيد توقيت مسائي
+    if (finalDate.getHours() >= 1 && finalDate.getHours() <= 11) {
+      finalDate.setHours(finalDate.getHours() + 12);
     }
     return finalDate;
   }
@@ -105,14 +108,8 @@ function renderMatch(match) {
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
   
-  // ==========================================
-  // التعديل 2: توسيع نافذة السماح لتصبح أكثر مرونة
-  // ==========================================
-  const isLive = diffMins <= 0 && diffMins >= -240; // 4 ساعات لتفادي الأشواط الإضافية
-  const isSoon = diffMins > 0 && diffMins <= 30;    // قبل 30 دقيقة بدلاً من 20
-  
-  // شرط الدخول: قبل المباراة بـ 30 دقيقة أو أثناء البث (حتى 4 ساعات)
-  const withinMatchWindow = diffMins <= 30 && diffMins >= -240; 
+  const isLive = diffMins <= 0 && diffMins >= -240;
+  const isSoon = diffMins > 0 && diffMins <= 60; // إشعار قريباً قبل ساعة
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
     && !['غير محدد', 'Unknown', 'غير معروف'].includes(match.channel.trim())
@@ -124,18 +121,14 @@ function renderMatch(match) {
   let matchStatusClass = '';
   
   let hrefAttribute = `href="javascript:void(0)"`;
-  let clickAction = `onclick="openWaitModal()"`;
+  let clickAction = `onclick="openWaitModal('عذراً، لم يتوفر بث لهذه المباراة بعد.')"`;
   let isClickableClass = 'not-clickable';
 
+  // إذا وجد رابط للمشاهدة، نفتح الصفحة للزائر مباشرة بدون حظر
   if (watchUrl) {
-      if (withinMatchWindow) {
-          hrefAttribute = `href="${watchUrl}" target="_blank"`;
-          clickAction = '';
-          isClickableClass = 'clickable';
-      } else {
-          clickAction = `onclick="openWaitModal('ستتوفر صفحة المشاهدة قبل بداية المباراة بـ 30 دقيقة.')"`;
-          isClickableClass = 'clickable early-click'; 
-      }
+      hrefAttribute = `href="${watchUrl}" target="_blank"`;
+      clickAction = '';
+      isClickableClass = 'clickable';
   }
 
   if (isSoon) {
