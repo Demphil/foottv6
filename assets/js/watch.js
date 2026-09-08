@@ -310,77 +310,53 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار من NewsData.io (مع نظام تخزين مؤقت لحماية الباقة)
 // ==========================================
+// ==========================================
+// جلب الأخبار الرياضية مجاناً مدى الحياة باستخدام تقنية RSS
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
 
-    const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b"; // مفتاحك الحالي
-    const CACHE_KEY = "koralive_news_cache";
-    const CACHE_TIME = 1000 * 60 * 60 * 3; // تخزين الأخبار لمدة 3 ساعات
+    // رابط RSS لموقع رياضي إخباري موثوق (مثال: القسم الرياضي لـ RT العربية الذي يوفر صوراً عالية الدقة)
+    const rssFeedUrl = encodeURIComponent('https://arabic.rt.com/rss/sport/');
+    // استخدام وسيط rss2json المجاني الذي يتحمل آلاف الطلبات يومياً
+    const targetUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssFeedUrl}`;
 
     try {
-        // 1. التحقق من الذاكرة المؤقتة أولاً
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-            const { timestamp, articles } = JSON.parse(cachedData);
-            // إذا لم تمر 3 ساعات، اعرض الأخبار المخزنة وتجنب استهلاك الباقة!
-            if (Date.now() - timestamp < CACHE_TIME) {
-                renderNewsCards(articles, newsContainer);
-                return;
-            }
-        }
-
-        // 2. إذا انتهت صلاحية الأخبار، جلب أخبار جديدة من السيرفر
-        const keywords = 'كرة القدم';
-        const targetUrl = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=4&removeduplicate=1&language=ar&category=sports&q=${encodeURIComponent(keywords)}`;
-
         const response = await fetch(targetUrl);
         
-        if (!response.ok) {
-            // إذا انتهت الباقة، نعرض الأخبار القديمة إن وجدت، أو نعرض رسالة ودية
-            if (cachedData) {
-                const { articles } = JSON.parse(cachedData);
-                renderNewsCards(articles, newsContainer);
-                return;
-            }
-            throw new Error('تم استهلاك الباقة اليومية للأخبار.');
-        }
+        if (!response.ok) throw new Error('فشل جلب الأخبار من خلاصة RSS');
 
         const result = await response.json();
-        const articles = result.results || [];
+        const articles = result.items || []; // لاحظ هنا أننا نستخدم items بدلاً من results
 
         if (articles.length > 0) {
-            // 3. حفظ الأخبار الجديدة في متصفح الزائر
-            localStorage.setItem(CACHE_KEY, JSON.stringify({
-                timestamp: Date.now(),
-                articles: articles
-            }));
-            renderNewsCards(articles, newsContainer);
+            // نأخذ أول 4 أخبار فقط لعدم ازدحام الصفحة
+            const topArticles = articles.slice(0, 4);
+            renderNewsCards(topArticles, newsContainer);
         } else {
             newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
         }
 
     } catch (err) {
         console.warn("تنبيه الأخبار:", err.message);
-        // رسالة أنيقة بدلاً من ترك المكان فارغاً عند تعطل السيرفر
         newsContainer.innerHTML = '<p class="news-empty-msg" style="grid-column: 1 / -1; text-align: center;">جاري تحديث النشرة الرياضية، يرجى العودة لاحقاً.</p>';
     }
 }
 
-// دالة مساعدة لترتيب وعرض الأخبار
+// دالة مساعدة لترتيب وعرض الأخبار بصيغة RSS الجديدة
 function renderNewsCards(articles, container) {
     container.innerHTML = articles.map(article => {
         let title = article.title || 'أحدث الأخبار الرياضية';
-        if (/\.(jpg|jpeg|png|webp|gif)$/i.test(title)) {
-            title = 'تحديث رياضي جديد'; 
-        }
-
         const articleUrl = article.link || '#';
-        const imgUrl = article.image_url || 'assets/images/default-news.jpg';
+        
+        // استخراج الصورة: خدمة rss2json تضع الصورة إما في thumbnail أو في enclosure
+        let imgUrl = article.thumbnail || (article.enclosure && article.enclosure.link) || 'assets/images/default-news.jpg';
         
         let dateStr = '';
         if (article.pubDate) {
-            const date = new Date(article.pubDate);
+            // تنظيف التاريخ ليعمل بكفاءة على جميع المتصفحات (بما فيها سفاري)
+            const date = new Date(article.pubDate.replace(/-/g, '/'));
             dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
