@@ -251,20 +251,30 @@ async function loadAndRenderMatches() {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.status === 'PASSED_STAGING';
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING';
+      // التحقق الشامل: هل يوجد رابط من الروبوت أو رابط يدوي مسجل؟
+      const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.status === 'PASSED_STAGING' || fallbackA;
+
+      const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
 
       const getTier = (diff, hasLink) => {
-        if (!hasLink) return 5;                  
-        if (diff <= 0 && diff >= -240) return 1; // جارية الآن (معدلة لـ 4 ساعات)
-        if (diff > 0 && diff <= 60) return 2;    
-        if (diff > 60) return 3;                 
-        return 4;                                
+          // جارية الآن: تتصدر القائمة دائماً (المرتبة 1)
+          if (diff <= 0 && diff >= -240) return 1; 
+          // ستبدأ قريباً: المرتبة 2
+          if (diff > 0 && diff <= 60) return 2;    
+          // بدون رابط وليست جارية ولا قريبة: تُرمى للأسفل
+          if (!hasLink) return 5;                  
+          // قادمة لاحقاً (متبقي أكثر من ساعة): المرتبة 3
+          if (diff > 60) return 3;                 
+          // منتهية: المرتبة 4
+          return 4;                                
       };
 
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
 
+      // الترتيب حسب الأولوية أولاً، ثم حسب الوقت
       if (tierA !== tierB) return tierA - tierB;
       return matchStartDate(a) - matchStartDate(b);
   }
