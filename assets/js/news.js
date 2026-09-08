@@ -47,6 +47,7 @@ function getCache(key) {
 }
 
 // --- 4. دالة الجلب الأساسية ---
+// --- 4. دالة الجلب الأساسية (المطورة لجلب مصادر متعددة) ---
 async function fetchNews() {
     const cachedData = getCache(CACHE_KEY);
     if (cachedData && cachedData.length > 0) {
@@ -58,16 +59,33 @@ async function fetchNews() {
             elements.grid.innerHTML = '<div class="loading-placeholder" style="grid-column: 1/-1; text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i><p>جاري جلب أحدث الأخبار...</p></div>';
         }
 
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // جلب الأخبار من مصدرين موثوقين لزيادة العدد!
+        const url1 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://arabic.rt.com/rss/sport/')}`;
+        const url2 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.skynewsarabia.com/web/rss/sport')}`;
 
-        const result = await response.json();
-        const articles = result.items || [];
+        // تنفيذ الطلبين معاً في نفس اللحظة للسرعة
+        const [res1, res2] = await Promise.all([
+            fetch(url1).catch(() => null), 
+            fetch(url2).catch(() => null)
+        ]);
 
-        if (articles.length > 0) {
-            setCache(CACHE_KEY, articles);
+        const data1 = (res1 && res1.ok) ? await res1.json() : { items: [] };
+        const data2 = (res2 && res2.ok) ? await res2.json() : { items: [] };
+
+        // دمج الأخبار من المصدرين في قائمة واحدة (حوالي 20 خبر)
+        let allArticles = [...(data1.items || []), ...(data2.items || [])];
+
+        // ترتيب جميع الأخبار دمجاً من الأحدث للأقدم بناءً على تاريخ النشر
+        allArticles.sort((a, b) => {
+            const dateA = new Date(a.pubDate.replace(/-/g, '/'));
+            const dateB = new Date(b.pubDate.replace(/-/g, '/'));
+            return dateB - dateA;
+        });
+
+        if (allArticles.length > 0) {
+            setCache(CACHE_KEY, allArticles);
         }
-        return articles;
+        return allArticles;
 
     } catch (error) {
         console.error('RSS Fetch Error:', error);
@@ -75,7 +93,6 @@ async function fetchNews() {
         return [];
     }
 }
-
 // --- 5. منطق العرض والتقسيم ---
 function displayNews(append = false) {
     if (!elements.grid) return;
