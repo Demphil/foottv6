@@ -71,20 +71,20 @@
       "enabled": true
     },
     {
-      "name": "aflam4you",
-      "listUrl": "https://new.aflam4you.org/",
-      "timeZone": "Africa/Cairo",
+      "name": "fabor-tv",
+      "listUrl": "https://fabor-tv.to/fabor4/",
+      "timeZone": "Africa/casablanca",
       "allowedHosts": [
-        "https://new.aflam4you.org/"
+        "https://yassirtv.com/"
       ],
       "enabled": true
     },
     {
       "name": "syr-live",
-      "listUrl": "https://m.syr.live/",
+      "listUrl": "https://kooora-btv.live/",
       "timeZone": "Asia/Riyadh",
       "allowedHosts": [
-        "m.syr.live",
+        "https://33.3koorashot.online/",
         "m6.kora-sami.com"
       ],
       "enabled": true
@@ -101,7 +101,7 @@
     },
     {
       "name": "socceritv",
-      "listUrl": "https://socceritv.com/",
+      "listUrl": "https://sportcityplus.com/",
       "timeZone": "Asia/Riyadh",
       "allowedHosts": [
         "socceritv.com",
