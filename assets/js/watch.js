@@ -5,19 +5,19 @@
 // ==========================================
 let isLegitNavigation = false;
 
-// تسجيل أي نقرة شرعية من الزائر على روابط أو أزرار موقعنا
+// السماح بالتنقل فقط إذا ضغط الزائر على أزرار موقعنا نحن
 document.addEventListener('click', (e) => {
     if (e.target.closest('a') || e.target.closest('button')) {
         isLegitNavigation = true;
+        setTimeout(() => isLegitNavigation = false, 1000);
     }
 });
 
-// نصب الفخ: منع أي إعلان من تغيير رابط صفحتنا
 window.addEventListener('beforeunload', (e) => {
     if (!isLegitNavigation) {
         e.preventDefault();
-        e.returnValue = 'هناك محاولة لإعادة توجيهك لموقع آخر، هل تريد البقاء؟';
-        return 'هناك محاولة لإعادة توجيهك لموقع آخر، هل تريد البقاء؟';
+        e.returnValue = '';
+        return '';
     }
 });
 // ==========================================
@@ -32,12 +32,9 @@ const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url
 document.addEventListener('DOMContentLoaded', async () => {
     const playerContainer = document.getElementById('player-container');
     const playerLoader = document.getElementById('player-loader');
-    
     const serversContainer = document.getElementById('servers-container') || createServersContainer(playerContainer);
 
-    if (!playerContainer || !playerLoader) {
-        return;
-    }
+    if (!playerContainer || !playerLoader) return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const matchId = urlParams.get('id'); 
@@ -47,20 +44,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (matchId && supabaseClient) {
         try {
-            const { data, error } = await supabaseClient
+            const { data } = await supabaseClient
                 .from('media_qa_staging')
                 .select('payload')
                 .eq('match_id', matchId)
                 .single();
 
-            if (data && data.payload && data.payload.streams && data.payload.streams.length > 0) {
+            if (data?.payload?.streams?.length > 0) {
                 streams = data.payload.streams;
             }
         } catch (err) {
             console.error("خطأ في جلب بيانات البث:", err);
         }
-    } 
-    else if (matchLink) {
+    } else if (matchLink) {
         streams = [{ url: decodeURIComponent(matchLink), type: 'iframe' }];
     }
 
@@ -70,7 +66,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // تطبيق التنسيق الأساسي للحاوية
     applyBaseCSS(playerContainer);
     renderServers(streams, playerContainer, playerLoader, serversContainer);
 });
@@ -132,7 +127,6 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    // فرض مقاس 16:9 السينمائي دائماً لجميع الروابط لحل مشكلة القص
     container.style.paddingBottom = '56.25%'; 
     container.style.height = '0';
     container.style.minHeight = '0';
@@ -164,10 +158,10 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(video);
     } 
     else {
+        // الاتصال المباشر لضمان عمل جميع الروابط
         const iframe = document.createElement('iframe');
         iframe.setAttribute('src', stream.url);
         iframe.setAttribute('frameborder', '0');
-        // منع التمرير لكي لا يظهر شريط جانبي مزعج داخل الفيديو
         iframe.setAttribute('scrolling', 'no'); 
         iframe.setAttribute('allowfullscreen', 'true');
         
@@ -185,7 +179,7 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(iframe);
 
         // ==========================================
-        // 2. فخ النقرة الأولى (First Click Trap Overlay)
+        // 2. الغشاء الشفاف لامتصاص النقرة الإعلانية الأولى
         // ==========================================
         const clickTrap = document.createElement('div');
         clickTrap.style.position = 'absolute';
@@ -193,16 +187,16 @@ function loadPlayer(stream, container, loader) {
         clickTrap.style.left = '0';
         clickTrap.style.width = '100%';
         clickTrap.style.height = '100%';
-        clickTrap.style.zIndex = '999'; // نضعه فوق المشغل مباشرة
+        clickTrap.style.zIndex = '999'; 
         clickTrap.style.cursor = 'pointer';
-        clickTrap.style.backgroundColor = 'transparent'; // مخفي تماماً
+        clickTrap.style.backgroundColor = 'rgba(0,0,0,0)'; // شفاف بالكامل
 
-        // بمجرد أن ينقر الزائر، يتم تدمير الغشاء وامتصاص النقرة الإعلانية
+        // عند النقر: يمتص الغشاء الضغطة، ثم يختفي ليسمح بتشغيل الفيديو
         clickTrap.addEventListener('click', (e) => {
-            e.stopPropagation(); // منع النقرة من الوصول للـ iframe
-            clickTrap.remove();  // تدمير الغشاء ليصبح المشغل قابلاً للاستخدام
-            console.log("تم امتصاص النقرة الأولى بنجاح!");
-        });
+            e.preventDefault();
+            e.stopPropagation(); 
+            clickTrap.remove();
+        }, { once: true }); 
 
         container.appendChild(clickTrap);
     }
