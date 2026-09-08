@@ -1,6 +1,6 @@
-const puppeteer = require('puppeteer-extra'); // تم التعديل لاستخدام النسخة القابلة لإضافة التخفي
+const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin()); // تفعيل ميزة التخفي لتجاوز حماية المواقع
+puppeteer.use(StealthPlugin());
 
 const fs = require('node:fs');
 const { config, assertAllowed } = require('./config');
@@ -102,7 +102,9 @@ function launchOptions(extra = {}) {
     args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--disable-blink-features=AutomationControlled' // إضافة هامة لزيادة التخفي
+        '--disable-blink-features=AutomationControlled',
+        '--disable-web-security', // يساعد في تخطي بعض حمايات الإطارات (CORS)
+        '--mute-audio' // كتم الصوت أثناء السحب
     ],
     ...(browserExecutablePath ? { executablePath: browserExecutablePath } : {}),
     ...extra
@@ -119,131 +121,10 @@ async function gotoWithFallback(page, url) {
   }
 }
 
-async function discoverJobs(sources, allowlist) {
-  const browser = await puppeteer.launch(launchOptions());
-  const bestByMatch = new Map();
-  try {
-    for (const source of sources) {
-      const page = await browser.newPage();
-      try {
-        assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
-        await gotoWithFallback(page, source.listUrl);
-        const cards = await page.$$eval(
-          '.AY_Match, .match-container, .match-card, .match-item, article[class*="match"], [data-match-id], [data-match]',
-          (elements) => elements.map((card) => {
-            const firstElement = (selectors) => selectors.map((selector) => card.querySelector(selector)).find(Boolean) || null;
-            const imageUrl = (element) => {
-              const raw = element?.currentSrc || element?.getAttribute('data-src') || element?.getAttribute('data-lazy-src') || element?.getAttribute('src') || '';
-              if (!raw || /^data:/i.test(raw) || /(?:default|placeholder|no[-_ ]?image)/i.test(raw)) return '';
-              try {
-                const url = new URL(raw, location.href);
-                return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
-              } catch {
-                return '';
-              }
-            };
-            const readTeam = (nameSelectors, containerSelectors) => {
-              const nameElement = firstElement(nameSelectors);
-              const container = nameElement?.closest(containerSelectors.join(',')) || firstElement(containerSelectors);
-              return {
-                name: (nameElement || container)?.textContent?.replace(/\s+/g, ' ').trim() || '',
-                logo: imageUrl(container?.querySelector('img') || nameElement?.parentElement?.querySelector('img'))
-              };
-            };
-            const links = [...card.querySelectorAll('a')];
-            const link = links.map((a) => a.href).find((href) => href && !href.endsWith('#')) || '';
-            const titleCandidates = [
-              card.getAttribute('title'),
-              ...links.map((a) => a.getAttribute('title')),
-              ...links.map((a) => a.textContent)
-            ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim());
-            const title = titleCandidates.find((value) => /\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i.test(value)) || '';
-            const channelCandidates = [
-              ...[...card.querySelectorAll('.channel, .match-channel, [class*="channel"], .match-info li')].map((element) => element.textContent),
-              ...[...card.querySelectorAll('[data-channel]')].map((element) => element.getAttribute('data-channel'))
-            ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim()).filter(Boolean);
-            const specificChannelPattern = /\b(?:beIN(?:\s+SPORTS?)?|SSC|ESPN|FOX(?:\s+SPORTS?)?|DAZN|SKY(?:\s+SPORTS?)?|OSN|MBC(?:\s+ACTION)?)\s*(?:HD\s*)?(?:\d+|MAX|PREMIUM|ACTION|NEWS|FOOTBALL)(?:\s*HD)?\b/i;
-            const genericChannelPattern = /\b(?:channel|قناة)\s*\d+\b/i;
-            const specificChannel = channelCandidates.map((value) => value.match(specificChannelPattern)?.[0] || value.match(genericChannelPattern)?.[0] || '').find(Boolean) || '';
-            return {
-              home: readTeam(
-                ['.right-team .team-name', '.home-team .team-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name'],
-                ['.right-team', '.home-team', '.team1', '.MT_Team.TM1', '.TM1']
-              ),
-              away: readTeam(
-                ['.left-team .team-name', '.away-team .team-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name'],
-                ['.left-team', '.away-team', '.team2', '.MT_Team.TM2', '.TM2']
-              ),
-              title,
-              channel: specificChannel || channelCandidates[0] || '',
-              channelSpecific: Boolean(specificChannel),
-              matchUrl: link,
-              matchTime: (() => {
-                const match = String(card.textContent || '').match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
-                return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
-              })()
-            };
-          })
-        );
-        for (const card of cards) {
-          const cardTitle = card.title || `${card.home.name || ''} vs ${card.away.name || ''}`;
-          let homeTeam = cleanTeamName(card.home.name);
-          let awayTeam = cleanTeamName(card.away.name);
-          if (homeTeam && awayTeam && homeTeam === awayTeam) {
-            console.log('Skipped:', cardTitle, 'Reason: Duplicate teams', `Source: ${source.name}`);
-            continue;
-          }
-          let explicitTeams = Boolean(homeTeam && awayTeam);
-          if (!homeTeam || !awayTeam || sameTeamName(homeTeam, awayTeam)) {
-            const titleTeams = splitMatchTitle(card.title);
-            if (titleTeams) {
-              ({ homeTeam, awayTeam } = titleTeams);
-              explicitTeams = false;
-            }
-          }
-          if (!homeTeam || !awayTeam) {
-            console.log('Skipped:', cardTitle, 'Reason: Missing team name', `Source: ${source.name}`);
-            continue;
-          }
-          if (sameTeamName(homeTeam, awayTeam)) {
-            console.log('Skipped:', cardTitle, 'Reason: Duplicate teams after normalization', `Source: ${source.name}`);
-            continue;
-          }
-          const matchTime = card.matchTime;
-          const scheduledAt = matchTime
-            ? localDateTimeToUtcIso({ ...sourceToday(source.timeZone), hour: matchTime.hour, minute: matchTime.minute }, source.timeZone)
-            : '';
-
-          const candidate = {
-            matchId: matchIdFor(homeTeam, awayTeam),
-            homeTeam,
-            awayTeam,
-            homeLogo: card.home.logo,
-            awayLogo: card.away.logo,
-            channel: card.channel,
-            channelSpecific: card.channelSpecific,
-            sourceName: source.name,
-            matchUrl: card.matchUrl,
-            scheduledAt,
-            explicitTeams
-          };
-          candidate.quality = metadataQuality(candidate);
-          const current = bestByMatch.get(candidate.matchId);
-          if (!current || candidate.quality > current.quality) bestByMatch.set(candidate.matchId, candidate);
-        }
-      } catch (error) {
-        console.warn(`[MEDIA QA] auto-discovery ${source.name}: ${error.message}`);
-      } finally {
-        await page.close().catch(() => {});
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-  return [...bestByMatch.values()]
-    .sort((left, right) => right.quality - left.quality)
-    .slice(0, config.autoDiscoverLimit)
-    .map(({ quality, explicitTeams, matchUrl, ...job }) => job);
+// دالة جديدة للتأكد من أن الرابط هو بث مباشر صافي
+function isDirectStream(value) {
+    if (!value) return false;
+    return /\.(m3u8|mp4)(?:$|[?#])/i.test(value);
 }
 
 function isAdUrl(value) {
@@ -257,6 +138,7 @@ function isAdUrl(value) {
 
 function isMediaUrl(value) {
   if (!value) return false;
+  // التسامح المبدئي لالتقاط الإطارات، سيتم تصفيته لاحقاً
   return /\.(m3u8|mp4)(?:$|[?#])/i.test(value) ||
     /\/(embed|player|live|stream|b-\d+|watch)/i.test(value) ||
     /\?m=\d+/i.test(value);
@@ -365,6 +247,123 @@ function scoreCandidate(job, candidate) {
   return homeScore + awayScore + (channelScore * 0.25);
 }
 
+async function discoverJobs(sources, allowlist) {
+    const browser = await puppeteer.launch(launchOptions());
+    const bestByMatch = new Map();
+    try {
+      for (const source of sources) {
+        const page = await browser.newPage();
+        try {
+          assertAllowed(source.listUrl, allowlist.sourceHosts, 'source list URL');
+          await gotoWithFallback(page, source.listUrl);
+          const cards = await page.$$eval(
+            '.AY_Match, .match-container, .match-card, .match-item, article[class*="match"], [data-match-id], [data-match]',
+            (elements) => elements.map((card) => {
+              const firstElement = (selectors) => selectors.map((selector) => card.querySelector(selector)).find(Boolean) || null;
+              const imageUrl = (element) => {
+                const raw = element?.currentSrc || element?.getAttribute('data-src') || element?.getAttribute('data-lazy-src') || element?.getAttribute('src') || '';
+                if (!raw || /^data:/i.test(raw) || /(?:default|placeholder|no[-_ ]?image)/i.test(raw)) return '';
+                try {
+                  const url = new URL(raw, location.href);
+                  return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+                } catch {
+                  return '';
+                }
+              };
+              const readTeam = (nameSelectors, containerSelectors) => {
+                const nameElement = firstElement(nameSelectors);
+                const container = nameElement?.closest(containerSelectors.join(',')) || firstElement(containerSelectors);
+                return {
+                  name: (nameElement || container)?.textContent?.replace(/\s+/g, ' ').trim() || '',
+                  logo: imageUrl(container?.querySelector('img') || nameElement?.parentElement?.querySelector('img'))
+                };
+              };
+              const links = [...card.querySelectorAll('a')];
+              const link = links.map((a) => a.href).find((href) => href && !href.endsWith('#')) || '';
+              const titleCandidates = [
+                card.getAttribute('title'),
+                ...links.map((a) => a.getAttribute('title')),
+                ...links.map((a) => a.textContent)
+              ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim());
+              const title = titleCandidates.find((value) => /\s+(?:vs|v|ضد|مباراة)\s+|\s+-\s+/i.test(value)) || '';
+              const channelCandidates = [
+                ...[...card.querySelectorAll('.channel, .match-channel, [class*="channel"], .match-info li')].map((element) => element.textContent),
+                ...[...card.querySelectorAll('[data-channel]')].map((element) => element.getAttribute('data-channel'))
+              ].filter(Boolean).map((value) => value.replace(/\s+/g, ' ').trim()).filter(Boolean);
+              const specificChannelPattern = /\b(?:beIN(?:\s+SPORTS?)?|SSC|ESPN|FOX(?:\s+SPORTS?)?|DAZN|SKY(?:\s+SPORTS?)?|OSN|MBC(?:\s+ACTION)?)\s*(?:HD\s*)?(?:\d+|MAX|PREMIUM|ACTION|NEWS|FOOTBALL)(?:\s*HD)?\b/i;
+              const genericChannelPattern = /\b(?:channel|قناة)\s*\d+\b/i;
+              const specificChannel = channelCandidates.map((value) => value.match(specificChannelPattern)?.[0] || value.match(genericChannelPattern)?.[0] || '').find(Boolean) || '';
+              return {
+                home: readTeam(
+                  ['.right-team .team-name', '.home-team .team-name', '.team1 .team-name', '.MT_Team.TM1 .TM_Name', '.TM1 .TM_Name'],
+                  ['.right-team', '.home-team', '.team1', '.MT_Team.TM1', '.TM1']
+                ),
+                away: readTeam(
+                  ['.left-team .team-name', '.away-team .team-name', '.team2 .team-name', '.MT_Team.TM2 .TM_Name', '.TM2 .TM_Name'],
+                  ['.left-team', '.away-team', '.team2', '.MT_Team.TM2', '.TM2']
+                ),
+                title,
+                channel: specificChannel || channelCandidates[0] || '',
+                channelSpecific: Boolean(specificChannel),
+                matchUrl: link,
+                matchTime: (() => {
+                  const match = String(card.textContent || '').match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
+                  return match ? { hour: Number(match[1]), minute: Number(match[2]) } : null;
+                })()
+              };
+            })
+          );
+          for (const card of cards) {
+            const cardTitle = card.title || `${card.home.name || ''} vs ${card.away.name || ''}`;
+            let homeTeam = cleanTeamName(card.home.name);
+            let awayTeam = cleanTeamName(card.away.name);
+            if (homeTeam && awayTeam && homeTeam === awayTeam) continue;
+            let explicitTeams = Boolean(homeTeam && awayTeam);
+            if (!homeTeam || !awayTeam || sameTeamName(homeTeam, awayTeam)) {
+              const titleTeams = splitMatchTitle(card.title);
+              if (titleTeams) {
+                ({ homeTeam, awayTeam } = titleTeams);
+                explicitTeams = false;
+              }
+            }
+            if (!homeTeam || !awayTeam || sameTeamName(homeTeam, awayTeam)) continue;
+            const matchTime = card.matchTime;
+            const scheduledAt = matchTime
+              ? localDateTimeToUtcIso({ ...sourceToday(source.timeZone), hour: matchTime.hour, minute: matchTime.minute }, source.timeZone)
+              : '';
+  
+            const candidate = {
+              matchId: matchIdFor(homeTeam, awayTeam),
+              homeTeam,
+              awayTeam,
+              homeLogo: card.home.logo,
+              awayLogo: card.away.logo,
+              channel: card.channel,
+              channelSpecific: card.channelSpecific,
+              sourceName: source.name,
+              matchUrl: card.matchUrl,
+              scheduledAt,
+              explicitTeams
+            };
+            candidate.quality = metadataQuality(candidate);
+            const current = bestByMatch.get(candidate.matchId);
+            if (!current || candidate.quality > current.quality) bestByMatch.set(candidate.matchId, candidate);
+          }
+        } catch (error) {
+          console.warn(`[MEDIA QA] auto-discovery ${source.name}: ${error.message}`);
+        } finally {
+          await page.close().catch(() => {});
+        }
+      }
+    } finally {
+      await browser.close();
+    }
+    return [...bestByMatch.values()]
+      .sort((left, right) => right.quality - left.quality)
+      .slice(0, config.autoDiscoverLimit)
+      .map(({ quality, explicitTeams, matchUrl, ...job }) => job);
+  }
+
 async function resolveMatchUrl(job, sources, allowlist) {
   const result = await resolveMatchUrls(job, sources, allowlist);
   if (!result.matches.length) throw new Error(`No source matched ${job.homeTeam} vs ${job.awayTeam}`);
@@ -426,6 +425,7 @@ async function resolveMatchUrlFromSource(job, source, allowlist) {
     page.once('popup', (popup) => { popupPage = popup; });
 
     const clicked = await page.evaluate(({ jobData }) => {
+      // (كود التقليب واختيار المباراة بقي كما هو، يعمل جيداً)
       const arabicDiacritics = /[\u064B-\u065F\u0670\u0640]/g;
       const separators = /[^\p{L}\p{N}]+/gu;
       const weakTokens = new Set(['vs', 'v', 'ضد', 'مباراة', 'مشاهدة', 'بث', 'مباشر', 'اليوم', 'اونلاين', 'live', 'hd']);
@@ -535,6 +535,21 @@ async function scrapeMatch(matchUrl, allowlist, extraSourceHosts = []) {
       await page.setViewport({ width: 1365, height: 768 });
       await gotoWithFallback(page, url);
 
+      // استخراج عميق للـ m3u8 من داخل الـ Scripts والـ Video Tags لتجاوز الحماية
+      const hiddenM3u8 = await page.evaluate(() => {
+          let streams = [];
+          document.querySelectorAll('video').forEach(v => {
+              if (v.src && v.src.includes('.m3u8')) streams.push(v.src);
+              v.querySelectorAll('source').forEach(s => { if (s.src && s.src.includes('.m3u8')) streams.push(s.src); });
+          });
+          document.querySelectorAll('script').forEach(s => {
+              const matches = s.innerHTML.match(/https?:\/\/[^\s"'<>]+?\.m3u8[^\s"'<>]*/gi);
+              if (matches) streams.push(...matches);
+          });
+          return streams;
+      });
+      hiddenM3u8.forEach(src => collect(src));
+
       const dynamicSrcs = await page.$$eval(
         'a[href], iframe[src], source[src], video[src], [data-src], [data-url], [data-stream], [data-player], [onclick], script',
         (elements) => elements.flatMap((element) => {
@@ -557,6 +572,10 @@ async function scrapeMatch(matchUrl, allowlist, extraSourceHosts = []) {
       dynamicSrcs.forEach((src) => collect(src, { embed: !isMediaUrl(src) }));
 
       await page.evaluate(() => {
+        // تدمير الإعلانات الشفافة فوق المشغل قبل محاولة الضغط
+        const overlays = document.querySelectorAll('[style*="z-index: 999"], [class*="overlay"], [class*="popup"]');
+        overlays.forEach(el => el.remove());
+
         const selectors = 'button, [role="button"], .play, .play-button, .btn-play, .server, [class*="server"], [data-src], [data-url]';
         document.querySelectorAll(selectors).forEach((element) => {
           try { element.click(); } catch {}
@@ -587,7 +606,23 @@ async function scrapeMatch(matchUrl, allowlist, extraSourceHosts = []) {
   } finally {
     await browser.close();
   }
-  return [...candidates];
+  
+  // ==========================================
+  // نظام التصفية النهائي (The Purge)
+  // ==========================================
+  const finalCandidates = [...candidates];
+  const directStreams = finalCandidates.filter(url => isDirectStream(url));
+
+  // إذا وجدنا رابط m3u8 حقيقي، نحذف كل ما عداه لأنه هو البث الصافي!
+  if (directStreams.length > 0) {
+      return directStreams; 
+  }
+
+  // إذا لم نجد m3u8، نرجع روابط الـ iframes القوية فقط ونتجاهل روابط الصفحات العادية
+  return finalCandidates.filter(url => 
+      url !== matchUrl && // عدم استرجاع صفحة البداية نفسها أبداً
+      /\/(embed|player|iframe|v|live|stream)/i.test(url)
+  );
 }
 
 module.exports = {
