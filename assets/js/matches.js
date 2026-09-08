@@ -51,31 +51,31 @@ window.closeWaitModal = function() {
 // التعديل 1: نظام ذكي لمعالجة خطأ (AM/PM)
 // ==========================================
 // تصحيح التوقيت الذكي سواء من scheduledAt أو time النصي
+// تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات
 function matchStartDate(match) {
-  let finalDate = null;
-
-  if (match?.scheduledAt) {
-    const scheduledDate = new Date(match.scheduledAt);
-    if (!Number.isNaN(scheduledDate.getTime())) {
-      finalDate = new Date(scheduledDate);
-    }
-  }
-
-  if (!finalDate && match?.time) {
+  // 1. حساب الوقت من النص المكتوب (مثل 10:00) 
+  if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
     const timeMatch = String(match.time).match(/^(\d{1,2}):(\d{2})$/);
     if (timeMatch) {
-      finalDate = new Date();
-      finalDate.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+      let hour = Number(timeMatch[1]);
+      const minute = Number(timeMatch[2]);
+      
+      // تحويل 10 إلى 22 (نظام مسائي)
+      if (hour >= 1 && hour <= 11) hour += 12;
+      
+      // التوقيت في الموقع هو توقيت السعودية (UTC+3)
+      // نحوله إلى توقيت عالمي (UTC) بطرح 3 ساعات
+      const utcHour = hour - 3;
+      
+      const now = new Date();
+      return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), utcHour, minute, 0));
     }
   }
 
-  if (finalDate) {
-    const now = new Date();
-    // إذا كان الوقت المسجل صباحياً (1 إلى 11) ويبدو في الماضي بأكثر من ساعتين، فهو بالتأكيد توقيت مسائي
-    if (finalDate.getHours() >= 1 && finalDate.getHours() <= 11) {
-      finalDate.setHours(finalDate.getHours() + 12);
-    }
-    return finalDate;
+  // 2. كخيار احتياطي
+  if (match?.scheduledAt) {
+    const scheduledDate = new Date(match.scheduledAt);
+    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
   }
 
   return null;
@@ -251,7 +251,6 @@ async function loadAndRenderMatches() {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      // التحقق الشامل: هل يوجد رابط من الروبوت أو رابط يدوي مسجل؟
       const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
       const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.status === 'PASSED_STAGING' || fallbackA;
 
@@ -259,13 +258,13 @@ async function loadAndRenderMatches() {
       const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
 
       const getTier = (diff, hasLink) => {
-          // جارية الآن: تتصدر القائمة دائماً (المرتبة 1)
+          // جارية الآن: المرتبة 1 (تتصدر دائماً حتى لو تأخر الرابط)
           if (diff <= 0 && diff >= -240) return 1; 
           // ستبدأ قريباً: المرتبة 2
           if (diff > 0 && diff <= 60) return 2;    
-          // بدون رابط وليست جارية ولا قريبة: تُرمى للأسفل
+          // إذا كانت في المستقبل ولا تملك رابطاً: تُرمى للأسفل (المرتبة 5)
           if (!hasLink) return 5;                  
-          // قادمة لاحقاً (متبقي أكثر من ساعة): المرتبة 3
+          // قادمة لاحقاً: المرتبة 3
           if (diff > 60) return 3;                 
           // منتهية: المرتبة 4
           return 4;                                
@@ -274,7 +273,6 @@ async function loadAndRenderMatches() {
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
 
-      // الترتيب حسب الأولوية أولاً، ثم حسب الوقت
       if (tierA !== tierB) return tierA - tierB;
       return matchStartDate(a) - matchStartDate(b);
   }
