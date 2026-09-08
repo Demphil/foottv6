@@ -226,30 +226,47 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار من ملف أو رابط news.api
 // ==========================================
+// ==========================================
+// جلب الأخبار من NewsData.io (نفس مصدر صفحة الأخبار)
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
 
     try {
-        // الاتصال بملف API الأخبار (إذا كان المسار مختلفاً، قم بتعديل 'news.api' إلى المسار الصحيح مثل '/api/news' أو 'assets/js/news.api')
-        const response = await fetch('news.api'); 
-        
-        if (!response.ok) throw new Error('فشل الاتصال بملف الأخبار');
-        
-        const data = await response.json();
-        
-        // استخراج المصفوفة (سواء كانت البيانات مباشرة أو داخل كائن مثل data.articles) وأخذ أحدث 4 مقالات
-        const articles = Array.isArray(data) ? data.slice(0, 4) : (data.articles ? data.articles.slice(0, 4) : []);
+        // مفتاح الـ API والمسار المأخوذ من ملف news.js الخاص بك
+        const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b";
+        const keywords = 'كرة القدم';
+        // جلب 4 مقالات فقط لصفحة المشاهدة
+        const targetUrl = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=4&removeduplicate=1&language=ar&category=sports&q=${encodeURIComponent(keywords)}`;
+
+        const response = await fetch(targetUrl);
+        if (!response.ok) throw new Error('فشل الاتصال بمزود الأخبار');
+
+        const result = await response.json();
+        const articles = result.results || [];
 
         if (articles && articles.length > 0) {
-            newsContainer.innerHTML = articles.map(article => `
-                <a href="/news.html?slug=${article.slug || article.id}" class="watch-news-card">
-                    <h4>${article.title}</h4>
-                    <span>${article.created_at ? new Date(article.created_at).toLocaleDateString('ar-MA') : ''}</span>
-                </a>
-            `).join('');
+            newsContainer.innerHTML = articles.map(article => {
+                const title = article.title || 'خبر رياضي';
+                const articleUrl = article.link || '#';
+                
+                // تنسيق التاريخ بنفس طريقتك في news.js
+                let dateStr = '';
+                if (article.pubDate) {
+                    const date = new Date(article.pubDate);
+                    dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+
+                return `
+                    <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card">
+                        <h4>${title}</h4>
+                        <span>${dateStr}</span>
+                    </a>
+                `;
+            }).join('');
         } else {
-            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً. سيتم إضافة الأخبار قريباً.</p>';
+            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
         }
     } catch (err) {
         console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
