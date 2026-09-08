@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     applyBaseCSS(playerContainer);
     renderServers(streams, playerContainer, playerLoader, serversContainer);
+    
+    // تشغيل دالة جلب الأخبار عند تحميل الصفحة
+    loadWatchNews(); 
 });
 
 function createServersContainer(playerContainer) {
@@ -127,17 +130,12 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    // ==========================================
-    // التعديل الجديد: تكبير شاشتنا لتستوعب المشغل براحة
-    // ==========================================
-    container.style.paddingBottom = '0'; // إلغاء القص الصارم
-    container.style.height = '75vh';     // الشاشة تأخذ 75% من طول متصفح الزائر
-    container.style.minHeight = '450px'; // حد أدنى ممتاز للهواتف المحمولة
-    container.style.maxHeight = '850px'; // حد أقصى للشاشات الكبيرة جداً
-    // ==========================================
+    container.style.paddingBottom = '0'; 
+    container.style.height = '75vh';     
+    container.style.minHeight = '450px'; 
+    container.style.maxHeight = '850px'; 
 
     if (stream.url.includes('.m3u8')) {
-        // ... (باقي الكود كما هو بدون تغيير)
         const video = document.createElement('video');
         video.controls = true;
         video.style.position = 'absolute';
@@ -164,7 +162,6 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(video);
     } 
     else {
-        // الاتصال المباشر لضمان عمل جميع الروابط
         const iframe = document.createElement('iframe');
         iframe.setAttribute('src', stream.url);
         iframe.setAttribute('frameborder', '0');
@@ -184,9 +181,6 @@ function loadPlayer(stream, container, loader) {
         
         container.appendChild(iframe);
 
-        // ==========================================
-        // 2. الغشاء الشفاف لامتصاص النقرة الإعلانية الأولى
-        // ==========================================
         const clickTrap = document.createElement('div');
         clickTrap.style.position = 'absolute';
         clickTrap.style.top = '0';
@@ -195,9 +189,8 @@ function loadPlayer(stream, container, loader) {
         clickTrap.style.height = '100%';
         clickTrap.style.zIndex = '999'; 
         clickTrap.style.cursor = 'pointer';
-        clickTrap.style.backgroundColor = 'rgba(0,0,0,0)'; // شفاف بالكامل
+        clickTrap.style.backgroundColor = 'rgba(0,0,0,0)'; 
 
-        // عند النقر: يمتص الغشاء الضغطة، ثم يختفي ليسمح بتشغيل الفيديو
         clickTrap.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation(); 
@@ -205,5 +198,41 @@ function loadPlayer(stream, container, loader) {
         }, { once: true }); 
 
         container.appendChild(clickTrap);
+    }
+}
+
+// ==========================================
+// جلب الأخبار أسفل المشغل لزيادة تفاعل الزوار (SEO)
+// ==========================================
+async function loadWatchNews() {
+    const newsContainer = document.getElementById('watch-news-container');
+    if (!newsContainer || !supabaseClient) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('news') 
+            .select('title, slug, created_at')
+            .order('created_at', { ascending: false })
+            .limit(4);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            newsContainer.innerHTML = data.map(article => `
+                <a href="/news.html?slug=${article.slug}" style="display: block; text-decoration: none; color: #fff; background: #2a2a2a; padding: 15px; border-radius: 8px; transition: background 0.3s ease;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 15px; line-height: 1.4;">${article.title}</h4>
+                    <span style="font-size: 12px; color: #888;">${new Date(article.created_at).toLocaleDateString('ar-MA')}</span>
+                </a>
+            `).join('');
+            
+            newsContainer.querySelectorAll('a').forEach(link => {
+                link.addEventListener('mouseenter', () => link.style.backgroundColor = '#333');
+                link.addEventListener('mouseleave', () => link.style.backgroundColor = '#2a2a2a');
+            });
+        } else {
+            newsContainer.innerHTML = '<p style="color:#888; font-size:14px;">لا توجد أخبار حالياً.</p>';
+        }
+    } catch (err) {
+        console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
     }
 }
