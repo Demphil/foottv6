@@ -34,7 +34,6 @@ function hideLoading() {
 window.openWaitModal = function(message) {
     const modal = document.getElementById('wait-modal');
     if (modal) {
-        // إذا كان هناك نص مخصص للنافذة يمكننا وضعه (اختياري)
         const msgElement = modal.querySelector('p');
         if (msgElement && message) msgElement.innerText = message;
         modal.style.display = 'flex';
@@ -48,17 +47,35 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+// ==========================================
+// التعديل 1: نظام ذكي لمعالجة خطأ (AM/PM)
+// ==========================================
 function matchStartDate(match) {
+  let finalDate = null;
+
   if (match?.scheduledAt) {
     const scheduledDate = new Date(match.scheduledAt);
-    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
+    if (!Number.isNaN(scheduledDate.getTime())) finalDate = scheduledDate;
   }
 
-  const timeMatch = String(match?.time || '').match(/^(\d{1,2}):(\d{2})$/);
-  if (!timeMatch) return null;
-  const localDate = new Date();
-  localDate.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
-  return localDate;
+  if (!finalDate) {
+    const timeMatch = String(match?.time || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (timeMatch) {
+      finalDate = new Date();
+      finalDate.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+    }
+  }
+
+  if (finalDate) {
+    // إذا كان التوقيت بين 1 و 11 صباحاً، نحوله تلقائياً للمساء (+12 ساعة)
+    const hours = finalDate.getHours();
+    if (hours >= 1 && hours <= 11) {
+        finalDate.setHours(hours + 12);
+    }
+    return finalDate;
+  }
+
+  return null;
 }
 
 function renderMatch(match) {
@@ -87,11 +104,15 @@ function renderMatch(match) {
   const now = new Date();
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
-  const isLive = diffMins <= 0 && diffMins >= -180;
-  const isSoon = diffMins > 0 && diffMins <= 20;
   
-  // شرط الدخول: قبل المباراة بـ 20 دقيقة أو أثناء البث
-  const withinMatchWindow = diffMins <= 20 && diffMins >= -180; 
+  // ==========================================
+  // التعديل 2: توسيع نافذة السماح لتصبح أكثر مرونة
+  // ==========================================
+  const isLive = diffMins <= 0 && diffMins >= -240; // 4 ساعات لتفادي الأشواط الإضافية
+  const isSoon = diffMins > 0 && diffMins <= 30;    // قبل 30 دقيقة بدلاً من 20
+  
+  // شرط الدخول: قبل المباراة بـ 30 دقيقة أو أثناء البث (حتى 4 ساعات)
+  const withinMatchWindow = diffMins <= 30 && diffMins >= -240; 
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
     && !['غير محدد', 'Unknown', 'غير معروف'].includes(match.channel.trim())
@@ -108,13 +129,11 @@ function renderMatch(match) {
 
   if (watchUrl) {
       if (withinMatchWindow) {
-          // رابط متاح والوقت مسموح
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
           clickAction = '';
           isClickableClass = 'clickable';
       } else {
-          // رابط متاح ولكن الوقت مبكر جداً
-          clickAction = `onclick="openWaitModal('ستتوفر صفحة المشاهدة قبل بداية المباراة بـ 20 دقيقة.')"`;
+          clickAction = `onclick="openWaitModal('ستتوفر صفحة المشاهدة قبل بداية المباراة بـ 30 دقيقة.')"`;
           isClickableClass = 'clickable early-click'; 
       }
   }
@@ -235,7 +254,6 @@ async function loadAndRenderMatches() {
       else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });
 
-  // الترتيب الذكي الجديد حسب الأولوية
   function sortMatches(a, b) {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
@@ -244,27 +262,23 @@ async function loadAndRenderMatches() {
       const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING';
 
       const getTier = (diff, hasLink) => {
-        if (!hasLink) return 5;                  // بدون روابط (تذهب للأسفل دائماً)
-        if (diff <= 0 && diff >= -180) return 1; // جارية الآن
-        if (diff > 0 && diff <= 60) return 2;    // ستبدأ خلال ساعة أو أقل
-        if (diff > 60) return 3;                 // ستبدأ بعد أكثر من ساعة
-        return 4;                                // منتهية
+        if (!hasLink) return 5;                  
+        if (diff <= 0 && diff >= -240) return 1; // جارية الآن (معدلة لـ 4 ساعات)
+        if (diff > 0 && diff <= 60) return 2;    
+        if (diff > 60) return 3;                 
+        return 4;                                
       };
 
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
 
-      // الفرز بالدرجات أولاً
       if (tierA !== tierB) return tierA - tierB;
-      
-      // إذا تساوت الدرجة، رتبها زمنياً
       return matchStartDate(a) - matchStartDate(b);
   }
 
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  // تم إلغاء التقسيم (featuredPool) لكي تظهر جميع المباريات في القائمة العلوية
   renderSection(DOM.featuredContainer, trueTodayMatches, 'لا توجد مباريات جارية أو قادمة اليوم.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
