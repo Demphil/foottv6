@@ -94,47 +94,99 @@ function applyBaseCSS(container) {
 
 function renderServers(streams, playerContainer, playerLoader, serversContainer) {
     serversContainer.innerHTML = '';
+    
+    // تصميم حاوية السيرفرات لتكون شريطاً متكاملاً يحتوي على كل شيء
+    serversContainer.style.display = 'flex';
+    serversContainer.style.flexDirection = 'column'; // وضع الرسالة فوق الشريط
+    serversContainer.style.alignItems = 'center';
+    serversContainer.style.gap = '15px';
+    serversContainer.style.marginBottom = '20px';
+    serversContainer.style.width = '100%';
 
-    // ==========================================
-    // التعديل الجديد: إضافة رسالة التوجيه لتغيير السيرفر
-    // ==========================================
+    // 1. إضافة رسالة التوجيه (أعلى الشريط)
     if (streams.length > 1) {
         const noticeMsg = document.createElement('div');
-        noticeMsg.style.width = '100%'; // ليأخذ سطراً كاملاً فوق الأزرار
-        noticeMsg.style.textAlign = 'center';
-        noticeMsg.style.marginBottom = '12px';
-        noticeMsg.style.color = '#ffcc00'; // لون أصفر جذاب
+        noticeMsg.style.color = '#ffcc00';
         noticeMsg.style.fontSize = '14px';
         noticeMsg.style.fontWeight = 'bold';
+        noticeMsg.style.textAlign = 'center';
         noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى بالأسفل';
         serversContainer.appendChild(noticeMsg);
     }
-    // ==========================================
+
+    // 2. إنشاء "الشريط الرئيسي" الذي سيحوي (الزر - السيرفرات - الشعار)
+    const topBar = document.createElement('div');
+    topBar.style.display = 'flex';
+    topBar.style.justifyContent = 'space-between';
+    topBar.style.alignItems = 'center';
+    topBar.style.width = '100%';
+    topBar.style.backgroundColor = '#1e1e1e';
+    topBar.style.padding = '10px 15px';
+    topBar.style.borderRadius = '8px';
+    topBar.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+    topBar.style.flexWrap = 'nowrap'; // منع النزول لسطر جديد في الشاشات الكبيرة
+
+    // أ: زر العودة (يسار)
+    const backBtn = document.createElement('a');
+    backBtn.href = 'index.html';
+    backBtn.className = 'integrated-back';
+    backBtn.innerHTML = 'عودة للمباريات &rarr;';
+    
+    // ب: حاوية أزرار السيرفرات (وسط)
+    const buttonsWrapper = document.createElement('div');
+    buttonsWrapper.style.display = 'flex';
+    buttonsWrapper.style.gap = '10px';
+    buttonsWrapper.style.flexWrap = 'wrap';
+    buttonsWrapper.style.justifyContent = 'center';
 
     streams.forEach((stream, index) => {
         const btn = document.createElement('button');
         btn.innerText = `سيرفر ${index + 1}`;
         btn.className = 'server-btn';
-        btn.style.padding = '10px 20px';
+        btn.style.padding = '8px 16px';
         btn.style.cursor = 'pointer';
         btn.style.border = 'none';
         btn.style.borderRadius = '6px';
-        btn.style.backgroundColor = index === 0 ? '#e50914' : '#222';
+        btn.style.backgroundColor = index === 0 ? '#e50914' : '#333';
         btn.style.color = '#fff';
         btn.style.fontFamily = 'inherit';
         btn.style.fontWeight = 'bold';
         btn.style.transition = 'background 0.3s ease';
 
         btn.onclick = () => {
-            document.querySelectorAll('.server-btn').forEach(b => b.style.backgroundColor = '#222');
+            document.querySelectorAll('.server-btn').forEach(b => b.style.backgroundColor = '#333');
             btn.style.backgroundColor = '#e50914';
             loadPlayer(stream, playerContainer, playerLoader);
         };
 
-        serversContainer.appendChild(btn);
+        buttonsWrapper.appendChild(btn);
     });
 
-    loadPlayer(streams[0], playerContainer, playerLoader);
+    // ج: اللوغو (يمين)
+    const logoLink = document.createElement('a');
+    logoLink.href = 'index.html';
+    logoLink.style.display = 'flex';
+    logoLink.style.alignItems = 'center';
+    
+    const logoImg = document.createElement('img');
+    logoImg.src = 'assets/images/logo.png';
+    logoImg.alt = 'شعار الموقع';
+    logoImg.className = 'integrated-logo';
+    logoImg.onerror = function() { this.style.display='none'; };
+    
+    logoLink.appendChild(logoImg);
+
+    // تجميع العناصر داخل الشريط (يسار - وسط - يمين)
+    // الترتيب: اللوغو يمين، السيرفرات وسط، زر العودة يسار (بسبب dir=rtl في الصفحة)
+    topBar.appendChild(logoLink);
+    topBar.appendChild(buttonsWrapper);
+    topBar.appendChild(backBtn);
+
+    // إضافة الشريط النهائي للحاوية
+    serversContainer.appendChild(topBar);
+
+    // تشغيل السيرفر الأول تلقائياً
+    loadPlayer(streams[2], playerContainer, playerLoader);
 }
 function loadPlayer(stream, container, loader) {
     container.innerHTML = ''; 
