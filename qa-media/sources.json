@@ -1,6 +1,35 @@
 {
   "sources": [
     {
+      "name": "fabor-tv",
+      "listUrl": "https://fabor-tv.to/fabor4/",
+      "timeZone": "Africa/casablanca",
+      "allowedHosts": [
+        "yassirtv.com"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "siir-tv",
+      "listUrl": "https://siir-tv.co/",
+      "timeZone": "Africa/Cairo",
+      "metadataQuality": "fallback",
+      "allowedHosts": [
+        "siir-tv.co"
+      ],
+      "enabled": true
+    },
+    {
+      "name": "yacinee-tv",
+      "listUrl": "https://yacinee-tv.net/",
+      "timeZone": "Africa/Cairo",
+      "metadataQuality": "trusted",
+      "allowedHosts": [
+        "yacinee-tv.net"
+      ],
+      "enabled": true
+    },
+    {
       "name": "yallashoot2day",
       "listUrl": "https://yallashoot2day.online/",
       "timeZone": "Asia/Riyadh",
@@ -41,26 +70,6 @@
       "enabled": true
     },
     {
-      "name": "yacinee-tv",
-      "listUrl": "https://yacinee-tv.net/",
-      "timeZone": "Africa/Cairo",
-      "metadataQuality": "trusted",
-      "allowedHosts": [
-        "yacinee-tv.net"
-      ],
-      "enabled": true
-    },
-    {
-      "name": "siir-tv",
-      "listUrl": "https://siir-tv.co/",
-      "timeZone": "Africa/Cairo",
-      "metadataQuality": "fallback",
-      "allowedHosts": [
-        "siir-tv.co"
-      ],
-      "enabled": true
-    },
-    {
       "name": "sirrtv",
       "listUrl": "https://www.sirrtv.online/",
       "timeZone": "Asia/Riyadh",
@@ -71,20 +80,11 @@
       "enabled": true
     },
     {
-      "name": "fabor-tv",
-      "listUrl": "https://fabor-tv.to/fabor4/",
-      "timeZone": "Africa/casablanca",
-      "allowedHosts": [
-        "https://yassirtv.com/"
-      ],
-      "enabled": true
-    },
-    {
       "name": "syr-live",
       "listUrl": "https://kooora-btv.live/",
       "timeZone": "Asia/Riyadh",
       "allowedHosts": [
-        "https://33.3koorashot.online/",
+        "33.3koorashot.online",
         "m6.kora-sami.com"
       ],
       "enabled": true
