@@ -5,7 +5,6 @@
 // ==========================================
 let isLegitNavigation = false;
 
-// السماح بالتنقل فقط إذا ضغط الزائر على أزرار موقعنا نحن
 document.addEventListener('click', (e) => {
     if (e.target.closest('a') || e.target.closest('button')) {
         isLegitNavigation = true;
@@ -69,7 +68,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyBaseCSS(playerContainer);
     renderServers(streams, playerContainer, playerLoader, serversContainer);
     
-    // تشغيل دالة جلب الأخبار عند تحميل الصفحة
     loadWatchNews(); 
 });
 
@@ -97,6 +95,22 @@ function applyBaseCSS(container) {
 function renderServers(streams, playerContainer, playerLoader, serversContainer) {
     serversContainer.innerHTML = '';
 
+    // ==========================================
+    // التعديل الجديد: إضافة رسالة التوجيه لتغيير السيرفر
+    // ==========================================
+    if (streams.length > 1) {
+        const noticeMsg = document.createElement('div');
+        noticeMsg.style.width = '100%'; // ليأخذ سطراً كاملاً فوق الأزرار
+        noticeMsg.style.textAlign = 'center';
+        noticeMsg.style.marginBottom = '12px';
+        noticeMsg.style.color = '#ffcc00'; // لون أصفر جذاب
+        noticeMsg.style.fontSize = '14px';
+        noticeMsg.style.fontWeight = 'bold';
+        noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى بالأسفل';
+        serversContainer.appendChild(noticeMsg);
+    }
+    // ==========================================
+
     streams.forEach((stream, index) => {
         const btn = document.createElement('button');
         btn.innerText = `سيرفر ${index + 1}`;
@@ -122,7 +136,6 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
 
     loadPlayer(streams[0], playerContainer, playerLoader);
 }
-
 function loadPlayer(stream, container, loader) {
     container.innerHTML = ''; 
     if(loader) {
@@ -130,10 +143,16 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    container.style.paddingBottom = '0'; 
-    container.style.height = '75vh';     
-    container.style.minHeight = '450px'; 
-    container.style.maxHeight = '850px'; 
+    // ==========================================
+    // التعديل 1: جعل المشغل عريضاً سينمائياً (16:9)
+    // ==========================================
+    container.style.paddingBottom = '0';
+    container.style.width = '100%';          // يأخذ العرض بالكامل
+    container.style.height = 'auto';         // الارتفاع يتعدل تلقائياً
+    container.style.aspectRatio = '16 / 9';  // نسبة سينمائية مثالية تمنع المشغل من أن يكون طويلاً
+    container.style.minHeight = '250px';     // للهواتف الصغيرة جداً
+    container.style.maxHeight = '80vh';      // لعدم تجاوز الشاشة
+    // ==========================================
 
     if (stream.url.includes('.m3u8')) {
         const video = document.createElement('video');
@@ -202,15 +221,16 @@ function loadPlayer(stream, container, loader) {
 }
 
 // ==========================================
-// جلب الأخبار أسفل المشغل لزيادة تفاعل الزوار (SEO)
+// التعديل 2: جلب الأخبار من جدول 'articles' الصحيح
 // ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer || !supabaseClient) return;
 
     try {
+        // تم تغيير اسم الجدول من news إلى articles
         const { data, error } = await supabaseClient
-            .from('news') 
+            .from('articles') 
             .select('title, slug, created_at')
             .order('created_at', { ascending: false })
             .limit(4);
@@ -218,7 +238,6 @@ async function loadWatchNews() {
         if (error) throw error;
 
         if (data && data.length > 0) {
-            // تم تنظيف الكود هنا ليستخدم الـ CSS Classes بدلاً من الـ Inline Styles
             newsContainer.innerHTML = data.map(article => `
                 <a href="/news.html?slug=${article.slug}" class="watch-news-card">
                     <h4>${article.title}</h4>
@@ -226,9 +245,10 @@ async function loadWatchNews() {
                 </a>
             `).join('');
         } else {
-            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
+            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً. سيتم إضافة الأخبار قريباً.</p>';
         }
     } catch (err) {
         console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
+        newsContainer.innerHTML = '<p class="news-empty-msg">حدث خطأ في جلب الأخبار.</p>';
     }
 }
