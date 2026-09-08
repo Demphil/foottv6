@@ -258,23 +258,27 @@ async function loadAndRenderMatches() {
       const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
 
       const getTier = (diff, hasLink) => {
-          // جارية الآن: المرتبة 1 (تتصدر دائماً حتى لو تأخر الرابط)
-          if (diff <= 0 && diff >= -240) return 1; 
-          // ستبدأ قريباً: المرتبة 2
-          if (diff > 0 && diff <= 60) return 2;    
-          // إذا كانت في المستقبل ولا تملك رابطاً: تُرمى للأسفل (المرتبة 5)
-          if (!hasLink) return 5;                  
-          // قادمة لاحقاً: المرتبة 3
-          if (diff > 60) return 3;                 
-          // منتهية: المرتبة 4
-          return 4;                                
+          if (diff <= 0 && diff >= -240) return 1; // جارية الآن
+          if (diff > 0 && diff <= 60) return 2;    // ستبدأ قريباً
+          if (!hasLink) return 5;                  // غير جاهزة
+          if (diff > 60) return 3;                 // قادمة لاحقاً
+          return 4;                                // منتهية
       };
 
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
 
+      // 1. الترتيب حسب الأولوية (الجارية أولاً، ثم القريبة...)
       if (tierA !== tierB) return tierA - tierB;
-      return matchStartDate(a) - matchStartDate(b);
+
+      // 2. الفرز الداخلي للمباريات التي من نفس الأولوية
+      if (tierA === 1) {
+          // إذا كانت المباريات "جارية الآن": نعرض الأحدث (التي بدأت للتو) في القمة
+          return matchStartDate(b) - matchStartDate(a);
+      } else {
+          // بقية المباريات (القادمة): نعرض الأقرب وقتاً في القمة
+          return matchStartDate(a) - matchStartDate(b);
+      }
   }
 
   trueTodayMatches.sort(sortMatches);
