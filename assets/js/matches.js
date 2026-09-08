@@ -92,23 +92,25 @@ function renderMatch(match) {
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
   const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   
-  // إجبار جميع المباريات على الفتح في صفحة watch.html الجديدة والتخلص من الواجهة القديمة
   let watchUrl = `watch.html?id=${encodeURIComponent(stableId)}`;
   
-  // إذا لم يكن هناك بث من الروبوت، ولكن يوجد رابط يدوي، نمرره للواجهة الجديدة بذكاء
   if (!hasStreams && manualLink) {
       watchUrl += `&matchLink=${encodeURIComponent(manualLink)}`;
   }
 
-  // المباراة جاهزة إذا كان بها بث آلي، أو حالة نجاح، أو رابط يدوي
-  const isReady = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
-
+  // حساب الوقت بدقة
   const now = new Date();
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
   
+  // 1. هل توجد بيانات بث؟
+  const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
+  
+  // 2. القاعدة الصارمة: هل الوقت المتبقي 25 دقيقة أو أقل؟ (وتستمر مفتوحة لـ 4 ساعات)
+  const isTimeAllowed = diffMins <= 25 && diffMins >= -240;
+
   const isLive = diffMins <= 0 && diffMins >= -240;
-  const isSoon = diffMins > 0 && diffMins <= 60; // إشعار قريباً قبل ساعة
+  const isSoon = diffMins > 0 && diffMins <= 60; 
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
     && !['غير محدد', 'Unknown', 'غير معروف'].includes(match.channel.trim())
@@ -117,7 +119,6 @@ function renderMatch(match) {
 
   let timeText = match.time;
   
-  // تحويل التوقيت تلقائياً لبلد الزائر
   if (match.time !== 'مباشر الآن' && match.time !== 'تحدد لاحقا') {
       const localDate = matchStartDate(match);
       if (localDate) {
@@ -135,12 +136,23 @@ function renderMatch(match) {
   let hrefAttribute = `href="javascript:void(0)"`;
   let clickAction = `onclick="openWaitModal('عذراً، لم يتوفر بث لهذه المباراة بعد.')"`;
   let isClickableClass = 'not-clickable';
+  let topBadge = '';
 
-  // تفعيل الرابط فقط إذا كانت المباراة جاهزة، وتوجيهها للواجهة الأنيقة الجديدة
-  if (isReady) {
-      hrefAttribute = `href="${watchUrl}" target="_blank"`;
-      clickAction = '';
-      isClickableClass = 'clickable';
+  // تطبيق المنطق الذكي للقفل والفتح
+  if (hasData) {
+      if (isTimeAllowed) {
+          // البث جاهز والوقت حان (أقل من 25 دقيقة) -> افتح الرابط
+          hrefAttribute = `href="${watchUrl}" target="_blank"`;
+          clickAction = '';
+          isClickableClass = 'clickable';
+      } else {
+          // البث جاهز لكن الوقت مبكر جداً -> اقفل الرابط وأظهر رسالة تحذيرية
+          clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
+          topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
+      }
+  } else {
+      // لا توجد بيانات بث أصلاً
+      topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
   }
 
   if (isSoon) {
@@ -170,7 +182,7 @@ function renderMatch(match) {
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
-        ${!hasStreams && !manualLink ? '<span class="no-stream-badge">غير جاهز الان</span>' : ''}
+        ${topBadge}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
