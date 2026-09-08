@@ -1,12 +1,11 @@
 // assets/js/news.js
 
-// --- 1. الإعدادات الأساسية (نظام RSS المجاني) ---
-const RSS_URL = encodeURIComponent('https://arabic.rt.com/rss/sport/'); // مصدر موثوق بصور عالية الدقة
-const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${RSS_URL}`;
-const CACHE_KEY = "koralive_rss_news_cache";
-const CACHE_DURATION = 2 * 60 * 60 * 1000; // تخزين مؤقت لمدة ساعتين لحماية السرعة
+// --- 1. الإعدادات الأساسية ---
+// أضفنا v2 لكسر الكاش القديم وإجبار المتصفح على جلب 20 خبر جديد!
+const CACHE_KEY = "koralive_rss_news_cache_v2"; 
+const CACHE_DURATION = 2 * 60 * 60 * 1000; 
 
-// --- 2. إدارة العناصر (التعرف على الصفحتين) ---
+// --- 2. إدارة العناصر ---
 const elements = {
     grid: document.getElementById('news-grid-container') || document.getElementById('sports-news'),
     breakingGrid: document.getElementById('breaking-news'), 
@@ -17,12 +16,11 @@ const elements = {
     loadMoreBtn: document.getElementById('load-more')
 };
 
-// حالة التطبيق الداخلية للفلترة والتقسيم
 let state = {
-    allArticles: [],       // كل الأخبار القادمة من المصدر
-    filteredArticles: [],  // الأخبار بعد تطبيق البحث/الفلتر
-    currentIndex: 0,       // مؤشر لزر "تحميل المزيد"
-    itemsPerPage: 9        // عدد البطاقات في كل ضغطة
+    allArticles: [],       
+    filteredArticles: [],  
+    currentIndex: 0,       
+    itemsPerPage: 9        
 };
 
 // --- 3. دوال الكاش ---
@@ -46,8 +44,7 @@ function getCache(key) {
     } catch (error) { return null; }
 }
 
-// --- 4. دالة الجلب الأساسية ---
-// --- 4. دالة الجلب الأساسية (المطورة لجلب مصادر متعددة) ---
+// --- 4. دالة الجلب المزدوجة (للحصول على 20 خبر بدلاً من 10) ---
 async function fetchNews() {
     const cachedData = getCache(CACHE_KEY);
     if (cachedData && cachedData.length > 0) {
@@ -59,23 +56,21 @@ async function fetchNews() {
             elements.grid.innerHTML = '<div class="loading-placeholder" style="grid-column: 1/-1; text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i><p>جاري جلب أحدث الأخبار...</p></div>';
         }
 
-        // جلب الأخبار من مصدرين موثوقين لزيادة العدد!
+        // دمج مصدرين للأخبار لمضاعفة العدد
         const url1 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://arabic.rt.com/rss/sport/')}`;
         const url2 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.skynewsarabia.com/web/rss/sport')}`;
 
-        // تنفيذ الطلبين معاً في نفس اللحظة للسرعة
         const [res1, res2] = await Promise.all([
-            fetch(url1).catch(() => null), 
+            fetch(url1).catch(() => null),
             fetch(url2).catch(() => null)
         ]);
 
         const data1 = (res1 && res1.ok) ? await res1.json() : { items: [] };
         const data2 = (res2 && res2.ok) ? await res2.json() : { items: [] };
 
-        // دمج الأخبار من المصدرين في قائمة واحدة (حوالي 20 خبر)
         let allArticles = [...(data1.items || []), ...(data2.items || [])];
 
-        // ترتيب جميع الأخبار دمجاً من الأحدث للأقدم بناءً على تاريخ النشر
+        // ترتيب الأخبار من الأحدث للأقدم
         allArticles.sort((a, b) => {
             const dateA = new Date(a.pubDate.replace(/-/g, '/'));
             const dateB = new Date(b.pubDate.replace(/-/g, '/'));
@@ -93,11 +88,11 @@ async function fetchNews() {
         return [];
     }
 }
+
 // --- 5. منطق العرض والتقسيم ---
 function displayNews(append = false) {
     if (!elements.grid) return;
 
-    // تنظيف الحاوية إذا كان بحثاً جديداً (وليس تحميل المزيد)
     if (!append) {
         elements.grid.innerHTML = '';
         if (elements.breakingGrid) elements.breakingGrid.innerHTML = '';
@@ -112,17 +107,16 @@ function displayNews(append = false) {
 
     let itemsToRender = [];
     
-    // إذا كنا في صفحة الأخبار الرئيسية (فيها العاجل) والتحميل من الصفر
+    // وضع 10 أخبار في قسم العاجل كما طلبت
     if (!append && elements.breakingGrid) {
-        // أخذ أول 5 للعاجل
         const breaking = state.filteredArticles.slice(0, 10);
         breaking.forEach(article => {
             elements.breakingGrid.appendChild(createNewsCard(article, 'breaking'));
         });
-        state.currentIndex = 10;
+        state.currentIndex = 10; // تحديث المؤشر ليبدأ من الخبر رقم 11
     }
 
-    // أخذ الدفعة التالية للشبكة
+    // وضع باقي الأخبار في الشبكة السفلية
     itemsToRender = state.filteredArticles.slice(state.currentIndex, state.currentIndex + state.itemsPerPage);
     state.currentIndex += itemsToRender.length;
 
@@ -133,15 +127,13 @@ function displayNews(append = false) {
     updateLoadMoreBtn();
 }
 
-// دالة إنشاء البطاقة
+// --- دالة إنشاء البطاقة ---
 function createNewsCard(article, type) {
     const title = article.title || 'تحديث رياضي';
-    // تنظيف وصف RSS من أكواد HTML ليكون نصاً نقياً
     const description = stripHTML(article.description || article.content || '');
     const articleUrl = sanitizeUrl(article.link);
     const imgUrl = sanitizeUrl(article.thumbnail || (article.enclosure && article.enclosure.link), 'assets/images/default-news.jpg');
     
-    // تحديد البادج بذكاء
     let badge = "عالمي";
     if (title.includes("سعودي") || title.includes("النصر") || title.includes("الهلال")) badge = "السعودية";
     if (title.includes("مصري") || title.includes("الأهلي") || title.includes("الزمالك")) badge = "مصر";
@@ -164,7 +156,7 @@ function createNewsCard(article, type) {
             ${description ? `<p class="news-summary">${escapeHTML(truncateText(description, 100))}</p>` : ''}
             <div class="news-meta">
                 <span><i class="far fa-clock"></i> ${escapeHTML(formatDate(article.pubDate))}</span>
-                <span class="news-source">RT Sports</span>
+                <span class="news-source">RT / Sky</span>
                 <a href="${escapeAttribute(articleUrl)}" target="_blank" rel="noopener noreferrer" class="read-more-link">اقرأ <i class="fas fa-arrow-left"></i></a>
             </div>
         </div>
@@ -172,19 +164,18 @@ function createNewsCard(article, type) {
     return card;
 }
 
-// --- 6. الفلترة والبحث المحلي ---
+// --- الفلترة والبحث ---
 function applyFilter(keyword) {
     if (!keyword || keyword === 'كرة القدم' || keyword === 'all') {
         state.filteredArticles = [...state.allArticles];
     } else {
         const lowerKeyword = keyword.toLowerCase();
-        // فلترة ذكية تبحث في العنوان والوصف معاً
         state.filteredArticles = state.allArticles.filter(a => 
             (a.title && a.title.toLowerCase().includes(lowerKeyword)) || 
             (a.description && a.description.toLowerCase().includes(lowerKeyword))
         );
     }
-    displayNews(false); // إعادة العرض من الصفر بناءً على الفلتر
+    displayNews(false); 
 }
 
 function setupFilterClick(btn) {
@@ -205,10 +196,9 @@ function setupFilterClick(btn) {
     });
 }
 
-// --- 7. دوال مساعدة ---
+// --- دوال مساعدة ---
 function updateLoadMoreBtn() {
     if (elements.loadMoreBtn) {
-        // إظهار الزر فقط إذا كان هناك أخبار متبقية في المصفوفة
         if (state.currentIndex < state.filteredArticles.length) {
             elements.loadMoreBtn.style.display = 'inline-flex';
             elements.loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> تحميل المزيد';
@@ -262,14 +252,13 @@ function formatDate(dateString) {
     });
 }
 
-// --- 8. التهيئة عند بدء التشغيل ---
+// --- التهيئة ---
 async function init() {
     state.allArticles = await fetchNews();
     state.filteredArticles = [...state.allArticles];
     
-    displayNews(false); // العرض الأولي
+    displayNews(false); 
 
-    // تفعيل البحث
     const performSearch = () => {
         const term = elements.searchInput?.value.trim();
         applyFilter(term);
@@ -278,18 +267,16 @@ async function init() {
     elements.searchBtn?.addEventListener('click', performSearch);
     elements.searchInput?.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
 
-    // تفعيل الفلاتر
     elements.filterBtns?.forEach(btn => setupFilterClick(btn));
     elements.categoryBtns?.forEach(btn => setupFilterClick(btn));
 
-    // تفعيل زر تحميل المزيد
     elements.loadMoreBtn?.addEventListener('click', () => {
         elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
         elements.loadMoreBtn.disabled = true;
         
         setTimeout(() => {
-            displayNews(true); // true = استمرار (إضافة للأسفل)
-        }, 300); // تأخير وهمي بسيط ليعطي إحساساً بالتحميل والتفاعل
+            displayNews(true); 
+        }, 300); 
     });
 }
 
