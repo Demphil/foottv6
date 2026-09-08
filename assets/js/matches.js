@@ -117,6 +117,19 @@ function renderMatch(match) {
     : 'تحدد لاحقاً';
 
   let timeText = match.time;
+  
+  // تحويل التوقيت تلقائياً لبلد الزائر
+  if (match.time !== 'مباشر الآن' && match.time !== 'تحدد لاحقا') {
+      const localDate = matchStartDate(match);
+      if (localDate) {
+          timeText = localDate.toLocaleTimeString('ar-EG-u-nu-latn', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+          });
+      }
+  }
+
   let statusBadge = '';
   let matchStatusClass = '';
   
