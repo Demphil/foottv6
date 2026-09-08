@@ -93,36 +93,21 @@ function applyBaseCSS(container) {
 }
 
 function renderServers(streams, playerContainer, playerLoader, serversContainer) {
-    // 1. إخفاء الحاوية القديمة لتجنب أي تعارض مع ملف watch.css
     if (serversContainer) {
         serversContainer.style.display = 'none';
     }
 
-    // 2. إنشاء حاوية شريط علوي جديدة ومستقلة
     let topBar = document.getElementById('custom-top-bar');
     if (!topBar) {
         topBar = document.createElement('div');
         topBar.id = 'custom-top-bar';
         topBar.style.width = '100%';
         topBar.style.marginBottom = '15px';
-        // وضع الشريط مباشرة فوق مشغل الفيديو
         playerContainer.parentNode.insertBefore(topBar, playerContainer);
     }
-    topBar.innerHTML = ''; // تنظيف المحتوى القديم
+    topBar.innerHTML = ''; 
 
-    // 3. إضافة رسالة التوجيه (أعلى الشريط)
-    if (streams.length > 1) {
-        const noticeMsg = document.createElement('div');
-        noticeMsg.style.color = '#ffcc00';
-        noticeMsg.style.fontSize = '14px';
-        noticeMsg.style.fontWeight = 'bold';
-        noticeMsg.style.textAlign = 'center';
-        noticeMsg.style.marginBottom = '10px';
-        noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى';
-        topBar.appendChild(noticeMsg);
-    }
-
-    // 4. إنشاء "الشريط الرئيسي المدمج"
+    // إنشاء "الشريط الرئيسي المدمج" أولاً
     const barContent = document.createElement('div');
     barContent.style.display = 'flex';
     barContent.style.justifyContent = 'space-between';
@@ -143,7 +128,7 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
     const logoImg = document.createElement('img');
     logoImg.src = 'assets/images/logo.png';
     logoImg.alt = 'شعار الموقع';
-    logoImg.style.height = '35px'; // الحجم المثالي
+    logoImg.style.height = '35px'; 
     logoImg.style.width = 'auto';
     logoImg.onerror = function() { this.style.display='none'; };
     logoLink.appendChild(logoImg);
@@ -154,12 +139,11 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
     buttonsWrapper.style.gap = '10px';
     buttonsWrapper.style.justifyContent = 'center';
     buttonsWrapper.style.flexWrap = 'wrap';
-    buttonsWrapper.style.flex = '1'; // لملء المساحة الوسطى
+    buttonsWrapper.style.flex = '1'; 
 
     streams.forEach((stream, index) => {
         const btn = document.createElement('button');
         btn.innerText = `سيرفر ${index + 1}`;
-        // استخدمنا كلاس جديد لنهرب من ستايل watch.css القديم!
         btn.className = 'custom-srv-btn'; 
         btn.style.padding = '8px 16px';
         btn.style.cursor = 'pointer';
@@ -200,13 +184,25 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
     backBtn.onmouseout = () => backBtn.style.opacity = '1';
 
     // تجميع العناصر داخل الشريط
-    barContent.appendChild(logoLink);      // يمين
-    barContent.appendChild(buttonsWrapper); // وسط
-    barContent.appendChild(backBtn);        // يسار
+    barContent.appendChild(logoLink);      
+    barContent.appendChild(buttonsWrapper); 
+    barContent.appendChild(backBtn);        
 
+    // 1. إضافة الشريط الأسود ليكون في الأعلى
     topBar.appendChild(barContent);
 
-    // تشغيل السيرفر الأول تلقائياً
+    // 2. إضافة رسالة التوجيه لتكون تحت الشريط الأسود
+    if (streams.length > 1) {
+        const noticeMsg = document.createElement('div');
+        noticeMsg.style.color = '#ffcc00';
+        noticeMsg.style.fontSize = '14px';
+        noticeMsg.style.fontWeight = 'bold';
+        noticeMsg.style.textAlign = 'center';
+        noticeMsg.style.marginTop = '10px'; // أضفنا مسافة من الأعلى ليفصل عن الشريط
+        noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى';
+        topBar.appendChild(noticeMsg);
+    }
+
     loadPlayer(streams[1], playerContainer, playerLoader);
 }
 function loadPlayer(stream, container, loader) {
@@ -311,53 +307,91 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار من NewsData.io (مع الفلترة الشاملة)
 // ==========================================
+// ==========================================
+// جلب الأخبار من NewsData.io (مع نظام تخزين مؤقت لحماية الباقة)
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
 
+    const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b"; // مفتاحك الحالي
+    const CACHE_KEY = "koralive_news_cache";
+    const CACHE_TIME = 1000 * 60 * 60 * 3; // تخزين الأخبار لمدة 3 ساعات
+
     try {
-        const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b";
+        // 1. التحقق من الذاكرة المؤقتة أولاً
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            const { timestamp, articles } = JSON.parse(cachedData);
+            // إذا لم تمر 3 ساعات، اعرض الأخبار المخزنة وتجنب استهلاك الباقة!
+            if (Date.now() - timestamp < CACHE_TIME) {
+                renderNewsCards(articles, newsContainer);
+                return;
+            }
+        }
+
+        // 2. إذا انتهت صلاحية الأخبار، جلب أخبار جديدة من السيرفر
         const keywords = 'كرة القدم';
         const targetUrl = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=4&removeduplicate=1&language=ar&category=sports&q=${encodeURIComponent(keywords)}`;
 
         const response = await fetch(targetUrl);
-        if (!response.ok) throw new Error('فشل الاتصال بمزود الأخبار');
+        
+        if (!response.ok) {
+            // إذا انتهت الباقة، نعرض الأخبار القديمة إن وجدت، أو نعرض رسالة ودية
+            if (cachedData) {
+                const { articles } = JSON.parse(cachedData);
+                renderNewsCards(articles, newsContainer);
+                return;
+            }
+            throw new Error('تم استهلاك الباقة اليومية للأخبار.');
+        }
 
         const result = await response.json();
         const articles = result.results || [];
 
-        if (articles && articles.length > 0) {
-            newsContainer.innerHTML = articles.map(article => {
-                // الفلتر الذكي: إذا كان العنوان فارغاً أو ينتهي بصيغة صورة، نضع عنواناً بديلاً
-                let title = article.title || 'أحدث الأخبار الرياضية';
-                if (/\.(jpg|jpeg|png|webp|gif)$/i.test(title)) {
-                    title = 'تحديث رياضي جديد'; 
-                }
-
-                const articleUrl = article.link || '#';
-                const imgUrl = article.image_url || 'assets/images/default-news.jpg';
-                
-                let dateStr = '';
-                if (article.pubDate) {
-                    const date = new Date(article.pubDate);
-                    dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
-                }
-
-                return `
-                    <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
-                        <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
-                        <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <h4 style="margin: 0; font-size: 14px; line-height: 1.4;">${title}</h4>
-                            <span style="font-size: 12px; color: #888;">${dateStr}</span>
-                        </div>
-                    </a>
-                `;
-            }).join('');
+        if (articles.length > 0) {
+            // 3. حفظ الأخبار الجديدة في متصفح الزائر
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                timestamp: Date.now(),
+                articles: articles
+            }));
+            renderNewsCards(articles, newsContainer);
         } else {
             newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
         }
+
     } catch (err) {
-        console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
-        newsContainer.innerHTML = '<p class="news-empty-msg">حدث خطأ أثناء تحميل الأخبار.</p>';
+        console.warn("تنبيه الأخبار:", err.message);
+        // رسالة أنيقة بدلاً من ترك المكان فارغاً عند تعطل السيرفر
+        newsContainer.innerHTML = '<p class="news-empty-msg" style="grid-column: 1 / -1; text-align: center;">جاري تحديث النشرة الرياضية، يرجى العودة لاحقاً.</p>';
     }
+}
+
+// دالة مساعدة لترتيب وعرض الأخبار
+function renderNewsCards(articles, container) {
+    container.innerHTML = articles.map(article => {
+        let title = article.title || 'أحدث الأخبار الرياضية';
+        if (/\.(jpg|jpeg|png|webp|gif)$/i.test(title)) {
+            title = 'تحديث رياضي جديد'; 
+        }
+
+        const articleUrl = article.link || '#';
+        const imgUrl = article.image_url || 'assets/images/default-news.jpg';
+        
+        let dateStr = '';
+        if (article.pubDate) {
+            const date = new Date(article.pubDate);
+            dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        return `
+            <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
+                <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <h4 style="margin: 0; font-size: 14px; line-height: 1.4;">${title}</h4>
+                    <span style="font-size: 12px; color: #888;">${dateStr}</span>
+                </div>
+            </a>
+        `;
+    }).join('');
 }
