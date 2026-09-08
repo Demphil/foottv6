@@ -47,24 +47,19 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-// ==========================================
-// التعديل 1: نظام ذكي لمعالجة خطأ (AM/PM)
-// ==========================================
-// تصحيح التوقيت الذكي سواء من scheduledAt أو time النصي
-// تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات
+// تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
 function matchStartDate(match) {
-  // 1. حساب الوقت من النص المكتوب (مثل 10:00) 
   if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
-    const timeMatch = String(match.time).match(/^(\d{1,2}):(\d{2})$/);
+    // إزالة ^ و $ من البحث لكي نلتقط الوقت حتى لو كان محاطاً بمسافات مخفية
+    const timeMatch = String(match.time).match(/(\d{1,2}):(\d{2})/);
     if (timeMatch) {
       let hour = Number(timeMatch[1]);
       const minute = Number(timeMatch[2]);
       
-      // تحويل 10 إلى 22 (نظام مسائي)
+      // تحويل 1 إلى 11 إلى نظام 24 ساعة (مسائي)
       if (hour >= 1 && hour <= 11) hour += 12;
       
       // التوقيت في الموقع هو توقيت السعودية (UTC+3)
-      // نحوله إلى توقيت عالمي (UTC) بطرح 3 ساعات
       const utcHour = hour - 3;
       
       const now = new Date();
@@ -72,7 +67,7 @@ function matchStartDate(match) {
     }
   }
 
-  // 2. كخيار احتياطي
+  // كخيار احتياطي
   if (match?.scheduledAt) {
     const scheduledDate = new Date(match.scheduledAt);
     if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
@@ -95,14 +90,18 @@ function renderMatch(match) {
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
-  const isResolved = match.status === 'PASSED_STAGING' || hasStreams;
-  const fallbackWatchUrl = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+  const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   
-  const watchUrl = isResolved
-    ? `watch.html?id=${encodeURIComponent(stableId)}`
-    : fallbackWatchUrl
-      ? `${fallbackWatchUrl}${fallbackWatchUrl.includes('?') ? '&' : '?'}matchId=${encodeURIComponent(stableId)}`
-      : '';
+  // إجبار جميع المباريات على الفتح في صفحة watch.html الجديدة والتخلص من الواجهة القديمة
+  let watchUrl = `watch.html?id=${encodeURIComponent(stableId)}`;
+  
+  // إذا لم يكن هناك بث من الروبوت، ولكن يوجد رابط يدوي، نمرره للواجهة الجديدة بذكاء
+  if (!hasStreams && manualLink) {
+      watchUrl += `&matchLink=${encodeURIComponent(manualLink)}`;
+  }
+
+  // المباراة جاهزة إذا كان بها بث آلي، أو حالة نجاح، أو رابط يدوي
+  const isReady = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
 
   const now = new Date();
   const matchDate = matchStartDate(match) || now;
@@ -137,8 +136,8 @@ function renderMatch(match) {
   let clickAction = `onclick="openWaitModal('عذراً، لم يتوفر بث لهذه المباراة بعد.')"`;
   let isClickableClass = 'not-clickable';
 
-  // إذا وجد رابط للمشاهدة، نفتح الصفحة للزائر مباشرة بدون حظر
-  if (watchUrl) {
+  // تفعيل الرابط فقط إذا كانت المباراة جاهزة، وتوجيهها للواجهة الأنيقة الجديدة
+  if (isReady) {
       hrefAttribute = `href="${watchUrl}" target="_blank"`;
       clickAction = '';
       isClickableClass = 'clickable';
@@ -171,7 +170,7 @@ function renderMatch(match) {
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
-        ${!hasStreams && !fallbackWatchUrl ? '<span class="no-stream-badge">غير جاهز الان</span>' : ''}
+        ${!hasStreams && !manualLink ? '<span class="no-stream-badge">غير جاهز الان</span>' : ''}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
