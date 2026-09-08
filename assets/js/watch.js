@@ -218,19 +218,15 @@ async function loadWatchNews() {
         if (error) throw error;
 
         if (data && data.length > 0) {
+            // تم تنظيف الكود هنا ليستخدم الـ CSS Classes بدلاً من الـ Inline Styles
             newsContainer.innerHTML = data.map(article => `
-                <a href="/news.html?slug=${article.slug}" style="display: block; text-decoration: none; color: #fff; background: #2a2a2a; padding: 15px; border-radius: 8px; transition: background 0.3s ease;">
-                    <h4 style="margin: 0 0 10px 0; font-size: 15px; line-height: 1.4;">${article.title}</h4>
-                    <span style="font-size: 12px; color: #888;">${new Date(article.created_at).toLocaleDateString('ar-MA')}</span>
+                <a href="/news.html?slug=${article.slug}" class="watch-news-card">
+                    <h4>${article.title}</h4>
+                    <span>${new Date(article.created_at).toLocaleDateString('ar-MA')}</span>
                 </a>
             `).join('');
-            
-            newsContainer.querySelectorAll('a').forEach(link => {
-                link.addEventListener('mouseenter', () => link.style.backgroundColor = '#333');
-                link.addEventListener('mouseleave', () => link.style.backgroundColor = '#2a2a2a');
-            });
         } else {
-            newsContainer.innerHTML = '<p style="color:#888; font-size:14px;">لا توجد أخبار حالياً.</p>';
+            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
         }
     } catch (err) {
         console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);

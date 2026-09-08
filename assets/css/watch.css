@@ -225,3 +225,56 @@ body {
     -webkit-tap-highlight-color: transparent;
   }
 }
+/* ==========================================
+   تنسيقات قسم الأخبار في صفحة المشاهدة
+   ========================================== */
+.watch-news-section {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #1a1a1a;
+    border-radius: 12px;
+}
+
+.watch-news-title {
+    color: #e50914;
+    margin-top: 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.watch-news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.watch-news-card {
+    display: block;
+    text-decoration: none;
+    color: #fff;
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.watch-news-card:hover {
+    background-color: #333;
+}
+
+.watch-news-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.watch-news-card span {
+    font-size: 12px;
+    color: #888;
+}
+
+.news-empty-msg {
+    color: #888;
+    font-size: 14px;
+}
