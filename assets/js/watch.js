@@ -93,76 +93,48 @@ function applyBaseCSS(container) {
 }
 
 function renderServers(streams, playerContainer, playerLoader, serversContainer) {
-    serversContainer.innerHTML = '';
-    
-    // تصميم حاوية السيرفرات لتكون شريطاً متكاملاً يحتوي على كل شيء
-    serversContainer.style.display = 'flex';
-    serversContainer.style.flexDirection = 'column'; // وضع الرسالة فوق الشريط
-    serversContainer.style.alignItems = 'center';
-    serversContainer.style.gap = '15px';
-    serversContainer.style.marginBottom = '20px';
-    serversContainer.style.width = '100%';
+    // 1. إخفاء الحاوية القديمة لتجنب أي تعارض مع ملف watch.css
+    if (serversContainer) {
+        serversContainer.style.display = 'none';
+    }
 
-    // 1. إضافة رسالة التوجيه (أعلى الشريط)
+    // 2. إنشاء حاوية شريط علوي جديدة ومستقلة
+    let topBar = document.getElementById('custom-top-bar');
+    if (!topBar) {
+        topBar = document.createElement('div');
+        topBar.id = 'custom-top-bar';
+        topBar.style.width = '100%';
+        topBar.style.marginBottom = '15px';
+        // وضع الشريط مباشرة فوق مشغل الفيديو
+        playerContainer.parentNode.insertBefore(topBar, playerContainer);
+    }
+    topBar.innerHTML = ''; // تنظيف المحتوى القديم
+
+    // 3. إضافة رسالة التوجيه (أعلى الشريط)
     if (streams.length > 1) {
         const noticeMsg = document.createElement('div');
         noticeMsg.style.color = '#ffcc00';
         noticeMsg.style.fontSize = '14px';
         noticeMsg.style.fontWeight = 'bold';
         noticeMsg.style.textAlign = 'center';
-        noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى بالأسفل';
-        serversContainer.appendChild(noticeMsg);
+        noticeMsg.style.marginBottom = '10px';
+        noticeMsg.innerHTML = '⚠️ إذا لم يعمل معك البث أو كان يتقطع، يرجى تجربة السيرفرات الأخرى';
+        topBar.appendChild(noticeMsg);
     }
 
-    // 2. إنشاء "الشريط الرئيسي" الذي سيحوي (الزر - السيرفرات - الشعار)
-    const topBar = document.createElement('div');
-    topBar.style.display = 'flex';
-    topBar.style.justifyContent = 'space-between';
-    topBar.style.alignItems = 'center';
-    topBar.style.width = '100%';
-    topBar.style.backgroundColor = '#1e1e1e';
-    topBar.style.padding = '10px 15px';
-    topBar.style.borderRadius = '8px';
-    topBar.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
-    topBar.style.flexWrap = 'nowrap'; // منع النزول لسطر جديد في الشاشات الكبيرة
+    // 4. إنشاء "الشريط الرئيسي المدمج"
+    const barContent = document.createElement('div');
+    barContent.style.display = 'flex';
+    barContent.style.justifyContent = 'space-between';
+    barContent.style.alignItems = 'center';
+    barContent.style.width = '100%';
+    barContent.style.backgroundColor = '#1e1e1e';
+    barContent.style.padding = '10px 15px';
+    barContent.style.borderRadius = '8px';
+    barContent.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+    barContent.style.boxSizing = 'border-box';
 
-    // أ: زر العودة (يسار)
-    const backBtn = document.createElement('a');
-    backBtn.href = 'index.html';
-    backBtn.className = 'integrated-back';
-    backBtn.innerHTML = 'عودة للمباريات &rarr;';
-    
-    // ب: حاوية أزرار السيرفرات (وسط)
-    const buttonsWrapper = document.createElement('div');
-    buttonsWrapper.style.display = 'flex';
-    buttonsWrapper.style.gap = '10px';
-    buttonsWrapper.style.flexWrap = 'wrap';
-    buttonsWrapper.style.justifyContent = 'center';
-
-    streams.forEach((stream, index) => {
-        const btn = document.createElement('button');
-        btn.innerText = `سيرفر ${index + 1}`;
-        btn.className = 'server-btn';
-        btn.style.padding = '8px 16px';
-        btn.style.cursor = 'pointer';
-        btn.style.border = 'none';
-        btn.style.borderRadius = '6px';
-        btn.style.backgroundColor = index === 0 ? '#e50914' : '#333';
-        btn.style.color = '#fff';
-        btn.style.fontFamily = 'inherit';
-        btn.style.fontWeight = 'bold';
-        btn.style.transition = 'background 0.3s ease';
-
-        btn.onclick = () => {
-            document.querySelectorAll('.server-btn').forEach(b => b.style.backgroundColor = '#333');
-            btn.style.backgroundColor = '#e50914';
-            loadPlayer(stream, playerContainer, playerLoader);
-        };
-
-        buttonsWrapper.appendChild(btn);
-    });
-
-    // ج: اللوغو (يمين)
+    // أ: اللوغو (يمين)
     const logoLink = document.createElement('a');
     logoLink.href = 'index.html';
     logoLink.style.display = 'flex';
@@ -171,19 +143,68 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
     const logoImg = document.createElement('img');
     logoImg.src = 'assets/images/logo.png';
     logoImg.alt = 'شعار الموقع';
-    logoImg.className = 'integrated-logo';
+    logoImg.style.height = '35px'; // الحجم المثالي
+    logoImg.style.width = 'auto';
     logoImg.onerror = function() { this.style.display='none'; };
-    
     logoLink.appendChild(logoImg);
 
-    // تجميع العناصر داخل الشريط (يسار - وسط - يمين)
-    // الترتيب: اللوغو يمين، السيرفرات وسط، زر العودة يسار (بسبب dir=rtl في الصفحة)
-    topBar.appendChild(logoLink);
-    topBar.appendChild(buttonsWrapper);
-    topBar.appendChild(backBtn);
+    // ب: حاوية أزرار السيرفرات (وسط)
+    const buttonsWrapper = document.createElement('div');
+    buttonsWrapper.style.display = 'flex';
+    buttonsWrapper.style.gap = '10px';
+    buttonsWrapper.style.justifyContent = 'center';
+    buttonsWrapper.style.flexWrap = 'wrap';
+    buttonsWrapper.style.flex = '1'; // لملء المساحة الوسطى
 
-    // إضافة الشريط النهائي للحاوية
-    serversContainer.appendChild(topBar);
+    streams.forEach((stream, index) => {
+        const btn = document.createElement('button');
+        btn.innerText = `سيرفر ${index + 1}`;
+        // استخدمنا كلاس جديد لنهرب من ستايل watch.css القديم!
+        btn.className = 'custom-srv-btn'; 
+        btn.style.padding = '8px 16px';
+        btn.style.cursor = 'pointer';
+        btn.style.border = 'none';
+        btn.style.borderRadius = '6px';
+        btn.style.backgroundColor = index === 0 ? '#e50914' : '#333';
+        btn.style.color = '#fff';
+        btn.style.fontFamily = 'inherit';
+        btn.style.fontWeight = 'bold';
+        btn.style.margin = '0';
+        btn.style.transition = 'background 0.3s ease';
+
+        btn.onclick = () => {
+            document.querySelectorAll('.custom-srv-btn').forEach(b => b.style.backgroundColor = '#333');
+            btn.style.backgroundColor = '#e50914';
+            loadPlayer(stream, playerContainer, playerLoader);
+        };
+
+        buttonsWrapper.appendChild(btn);
+    });
+
+    // ج: زر العودة (يسار)
+    const backBtn = document.createElement('a');
+    backBtn.href = 'index.html';
+    backBtn.innerHTML = 'عودة للمباريات &rarr;';
+    backBtn.style.display = 'inline-flex';
+    backBtn.style.alignItems = 'center';
+    backBtn.style.color = '#ffffff';
+    backBtn.style.textDecoration = 'none';
+    backBtn.style.fontSize = '13px';
+    backBtn.style.fontWeight = 'bold';
+    backBtn.style.backgroundColor = '#e50914';
+    backBtn.style.padding = '8px 12px';
+    backBtn.style.borderRadius = '4px';
+    backBtn.style.whiteSpace = 'nowrap';
+    backBtn.style.transition = 'opacity 0.3s';
+    backBtn.onmouseover = () => backBtn.style.opacity = '0.8';
+    backBtn.onmouseout = () => backBtn.style.opacity = '1';
+
+    // تجميع العناصر داخل الشريط
+    barContent.appendChild(logoLink);      // يمين
+    barContent.appendChild(buttonsWrapper); // وسط
+    barContent.appendChild(backBtn);        // يسار
+
+    topBar.appendChild(barContent);
 
     // تشغيل السيرفر الأول تلقائياً
     loadPlayer(streams[1], playerContainer, playerLoader);
