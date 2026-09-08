@@ -127,11 +127,17 @@ function loadPlayer(stream, container, loader) {
         container.appendChild(loader);
     }
 
-    container.style.paddingBottom = '56.25%'; 
-    container.style.height = '0';
-    container.style.minHeight = '0';
+    // ==========================================
+    // التعديل الجديد: تكبير شاشتنا لتستوعب المشغل براحة
+    // ==========================================
+    container.style.paddingBottom = '0'; // إلغاء القص الصارم
+    container.style.height = '75vh';     // الشاشة تأخذ 75% من طول متصفح الزائر
+    container.style.minHeight = '450px'; // حد أدنى ممتاز للهواتف المحمولة
+    container.style.maxHeight = '850px'; // حد أقصى للشاشات الكبيرة جداً
+    // ==========================================
 
     if (stream.url.includes('.m3u8')) {
+        // ... (باقي الكود كما هو بدون تغيير)
         const video = document.createElement('video');
         video.controls = true;
         video.style.position = 'absolute';
