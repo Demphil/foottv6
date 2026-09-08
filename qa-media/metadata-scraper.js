@@ -186,7 +186,40 @@ function metadataKey(match) {
 async function runMetadataOnce() {
   const deduplicated = new Map();
   const rawMatches = parseSchedule(await fetchScheduleHtml());
-  for (const match of rawMatches) deduplicated.set(metadataKey(match), match);
+  
+  // الكلمات التي تدل على أن المعلومة ناقصة
+  const invalidTexts = ['تحدد لاحقا', 'تحدد لاحقاً', 'غير محدد', 'unknown', ''];
+
+  for (const match of rawMatches) {
+    const key = metadataKey(match);
+    
+    if (!deduplicated.has(key)) {
+      // إذا كانت المباراة جديدة، أضفها
+      deduplicated.set(key, match);
+    } else {
+      // إذا كانت المباراة موجودة مسبقاً (مكررة)، نقوم بدمج النواقص بذكاء
+      const existing = deduplicated.get(key);
+      
+      const existingChannel = (existing.channel || '').trim().toLowerCase();
+      const newChannel = (match.channel || '').trim().toLowerCase();
+
+      // 1. ترقية القناة: إذا كانت الحالية ناقصة والجديدة تحتوي على اسم القناة، استبدلها
+      if (invalidTexts.includes(existingChannel) && !invalidTexts.includes(newChannel)) {
+        existing.channel = match.channel;
+      }
+
+      // 2. دمج الروابط: نحتفظ بجميع روابط المصدر المتاحة لنفس المباراة
+      if (match.matchUrl && !existing.matchUrls.includes(match.matchUrl)) {
+        existing.matchUrls.push(match.matchUrl);
+      }
+      
+      // 3. تحديث الرابط الأساسي إذا كان مفقوداً
+      if (!existing.matchUrl && match.matchUrl) {
+        existing.matchUrl = match.matchUrl;
+      }
+    }
+  }
+  
   const jobs = [...deduplicated.values()].slice(0, config.autoDiscoverLimit);
   
   for (const job of jobs) {
