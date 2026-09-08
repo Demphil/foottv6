@@ -229,15 +229,16 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار من NewsData.io (نفس مصدر صفحة الأخبار)
 // ==========================================
+// ==========================================
+// جلب الأخبار من NewsData.io (مع الصور)
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
 
     try {
-        // مفتاح الـ API والمسار المأخوذ من ملف news.js الخاص بك
         const API_KEY = "pub_61602747de664b4e9e96b8b6bf40ed1b";
         const keywords = 'كرة القدم';
-        // جلب 4 مقالات فقط لصفحة المشاهدة
         const targetUrl = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=4&removeduplicate=1&language=ar&category=sports&q=${encodeURIComponent(keywords)}`;
 
         const response = await fetch(targetUrl);
@@ -250,18 +251,23 @@ async function loadWatchNews() {
             newsContainer.innerHTML = articles.map(article => {
                 const title = article.title || 'خبر رياضي';
                 const articleUrl = article.link || '#';
+                // سحب الصورة أو استخدام صورة افتراضية
+                const imgUrl = article.image_url || 'assets/images/default-news.jpg';
                 
-                // تنسيق التاريخ بنفس طريقتك في news.js
                 let dateStr = '';
                 if (article.pubDate) {
                     const date = new Date(article.pubDate);
                     dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
                 }
 
+                // إضافة الصورة بتنسيق متجاوب (Inline CSS) لضمان عدم تعارضها مع تصميمك الحالي
                 return `
-                    <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card">
-                        <h4>${title}</h4>
-                        <span>${dateStr}</span>
+                    <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
+                        <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <h4 style="margin: 0; font-size: 14px; line-height: 1.4;">${title}</h4>
+                            <span style="font-size: 12px; color: #888;">${dateStr}</span>
+                        </div>
                     </a>
                 `;
             }).join('');
