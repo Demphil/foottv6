@@ -232,6 +232,9 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار من NewsData.io (مع الصور)
 // ==========================================
+// ==========================================
+// جلب الأخبار من NewsData.io (مع الفلترة الشاملة)
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
@@ -249,9 +252,13 @@ async function loadWatchNews() {
 
         if (articles && articles.length > 0) {
             newsContainer.innerHTML = articles.map(article => {
-                const title = article.title || 'خبر رياضي';
+                // الفلتر الذكي: إذا كان العنوان فارغاً أو ينتهي بصيغة صورة، نضع عنواناً بديلاً
+                let title = article.title || 'أحدث الأخبار الرياضية';
+                if (/\.(jpg|jpeg|png|webp|gif)$/i.test(title)) {
+                    title = 'تحديث رياضي جديد'; 
+                }
+
                 const articleUrl = article.link || '#';
-                // سحب الصورة أو استخدام صورة افتراضية
                 const imgUrl = article.image_url || 'assets/images/default-news.jpg';
                 
                 let dateStr = '';
@@ -260,7 +267,6 @@ async function loadWatchNews() {
                     dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
                 }
 
-                // إضافة الصورة بتنسيق متجاوب (Inline CSS) لضمان عدم تعارضها مع تصميمك الحالي
                 return `
                     <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
                         <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
