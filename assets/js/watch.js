@@ -217,24 +217,27 @@ function loadPlayer(stream, container, loader) {
     }
 
     // ==========================================
-    // التعديل 1: جعل المشغل عريضاً سينمائياً (16:9)
+    // فرض الشكل السينمائي العريض 16:9 (مضمونة 100%)
     // ==========================================
-    container.style.paddingBottom = '0';
-    container.style.width = '100%';          // يأخذ العرض بالكامل
-    container.style.height = 'auto';         // الارتفاع يتعدل تلقائياً
-    container.style.aspectRatio = '16 / 9';  // نسبة سينمائية مثالية تمنع المشغل من أن يكون طويلاً
-    container.style.minHeight = '250px';     // للهواتف الصغيرة جداً
-    container.style.maxHeight = '80vh';      // لعدم تجاوز الشاشة
+    container.style.position = 'relative';
+    container.style.width = '100%';
+    container.style.height = '0';
+    container.style.paddingBottom = '56.25%'; /* هذه النسبة تصنع مستطيلاً مثالياً */
+    container.style.overflow = 'hidden';
+    container.style.backgroundColor = '#000';
+    container.style.borderRadius = '12px';
     // ==========================================
 
     if (stream.url.includes('.m3u8')) {
         const video = document.createElement('video');
         video.controls = true;
+        // إجبار الفيديو على ملء المستطيل
         video.style.position = 'absolute';
         video.style.top = '0';
         video.style.left = '0';
         video.style.width = '100%';
         video.style.height = '100%';
+// ... (باقي كود الدالة كما هو بدون تغيير)
         
         if (window.Hls && Hls.isSupported()) {
             const hls = new Hls();
