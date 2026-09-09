@@ -1,11 +1,8 @@
 // assets/js/news.js
 
-// --- 1. الإعدادات الأساسية ---
-// أضفنا v2 لكسر الكاش القديم وإجبار المتصفح على جلب 20 خبر جديد!
-const CACHE_KEY = "koralive_rss_news_cache_v2"; 
+const CACHE_KEY = "koralive_rss_news_v5_hespress"; // كاش جديد تماماً
 const CACHE_DURATION = 2 * 60 * 60 * 1000; 
 
-// --- 2. إدارة العناصر ---
 const elements = {
     grid: document.getElementById('news-grid-container') || document.getElementById('sports-news'),
     breakingGrid: document.getElementById('breaking-news'), 
@@ -23,12 +20,10 @@ let state = {
     itemsPerPage: 9        
 };
 
-// --- 3. دوال الكاش ---
 function setCache(key, data) {
     try {
-        const cacheItem = { timestamp: Date.now(), data: data };
-        localStorage.setItem(key, JSON.stringify(cacheItem));
-    } catch (error) { console.error("Cache Error:", error); }
+        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
+    } catch (e) {}
 }
 
 function getCache(key) {
@@ -41,55 +36,51 @@ function getCache(key) {
             return null;
         }
         return data;
-    } catch (error) { return null; }
+    } catch (e) { return null; }
 }
 
-// --- 4. دالة الجلب المزدوجة (للحصول على 20 خبر بدلاً من 10) ---
 async function fetchNews() {
     const cachedData = getCache(CACHE_KEY);
-    if (cachedData && cachedData.length > 0) {
-        return cachedData;
-    }
+    if (cachedData && cachedData.length > 0) return cachedData;
     
     try {
         if (elements.grid) {
             elements.grid.innerHTML = '<div class="loading-placeholder" style="grid-column: 1/-1; text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin"></i><p>جاري جلب أحدث الأخبار...</p></div>';
         }
 
-        // دمج مصدرين للأخبار لمضاعفة العدد
-        const url1 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://arabic.rt.com/rss/sport/')}`;
-        const url2 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.skynewsarabia.com/web/rss/sport')}`;
+        // استخدام 3 مصادر موثوقة ونشطة (RT + هسبريس رياضة + فرانس24)
+        const sources = [
+            'https://arabic.rt.com/rss/sport/',
+            'https://www.hespress.com/sport/feed',
+            'https://www.france24.com/ar/%D8%B1%D9%8A%D8%A7%D8%B6%D8%A9/rss'
+        ];
 
-        const [res1, res2] = await Promise.all([
-            fetch(url1).catch(() => null),
-            fetch(url2).catch(() => null)
-        ]);
+        const requests = sources.map(url => 
+            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`).catch(() => null)
+        );
 
-        const data1 = (res1 && res1.ok) ? await res1.json() : { items: [] };
-        const data2 = (res2 && res2.ok) ? await res2.json() : { items: [] };
+        const responses = await Promise.all(requests);
+        let allArticles = [];
 
-        let allArticles = [...(data1.items || []), ...(data2.items || [])];
-
-        // ترتيب الأخبار من الأحدث للأقدم
-        allArticles.sort((a, b) => {
-            const dateA = new Date(a.pubDate.replace(/-/g, '/'));
-            const dateB = new Date(b.pubDate.replace(/-/g, '/'));
-            return dateB - dateA;
-        });
-
-        if (allArticles.length > 0) {
-            setCache(CACHE_KEY, allArticles);
+        for (const res of responses) {
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.items) allArticles = [...allArticles, ...data.items];
+            }
         }
+
+        // ترتيب من الأحدث للأقدم
+        allArticles.sort((a, b) => new Date((b.pubDate||'').replace(/-/g, '/')) - new Date((a.pubDate||'').replace(/-/g, '/')));
+
+        if (allArticles.length > 0) setCache(CACHE_KEY, allArticles);
         return allArticles;
 
     } catch (error) {
-        console.error('RSS Fetch Error:', error);
         if (elements.grid) elements.grid.innerHTML = '<p class="error-msg" style="grid-column: 1/-1; text-align:center;">عذراً، تعذر الاتصال بمزود الأخبار.</p>';
         return [];
     }
 }
 
-// --- 5. منطق العرض والتقسيم ---
 function displayNews(append = false) {
     if (!elements.grid) return;
 
@@ -107,16 +98,18 @@ function displayNews(append = false) {
 
     let itemsToRender = [];
     
-    // وضع 10 أخبار في قسم العاجل كما طلبت
     if (!append && elements.breakingGrid) {
-        const breaking = state.filteredArticles.slice(0, 10);
+        // حماية ذكية: إذا كانت الأخبار قليلة، لا تضعها كلها في العاجل!
+        let breakingCount = state.filteredArticles.length >= 15 ? 10 : Math.floor(state.filteredArticles.length / 2);
+        breakingCount = breakingCount === 0 ? 1 : breakingCount; // على الأقل خبر واحد للعاجل
+
+        const breaking = state.filteredArticles.slice(0, breakingCount);
         breaking.forEach(article => {
             elements.breakingGrid.appendChild(createNewsCard(article, 'breaking'));
         });
-        state.currentIndex = 10; // تحديث المؤشر ليبدأ من الخبر رقم 11
+        state.currentIndex = breakingCount; 
     }
 
-    // وضع باقي الأخبار في الشبكة السفلية
     itemsToRender = state.filteredArticles.slice(state.currentIndex, state.currentIndex + state.itemsPerPage);
     state.currentIndex += itemsToRender.length;
 
@@ -127,7 +120,6 @@ function displayNews(append = false) {
     updateLoadMoreBtn();
 }
 
-// --- دالة إنشاء البطاقة ---
 function createNewsCard(article, type) {
     const title = article.title || 'تحديث رياضي';
     const description = stripHTML(article.description || article.content || '');
@@ -139,7 +131,7 @@ function createNewsCard(article, type) {
     if (title.includes("مصري") || title.includes("الأهلي") || title.includes("الزمالك")) badge = "مصر";
     if (title.includes("إسباني") || title.includes("ريال") || title.includes("برشلونة")) badge = "إسبانيا";
     if (title.includes("إنجليزي") || title.includes("سيتي") || title.includes("ليفربول")) badge = "إنجلترا";
-    if (title.includes("مغرب") || title.includes("أسود")) badge = "المغرب";
+    if (title.includes("مغرب") || title.includes("أسود") || title.includes("الركراكي") || title.includes("الرجاء") || title.includes("الوداد")) badge = "المغرب";
 
     const card = document.createElement('article');
     card.className = type === 'breaking' ? 'breaking-news-card' : 'news-card'; 
@@ -156,7 +148,6 @@ function createNewsCard(article, type) {
             ${description ? `<p class="news-summary">${escapeHTML(truncateText(description, 100))}</p>` : ''}
             <div class="news-meta">
                 <span><i class="far fa-clock"></i> ${escapeHTML(formatDate(article.pubDate))}</span>
-                <span class="news-source">RT / Sky</span>
                 <a href="${escapeAttribute(articleUrl)}" target="_blank" rel="noopener noreferrer" class="read-more-link">اقرأ <i class="fas fa-arrow-left"></i></a>
             </div>
         </div>
@@ -164,7 +155,6 @@ function createNewsCard(article, type) {
     return card;
 }
 
-// --- الفلترة والبحث ---
 function applyFilter(keyword) {
     if (!keyword || keyword === 'كرة القدم' || keyword === 'all') {
         state.filteredArticles = [...state.allArticles];
@@ -196,7 +186,6 @@ function setupFilterClick(btn) {
     });
 }
 
-// --- دوال مساعدة ---
 function updateLoadMoreBtn() {
     if (elements.loadMoreBtn) {
         if (state.currentIndex < state.filteredArticles.length) {
@@ -225,17 +214,12 @@ function sanitizeUrl(url, fallback = '#') {
     try {
         const parsed = new URL(url, window.location.origin);
         if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
-    } catch (error) {}
+    } catch (e) {}
     return fallback;
 }
 
 function escapeHTML(value) {
-    return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+    return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
 
 function escapeAttribute(value) {
@@ -245,38 +229,24 @@ function escapeAttribute(value) {
 function formatDate(dateString) {
     if (!dateString) return "";
     const date = new Date(dateString.replace(/-/g, '/'));
-    return date.toLocaleDateString('ar-EG-u-nu-latn', { 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric' 
-    });
+    return date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-// --- التهيئة ---
 async function init() {
     state.allArticles = await fetchNews();
     state.filteredArticles = [...state.allArticles];
-    
     displayNews(false); 
 
-    const performSearch = () => {
-        const term = elements.searchInput?.value.trim();
-        applyFilter(term);
-    };
-
+    const performSearch = () => applyFilter(elements.searchInput?.value.trim());
     elements.searchBtn?.addEventListener('click', performSearch);
     elements.searchInput?.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
-
     elements.filterBtns?.forEach(btn => setupFilterClick(btn));
     elements.categoryBtns?.forEach(btn => setupFilterClick(btn));
 
     elements.loadMoreBtn?.addEventListener('click', () => {
         elements.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري...';
         elements.loadMoreBtn.disabled = true;
-        
-        setTimeout(() => {
-            displayNews(true); 
-        }, 300); 
+        setTimeout(() => displayNews(true), 300); 
     });
 }
 
