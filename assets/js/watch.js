@@ -51,6 +51,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (data?.payload?.streams?.length > 0) {
                 streams = data.payload.streams;
+                
+                // ==========================================
+                // 🚀 الفرز الذكي: إعطاء الأولوية القصوى لسيرفر yassirtv و fabor-tv
+                // ==========================================
+                streams.sort((a, b) => {
+                    const isFavA = a.url && (a.url.includes('yassirtv.com') || a.url.includes('fabor-tv')) ? 1 : 0;
+                    const isFavB = b.url && (b.url.includes('yassirtv.com') || b.url.includes('fabor-tv')) ? 1 : 0;
+                    
+                    // رفع الرابط المفضل إلى أعلى القائمة (Index 0) ليعمل تلقائياً
+                    return isFavB - isFavA; 
+                });
+                // ==========================================
             }
         } catch (err) {
             console.error("خطأ في جلب بيانات البث:", err);
@@ -435,4 +447,10 @@ function renderNewsCards(articles, container) {
             </a>
         `;
     }).join('');
+}
+
+// تشغيل الأخبار فور تحميل الصفحة
+document.addEventListener('DOMContentLoaded', loadWatchNews);
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    loadWatchNews();
 }
