@@ -10,7 +10,7 @@ const { saveStaging } = require('./supabase-storage');
 puppeteer.use(StealthPlugin());
 
 const SCHEDULE_URL = 'https://yallashoot2day.online/';
-const TIME_ZONE = 'Africa/Casablanca';
+const TIME_ZONE = 'Asia/Riyadh';
 
 const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
 const CHANNEL_SELECTORS = ['.channel', '.match-channel', '.c3-channel', '.broadcast', '.broadcast-channel', '.tv-channel', '.channel-name', '.channel-info', '[data-channel]', '[data-broadcaster]'];

@@ -225,6 +225,7 @@ body {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
 /* ==========================================
    تنسيقات قسم الأخبار في صفحة المشاهدة
    ========================================== */
@@ -277,54 +278,4 @@ body {
 .news-empty-msg {
     color: #888;
     font-size: 14px;
-}
-/* تنسيق شريط المشاهدة العلوي */
-.watch-header {
-    background-color: #121212; /* لون خلفية داكن */
-    border-bottom: 1px solid #2a2a2a;
-    padding: 15px 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.watch-header .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-direction: row-reverse; /* لجعل الشعار يميناً والزر يساراً في المواقع العربية */
-}
-
-.site-logo {
-    height: 45px; /* ارتفاع الشعار، يمكنك تعديله */
-    width: auto;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
-
-.site-logo:hover {
-    transform: scale(1.05);
-}
-
-.back-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #e0e0e0;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    background-color: #2a2a2a;
-    padding: 8px 16px;
-    border-radius: 6px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.back-btn:hover {
-    background-color: #e50914; /* لون أحمر رياضي عند التمرير */
-    color: #ffffff;
-}
-
-.back-btn i {
-    font-size: 16px;
 }

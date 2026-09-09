@@ -22,7 +22,6 @@ function launchOptions() {
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
       '--disable-gpu',
-      // الأوامر الجديدة لاختراق الإطارات الخارجية (iframes)
       '--disable-web-security',
       '--disable-features=IsolateOrigins,site-per-process',
       '--disable-site-isolation-trials'
@@ -46,7 +45,6 @@ function isBlockedUrl(value) {
   if (blockedDomains.some(domain => lower.includes(domain))) return true;
   if (/(?:monetag|popads|propellerads|popcash|adsterra|onclicka|ads)\./i.test(lower)) return true;
 
-  // جدار ناري لملفات التصميم الثابتة (خطوط، صور، ستايلات) لمنع سحبها كروابط بث
   if (/\.(woff2?|ttf|otf|eot|css|js|png|jpe?g|gif|svg|ico|webmanifest)(?:\?|$)/i.test(lower)) return true;
 
   return false;
@@ -110,17 +108,14 @@ async function discoverStreamCandidates(browser, matches) {
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       console.log(`[RESOLVER] Finding and clicking ALL server tabs...`);
-      // خوارزمية جديدة للضغط على جميع السيرفرات المتوفرة (سيرفر 1، متعدد، جوال...)
       await page.evaluate(async () => {
         const buttons = Array.from(document.querySelectorAll('.server, [class*="server"], li[data-server], .btn-play, ul.servers li, .servers-list li, ul.list-servers li, [id*="server"]'));
         
-        // فلترة الأزرار لتشمل فقط الأزرار التي تبدو كأزرار بث لتجنب ضغط إعلانات
         const streamButtons = buttons.filter(b => {
             const text = b.innerText.toLowerCase();
             return text.includes('server') || text.includes('سيرفر') || text.includes('بث') || text.includes('متعدد') || text.includes('جوال') || b.hasAttribute('data-server');
         });
 
-        // الضغط على كل سيرفر والانتظار ثانية ليتحمل المشغل
         for (let i = 0; i < streamButtons.length; i++) {
            try {
                streamButtons[i].click();
@@ -133,7 +128,6 @@ async function discoverStreamCandidates(browser, matches) {
 
       console.log(`[RESOLVER] Extracting iframe sources directly from DOM...`);
       const domUrls = await page.evaluate(() => {
-        // تجاهل الإطارات المخفية (التي غالباً تكون إعلانات)
         return Array.from(document.querySelectorAll('iframe[src]'))
              .filter(iframe => iframe.style.display !== 'none' && iframe.style.visibility !== 'hidden')
              .map(f => f.src);
@@ -149,9 +143,7 @@ async function discoverStreamCandidates(browser, matches) {
             return Array.from(document.querySelectorAll('iframe[src], video[src], source[src]')).map(el => el.src);
           });
           frameUrls.forEach(url => collect(url, 'iframe'));
-        } catch (error) {
-          // Ignore detached frames
-        }
+        } catch (error) {}
       }
     } catch (error) {
       console.warn(`[RESOLVER] ${match.sourceName} deep scrape failed: ${error.message}`);
@@ -166,7 +158,10 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
   const payload = row.payload || {};
   const storedPages = Array.isArray(payload.matchUrls) ? payload.matchUrls : payload.matchUrl ? [payload.matchUrl] : [];
   const pages = matchPages.length ? matchPages : storedPages.map((matchUrl) => ({ sourceName: payload.sourceName || 'metadata', matchUrl }));
-  if (!pages.length) return { ...payload, status: 'RESOLVER_WAITING', resolverStatus: 'NO_MATCH_URL' };
+  
+  if (!pages.length) {
+     return { ...payload, status: 'RESOLVER_WAITING', resolverStatus: 'NO_MATCH_URL' };
+  }
   
   let candidates = await discoverStreamCandidates(browser, pages);
   
@@ -198,14 +193,34 @@ async function resolveOne(browser, row, allowlist, matchPages = []) {
   }
   
   const passed = report.filter((item) => item.status === 'Passed').slice(0, config.streamTarget);
-  console.log(`[RESOLVER] ${row.match_id}: ${passed.length} validated stream(s)`);
+  console.log(`[RESOLVER] ${row.match_id}: Found ${passed.length} new validated stream(s)`);
+
+  // ==========================================
+  // التعديل الأول: تطبيق الحفظ الآمن (Safe Upsert)
+  // ==========================================
+  // إذا وجد الروبوت روابط جديدة، نقوم بتحديثها.
+  // أما إذا لم يجد شيئاً، نحتفظ بالروابط القديمة (إذا كانت موجودة) لتجنب انقطاع البث.
+  let finalStreams = [];
+  let resolverStatus = 'NO_STREAM_CANDIDATE';
+  let status = 'RESOLVER_FAILED';
+
+  if (passed.length > 0) {
+      finalStreams = passed;
+      resolverStatus = 'COMPLETE';
+      status = 'PASSED_STAGING';
+  } else if (payload.streams && payload.streams.length > 0) {
+      console.log(`[RESOLVER] ${row.match_id}: No new streams found. Keeping ${payload.streams.length} existing streams.`);
+      finalStreams = payload.streams;
+      resolverStatus = 'COMPLETE';
+      status = 'PASSED_STAGING';
+  }
 
   return {
     ...payload,
-    streams: passed,
-    validation: report,
-    status: passed.length ? 'PASSED_STAGING' : 'RESOLVER_FAILED',
-    resolverStatus: passed.length ? 'COMPLETE' : 'NO_STREAM_CANDIDATE',
+    streams: finalStreams,
+    validation: report.length > 0 ? report : payload.validation,
+    status: status,
+    resolverStatus: resolverStatus,
     updatedBy: 'stream-resolver',
     resolvedAt: new Date().toISOString()
   };
@@ -217,8 +232,15 @@ async function pendingRows() {
     .select('match_id,payload,environment,updated_at')
     .eq('environment', 'staging')
     .limit(config.resolverBatchSize);
+  
   if (error) throw new Error(JSON.stringify(error));
-  return (data || []).filter((row) => row.payload?.resolverStatus === 'PENDING' || row.payload?.streams?.length === 0);
+  
+  // ==========================================
+  // التعديل الثاني: إزالة شرط الكسل لإجبار التحديث المستمر
+  // ==========================================
+  // بدلاً من تصفية المباريات التي لا تملك روابط فقط، 
+  // سنرسل جميع المباريات الجارية أو القادمة للروبوت ليقوم بتحديث روابطها دورياً.
+  return (data || []); 
 }
 
 async function runResolverOnce() {
@@ -232,7 +254,7 @@ async function runResolverOnce() {
   const results = [];
   try {
     for (const row of rows) {
-      console.log(`[RESOLVER] Processing Match: ${row.match_id}`);
+      console.log(`[RESOLVER] Processing Match for continuous update: ${row.match_id}`);
       try {
         const resolved = await resolveMatchUrls(row.payload, sources, allowlist);
         const payload = await resolveOne(browser, row, allowlist, resolved.matches);

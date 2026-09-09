@@ -1,7 +1,13 @@
+// ==========================================
+// 1. إعدادات المتصفح الخفي (Stealth Mode)
+// ==========================================
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 
+// ==========================================
+// 2. استدعاء باقي المكاتب والإعدادات
+// ==========================================
 const fs = require('node:fs');
 const { config, assertAllowed } = require('./config');
 const { matchPageHosts } = require('./source-registry');

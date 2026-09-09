@@ -1,8 +1,9 @@
 name: Scrape Match Metadata
 
 on:
+  on:
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '30 0,8,14 * * *'
   workflow_dispatch:
 
 jobs:
