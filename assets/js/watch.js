@@ -40,8 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const matchLink = urlParams.get('matchLink'); 
 
     let streams = [];
-
-   if (matchId && supabaseClient) {
+if (matchId && supabaseClient) {
         try {
             const { data } = await supabaseClient
                 .from('media_qa_staging')
@@ -50,24 +49,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .single();
 
             if (data?.payload?.streams?.length > 0) {
-                // أخذ نسخة من الروابط حتى لا يعترض المتصفح على الفرز
-                streams = [...data.payload.streams];
+                // ==========================================
+                // 1. فلترة وطرد الروابط غير المرغوب فيها (موقع المباريات)
+                // ==========================================
+                streams = data.payload.streams.filter(stream => {
+                    const streamData = JSON.stringify(stream).toLowerCase();
+                    // إذا كان الرابط يحتوي على yallashoot سيتم حذفه من القائمة نهائياً
+                    return !streamData.includes('yallashoot'); 
+                });
                 
                 // ==========================================
-                // 🚀 الفرز الشامل: يبحث في الرابط، والاسم، وكل البيانات!
+                // 2. الفرز الشامل للمصادر المتبقية (الأولوية لـ fabor و yassirtv)
                 // ==========================================
                 streams.sort((a, b) => {
-                    // تحويل كل بيانات السيرفر (أ) و (ب) إلى نص للبحث فيها بالكامل
                     const dataA = JSON.stringify(a).toLowerCase();
                     const dataB = JSON.stringify(b).toLowerCase();
                     
-                    const isFavA = (dataA.includes('fabor') || dataA.includes('yassirtv')) ? 1 : 0;
-                    const isFavB = (dataB.includes('fabor') || dataB.includes('yassirtv')) ? 1 : 0;
+                    const isFavA = (dataA.includes('yassirtv') || dataA.includes('fabor')) ? 1 : 0;
+                    const isFavB = (dataB.includes('yassirtv') || dataB.includes('fabor')) ? 1 : 0;
                     
-                    // السيرفر المفضل سيصعد للمركز الأول (Index 0)
                     return isFavB - isFavA; 
                 });
-                // ==========================================
             }
         } catch (err) {
             console.error("خطأ في جلب بيانات البث:", err);
