@@ -213,27 +213,33 @@ function loadPlayer(stream, container, loader) {
     }
 
     // ==========================================
-    // فرض الشكل السينمائي العريض 16:9 (مضمونة 100%)
+    // 🛡️ حماية الصفحة من الانهيار (هذا ما كان يوقف الأخبار)
+    // ==========================================
+    if (!stream || !stream.url) {
+        if(loader) loader.style.display = 'none';
+        container.innerHTML = '<p style="color:#ffcc00; text-align:center; padding: 60px; font-weight: bold; font-size: 16px;">عذراً، البث غير متوفر حالياً. يرجى المحاولة لاحقاً.</p>';
+        return; // إيقاف دالة المشغل هنا بسلام، والسماح لباقي الصفحة (والأخبار) بالعمل!
+    }
+
+    // ==========================================
+    // فرض الشكل السينمائي العريض 16:9
     // ==========================================
     container.style.position = 'relative';
     container.style.width = '100%';
     container.style.height = '0';
-    container.style.paddingBottom = '56.25%'; /* هذه النسبة تصنع مستطيلاً مثالياً */
+    container.style.paddingBottom = '56.25%'; 
     container.style.overflow = 'hidden';
     container.style.backgroundColor = '#000';
     container.style.borderRadius = '12px';
-    // ==========================================
 
     if (stream.url.includes('.m3u8')) {
         const video = document.createElement('video');
         video.controls = true;
-        // إجبار الفيديو على ملء المستطيل
         video.style.position = 'absolute';
         video.style.top = '0';
         video.style.left = '0';
         video.style.width = '100%';
         video.style.height = '100%';
-// ... (باقي كود الدالة كما هو بدون تغيير)
         
         if (window.Hls && Hls.isSupported()) {
             const hls = new Hls();
