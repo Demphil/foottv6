@@ -103,10 +103,7 @@ function renderMatch(match) {
   const matchDate = matchStartDate(match) || now;
   const diffMins = (matchDate - now) / 60000;
   
-  // 1. هل توجد بيانات بث؟
   const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
-  
-  // 2. القاعدة الصارمة: هل الوقت المتبقي 25 دقيقة أو أقل؟ (وتستمر مفتوحة لـ 4 ساعات)
   const isTimeAllowed = diffMins <= 25 && diffMins >= -240;
 
   const isLive = diffMins <= 0 && diffMins >= -240;
@@ -134,24 +131,27 @@ function renderMatch(match) {
   let matchStatusClass = '';
   
   let hrefAttribute = `href="javascript:void(0)"`;
-  let clickAction = `onclick="openWaitModal('عذراً، لم يتوفر بث لهذه المباراة بعد.')"`;
+  let clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
   let isClickableClass = 'not-clickable';
   let topBadge = '';
 
-  // تطبيق المنطق الذكي للقفل والفتح
+  // تطبيق المنطق الذكي للقفل والفتح (مع تعديل الشارة)
   if (hasData) {
       if (isTimeAllowed) {
-          // البث جاهز والوقت حان (أقل من 25 دقيقة) -> افتح الرابط
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
           clickAction = '';
           isClickableClass = 'clickable';
       } else {
-          // البث جاهز لكن الوقت مبكر جداً -> اقفل الرابط وأظهر رسالة تحذيرية
           clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
-          topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
+          
+          // إظهار "يفتح قريباً" فقط إذا تبقى 60 دقيقة أو أقل
+          if (diffMins <= 60) {
+              topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
+          } else {
+              topBadge = ''; // إخفاء الشارة تماماً للمباريات البعيدة ليكون التصميم أنظف
+          }
       }
   } else {
-      // لا توجد بيانات بث أصلاً
       topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
   }
 
