@@ -313,35 +313,94 @@ function loadPlayer(stream, container, loader) {
 // ==========================================
 // جلب الأخبار الرياضية مجاناً مدى الحياة باستخدام تقنية RSS
 // ==========================================
+// ==========================================
+// جلب الأخبار لصفحة المشاهدة بنظام RSS المزدوج والمستقر
+// ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
     if (!newsContainer) return;
 
-    // رابط RSS لموقع رياضي إخباري موثوق (مثال: القسم الرياضي لـ RT العربية الذي يوفر صوراً عالية الدقة)
-    const rssFeedUrl = encodeURIComponent('https://arabic.rt.com/rss/sport/');
-    // استخدام وسيط rss2json المجاني الذي يتحمل آلاف الطلبات يومياً
-    const targetUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssFeedUrl}`;
+    // مفتاح كاش جديد خاص بصفحة المشاهدة لكسر أي عناد من المتصفح
+    const CACHE_KEY = "koralive_watch_news_v3";
+    const CACHE_TIME = 2 * 60 * 60 * 1000; // ساعتين
 
     try {
-        const response = await fetch(targetUrl);
-        
-        if (!response.ok) throw new Error('فشل جلب الأخبار من خلاصة RSS');
+        // 1. التحقق من الكاش أولاً
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            const { timestamp, articles } = JSON.parse(cachedData);
+            if (Date.now() - timestamp < CACHE_TIME && articles && articles.length > 0) {
+                renderWatchNewsCards(articles.slice(0, 4), newsContainer); // عرض 4 أخبار فقط
+                return;
+            }
+        }
 
-        const result = await response.json();
-        const articles = result.items || []; // لاحظ هنا أننا نستخدم items بدلاً من results
+        // 2. جلب الأخبار من مصدرين إذا الكاش فارغ أو منتهي
+        const url1 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://arabic.rt.com/rss/sport/')}`;
+        const url2 = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.skynewsarabia.com/web/rss/sport')}`;
 
-        if (articles.length > 0) {
-            // نأخذ أول 4 أخبار فقط لعدم ازدحام الصفحة
-            const topArticles = articles.slice(0, 4);
-            renderNewsCards(topArticles, newsContainer);
+        const [res1, res2] = await Promise.all([
+            fetch(url1).catch(() => null),
+            fetch(url2).catch(() => null)
+        ]);
+
+        const data1 = (res1 && res1.ok) ? await res1.json() : { items: [] };
+        const data2 = (res2 && res2.ok) ? await res2.json() : { items: [] };
+
+        let allArticles = [...(data1.items || []), ...(data2.items || [])];
+
+        // ترتيب الأخبار من الأحدث للأقدم
+        allArticles.sort((a, b) => {
+            const dateA = new Date((a.pubDate || '').replace(/-/g, '/'));
+            const dateB = new Date((b.pubDate || '').replace(/-/g, '/'));
+            return dateB - dateA;
+        });
+
+        if (allArticles.length > 0) {
+            // حفظ في الكاش
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                timestamp: Date.now(),
+                articles: allArticles
+            }));
+            // عرض 4 أخبار فقط
+            renderWatchNewsCards(allArticles.slice(0, 4), newsContainer);
         } else {
-            newsContainer.innerHTML = '<p class="news-empty-msg">لا توجد أخبار حالياً.</p>';
+            newsContainer.innerHTML = '<p class="news-empty-msg" style="text-align:center; padding: 20px;">لا توجد أخبار حالياً.</p>';
         }
 
     } catch (err) {
-        console.warn("تنبيه الأخبار:", err.message);
-        newsContainer.innerHTML = '<p class="news-empty-msg" style="grid-column: 1 / -1; text-align: center;">جاري تحديث النشرة الرياضية، يرجى العودة لاحقاً.</p>';
+        console.error("خطأ في جلب الأخبار لصفحة المشاهدة:", err);
+        newsContainer.innerHTML = '<p class="news-empty-msg" style="text-align:center; padding: 20px;">حدث خطأ أثناء تحميل الأخبار.</p>';
     }
+}
+
+// دالة مساعدة لترتيب وعرض الأخبار في صفحة المشاهدة حصراً
+function renderWatchNewsCards(articles, container) {
+    container.innerHTML = articles.map(article => {
+        let title = article.title || 'أحدث الأخبار الرياضية';
+        const articleUrl = article.link || '#';
+        
+        let imgUrl = article.thumbnail || (article.enclosure && article.enclosure.link) || 'assets/images/default-news.jpg';
+        
+        let dateStr = '';
+        if (article.pubDate) {
+            const date = new Date(article.pubDate.replace(/-/g, '/'));
+            dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // قص العنوان إذا كان طويلاً جداً للحفاظ على تناسق الشبكة
+        const shortTitle = title.length > 60 ? title.substring(0, 60) + '...' : title;
+
+        return `
+            <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
+                <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <h4 style="margin: 0; font-size: 14px; line-height: 1.4; color: #fff;">${shortTitle}</h4>
+                    <span style="font-size: 12px; color: #888;">${dateStr}</span>
+                </div>
+            </a>
+        `;
+    }).join('');
 }
 
 // دالة مساعدة لترتيب وعرض الأخبار بصيغة RSS الجديدة
