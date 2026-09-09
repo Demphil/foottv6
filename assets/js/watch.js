@@ -222,7 +222,7 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
         topBar.appendChild(noticeMsg);
     }
 
-    loadPlayer(streams[3], playerContainer, playerLoader);
+    loadPlayer(streams[0], playerContainer, playerLoader);
 }
 function loadPlayer(stream, container, loader) {
     container.innerHTML = ''; 
