@@ -98,15 +98,39 @@ function renderMatch(match) {
       watchUrl += `&matchLink=${encodeURIComponent(manualLink)}`;
   }
 
-  // حساب الوقت بدقة
+  // ==========================================
+  // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
+  // ==========================================
   const now = new Date();
-  const matchDate = matchStartDate(match) || now;
-  const diffMins = (matchDate - now) / 60000;
-  
-  const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
-  const isTimeAllowed = diffMins <= 25 && diffMins >= -240;
+  let matchDate = null;
 
-  const isLive = diffMins <= 0 && diffMins >= -240;
+  try {
+      if (typeof matchStartDate === 'function') {
+          matchDate = matchStartDate(match);
+      }
+      if (!matchDate && match.scheduledAt) {
+          matchDate = new Date(match.scheduledAt);
+      }
+  } catch (e) {}
+  
+  let diffMins;
+  // إذا كان الوقت سليماً وقابلاً للقراءة، نحسب الفارق
+  if (matchDate && !isNaN(matchDate.getTime())) {
+      diffMins = (matchDate - now) / 60000;
+  } else if (match.time === 'مباشر الآن' || match.time === 'جاري الآن') {
+      diffMins = 0;
+  } else {
+      // 🛡️ الحماية: إذا فشل النظام في معرفة الوقت (بسبب تغيير اليوم)،
+      // نعتبر المباراة بعيدة جداً (9999 دقيقة) كي لا تفتح بالخطأ أبداً!
+      diffMins = 9999; 
+  }
+
+  const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
+
+  // ⏱️ تقليص مدة المباراة إلى 150 دقيقة (ساعتين ونصف) بدلاً من 4 ساعات
+  // لتختفي المباريات المنتهية ولا تتراكم عند منتصف الليل
+  const isTimeAllowed = diffMins <= 25 && diffMins >= -150;
+  const isLive = diffMins <= 0 && diffMins >= -150;
   const isSoon = diffMins > 0 && diffMins <= 60; 
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
@@ -117,9 +141,8 @@ function renderMatch(match) {
   let timeText = match.time;
   
   if (match.time !== 'مباشر الآن' && match.time !== 'تحدد لاحقا') {
-      const localDate = matchStartDate(match);
-      if (localDate) {
-          timeText = localDate.toLocaleTimeString('ar-EG-u-nu-latn', {
+      if (matchDate && !isNaN(matchDate.getTime())) {
+          timeText = matchDate.toLocaleTimeString('ar-EG-u-nu-latn', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: false
@@ -135,7 +158,6 @@ function renderMatch(match) {
   let isClickableClass = 'not-clickable';
   let topBadge = '';
 
-  // تطبيق المنطق الذكي للقفل والفتح (مع تعديل الشارة)
   if (hasData) {
       if (isTimeAllowed) {
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
@@ -143,12 +165,10 @@ function renderMatch(match) {
           isClickableClass = 'clickable';
       } else {
           clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
-          
-          // إظهار "يفتح قريباً" فقط إذا تبقى 60 دقيقة أو أقل
           if (diffMins <= 60) {
               topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
           } else {
-              topBadge = ''; // إخفاء الشارة تماماً للمباريات البعيدة ليكون التصميم أنظف
+              topBadge = ''; 
           }
       }
   } else {
