@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let streams = [];
 
-    if (matchId && supabaseClient) {
+   if (matchId && supabaseClient) {
         try {
             const { data } = await supabaseClient
                 .from('media_qa_staging')
@@ -50,16 +50,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .single();
 
             if (data?.payload?.streams?.length > 0) {
-                streams = data.payload.streams;
+                // أخذ نسخة من الروابط حتى لا يعترض المتصفح على الفرز
+                streams = [...data.payload.streams];
                 
                 // ==========================================
-                // 🚀 الفرز الذكي: إعطاء الأولوية القصوى لسيرفر yassirtv و fabor-tv
+                // 🚀 الفرز الشامل: يبحث في الرابط، والاسم، وكل البيانات!
                 // ==========================================
                 streams.sort((a, b) => {
-                    const isFavA = a.url && (a.url.includes('yassirtv.com') || a.url.includes('fabor-tv')) ? 1 : 0;
-                    const isFavB = b.url && (b.url.includes('yassirtv.com') || b.url.includes('fabor-tv')) ? 1 : 0;
+                    // تحويل كل بيانات السيرفر (أ) و (ب) إلى نص للبحث فيها بالكامل
+                    const dataA = JSON.stringify(a).toLowerCase();
+                    const dataB = JSON.stringify(b).toLowerCase();
                     
-                    // رفع الرابط المفضل إلى أعلى القائمة (Index 0) ليعمل تلقائياً
+                    const isFavA = (dataA.includes('yassirtv') || dataA.includes('fabor')) ? 1 : 0;
+                    const isFavB = (dataB.includes('yassirtv') || dataB.includes('fabor')) ? 1 : 0;
+                    
+                    // السيرفر المفضل سيصعد للمركز الأول (Index 0)
                     return isFavB - isFavA; 
                 });
                 // ==========================================
