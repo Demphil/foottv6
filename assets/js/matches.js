@@ -179,13 +179,30 @@ function renderMatch(match) {
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
           clickAction = '';
           isClickableClass = 'clickable';
+      } else if (diffMins < -matchDuration) {
+          // 🛑 المباراة انتهت بالفعل
+          clickAction = '';
+          topBadge = ''; // إزالة أي شارة من المباريات المنتهية
       } else {
+          // ⏳ المباراة قادمة ولم يحن وقت البث
           clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
-          if (diffMins <= 60) {
+          if (diffMins > 0 && diffMins <= 60) {
               topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
           } else {
               topBadge = ''; 
           }
+      }
+  } else {
+      // إذا لم يكن هناك بيانات بث
+      if (diffMins < -matchDuration) {
+          topBadge = ''; // لا تعرض "غير جاهز" لمباراة منتهية
+      } else {
+          topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
+      }
+  }
+  } else {
+      topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
+  }
       }
   } else {
       topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
