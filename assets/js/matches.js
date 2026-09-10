@@ -125,7 +125,7 @@ function renderMatch(match) {
       diffMins = 9999; 
   }
 
-  const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
+  const hasData = hasStreams || manualLink;
 
   // ⏱️ تقليص مدة المباراة إلى 150 دقيقة (ساعتين ونصف) بدلاً من 4 ساعات
   // لتختفي المباريات المنتهية ولا تتراكم عند منتصف الليل
