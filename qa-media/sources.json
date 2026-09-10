@@ -30,12 +30,12 @@
       "enabled": true
     },
     {
-      "name": "yallashoot2day",
-      "listUrl": "https://yallashoot2day.online/",
+      "name": "365kora",
+      "listUrl": "https://365kora.xyz/",
       "timeZone": "Asia/Riyadh",
       "metadataQuality": "trusted",
       "allowedHosts": [
-        "yallashoot2day.online"
+        "https://i.ltvonline.live/"
       ],
       "enabled": true
     },
