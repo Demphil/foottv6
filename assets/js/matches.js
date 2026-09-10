@@ -51,7 +51,7 @@ window.closeWaitModal = function() {
 // 🎯 رادار تحديد مدة المباراة الذكي
 // ==========================================
 function getMatchDuration(leagueName) {
-    if (!leagueName) return 100; // التوقيت الافتراضي للمباريات العادية
+    if (!leagueName) return 120; // التوقيت الافتراضي للمباريات العادية
     const name = leagueName.toLowerCase();
     
     // كلمات تدل على إمكانية وجود أشواط إضافية (بما فيها الربع والنصف)
@@ -60,7 +60,7 @@ function getMatchDuration(leagueName) {
     const isKnockout = knockoutKeywords.some(keyword => name.includes(keyword));
     
     // 135 دقيقة للكؤوس والربع والنصف، و 100 دقيقة لمباريات الدوري العادية
-    return isKnockout ? 135 : 100; 
+    return isKnockout ? 140 : 120; 
 }
 
 // تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
@@ -144,7 +144,7 @@ function renderMatch(match) {
   const hasData = hasStreams || manualLink;
 
   // ⏱️ حساب مدة المباراة بذكاء حسب البطولة
-  const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 100;
+  const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 120;
   const isTimeAllowed = diffMins <= 25 && diffMins >= -matchDuration;
   const isLive = diffMins <= 0 && diffMins >= -matchDuration;
   const isSoon = diffMins > 0 && diffMins <= 60; 
