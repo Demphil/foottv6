@@ -65,8 +65,8 @@ if (matchId && supabaseClient) {
                     const dataA = JSON.stringify(a).toLowerCase();
                     const dataB = JSON.stringify(b).toLowerCase();
                     
-                    const isFavA = (dataA.includes('yassirtv') || dataA.includes('fabor')) ? 1 : 0;
-                    const isFavB = (dataB.includes('yassirtv') || dataB.includes('fabor')) ? 1 : 0;
+                    const isFavA = (dataA.includes('yassirtv') || dataA.includes('fabor')) ? 0 : 1;
+                    const isFavB = (dataB.includes('yassirtv') || dataB.includes('fabor')) ? 0 : 1;
                     
                     return isFavB - isFavA; 
                 });
@@ -222,7 +222,7 @@ function renderServers(streams, playerContainer, playerLoader, serversContainer)
         topBar.appendChild(noticeMsg);
     }
 
-    loadPlayer(streams[2], playerContainer, playerLoader);
+    loadPlayer(streams[0], playerContainer, playerLoader);
 }
 function loadPlayer(stream, container, loader) {
     container.innerHTML = ''; 
