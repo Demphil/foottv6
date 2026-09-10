@@ -170,7 +170,7 @@ function parseSchedule(html) {
       channel,
       matchUrl,
       matchUrls: matchUrl ? [matchUrl] : [],
-      sourceName: '365kora'
+      sourceName: 'yallashoot2day'
     });
   });
 
