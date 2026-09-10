@@ -174,6 +174,9 @@ function renderMatch(match) {
   let isClickableClass = 'not-clickable';
   let topBadge = '';
 
+  // ==========================================
+  // 🛡️ منطق الشارات السليم للمباريات القادمة والمنتهية
+  // ==========================================
   if (hasData) {
       if (isTimeAllowed) {
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
@@ -199,13 +202,6 @@ function renderMatch(match) {
       } else {
           topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
       }
-  }
-  } else {
-      topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
-  }
-      }
-  } else {
-      topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
   }
 
   if (isSoon) {
