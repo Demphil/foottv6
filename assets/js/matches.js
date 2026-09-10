@@ -301,26 +301,34 @@ async function loadAndRenderMatches() {
       const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
       const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
 
+      // ==========================================
+      // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
+      // ==========================================
       const getTier = (diff, hasLink) => {
-          if (diff <= 0 && diff >= -240) return 1; // جارية الآن
-          if (diff > 0 && diff <= 60) return 2;    // ستبدأ قريباً
-          if (!hasLink) return 5;                  // غير جاهزة
-          if (diff > 60) return 3;                 // قادمة لاحقاً
-          return 4;                                // منتهية
+          // لقد قمنا بتوحيد المدة هنا لتكون 150 دقيقة كما في المشغل
+          const isLive = diff <= 0 && diff >= -150; 
+          const isSoon = diff > 0 && diff <= 60;
+
+          if (isLive && hasLink) return 1;  // 1. مباراة جارية + رابط جاهز (القمة)
+          if (isSoon && hasLink) return 2;  // 2. مباراة ستبدأ قريباً + رابط جاهز
+          if (isSoon && !hasLink) return 3; // 3. مباراة ستبدأ قريباً + بدون رابط
+          if (isLive && !hasLink) return 4; // 4. مباراة جارية + بدون رابط (مطرودة للأسفل هنا!)
+          if (diff < -150) return 6;        // 6. مباريات منتهية (في القاع)
+          return 5;                         // 5. مباريات تلعب لاحقاً اليوم
       };
 
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
 
-      // 1. الترتيب حسب الأولوية (الجارية أولاً، ثم القريبة...)
+      // 1. الترتيب حسب الأولوية (الأوزان)
       if (tierA !== tierB) return tierA - tierB;
 
-      // 2. الفرز الداخلي للمباريات التي من نفس الأولوية
-      if (tierA === 1) {
-          // إذا كانت المباريات "جارية الآن": نعرض الأحدث (التي بدأت للتو) في القمة
+      // 2. الفرز الداخلي للمباريات التي تمتلك نفس الوزن
+      if (tierA === 1 || tierA === 4) {
+          // للمباريات الجارية: نعرض الأحدث (التي بدأت للتو) في القمة
           return matchStartDate(b) - matchStartDate(a);
       } else {
-          // بقية المباريات (القادمة): نعرض الأقرب وقتاً في القمة
+          // لبقية المباريات: نعرض الأقرب وقتاً في القمة
           return matchStartDate(a) - matchStartDate(b);
       }
   }
