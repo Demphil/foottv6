@@ -296,10 +296,10 @@ async function loadAndRenderMatches() {
       const diffB = (matchStartDate(b) - now) / 60000;
 
       const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.status === 'PASSED_STAGING' || fallbackA;
-
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || !!fallbackA;
+    
       const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || !!fallbackB;
 
       // ==========================================
       // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
