@@ -47,18 +47,20 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
-// رادار يحدد مدة المباراة بناءً على اسم البطولة
+// ==========================================
+// 🎯 رادار تحديد مدة المباراة الذكي
+// ==========================================
 function getMatchDuration(leagueName) {
     if (!leagueName) return 100; // التوقيت الافتراضي للمباريات العادية
     const name = leagueName.toLowerCase();
     
-    // كلمات تدل على إمكانية وجود أشواط إضافية
-    const knockoutKeywords = ['كأس', 'نهائي', 'سوبر', 'cup', 'final', 'super', 'كوبا', 'خروج المغلوب', 'playoff'];
+    // كلمات تدل على إمكانية وجود أشواط إضافية (بما فيها الربع والنصف)
+    const knockoutKeywords = ['كأس', 'نهائي', 'سوبر', 'cup', 'final', 'super', 'كوبا', 'خروج المغلوب', 'playoff', 'ربع', 'نصف', 'أبطال', 'champions'];
     
     const isKnockout = knockoutKeywords.some(keyword => name.includes(keyword));
     
-    // 150 دقيقة للكؤوس، و 120 دقيقة لمباريات الدوري العادية
-    return isKnockout ? 130 : 100; 
+    // 135 دقيقة للكؤوس والربع والنصف، و 100 دقيقة لمباريات الدوري العادية
+    return isKnockout ? 135 : 100; 
 }
 
 // تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
@@ -141,8 +143,7 @@ function renderMatch(match) {
 
   const hasData = hasStreams || manualLink;
 
-  // لتختفي المباريات المنتهية ولا تتراكم عند منتصف الليل
-  // ⏱️ حساب مدة المباراة بذكاء حسب البطولة (150 للكؤوس و 120 للدوري)
+  // ⏱️ حساب مدة المباراة بذكاء حسب البطولة
   const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 100;
   const isTimeAllowed = diffMins <= 25 && diffMins >= -matchDuration;
   const isLive = diffMins <= 0 && diffMins >= -matchDuration;
@@ -336,9 +337,6 @@ async function loadAndRenderMatches() {
 
       const tierA = getTier(diffA, hasLinkA, durationA);
       const tierB = getTier(diffB, hasLinkB, durationB);
-
-      const tierA = getTier(diffA, hasLinkA);
-      const tierB = getTier(diffB, hasLinkB);
 
       // 1. الترتيب حسب الأولوية (الأوزان)
       if (tierA !== tierB) return tierA - tierB;
