@@ -9,7 +9,7 @@ const { saveStaging } = require('./supabase-storage');
 
 puppeteer.use(StealthPlugin());
 
-const SCHEDULE_URL = 'https://yallashoot2day.online/';
+const SCHEDULE_URL = 'https://365kora.xyz/';
 const TIME_ZONE = 'Asia/Riyadh';
 
 const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
