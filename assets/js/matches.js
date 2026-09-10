@@ -47,6 +47,20 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+// رادار يحدد مدة المباراة بناءً على اسم البطولة
+function getMatchDuration(leagueName) {
+    if (!leagueName) return 100; // التوقيت الافتراضي للمباريات العادية
+    const name = leagueName.toLowerCase();
+    
+    // كلمات تدل على إمكانية وجود أشواط إضافية
+    const knockoutKeywords = ['كأس', 'نهائي', 'سوبر', 'cup', 'final', 'super', 'كوبا', 'خروج المغلوب', 'playoff'];
+    
+    const isKnockout = knockoutKeywords.some(keyword => name.includes(keyword));
+    
+    // 150 دقيقة للكؤوس، و 120 دقيقة لمباريات الدوري العادية
+    return isKnockout ? 130 : 100; 
+}
+
 // تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
 function matchStartDate(match) {
   if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
@@ -127,10 +141,11 @@ function renderMatch(match) {
 
   const hasData = hasStreams || manualLink;
 
-  // ⏱️ تقليص مدة المباراة إلى 150 دقيقة (ساعتين ونصف) بدلاً من 4 ساعات
   // لتختفي المباريات المنتهية ولا تتراكم عند منتصف الليل
-  const isTimeAllowed = diffMins <= 25 && diffMins >= -150;
-  const isLive = diffMins <= 0 && diffMins >= -150;
+  // ⏱️ حساب مدة المباراة بذكاء حسب البطولة (150 للكؤوس و 120 للدوري)
+  const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 100;
+  const isTimeAllowed = diffMins <= 25 && diffMins >= -matchDuration;
+  const isLive = diffMins <= 0 && diffMins >= -matchDuration;
   const isSoon = diffMins > 0 && diffMins <= 60; 
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
@@ -304,18 +319,23 @@ async function loadAndRenderMatches() {
       // ==========================================
       // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
       // ==========================================
-      const getTier = (diff, hasLink) => {
-          // لقد قمنا بتوحيد المدة هنا لتكون 150 دقيقة كما في المشغل
-          const isLive = diff <= 0 && diff >= -150; 
+      const durationA = getMatchDuration(a.league);
+      const durationB = getMatchDuration(b.league);
+
+      const getTier = (diff, hasLink, duration) => {
+          const isLive = diff <= 0 && diff >= -duration; 
           const isSoon = diff > 0 && diff <= 60;
 
-          if (isLive && hasLink) return 1;  // 1. مباراة جارية + رابط جاهز (القمة)
-          if (isSoon && hasLink) return 2;  // 2. مباراة ستبدأ قريباً + رابط جاهز
-          if (isSoon && !hasLink) return 3; // 3. مباراة ستبدأ قريباً + بدون رابط
-          if (isLive && !hasLink) return 4; // 4. مباراة جارية + بدون رابط (مطرودة للأسفل هنا!)
-          if (diff < -150) return 6;        // 6. مباريات منتهية (في القاع)
-          return 5;                         // 5. مباريات تلعب لاحقاً اليوم
+          if (isLive && hasLink) return 1;  
+          if (isSoon && hasLink) return 2;  
+          if (isSoon && !hasLink) return 3; 
+          if (isLive && !hasLink) return 4; 
+          if (diff < -duration) return 6;        
+          return 5;                         
       };
+
+      const tierA = getTier(diffA, hasLinkA, durationA);
+      const tierB = getTier(diffB, hasLinkB, durationB);
 
       const tierA = getTier(diffA, hasLinkA);
       const tierB = getTier(diffB, hasLinkB);
