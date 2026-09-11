@@ -1,14 +1,4 @@
-{
-  "sources": [
-    {
-      "name": "fabor-tv",
-      "listUrl": "https://fabor-tv.to/fabor4/",
-      "timeZone": "Africa/casablanca",
-      "allowedHosts": [
-        "yassirtv.com"
-      ],
-      "enabled": true
-    },
+
     {
       "name": "siir-tv",
       "listUrl": "https://siir-tv.co/",
@@ -97,6 +87,17 @@
       "allowedHosts": [
         "sportcityplus.com",
         "m6.kora-sami.com"
+      ],
+      "enabled": true
+    },
+{
+  "sources": [
+    {
+      "name": "fabor-tv",
+      "listUrl": "https://fabor-tv.to/fabor4/",
+      "timeZone": "Africa/casablanca",
+      "allowedHosts": [
+        "yassirtv.com"
       ],
       "enabled": true
     },
