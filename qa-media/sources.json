@@ -35,7 +35,7 @@
       "timeZone": "Asia/Riyadh",
       "metadataQuality": "trusted",
       "allowedHosts": [
-        "https://i.ltvonline.live/"
+        "i.ltvonline.live"
       ],
       "enabled": true
     },
@@ -76,7 +76,7 @@
       "allowedHosts": [
         "www.sirrtv.online",
         "q.ltvonline.live",
-        "https://up4lineonline.blogspot.com"
+        "up4lineonline.blogspot.com"
       ],
       "enabled": true
     },
