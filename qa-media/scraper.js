@@ -378,20 +378,23 @@ async function resolveMatchUrl(job, sources, allowlist) {
 
 async function resolveMatchUrls(job, sources, allowlist) {
   // 1. استبعاد المواقع المخصصة كـ "دليل مواعيد فقط" (مثل 365kora)
+  // 2. الحفاظ على الترتيب الصارم الأساسي الموجود في ملف sources.json
   const videoSources = sources.filter(source => Array.isArray(source.allowedHosts) && source.allowedHosts.length > 0);
   
   const failures = [];
   const matches = [];
   const seen = new Set();
 
-  // 🚀 مسح جميع المواقع بالترتيب الصارم (بدون أي توقف)
+  // 🚀 الدخول للمواقع بنظام الأولويات المتسلسلة
   for (const source of videoSources) {
     try {
       const matchUrl = await resolveMatchUrlFromSource(job, source, allowlist);
       if (matchUrl && !seen.has(matchUrl)) {
         seen.add(matchUrl);
-        // سيتم إضافة المواقع للمصفوفة بالترتيب: فابور، ثم سير، ثم ياسين...
         matches.push({ sourceName: source.name, matchUrl, matchPageHosts: safeMatchPageHosts(source) });
+        
+        // 🛑 السطر السحري: بمجرد إيجاد الرابط في الموقع الأول، توقف فوراً ولا تبحث في الباقي!
+        break; 
       }
     } catch (error) {
       failures.push(`${source.name}: ${error.message}`);
@@ -401,8 +404,6 @@ async function resolveMatchUrls(job, sources, allowlist) {
   if (!matches.length) {
     throw new Error(`No source matched ${job.homeTeam} vs ${job.awayTeam}. ${failures.join(' | ')}`);
   }
-  
-  // الآن مصفوفة matches تحتوي على جميع الروابط من جميع المواقع، مرتبة حسب الأولوية!
   return { matches, failures };
 }
 
