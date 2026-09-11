@@ -377,19 +377,24 @@ async function resolveMatchUrl(job, sources, allowlist) {
 }
 
 async function resolveMatchUrls(job, sources, allowlist) {
-  const preferred = job.sourceName ? sources.find((item) => item.name === job.sourceName) : null;
-  if (job.sourceName && !preferred) throw new Error(`Unknown authorized source: ${job.sourceName}`);
-  const orderedSources = preferred ? [preferred, ...sources.filter((item) => item !== preferred)] : sources;
+  // 1. استبعاد المواقع المخصصة كـ "دليل مواعيد فقط" (مثل 365kora)
+  // 2. الحفاظ على الترتيب الصارم الأساسي الموجود في ملف sources.json
+  const videoSources = sources.filter(source => Array.isArray(source.allowedHosts) && source.allowedHosts.length > 0);
+  
   const failures = [];
   const matches = [];
   const seen = new Set();
 
-  for (const source of orderedSources) {
+  // 🚀 الدخول للمواقع بنظام الأولويات المتسلسلة
+  for (const source of videoSources) {
     try {
       const matchUrl = await resolveMatchUrlFromSource(job, source, allowlist);
       if (matchUrl && !seen.has(matchUrl)) {
         seen.add(matchUrl);
         matches.push({ sourceName: source.name, matchUrl, matchPageHosts: safeMatchPageHosts(source) });
+        
+        // 🛑 السطر السحري: بمجرد إيجاد الرابط في الموقع الأول، توقف فوراً ولا تبحث في الباقي!
+        break; 
       }
     } catch (error) {
       failures.push(`${source.name}: ${error.message}`);
