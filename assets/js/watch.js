@@ -277,12 +277,18 @@ function loadPlayer(stream, container, loader) {
         }
         container.appendChild(video);
     } 
-    else {
+   else {
         const iframe = document.createElement('iframe');
         iframe.setAttribute('src', stream.url);
         iframe.setAttribute('frameborder', '0');
         iframe.setAttribute('scrolling', 'no'); 
         iframe.setAttribute('allowfullscreen', 'true');
+        
+        // ==========================================
+        // 🛡️ تجاوز حماية الشاشة السوداء (CORS/Referrer)
+        // ==========================================
+        iframe.setAttribute('referrerpolicy', 'no-referrer');
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
         
         iframe.style.position = 'absolute';
         iframe.style.top = '0';
