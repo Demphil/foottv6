@@ -286,9 +286,9 @@ function loadPlayer(stream, container, loader) {
         
         // ==========================================
         // 🛡️ تجاوز حماية الشاشة السوداء (CORS/Referrer)
+        // تم مسح حماية الـ Sandbox لتجنب خطأ الحظر
         // ==========================================
         iframe.setAttribute('referrerpolicy', 'no-referrer');
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
         
         iframe.style.position = 'absolute';
         iframe.style.top = '0';
@@ -325,27 +325,6 @@ function loadPlayer(stream, container, loader) {
 
 // ==========================================
 // التعديل 2: جلب الأخبار من جدول 'articles' الصحيح
-// ==========================================
-// ==========================================
-// جلب الأخبار من ملف أو رابط news.api
-// ==========================================
-// ==========================================
-// جلب الأخبار من NewsData.io (نفس مصدر صفحة الأخبار)
-// ==========================================
-// ==========================================
-// جلب الأخبار من NewsData.io (مع الصور)
-// ==========================================
-// ==========================================
-// جلب الأخبار من NewsData.io (مع الفلترة الشاملة)
-// ==========================================
-// ==========================================
-// جلب الأخبار من NewsData.io (مع نظام تخزين مؤقت لحماية الباقة)
-// ==========================================
-// ==========================================
-// جلب الأخبار الرياضية مجاناً مدى الحياة باستخدام تقنية RSS
-// ==========================================
-// ==========================================
-// جلب الأخبار لصفحة المشاهدة بنظام RSS المزدوج والمستقر
 // ==========================================
 async function loadWatchNews() {
     const newsContainer = document.getElementById('watch-news-container');
@@ -427,34 +406,6 @@ function renderWatchNewsCards(articles, container) {
                 <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
                 <div style="display: flex; flex-direction: column; gap: 5px;">
                     <h4 style="margin: 0; font-size: 14px; line-height: 1.4; color: #fff;">${shortTitle}</h4>
-                    <span style="font-size: 12px; color: #888;">${dateStr}</span>
-                </div>
-            </a>
-        `;
-    }).join('');
-}
-
-// دالة مساعدة لترتيب وعرض الأخبار بصيغة RSS الجديدة
-function renderNewsCards(articles, container) {
-    container.innerHTML = articles.map(article => {
-        let title = article.title || 'أحدث الأخبار الرياضية';
-        const articleUrl = article.link || '#';
-        
-        // استخراج الصورة: خدمة rss2json تضع الصورة إما في thumbnail أو في enclosure
-        let imgUrl = article.thumbnail || (article.enclosure && article.enclosure.link) || 'assets/images/default-news.jpg';
-        
-        let dateStr = '';
-        if (article.pubDate) {
-            // تنظيف التاريخ ليعمل بكفاءة على جميع المتصفحات (بما فيها سفاري)
-            const date = new Date(article.pubDate.replace(/-/g, '/'));
-            dateStr = date.toLocaleDateString('ar-EG-u-nu-latn', { month: 'short', day: 'numeric', year: 'numeric' });
-        }
-
-        return `
-            <a href="${articleUrl}" target="_blank" rel="noopener noreferrer" class="watch-news-card" style="display: flex; flex-direction: column; gap: 10px; text-decoration: none;">
-                <img src="${imgUrl}" alt="${title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px;" loading="lazy" onerror="this.src='assets/images/default-news.jpg'">
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                    <h4 style="margin: 0; font-size: 14px; line-height: 1.4;">${title}</h4>
                     <span style="font-size: 12px; color: #888;">${dateStr}</span>
                 </div>
             </a>
