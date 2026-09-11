@@ -65,8 +65,8 @@ if (matchId && supabaseClient) {
                     const dataA = JSON.stringify(a).toLowerCase();
                     const dataB = JSON.stringify(b).toLowerCase();
                     
-                    const isFavA = (dataA.includes('yassirtv') || dataA.includes('fabor')) ? 0 : 1;
-                    const isFavB = (dataB.includes('yassirtv') || dataB.includes('fabor')) ? 0 : 1;
+                    const isFavA = (dataA.includes('m8nstar') || dataA.includes('fabor')) ? 0 : 1;
+                    const isFavB = (dataB.includes('m8nstar') || dataB.includes('fabor')) ? 0 : 1;
                     
                     return isFavB - isFavA; 
                 });
