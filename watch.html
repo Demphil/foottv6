@@ -157,17 +157,12 @@
 </script>
   <script>
 window.addEventListener('load', function() {
-    // تحديد حاوية مشغل الفيديو
     var playerContainer = document.getElementById('player-container');
     
     if (playerContainer) {
-        // إجبار الحاوية على احتواء الطبقة الشفافة داخلها فقط
         playerContainer.style.position = 'relative';
 
-        // إنشاء الطبقة الشفافة برمجياً
         var invisibleLayer = document.createElement('div');
-        
-        // تطبيق خصائص التخفي والتغطية (CSS) عبر الجافاسكريبت
         invisibleLayer.style.position = 'absolute';
         invisibleLayer.style.top = '0';
         invisibleLayer.style.left = '0';
@@ -175,20 +170,23 @@ window.addEventListener('load', function() {
         invisibleLayer.style.height = '100%';
         invisibleLayer.style.zIndex = '999';
         invisibleLayer.style.cursor = 'pointer';
-        
-        // زرع الطبقة فوق المشغل
         playerContainer.appendChild(invisibleLayer);
 
-        // تفعيل خدعة سرقة النقرة الأولى
+        // تحديد عدد النقرات التي تريد سرقتها لصالحك (مثلاً: 2)
+        var requiredClicks = 5; 
+        var currentClicks = 0;
+
         invisibleLayer.addEventListener('click', function(e) {
-            // منع النقرة من التسرب إلى المشغل الخارجي
             e.stopPropagation(); 
-            
-            // فتح إعلان الرابط المباشر الخاص بك في نافذة جديدة
+            currentClicks++;
+
+            // فتح إعلان Monetag الخاص بك
             window.open('https://omg10.com/4/11795894', '_blank');
-            
-            // تدمير الطبقة الشفافة فوراً ليتمكن الزائر من تشغيل الفيديو بسلاسة
-            this.remove(); 
+
+            // إذا وصل الزائر لعدد النقرات المطلوب، نقوم بإزالة الدرع ليعمل الفيديو
+            if (currentClicks >= requiredClicks) {
+                this.remove(); 
+            }
         });
     }
 });
