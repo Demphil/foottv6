@@ -145,6 +145,54 @@
     l.parentNode.insertBefore(s, l);
     })({})
   </script>
+  <script>
+    // كود الجافاسكريبت للطبقة الشفافة (يمكنك وضعه أسفل الصفحة)
+    document.getElementById('first-click-ad').addEventListener('click', function() {
+        // فتح الرابط المباشر الخاص بك في Monetag في نافذة جديدة
+        window.open('https://omg10.com/4/11795894', '_blank');
+        
+        // إخفاء الطبقة الشفافة نهائياً بعد النقرة الأولى ليتمكن الزائر من تشغيل الفيديو
+        this.style.display = 'none';
+    });
+</script>
+  <script>
+window.addEventListener('load', function() {
+    // تحديد حاوية مشغل الفيديو
+    var playerContainer = document.getElementById('player-container');
+    
+    if (playerContainer) {
+        // إجبار الحاوية على احتواء الطبقة الشفافة داخلها فقط
+        playerContainer.style.position = 'relative';
+
+        // إنشاء الطبقة الشفافة برمجياً
+        var invisibleLayer = document.createElement('div');
+        
+        // تطبيق خصائص التخفي والتغطية (CSS) عبر الجافاسكريبت
+        invisibleLayer.style.position = 'absolute';
+        invisibleLayer.style.top = '0';
+        invisibleLayer.style.left = '0';
+        invisibleLayer.style.width = '100%';
+        invisibleLayer.style.height = '100%';
+        invisibleLayer.style.zIndex = '999';
+        invisibleLayer.style.cursor = 'pointer';
+        
+        // زرع الطبقة فوق المشغل
+        playerContainer.appendChild(invisibleLayer);
+
+        // تفعيل خدعة سرقة النقرة الأولى
+        invisibleLayer.addEventListener('click', function(e) {
+            // منع النقرة من التسرب إلى المشغل الخارجي
+            e.stopPropagation(); 
+            
+            // فتح إعلان الرابط المباشر الخاص بك في نافذة جديدة
+            window.open('https://omg10.com/4/11795894', '_blank');
+            
+            // تدمير الطبقة الشفافة فوراً ليتمكن الزائر من تشغيل الفيديو بسلاسة
+            this.remove(); 
+        });
+    }
+});
+</script>
 
 </body>
 </html>
