@@ -12,7 +12,8 @@ function pathToken(params, url) {
 function responseHeaders(response) {
   const headers = new Headers(response.headers);
   headers.delete('content-length');
-  headers.delete('content-security-policy');
+  headers.set('Content-Security-Policy', "frame-ancestors 'self';");
+  headers.set('X-Frame-Options', 'SAMEORIGIN');
   return headers;
 }
 

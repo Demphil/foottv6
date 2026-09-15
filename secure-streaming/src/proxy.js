@@ -38,6 +38,14 @@ function applyPublicEmbedHeaders(response) {
   return response;
 }
 
+function applyPrivatePageHeaders(response) {
+  response.headers.set("Content-Security-Policy", "frame-ancestors 'self';");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  return response;
+}
+
 export function proxy(request) {
   const url = request.nextUrl;
   const userAgent = request.headers.get("user-agent") || "";
@@ -73,6 +81,9 @@ export function proxy(request) {
 
   if (request.nextUrl.pathname.startsWith("/embed/")) {
     return applyPublicEmbedHeaders(response);
+  }
+  if (request.nextUrl.pathname.startsWith("/watch/")) {
+    return applyPrivatePageHeaders(response);
   }
   return response;
 }
