@@ -78,6 +78,9 @@ const SMART_LOGO_SCAN = {
 const SMART_LOGO_SCAN_INTERVAL_MS = 1200;
 const SMART_LOGO_RESULT_TTL_MS = 5000;
 const SMART_LOGO_BLOCKED_RETRY_MS = 15000;
+const BROADCASTER_TEMPLATE_MANIFEST = "/assets/broadcaster-templates/templates.json";
+const BROADCASTER_TEMPLATE_MAX_WIDTH = 86;
+const BROADCASTER_TEMPLATE_SCAN_STEP = 3;
 
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
@@ -138,7 +141,123 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function detectBroadcasterLogo(video, canvas) {
+function createFeatureMask(imageData, width, height) {
+  const mask = new Uint8Array(width * height);
+  const data = imageData.data;
+  const lumaAt = (x, y) => {
+    const offset = (y * width + x) * 4;
+    return data[offset] * 0.299 + data[offset + 1] * 0.587 + data[offset + 2] * 0.114;
+  };
+
+  for (let y = 1; y < height - 1; y += 1) {
+    for (let x = 1; x < width - 1; x += 1) {
+      const offset = (y * width + x) * 4;
+      const r = data[offset];
+      const g = data[offset + 1];
+      const b = data[offset + 2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const luma = r * 0.299 + g * 0.587 + b * 0.114;
+      const contrast = Math.max(
+        Math.abs(luma - lumaAt(x - 1, y)),
+        Math.abs(luma - lumaAt(x + 1, y)),
+        Math.abs(luma - lumaAt(x, y - 1)),
+        Math.abs(luma - lumaAt(x, y + 1))
+      );
+      const isGraphicEdge = contrast > 34 && luma > 70;
+      const isBroadcastPurple = b > 80 && r > 70 && g < 135 && max - min > 34;
+      const isBrightGlyph = luma > 175 && contrast > 18;
+      if (isGraphicEdge || isBroadcastPurple || isBrightGlyph) {
+        mask[y * width + x] = 1;
+      }
+    }
+  }
+
+  return mask;
+}
+
+function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templates) {
+  if (!templates?.length) return null;
+  let bestMatch = null;
+
+  templates.forEach((template) => {
+    if (!template.activePixels || template.width >= sampleWidth || template.height >= sampleHeight) return;
+    const search = template.search || {};
+    const left = Math.max(0, Math.floor(sampleWidth * (search.left ?? SMART_LOGO_SCAN.roiLeft)));
+    const top = Math.max(0, Math.floor(sampleHeight * (search.top ?? SMART_LOGO_SCAN.roiTop)));
+    const right = Math.min(sampleWidth - template.width, Math.floor(sampleWidth * (search.right ?? SMART_LOGO_SCAN.roiRight)));
+    const bottom = Math.min(sampleHeight - template.height, Math.floor(sampleHeight * (search.bottom ?? SMART_LOGO_SCAN.roiBottom)));
+    if (right <= left || bottom <= top) return;
+
+    for (let y = top; y <= bottom; y += BROADCASTER_TEMPLATE_SCAN_STEP) {
+      for (let x = left; x <= right; x += BROADCASTER_TEMPLATE_SCAN_STEP) {
+        let hits = 0;
+        for (let index = 0; index < template.points.length; index += 1) {
+          const point = template.points[index];
+          if (featureMask[(y + point.y) * sampleWidth + x + point.x]) hits += 1;
+        }
+        const score = hits / template.activePixels;
+        if (score >= template.threshold && (!bestMatch || score > bestMatch.score)) {
+          bestMatch = {
+            left: x / sampleWidth,
+            top: y / sampleHeight,
+            width: template.width / sampleWidth,
+            height: template.height / sampleHeight,
+            confidence: score,
+            templateId: template.id
+          };
+        }
+      }
+    }
+  });
+
+  return bestMatch;
+}
+
+async function loadBroadcasterTemplates() {
+  const response = await fetch(BROADCASTER_TEMPLATE_MANIFEST, { cache: "force-cache" });
+  if (!response.ok) return [];
+  const manifest = await response.json();
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return [];
+
+  const templates = await Promise.all((Array.isArray(manifest) ? manifest : []).map((item) => new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const targetWidth = Math.min(BROADCASTER_TEMPLATE_MAX_WIDTH, image.naturalWidth || BROADCASTER_TEMPLATE_MAX_WIDTH);
+      const targetHeight = Math.max(1, Math.round(targetWidth * ((image.naturalHeight || 1) / (image.naturalWidth || targetWidth))));
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      context.clearRect(0, 0, targetWidth, targetHeight);
+      context.drawImage(image, 0, 0, targetWidth, targetHeight);
+      const imageData = context.getImageData(0, 0, targetWidth, targetHeight);
+      const mask = createFeatureMask(imageData, targetWidth, targetHeight);
+      const points = [];
+      for (let y = 0; y < targetHeight; y += 1) {
+        for (let x = 0; x < targetWidth; x += 1) {
+          if (mask[y * targetWidth + x]) points.push({ x, y });
+        }
+      }
+      resolve(points.length ? {
+        id: item.id || item.src,
+        width: targetWidth,
+        height: targetHeight,
+        points,
+        activePixels: points.length,
+        threshold: Number(item.threshold || 0.58),
+        search: item.search || null
+      } : null);
+    };
+    image.onerror = () => resolve(null);
+    image.decoding = "async";
+    image.src = item.src;
+  })));
+
+  return templates.filter(Boolean);
+}
+
+function detectBroadcasterLogo(video, canvas, templates = []) {
   if (!video || !canvas || video.readyState < 2 || !video.videoWidth || !video.videoHeight) return null;
 
   const sampleWidth = SMART_LOGO_SCAN.sampleWidth;
@@ -162,6 +281,11 @@ function detectBroadcasterLogo(video, canvas) {
     return { blocked: true };
   }
 
+  const featureMask = createFeatureMask(image, sampleWidth, sampleHeight);
+  const templateMatch = matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templates);
+  if (templateMatch) return templateMatch;
+  if (templates?.length) return null;
+
   const roi = {
     left: Math.floor(sampleWidth * SMART_LOGO_SCAN.roiLeft),
     top: Math.floor(sampleHeight * SMART_LOGO_SCAN.roiTop),
@@ -173,33 +297,9 @@ function detectBroadcasterLogo(video, canvas) {
   if (roiWidth < 20 || roiHeight < 10) return null;
 
   const mask = new Uint8Array(roiWidth * roiHeight);
-  const data = image.data;
-  const lumaAt = (x, y) => {
-    const offset = (y * sampleWidth + x) * 4;
-    return data[offset] * 0.299 + data[offset + 1] * 0.587 + data[offset + 2] * 0.114;
-  };
-
   for (let y = roi.top + 1; y < roi.bottom - 1; y += 1) {
     for (let x = roi.left + 1; x < roi.right - 1; x += 1) {
-      const offset = (y * sampleWidth + x) * 4;
-      const r = data[offset];
-      const g = data[offset + 1];
-      const b = data[offset + 2];
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const luma = r * 0.299 + g * 0.587 + b * 0.114;
-      const contrast = Math.max(
-        Math.abs(luma - lumaAt(x - 1, y)),
-        Math.abs(luma - lumaAt(x + 1, y)),
-        Math.abs(luma - lumaAt(x, y - 1)),
-        Math.abs(luma - lumaAt(x, y + 1))
-      );
-      const isGraphicEdge = contrast > 34 && luma > 70;
-      const isBroadcastPurple = b > 80 && r > 70 && g < 130 && max - min > 38;
-      const isBrightGlyph = luma > 175 && contrast > 18;
-      if (isGraphicEdge || isBroadcastPurple || isBrightGlyph) {
-        mask[(y - roi.top) * roiWidth + (x - roi.left)] = 1;
-      }
+      if (featureMask[y * sampleWidth + x]) mask[(y - roi.top) * roiWidth + (x - roi.left)] = 1;
     }
   }
 
@@ -332,6 +432,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const videoRef = useRef(null);
   const logoScanCanvasRef = useRef(null);
   const logoTrackerRef = useRef({ disabledUntil: 0, lastScanAt: 0, lastLogo: null, lastLogoAt: 0 });
+  const broadcasterTemplatesRef = useRef({ loaded: false, templates: [] });
   const playerRef = useRef(null);
   const mpegtsPlayerRef = useRef(null);
   const adScriptsRef = useRef([]);
@@ -523,7 +624,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     if (now >= tracker.disabledUntil && now - tracker.lastScanAt >= SMART_LOGO_SCAN_INTERVAL_MS) {
       if (!logoScanCanvasRef.current) logoScanCanvasRef.current = document.createElement("canvas");
       tracker.lastScanAt = now;
-      const detectedLogo = detectBroadcasterLogo(video, logoScanCanvasRef.current);
+      const detectedLogo = detectBroadcasterLogo(video, logoScanCanvasRef.current, broadcasterTemplatesRef.current.templates);
       if (detectedLogo?.blocked) {
         tracker.disabledUntil = now + SMART_LOGO_BLOCKED_RETRY_MS;
         tracker.lastLogo = null;
@@ -554,7 +655,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
     frame.dataset.logoLayoutProfile = logoProfileName;
-    frame.dataset.logoTracker = autoLogo ? "auto" : (now < tracker.disabledUntil ? "blocked" : "fallback");
+    frame.dataset.logoTracker = autoLogo ? (autoLogo.templateId ? `template:${autoLogo.templateId}` : "auto") : (now < tracker.disabledUntil ? "blocked" : "fallback");
     frame.style.setProperty("--channel-logo-position", logoProfile.fixedToViewport ? "fixed" : "absolute");
     frame.style.setProperty("--channel-logo-z", logoProfile.fixedToViewport ? "2147483000" : "35");
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
@@ -717,6 +818,20 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   useEffect(() => {
     return () => {
       cleanupAdScripts();
+    };
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    loadBroadcasterTemplates()
+      .then((templates) => {
+        if (!disposed) broadcasterTemplatesRef.current = { loaded: true, templates };
+      })
+      .catch(() => {
+        if (!disposed) broadcasterTemplatesRef.current = { loaded: true, templates: [] };
+      });
+    return () => {
+      disposed = true;
     };
   }, []);
 
