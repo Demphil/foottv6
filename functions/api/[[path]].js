@@ -7,21 +7,29 @@ function pathToken(params) {
   return rawPath.replace(/^\/+/, '');
 }
 
+function proxyHeaders(request, url) {
+  const headers = new Headers();
+  for (const name of ['accept', 'accept-language', 'content-type', 'cookie', 'user-agent']) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  headers.set('origin', url.origin);
+  headers.set('referer', url.toString());
+  headers.set('x-koralive-proxied-api', '1');
+  headers.set('x-forwarded-host', url.host);
+  headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
+  return headers;
+}
+
 export async function onRequest({ request, params, env }) {
   const url = new URL(request.url);
   const secureOrigin = cleanOrigin(env.SECURE_STREAMING_ORIGIN || env.STREAM_APP_ORIGIN || env.NEXT_PUBLIC_STREAM_APP_ORIGIN);
   const target = new URL(`/api/${pathToken(params)}`, secureOrigin);
   target.search = url.search;
 
-  const headers = new Headers(request.headers);
-  headers.delete('host');
-  headers.set('x-koralive-proxied-api', '1');
-  headers.set('x-forwarded-host', url.host);
-  headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
-
   return fetch(new Request(target.toString(), {
     method: request.method,
-    headers,
+    headers: proxyHeaders(request, url),
     body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
     redirect: 'manual'
   }));
