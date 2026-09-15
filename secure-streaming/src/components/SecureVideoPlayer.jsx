@@ -27,15 +27,16 @@ const LOGO_LAYOUT_PROFILES = {
     minHeight: 27,
     maxHeight: 34
   },
-  wide: {
-    left: 0.842,
-    top: 0.069,
-    width: 0.108,
-    height: 0.033,
+  desktopFullscreen: {
+    fixedToViewport: true,
+    left: 0.835,
+    top: 0.063,
+    width: 0.115,
+    height: 0.034,
     minWidth: 198,
-    maxWidth: 232,
+    maxWidth: 236,
     minHeight: 30,
-    maxHeight: 36
+    maxHeight: 38
   },
   mobileLandscape: {
     left: 0.8,
@@ -280,20 +281,41 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       (frameWidth >= viewportWidth * 0.92 && frameHeight >= viewportHeight * 0.82 && frameRect.top <= 24)
     );
     const isPhoneLayout = Math.min(viewportWidth, viewportHeight) <= 720;
-    const logoProfileName = isPhoneLayout
+    const logoProfileName = isFullscreenLayout && isLandscape && !isPhoneLayout
+      ? "desktopFullscreen"
+      : isPhoneLayout
       ? (isLandscape ? "mobileLandscape" : "mobilePortrait")
-      : (isFullscreenLayout && isLandscape ? "wide" : "normal");
+      : "normal";
     const logoProfile = LOGO_LAYOUT_PROFILES[logoProfileName];
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-    const logoWidth = clamp(visibleVideoWidth * logoProfile.width, logoProfile.minWidth, logoProfile.maxWidth);
-    const logoHeight = clamp(visibleVideoHeight * logoProfile.height, logoProfile.minHeight, logoProfile.maxHeight);
-    const logoLeft = visibleVideoLeft + visibleVideoWidth * logoProfile.left;
-    const logoTop = visibleVideoTop + visibleVideoHeight * logoProfile.top;
-    const boundedLogoLeft = clamp(logoLeft, visibleVideoLeft + 6, visibleVideoRight - logoWidth - 6);
-    const boundedLogoTop = clamp(logoTop, visibleVideoTop + 6, visibleVideoBottom - logoHeight - 6);
+    const logoBox = logoProfile.fixedToViewport
+      ? {
+          left: 0,
+          top: 0,
+          right: viewportWidth,
+          bottom: viewportHeight,
+          width: viewportWidth,
+          height: viewportHeight
+        }
+      : {
+          left: visibleVideoLeft,
+          top: visibleVideoTop,
+          right: visibleVideoRight,
+          bottom: visibleVideoBottom,
+          width: visibleVideoWidth,
+          height: visibleVideoHeight
+        };
+    const logoWidth = clamp(logoBox.width * logoProfile.width, logoProfile.minWidth, logoProfile.maxWidth);
+    const logoHeight = clamp(logoBox.height * logoProfile.height, logoProfile.minHeight, logoProfile.maxHeight);
+    const logoLeft = logoBox.left + logoBox.width * logoProfile.left;
+    const logoTop = logoBox.top + logoBox.height * logoProfile.top;
+    const boundedLogoLeft = clamp(logoLeft, logoBox.left + 6, logoBox.right - logoWidth - 6);
+    const boundedLogoTop = clamp(logoTop, logoBox.top + 6, logoBox.bottom - logoHeight - 6);
     const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
     frame.dataset.logoLayoutProfile = logoProfileName;
+    frame.style.setProperty("--channel-logo-position", logoProfile.fixedToViewport ? "fixed" : "absolute");
+    frame.style.setProperty("--channel-logo-z", logoProfile.fixedToViewport ? "2147483000" : "35");
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
     frame.style.setProperty("--channel-logo-height", `${logoHeight}px`);
     frame.style.setProperty("--channel-logo-left", `${boundedLogoLeft}px`);

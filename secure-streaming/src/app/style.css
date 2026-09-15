@@ -341,11 +341,11 @@ body {
 }
 
 .korlive-corner-logo {
-  position: absolute;
+  position: var(--channel-logo-position, absolute);
   top: var(--channel-logo-top, 30px);
   left: var(--channel-logo-left, auto);
   right: auto;
-  z-index: 35;
+  z-index: var(--channel-logo-z, 35);
   width: var(--channel-logo-width, 152px);
   height: var(--channel-logo-height, 36px);
   padding: 0 6px;
