@@ -6,7 +6,6 @@ import {
   getMoroccoWallClockNow,
   getMoroccoDay
 } from './api.js';
-import { streamLinks } from './streams.js';
 
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
 const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
@@ -102,16 +101,15 @@ function renderMatch(match) {
   const awayTeamName = awayTeam.name;
   const homeLogo = safeImageUrl(homeTeam.logo, DEFAULT_TEAM_LOGO);
   const awayLogo = safeImageUrl(awayTeam.logo, DEFAULT_TEAM_LOGO);
-  const matchSpecificKey = `${homeTeamName}-${awayTeamName}`;
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   const publicWatchId = opaqueWatchId(stableId);
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
-  const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
+  const hasIptvStream = match.streamReady === true;
   
-  let watchUrl = `watch.html?id=${encodeURIComponent(publicWatchId)}`;
+  let watchUrl = `/watch/${encodeURIComponent(publicWatchId)}`;
 
   // ==========================================
   // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
@@ -140,7 +138,7 @@ function renderMatch(match) {
       diffMins = 9999; 
   }
 
-  const hasData = hasStreams || manualLink;
+  const hasData = hasStreams || hasIptvStream;
 
   // ⏱️ حساب مدة المباراة بذكاء حسب البطولة
   const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 120;
@@ -360,11 +358,9 @@ async function loadAndRenderMatches() {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || !!fallbackA;
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.streamReady === true;
     
-      const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || !!fallbackB;
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.streamReady === true;
 
       // ==========================================
       // 🚀 نظام الأوزان الجديد (الترتيب الذكي)

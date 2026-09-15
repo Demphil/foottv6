@@ -14,6 +14,16 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://koralive.football/watch.html">
   <meta property="og:image" content="https://koralive.football/assets/images/default-news.jpg">
+  <script>
+    (function redirectLegacyWatchPage() {
+      var params = new URLSearchParams(window.location.search);
+      var id = (params.get('id') || '').trim();
+      params.delete('id');
+      var target = '/watch/' + encodeURIComponent(id || 'KoraLive');
+      var query = params.toString();
+      window.location.replace(query ? target + '?' + query : target);
+    })();
+  </script>
   
   <!-- المكتبات وملفات التنسيق -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>

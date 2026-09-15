@@ -34,11 +34,41 @@ function moroccoTime(value) {
   }).format(date);
 }
 
-function toFrontendMatch(row) {
+function normalizeChannelName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ar');
+}
+
+async function readActiveChannelNames(env, origin) {
+  const endpoint = new URL(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/channels`);
+  endpoint.searchParams.set('select', 'name,active');
+  endpoint.searchParams.set('active', 'eq.true');
+  endpoint.searchParams.set('limit', '2000');
+
+  try {
+    const response = await fetch(endpoint, {
+      cache: 'no-store',
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        accept: 'application/json',
+        'cache-control': 'no-cache'
+      }
+    });
+    if (!response.ok) return new Set();
+    const rows = await response.json();
+    return new Set((Array.isArray(rows) ? rows : []).map((row) => normalizeChannelName(row.name)).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
+function toFrontendMatch(row, activeChannelNames = new Set()) {
   const payload = row.payload || {};
   const scheduledAt = row.kickoff_time || payload.scheduledAt || '';
   const homeTeam = row.home_team || payload.homeTeam?.name || payload.homeTeam || '';
   const awayTeam = row.away_team || payload.awayTeam?.name || payload.awayTeam || '';
+  const channel = row.channel || payload.channel || '';
+  const streamReady = activeChannelNames.has(normalizeChannelName(channel));
 
   return {
     ...(payload || {}),
@@ -52,9 +82,10 @@ function toFrontendMatch(row) {
     time: payload.time || moroccoTime(scheduledAt),
     score: payload.score || 'VS',
     league: row.league || payload.league || '',
-    channel: row.channel || payload.channel || '',
+    channel,
     commentator: payload.commentator || '',
     streams: Array.isArray(payload.streams) ? payload.streams : [],
+    streamReady,
     isLive: Boolean(payload.isLive),
     updatedAt: row.updated_at
   };
@@ -104,9 +135,10 @@ export async function onRequestGet({ request, env }) {
 
   if (!response.ok) return json({ error: 'Unable to read match storage' }, 502, origin);
   const rows = await response.json();
+  const activeChannelNames = await readActiveChannelNames(env, origin);
   const seen = new Set();
   const matches = (Array.isArray(rows) ? rows : [])
-    .map(toFrontendMatch)
+    .map((row) => toFrontendMatch(row, activeChannelNames))
     .filter((match) => match.homeTeam && match.awayTeam && match.scheduledAt)
     .filter((match) => String(match.homeTeam).trim() !== String(match.awayTeam).trim())
     .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'))
