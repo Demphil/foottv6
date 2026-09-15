@@ -12,8 +12,9 @@ const QUALITY_OPTIONS = [
 ];
 const DEFAULT_SERVER_ID = "1080p";
 const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
-const FIRST_PROMO_DELAY_MS = 2 * 60 * 1000;
-const REPEAT_PROMO_DELAY_MS = 10 * 60 * 1000;
+const AD_NORMAL_INTERVAL_MS = 3 * 60 * 1000;
+const AD_FULLSCREEN_INTERVAL_MS = 10 * 60 * 1000;
+const AD_SCRIPT_SLOT_MS = 25 * 1000;
 
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
@@ -66,9 +67,12 @@ function opaqueWatchId(value) {
 }
 
 export default function SecureVideoPlayer({ channelName, matchId = "", publicStreamId = "", embed = false, abr = true }) {
+  const frameRef = useRef(null);
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const mpegtsPlayerRef = useRef(null);
+  const adScriptsRef = useRef([]);
+  const adCleanupTimerRef = useRef(null);
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
   const selectedServerRef = useRef(DEFAULT_SERVER_ID);
@@ -80,6 +84,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [adNotice, setAdNotice] = useState("");
   const [promoOpen, setPromoOpen] = useState(false);
   const [canShowInterruptions, setCanShowInterruptions] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
@@ -118,6 +123,86 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     liveRefreshRef.current = now;
     console.warn(`[KoraLive] refreshing live stream after ${reason}`);
     refreshStream();
+  }
+
+  function cleanupAdScripts() {
+    adScriptsRef.current.forEach((script) => script.remove());
+    adScriptsRef.current = [];
+    if (adCleanupTimerRef.current) {
+      window.clearTimeout(adCleanupTimerRef.current);
+      adCleanupTimerRef.current = null;
+    }
+  }
+
+  function runAdSlot() {
+    let loaded = 0;
+    cleanupAdScripts();
+    const scripts = configuredAdScripts().map((item) => {
+      const script = document.createElement("script");
+      script.src = item.src;
+      script.async = true;
+      script.dataset.koraliveAdSlot = "true";
+      if (item.zone) script.dataset.zone = item.zone;
+      if (item.cfasync) script.dataset.cfasync = item.cfasync;
+      script.onload = () => { loaded += 1; };
+      script.onerror = () => {
+        setAdNotice("قد تمنع بعض الإضافات ظهور الإعلانات، لكن البث سيبقى يعمل.");
+      };
+      document.head.appendChild(script);
+      return script;
+    });
+    adScriptsRef.current = scripts;
+    adCleanupTimerRef.current = window.setTimeout(() => {
+      if (scripts.length && loaded === 0) {
+        setAdNotice("إذا لم تظهر الإعلانات لديك فربما توجد إضافة حجب، ويمكنك متابعة البث بشكل عادي.");
+      }
+      cleanupAdScripts();
+    }, AD_SCRIPT_SLOT_MS);
+  }
+
+  function updateVideoLayoutVars() {
+    const frame = frameRef.current;
+    const video = videoRef.current;
+    if (!frame) return;
+    const frameWidth = frame.clientWidth || 0;
+    const frameHeight = frame.clientHeight || 0;
+    const videoWidth = video?.videoWidth || 16;
+    const videoHeight = video?.videoHeight || 9;
+    if (!frameWidth || !frameHeight || !videoWidth || !videoHeight) return;
+
+    const frameAspect = frameWidth / frameHeight;
+    const videoAspect = videoWidth / videoHeight;
+    let renderedWidth = frameWidth;
+    let renderedHeight = frameHeight;
+    let insetX = 0;
+    let insetY = 0;
+
+    if (frameAspect > videoAspect) {
+      renderedHeight = frameHeight;
+      renderedWidth = frameHeight * videoAspect;
+      insetX = (frameWidth - renderedWidth) / 2;
+    } else {
+      renderedWidth = frameWidth;
+      renderedHeight = frameWidth / videoAspect;
+      insetY = (frameHeight - renderedHeight) / 2;
+    }
+
+    frame.style.setProperty("--video-x", `${insetX}px`);
+    frame.style.setProperty("--video-y", `${insetY}px`);
+    frame.style.setProperty("--video-w", `${renderedWidth}px`);
+    frame.style.setProperty("--video-h", `${renderedHeight}px`);
+
+    const logoWidth = Math.min(170, Math.max(112, renderedWidth * 0.15));
+    const logoHeight = Math.min(42, Math.max(26, renderedHeight * 0.075));
+    const logoRight = Math.min(64, Math.max(18, renderedWidth * 0.052));
+    const logoTop = Math.min(40, Math.max(10, renderedHeight * 0.045));
+    const tickerBottom = Math.min(42, Math.max(18, renderedHeight * 0.055));
+
+    frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
+    frame.style.setProperty("--channel-logo-height", `${logoHeight}px`);
+    frame.style.setProperty("--channel-logo-right", `${insetX + logoRight}px`);
+    frame.style.setProperty("--channel-logo-top", `${insetY + logoTop}px`);
+    frame.style.setProperty("--ticker-bottom", `${frameHeight - insetY - renderedHeight + tickerBottom}px`);
   }
 
   function disposeMpegtsPlayer() {
@@ -175,32 +260,38 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, [brandUrl, embed]);
 
   useEffect(() => {
-    let loaded = 0;
-    const scripts = configuredAdScripts().map((item) => {
-      const script = document.createElement("script");
-      script.src = item.src;
-      script.async = true;
-      if (item.zone) script.dataset.zone = item.zone;
-      if (item.cfasync) script.dataset.cfasync = item.cfasync;
-      script.onload = () => { loaded += 1; };
-      script.onerror = () => {
-        setAdNotice("قد تمنع بعض الإضافات ظهور الإعلانات، لكن البث سيبقى يعمل.");
-      };
-      document.head.appendChild(script);
-      return script;
-    });
-
-    const timer = window.setTimeout(() => {
-      if (scripts.length && loaded === 0) {
-        setAdNotice("إذا لم تظهر الإعلانات لديك فربما توجد إضافة حجب، ويمكنك متابعة البث بشكل عادي.");
-      }
-    }, 5500);
-
-    return () => {
-      window.clearTimeout(timer);
-      scripts.forEach((script) => script.remove());
+    const updateFullscreen = () => {
+      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+      setIsFullscreen(Boolean(fullscreenElement));
+      window.setTimeout(updateVideoLayoutVars, 120);
     };
-  }, [embed]);
+    document.addEventListener("fullscreenchange", updateFullscreen);
+    document.addEventListener("webkitfullscreenchange", updateFullscreen);
+    document.addEventListener("mozfullscreenchange", updateFullscreen);
+    document.addEventListener("MSFullscreenChange", updateFullscreen);
+    return () => {
+      document.removeEventListener("fullscreenchange", updateFullscreen);
+      document.removeEventListener("webkitfullscreenchange", updateFullscreen);
+      document.removeEventListener("mozfullscreenchange", updateFullscreen);
+      document.removeEventListener("MSFullscreenChange", updateFullscreen);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (embed) return undefined;
+    const intervalMs = isFullscreen ? AD_FULLSCREEN_INTERVAL_MS : AD_NORMAL_INTERVAL_MS;
+    const showAdSlot = () => {
+      setCanShowInterruptions(true);
+      setPromoOpen(true);
+      runAdSlot();
+    };
+    const first = window.setTimeout(showAdSlot, intervalMs);
+    const every = window.setInterval(showAdSlot, intervalMs);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(every);
+    };
+  }, [embed, isFullscreen]);
 
   useEffect(() => {
     let disposed = false;
@@ -254,14 +345,30 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, []);
 
   useEffect(() => {
-    const first = window.setTimeout(() => {
-      setCanShowInterruptions(true);
-      setPromoOpen(true);
-    }, FIRST_PROMO_DELAY_MS);
-    const every = window.setInterval(() => setPromoOpen(true), REPEAT_PROMO_DELAY_MS);
     return () => {
-      window.clearTimeout(first);
-      window.clearInterval(every);
+      cleanupAdScripts();
+    };
+  }, []);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const video = videoRef.current;
+    if (!frame) return undefined;
+    updateVideoLayoutVars();
+    const observer = new ResizeObserver(updateVideoLayoutVars);
+    observer.observe(frame);
+    video?.addEventListener("loadedmetadata", updateVideoLayoutVars);
+    video?.addEventListener("resize", updateVideoLayoutVars);
+    window.addEventListener("resize", updateVideoLayoutVars);
+    window.addEventListener("orientationchange", updateVideoLayoutVars);
+    const timer = window.setInterval(updateVideoLayoutVars, 1500);
+    return () => {
+      observer.disconnect();
+      video?.removeEventListener("loadedmetadata", updateVideoLayoutVars);
+      video?.removeEventListener("resize", updateVideoLayoutVars);
+      window.removeEventListener("resize", updateVideoLayoutVars);
+      window.removeEventListener("orientationchange", updateVideoLayoutVars);
+      window.clearInterval(timer);
     };
   }, []);
 
@@ -532,7 +639,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         </a>
       </div>
 
-      <div data-vjs-player className="secure-video-frame">
+      <div data-vjs-player className="secure-video-frame" ref={frameRef}>
         <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
 
         <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>

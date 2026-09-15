@@ -335,11 +335,11 @@ body {
 
 .korlive-corner-logo {
   position: absolute;
-  top: 30px;
-  right: 48px;
+  top: var(--channel-logo-top, 30px);
+  right: var(--channel-logo-right, 48px);
   z-index: 35;
-  width: 152px;
-  height: 36px;
+  width: var(--channel-logo-width, 152px);
+  height: var(--channel-logo-height, 36px);
   padding: 0 8px;
   border-radius: 5px;
   background: linear-gradient(135deg, rgba(95, 18, 145, 0.94), rgba(222, 25, 127, 0.94));
@@ -363,7 +363,7 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 31px;
+  bottom: var(--ticker-bottom, 31px);
   z-index: 32;
   width: 100%;
   box-sizing: border-box;
@@ -854,10 +854,10 @@ body {
   }
 
   .korlive-corner-logo {
-    top: 30px;
-    right: 30px;
-    width: 132px;
-    height: 32px;
+    top: var(--channel-logo-top, 30px);
+    right: var(--channel-logo-right, 30px);
+    width: var(--channel-logo-width, 132px);
+    height: var(--channel-logo-height, 32px);
     padding: 0 7px;
     font-size: 12px;
   }
