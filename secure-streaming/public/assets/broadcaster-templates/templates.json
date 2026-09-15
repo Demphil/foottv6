@@ -9,6 +9,12 @@
       "top": 0.035,
       "right": 0.99,
       "bottom": 0.18
+    },
+    "cover": {
+      "left": -0.04,
+      "top": -0.42,
+      "width": 1.14,
+      "height": 1.7
     }
   }
 ]

@@ -198,11 +198,16 @@ function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templa
         }
         const score = hits / template.activePixels;
         if (score >= template.threshold && (!bestMatch || score > bestMatch.score)) {
+          const cover = template.cover || {};
+          const coverLeft = Number(cover.left ?? 0);
+          const coverTop = Number(cover.top ?? 0);
+          const coverWidth = Number(cover.width ?? 1);
+          const coverHeight = Number(cover.height ?? 1);
           bestMatch = {
-            left: x / sampleWidth,
-            top: y / sampleHeight,
-            width: template.width / sampleWidth,
-            height: template.height / sampleHeight,
+            left: (x + template.width * coverLeft) / sampleWidth,
+            top: (y + template.height * coverTop) / sampleHeight,
+            width: (template.width * coverWidth) / sampleWidth,
+            height: (template.height * coverHeight) / sampleHeight,
             confidence: score,
             templateId: template.id
           };
@@ -246,7 +251,8 @@ async function loadBroadcasterTemplates() {
         points,
         activePixels: points.length,
         threshold: Number(item.threshold || 0.58),
-        search: item.search || null
+        search: item.search || null,
+        cover: item.cover || null
       } : null);
     };
     image.onerror = () => resolve(null);
