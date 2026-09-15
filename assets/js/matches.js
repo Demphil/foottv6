@@ -104,15 +104,12 @@ function renderMatch(match) {
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+  const publicWatchId = opaqueWatchId(stableId);
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
   const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   
-  let watchUrl = `watch.html?id=${encodeURIComponent(stableId)}`;
-  
-  if (!hasStreams && manualLink) {
-      watchUrl += `&matchLink=${encodeURIComponent(manualLink)}`;
-  }
+  let watchUrl = `watch.html?id=${encodeURIComponent(publicWatchId)}`;
 
   // ==========================================
   // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
@@ -230,7 +227,7 @@ function renderMatch(match) {
 
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
-      <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
+      <article class="match-card ${matchStatusClass}" data-match-id="${publicWatchId}">
         ${topBadge}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
@@ -256,6 +253,16 @@ function renderMatch(match) {
 
 function matchIdentity(match) {
   return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+}
+
+function opaqueWatchId(value) {
+  let hash = 0x811c9dc5;
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return String(hash).padStart(10, '0');
 }
 
 function matchRenderSignature(match) {

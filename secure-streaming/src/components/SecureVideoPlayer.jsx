@@ -40,7 +40,17 @@ function parentOrigin() {
   }
 }
 
-export default function SecureVideoPlayer({ channelName, matchId = "", embed = false, abr = true }) {
+function opaqueWatchId(value) {
+  let hash = 0x811c9dc5;
+  const text = String(value || "");
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return String(hash).padStart(10, "0");
+}
+
+export default function SecureVideoPlayer({ channelName, matchId = "", publicStreamId = "", embed = false, abr = true }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const tokenRef = useRef("");
@@ -288,8 +298,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", embed = f
   }
 
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
-  const matchQuery = matchId ? `?matchId=${encodeURIComponent(matchId)}` : "";
-  const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(channelName)}${matchQuery}`;
+  const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
+  const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(embedId)}`;
   const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
   async function copyEmbedCode() {

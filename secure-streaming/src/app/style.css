@@ -37,6 +37,68 @@ body {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
+.player-seo-description {
+  max-width: 920px;
+  margin: -4px auto 14px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.seo-home {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: linear-gradient(to right, #4b2c64, #f83a7f);
+}
+
+.seo-home-card {
+  width: min(780px, 100%);
+  padding: 38px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(8, 4, 15, 0.42);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+  text-align: center;
+}
+
+.seo-home-logo {
+  width: fit-content;
+  margin: 0 auto 22px;
+}
+
+.seo-home-card h1 {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 4vw, 44px);
+  line-height: 1.35;
+}
+
+.seo-home-card p {
+  max-width: 640px;
+  margin: 0 auto 24px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.9;
+}
+
+.seo-home-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #ffd166;
+  color: #251134;
+  font-weight: 900;
+  text-decoration: none;
+}
+
 .alert-box,
 .adblock-note {
   width: 100%;

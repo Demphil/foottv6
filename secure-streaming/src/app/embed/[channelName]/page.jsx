@@ -1,14 +1,18 @@
 import { headers } from "next/headers";
 import SecureVideoPlayer from "../../../components/SecureVideoPlayer";
 import { isEmbedRequestAllowed } from "../../../lib/security";
+import { getEmbedTarget, publicWatchIdFor } from "../../../lib/seo";
 
 export default async function EmbedPage({ params, searchParams }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const requestHeaders = await headers();
-  const channelName = decodeURIComponent(resolvedParams.channelName);
+  const routeToken = decodeURIComponent(resolvedParams.channelName);
   const abr = resolvedSearchParams?.abr !== "0";
   const matchId = resolvedSearchParams?.matchId || "";
+  const target = await getEmbedTarget({ routeToken, matchId });
+  const channelName = target.channelName || routeToken;
+  const publicStreamId = publicWatchIdFor({ channelName, matchId: matchId || target.match?.match_id || target.match?.id || "" });
 
   if (!isEmbedRequestAllowed(requestHeaders)) {
     return (
@@ -26,7 +30,7 @@ export default async function EmbedPage({ params, searchParams }) {
     <main className="embed-page">
       <section className="player-card">
         <div className="alert-box">تنبيه: إذا توقف البث أو واجهت تقطيعاً، يرجى تجربة سيرفر أو جودة أخرى.</div>
-        <SecureVideoPlayer channelName={channelName} matchId={matchId} embed abr={abr} />
+        <SecureVideoPlayer channelName={channelName} matchId={matchId || target.match?.match_id || ""} publicStreamId={publicStreamId} embed abr={abr} />
       </section>
     </main>
   );

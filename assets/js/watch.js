@@ -9,6 +9,16 @@ function normalizeMatchId(value) {
   return String(value || '').trim();
 }
 
+function opaqueWatchId(value) {
+  let hash = 0x811c9dc5;
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return String(hash).padStart(10, '0');
+}
+
 function streamFromUrl(url, label = 'سيرفر 1') {
   if (!url) return null;
   return {
@@ -27,7 +37,8 @@ async function fetchMatchById(matchId) {
     const matches = Array.isArray(body.matches) ? body.matches : [];
     return matches.find((match) => {
       const id = normalizeMatchId(match.match_id || match.matchId || '');
-      return id === matchId || decodeURIComponent(id) === matchId;
+      const fallbackId = `${match.homeTeam?.name || ''}-${match.awayTeam?.name || ''}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+      return opaqueWatchId(id || fallbackId) === matchId || id === matchId || decodeURIComponent(id) === matchId;
     }) || null;
   } catch (error) {
     console.error('تعذر جلب بيانات المباراة:', error);
@@ -61,15 +72,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   const matchId = normalizeMatchId(urlParams.get('id'));
-  const matchLink = urlParams.get('matchLink');
-  const channel = urlParams.get('channel');
 
   let streams = [];
-  if (matchLink) {
-    streams = [streamFromUrl(decodeURIComponent(matchLink))].filter(Boolean);
-  } else if (channel && streamLinks[channel]) {
-    streams = [streamFromUrl(streamLinks[channel])].filter(Boolean);
-  } else if (matchId) {
+  if (matchId) {
     streams = streamsFromMatch(await fetchMatchById(matchId));
   }
 
