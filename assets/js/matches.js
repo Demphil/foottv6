@@ -411,19 +411,26 @@ function renderFeaturedToday(container, matches, message) {
   const liveMatches = [];
   const soonMatches = [];
   const laterMatches = [];
+  const finishedMatches = [];
+  const otherTodayMatches = [];
 
   for (const match of matches || []) {
     const diff = minutesUntilKickoff(match, now);
+    const duration = getMatchDuration(match.league);
     if (isMatchLive(match, now)) liveMatches.push(match);
     else if (diff > 0 && diff <= 60) soonMatches.push(match);
-    else if (diff > 60 && diff <= 120) laterMatches.push(match);
+    else if (diff > 60) laterMatches.push(match);
+    else if (diff < -duration) finishedMatches.push(match);
+    else otherTodayMatches.push(match);
   }
 
   liveMatches.sort((a, b) => matchStartDate(b) - matchStartDate(a));
   soonMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
   laterMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
+  otherTodayMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
+  finishedMatches.sort((a, b) => matchStartDate(b) - matchStartDate(a));
 
-  renderSection(container, [...liveMatches, ...soonMatches, ...laterMatches], message);
+  renderSection(container, [...liveMatches, ...soonMatches, ...laterMatches, ...otherTodayMatches, ...finishedMatches], message);
 }
 
 function localMatchDay(match, reference = new Date()) {
