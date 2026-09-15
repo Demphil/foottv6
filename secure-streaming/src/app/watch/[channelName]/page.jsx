@@ -12,7 +12,7 @@ export async function generateMetadata({ params, searchParams }) {
 
   return {
     title: {
-      absolute: seo.title
+      absolute: "Koralive.football"
     },
     description: seo.description,
     alternates: {

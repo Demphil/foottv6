@@ -479,8 +479,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
 
         <div className="korlive-corner-logo" aria-hidden="true">
-          <strong>KoraLive</strong>
-          <small>.football</small>
+          Koralive.football
         </div>
 
         <div className="brand-watermark bottom-line">
