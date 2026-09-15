@@ -60,6 +60,22 @@ const LOGO_LAYOUT_PROFILES = {
   }
 };
 
+const SMART_LOGO_SCAN = {
+  sampleWidth: 420,
+  roiLeft: 0.54,
+  roiTop: 0.025,
+  roiRight: 0.985,
+  roiBottom: 0.19,
+  minComponentArea: 10,
+  minMergedWidth: 34,
+  minMergedHeight: 5,
+  maxMergedHeight: 34,
+  minAspect: 2.1
+};
+const SMART_LOGO_SCAN_INTERVAL_MS = 1200;
+const SMART_LOGO_RESULT_TTL_MS = 5000;
+const SMART_LOGO_BLOCKED_RETRY_MS = 15000;
+
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
   { src: "https://quge5.com/88/tag.min.js", zone: "260051", cfasync: "false" },
@@ -115,9 +131,201 @@ function opaqueWatchId(value) {
   return String(hash).padStart(10, "0");
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function detectBroadcasterLogo(video, canvas) {
+  if (!video || !canvas || video.readyState < 2 || !video.videoWidth || !video.videoHeight) return null;
+
+  const sampleWidth = SMART_LOGO_SCAN.sampleWidth;
+  const sampleHeight = Math.max(1, Math.round(sampleWidth * (video.videoHeight / video.videoWidth)));
+  canvas.width = sampleWidth;
+  canvas.height = sampleHeight;
+
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return null;
+
+  try {
+    context.drawImage(video, 0, 0, sampleWidth, sampleHeight);
+  } catch {
+    return { blocked: true };
+  }
+
+  let image;
+  try {
+    image = context.getImageData(0, 0, sampleWidth, sampleHeight);
+  } catch {
+    return { blocked: true };
+  }
+
+  const roi = {
+    left: Math.floor(sampleWidth * SMART_LOGO_SCAN.roiLeft),
+    top: Math.floor(sampleHeight * SMART_LOGO_SCAN.roiTop),
+    right: Math.floor(sampleWidth * SMART_LOGO_SCAN.roiRight),
+    bottom: Math.floor(sampleHeight * SMART_LOGO_SCAN.roiBottom)
+  };
+  const roiWidth = roi.right - roi.left;
+  const roiHeight = roi.bottom - roi.top;
+  if (roiWidth < 20 || roiHeight < 10) return null;
+
+  const mask = new Uint8Array(roiWidth * roiHeight);
+  const data = image.data;
+  const lumaAt = (x, y) => {
+    const offset = (y * sampleWidth + x) * 4;
+    return data[offset] * 0.299 + data[offset + 1] * 0.587 + data[offset + 2] * 0.114;
+  };
+
+  for (let y = roi.top + 1; y < roi.bottom - 1; y += 1) {
+    for (let x = roi.left + 1; x < roi.right - 1; x += 1) {
+      const offset = (y * sampleWidth + x) * 4;
+      const r = data[offset];
+      const g = data[offset + 1];
+      const b = data[offset + 2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const luma = r * 0.299 + g * 0.587 + b * 0.114;
+      const contrast = Math.max(
+        Math.abs(luma - lumaAt(x - 1, y)),
+        Math.abs(luma - lumaAt(x + 1, y)),
+        Math.abs(luma - lumaAt(x, y - 1)),
+        Math.abs(luma - lumaAt(x, y + 1))
+      );
+      const isGraphicEdge = contrast > 34 && luma > 70;
+      const isBroadcastPurple = b > 80 && r > 70 && g < 130 && max - min > 38;
+      const isBrightGlyph = luma > 175 && contrast > 18;
+      if (isGraphicEdge || isBroadcastPurple || isBrightGlyph) {
+        mask[(y - roi.top) * roiWidth + (x - roi.left)] = 1;
+      }
+    }
+  }
+
+  const visited = new Uint8Array(mask.length);
+  const components = [];
+  const stack = [];
+
+  for (let index = 0; index < mask.length; index += 1) {
+    if (!mask[index] || visited[index]) continue;
+    visited[index] = 1;
+    stack.length = 0;
+    stack.push(index);
+    let minX = roiWidth;
+    let minY = roiHeight;
+    let maxX = 0;
+    let maxY = 0;
+    let area = 0;
+
+    while (stack.length) {
+      const current = stack.pop();
+      const x = current % roiWidth;
+      const y = Math.floor(current / roiWidth);
+      area += 1;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          if (!dx && !dy) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || nx >= roiWidth || ny < 0 || ny >= roiHeight) continue;
+          const next = ny * roiWidth + nx;
+          if (mask[next] && !visited[next]) {
+            visited[next] = 1;
+            stack.push(next);
+          }
+        }
+      }
+    }
+
+    const width = maxX - minX + 1;
+    const height = maxY - minY + 1;
+    if (
+      area >= SMART_LOGO_SCAN.minComponentArea &&
+      width >= 3 &&
+      height >= 2 &&
+      width <= roiWidth * 0.9 &&
+      height <= roiHeight * 0.75
+    ) {
+      components.push({
+        x: roi.left + minX,
+        y: roi.top + minY,
+        right: roi.left + maxX + 1,
+        bottom: roi.top + maxY + 1,
+        width,
+        height,
+        area
+      });
+    }
+  }
+
+  const rows = [];
+  components
+    .sort((a, b) => a.y - b.y || a.x - b.x)
+    .forEach((component) => {
+      const centerY = (component.y + component.bottom) / 2;
+      const row = rows.find((item) => {
+        const rowCenterY = (item.y + item.bottom) / 2;
+        const verticalDistance = Math.abs(centerY - rowCenterY);
+        const closeEnough = verticalDistance <= Math.max(item.height, component.height, 8);
+        const gap = component.x > item.right ? component.x - item.right : item.x - component.right;
+        return closeEnough && gap <= sampleWidth * 0.045;
+      });
+      if (row) {
+        row.x = Math.min(row.x, component.x);
+        row.y = Math.min(row.y, component.y);
+        row.right = Math.max(row.right, component.right);
+        row.bottom = Math.max(row.bottom, component.bottom);
+        row.area += component.area;
+        row.width = row.right - row.x;
+        row.height = row.bottom - row.y;
+      } else {
+        rows.push({ ...component });
+      }
+    });
+
+  const candidates = rows
+    .map((row) => ({
+      ...row,
+      aspect: row.width / Math.max(1, row.height),
+      rightness: row.right / sampleWidth,
+      score: row.area + row.width * 2 + (row.right / sampleWidth) * 120 - row.height * 1.8
+    }))
+    .filter((row) => (
+      row.width >= SMART_LOGO_SCAN.minMergedWidth &&
+      row.height >= SMART_LOGO_SCAN.minMergedHeight &&
+      row.height <= SMART_LOGO_SCAN.maxMergedHeight &&
+      row.aspect >= SMART_LOGO_SCAN.minAspect &&
+      row.rightness > 0.7
+    ))
+    .sort((a, b) => b.score - a.score);
+
+  const best = candidates[0];
+  if (!best) return null;
+
+  const padX = Math.max(4, best.width * 0.08);
+  const padY = Math.max(2, best.height * 0.28);
+  const left = clamp(best.x - padX, 0, sampleWidth);
+  const top = clamp(best.y - padY, 0, sampleHeight);
+  const right = clamp(best.right + padX, left + 1, sampleWidth);
+  const bottom = clamp(best.bottom + padY, top + 1, sampleHeight);
+
+  return {
+    left: left / sampleWidth,
+    top: top / sampleHeight,
+    width: (right - left) / sampleWidth,
+    height: (bottom - top) / sampleHeight,
+    confidence: best.score
+  };
+}
+
 export default function SecureVideoPlayer({ channelName, matchId = "", publicStreamId = "", embed = false, abr = true }) {
   const frameRef = useRef(null);
   const videoRef = useRef(null);
+  const logoScanCanvasRef = useRef(null);
+  const logoTrackerRef = useRef({ disabledUntil: 0, lastScanAt: 0, lastLogo: null, lastLogoAt: 0 });
   const playerRef = useRef(null);
   const mpegtsPlayerRef = useRef(null);
   const adScriptsRef = useRef([]);
@@ -287,7 +495,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       ? (isLandscape ? "mobileLandscape" : "mobilePortrait")
       : "normal";
     const logoProfile = LOGO_LAYOUT_PROFILES[logoProfileName];
-    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
     const logoBox = logoProfile.fixedToViewport
       ? {
           left: 0,
@@ -305,15 +512,43 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
           width: visibleVideoWidth,
           height: visibleVideoHeight
         };
-    const logoWidth = clamp(logoBox.width * logoProfile.width, logoProfile.minWidth, logoProfile.maxWidth);
-    const logoHeight = clamp(logoBox.height * logoProfile.height, logoProfile.minHeight, logoProfile.maxHeight);
-    const logoLeft = logoBox.left + logoBox.width * logoProfile.left;
-    const logoTop = logoBox.top + logoBox.height * logoProfile.top;
+    const tracker = logoTrackerRef.current;
+    const now = Date.now();
+    if (now >= tracker.disabledUntil && now - tracker.lastScanAt >= SMART_LOGO_SCAN_INTERVAL_MS) {
+      if (!logoScanCanvasRef.current) logoScanCanvasRef.current = document.createElement("canvas");
+      tracker.lastScanAt = now;
+      const detectedLogo = detectBroadcasterLogo(video, logoScanCanvasRef.current);
+      if (detectedLogo?.blocked) {
+        tracker.disabledUntil = now + SMART_LOGO_BLOCKED_RETRY_MS;
+        tracker.lastLogo = null;
+        tracker.lastLogoAt = 0;
+      } else if (detectedLogo) {
+        tracker.lastLogo = detectedLogo;
+        tracker.lastLogoAt = now;
+      }
+    }
+
+    const autoLogo = tracker.lastLogo && now - tracker.lastLogoAt <= SMART_LOGO_RESULT_TTL_MS
+      ? tracker.lastLogo
+      : null;
+    const logoWidth = autoLogo
+      ? clamp(logoBox.width * autoLogo.width, logoProfile.minWidth, logoProfile.maxWidth)
+      : clamp(logoBox.width * logoProfile.width, logoProfile.minWidth, logoProfile.maxWidth);
+    const logoHeight = autoLogo
+      ? clamp(logoBox.height * autoLogo.height, logoProfile.minHeight, logoProfile.maxHeight)
+      : clamp(logoBox.height * logoProfile.height, logoProfile.minHeight, logoProfile.maxHeight);
+    const logoLeft = autoLogo
+      ? logoBox.left + logoBox.width * autoLogo.left
+      : logoBox.left + logoBox.width * logoProfile.left;
+    const logoTop = autoLogo
+      ? logoBox.top + logoBox.height * autoLogo.top
+      : logoBox.top + logoBox.height * logoProfile.top;
     const boundedLogoLeft = clamp(logoLeft, logoBox.left + 6, logoBox.right - logoWidth - 6);
     const boundedLogoTop = clamp(logoTop, logoBox.top + 6, logoBox.bottom - logoHeight - 6);
     const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
     frame.dataset.logoLayoutProfile = logoProfileName;
+    frame.dataset.logoTracker = autoLogo ? "auto" : (now < tracker.disabledUntil ? "blocked" : "fallback");
     frame.style.setProperty("--channel-logo-position", logoProfile.fixedToViewport ? "fixed" : "absolute");
     frame.style.setProperty("--channel-logo-z", logoProfile.fixedToViewport ? "2147483000" : "35");
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
