@@ -1,6 +1,14 @@
 // assets/js/watch.js
 import { streamLinks } from './streams.js';
 
+function redirectLegacyWatchRoute(target = '') {
+  const token = String(target || '').trim() || 'KoraLive';
+  const destination = `/watch/${encodeURIComponent(token)}`;
+  if (window.location.pathname !== destination) {
+    window.location.replace(destination);
+  }
+}
+
 function makeMatchKey(homeTeam, awayTeam) {
   return `${homeTeam || ''}-${awayTeam || ''}`;
 }
@@ -72,6 +80,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   const matchId = normalizeMatchId(urlParams.get('id'));
+  redirectLegacyWatchRoute(matchId);
+  return;
 
   let streams = [];
   if (matchId) {
@@ -228,7 +238,7 @@ function loadPlayer(stream, container, loader) {
   container.style.backgroundColor = '#000';
   container.style.borderRadius = '12px';
 
-  // --- الحل القاطع: جلب الـ ID من الرابط مباشرة كبديل آمن ---
+  // Legacy fallback only. Normal traffic is redirected to the secure Next.js watch route.
   const urlParams = new URLSearchParams(window.location.search);
   const matchId = urlParams.get('id') || 'bein1';
   
@@ -243,9 +253,7 @@ function loadPlayer(stream, container, loader) {
   const finalTarget = (channelName && channelName.length > 1) ? channelName : matchId;
 
   const iframe = document.createElement('iframe');
-  // تمرير القناة أو الـ ID بشكل صحيح ومباشر إلى جسر Cloudflare ومنه إلى سيرفر Oracle
-  iframe.src = `https://withered-mud-4e52.koora-live.workers.dev/embed/${finalTarget}`;
-  // ----------------------------------------------------------------
+  iframe.src = `/embed/${encodeURIComponent(finalTarget)}`;
 
   iframe.frameBorder = '0';
   iframe.scrolling = 'no';
