@@ -339,7 +339,7 @@ body {
   right: 48px;
   z-index: 35;
   width: 152px;
-  height: 24px;
+  height: 32px;
   padding: 0 8px;
   border-radius: 5px;
   background: linear-gradient(135deg, rgba(95, 18, 145, 0.94), rgba(222, 25, 127, 0.94));
@@ -808,7 +808,7 @@ body {
     top: 54px;
     right: 30px;
     width: 132px;
-    height: 23px;
+    height: 30px;
     padding: 0 7px;
     font-size: 12px;
   }
