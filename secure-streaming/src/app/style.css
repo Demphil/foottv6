@@ -164,12 +164,18 @@ body {
 
 .header-logo {
   min-height: 44px;
+  height: 44px;
   min-width: 164px;
+  width: 164px;
+  max-width: 164px;
+  max-height: 44px;
   padding: 0 12px;
   border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 164px;
+  overflow: hidden;
   text-decoration: none;
   white-space: nowrap;
   background: linear-gradient(135deg, #6826a2, #e0187e);
@@ -179,9 +185,14 @@ body {
 .header-logo img {
   display: block;
   width: 148px;
-  max-width: 100%;
+  min-width: 0;
+  max-width: 148px;
   height: 38px;
+  min-height: 0;
+  max-height: 38px;
   object-fit: contain;
+  object-position: center;
+  transform: none;
 }
 
 .quality-tabs {
