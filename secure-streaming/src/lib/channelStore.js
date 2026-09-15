@@ -65,16 +65,22 @@ function canonicalChannelName(value) {
   return text;
 }
 
+function channelKeyVariants(value) {
+  const text = normalizeChannelName(value);
+  const canonical = canonicalChannelName(value);
+  const variants = new Set([text, canonical].filter(Boolean));
+  if (/on ?sport|اون ?سبورت|أون ?سبورت/i.test(text) && /max|ماكس/i.test(text)) {
+    variants.add("on time sports 1");
+  }
+  return variants;
+}
+
 function channelMatches(candidate, requestedName) {
-  const candidateNormalized = normalizeChannelName(candidate);
-  const requestedNormalized = normalizeChannelName(requestedName);
-  const candidateCanonical = canonicalChannelName(candidate);
-  const requestedCanonical = canonicalChannelName(requestedName);
-  return Boolean(
-    candidateNormalized && requestedNormalized && candidateNormalized === requestedNormalized
-  ) || Boolean(
-    candidateCanonical && requestedCanonical && candidateCanonical === requestedCanonical
-  );
+  const candidateKeys = channelKeyVariants(candidate);
+  for (const key of channelKeyVariants(requestedName)) {
+    if (candidateKeys.has(key)) return true;
+  }
+  return false;
 }
 
 export async function getActiveChannelByName(name) {
