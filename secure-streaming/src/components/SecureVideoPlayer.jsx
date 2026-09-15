@@ -227,23 +227,24 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       (fullscreenElement === frame || frame.contains(fullscreenElement) || fullscreenElement.contains(frame))
     );
     const isPlayerFullscreen = Boolean(playerRef.current?.isFullscreen?.());
-    const isFullscreenLayout = isFrameFullscreen || isPlayerFullscreen || frame.classList.contains("vjs-fullscreen");
     const isLandscape = visibleVideoWidth >= visibleVideoHeight;
+    const isWideTheaterLayout = isLandscape && visibleVideoWidth >= 1200;
+    const isFullscreenLayout = isFrameFullscreen || isPlayerFullscreen || frame.classList.contains("vjs-fullscreen") || isWideTheaterLayout;
     const logoProfile = isFullscreenLayout
       ? isLandscape
         ? {
-            widthRatio: 0.112,
-            minWidth: 160,
-            maxWidth: 230,
+            widthRatio: 0.108,
+            minWidth: 190,
+            maxWidth: 245,
             heightRatio: 0.031,
-            minHeight: 26,
-            maxHeight: 34,
-            rightRatio: 0.044,
-            minRight: 70,
-            maxRight: 105,
-            topRatio: 0.068,
-            minTop: 56,
-            maxTop: 84
+            minHeight: 28,
+            maxHeight: 36,
+            rightRatio: 0.052,
+            minRight: 92,
+            maxRight: 132,
+            topRatio: 0.074,
+            minTop: 76,
+            maxTop: 96
           }
         : {
             widthRatio: 0.18,
