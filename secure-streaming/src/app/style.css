@@ -336,37 +336,30 @@ body {
 .korlive-corner-logo {
   position: absolute;
   top: 42px;
-  right: 18px;
+  right: 48px;
   z-index: 35;
-  min-width: 126px;
-  padding: 8px 14px 9px;
-  border-radius: 8px;
+  width: 108px;
+  height: 42px;
+  padding: 4px 8px;
+  border-radius: 7px;
   background: linear-gradient(135deg, rgba(95, 18, 145, 0.94), rgba(222, 25, 127, 0.94));
-  color: #fff;
-  text-align: center;
-  font-weight: 900;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   pointer-events: none;
 }
 
-.korlive-corner-logo strong {
-  display: inline;
-  font-size: 20px;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
-}
-
-.korlive-corner-logo small {
-  display: inline;
-  margin-right: 5px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: none;
+.korlive-corner-logo img {
+  display: block;
+  width: 92px;
+  height: 32px;
+  max-width: 92px;
+  max-height: 32px;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
 }
 
 .brand-watermark.bottom-line {
@@ -377,10 +370,17 @@ body {
   z-index: 32;
   width: 100%;
   box-sizing: border-box;
-  padding: 7px 54px;
+  min-height: 34px;
+  padding: 5px 54px;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.08));
   color: #fff;
-  font-size: clamp(14px, 1.55vw, 22px);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  direction: rtl;
+  font-size: clamp(13px, 1.35vw, 18px);
   font-weight: 900;
   text-align: center;
   white-space: nowrap;
@@ -391,7 +391,90 @@ body {
 }
 
 .brand-watermark.bottom-line span {
-  display: inline;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-watermark.bottom-line img {
+  display: block;
+  width: 44px;
+  height: 20px;
+  max-width: 44px;
+  max-height: 20px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  transform: none;
+}
+
+.adblock-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 48;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: radial-gradient(circle at center, rgba(46, 13, 66, 0.18), rgba(0, 0, 0, 0.58));
+  pointer-events: auto;
+}
+
+.adblock-modal-card {
+  width: min(390px, 100%);
+  padding: 22px 20px 20px;
+  border: 1px solid rgba(255, 215, 0, 0.46);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    linear-gradient(135deg, rgba(28, 18, 38, 0.96), rgba(73, 29, 92, 0.96));
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.46);
+  color: #fff;
+  text-align: center;
+}
+
+.adblock-modal-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: #ffd700;
+  color: #211329;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.12);
+}
+
+.adblock-modal-card h3 {
+  margin: 0 0 8px;
+  color: #ffd700;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.adblock-modal-card p {
+  margin: 0 auto 16px;
+  max-width: 310px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.8;
+}
+
+.adblock-modal-card button {
+  min-height: 42px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffd166, #ffd700);
+  color: #24122f;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
 }
 
 .promo-pop {
@@ -721,19 +804,49 @@ body {
 
   .korlive-corner-logo {
     top: 44px;
-    right: 10px;
-    min-width: 84px;
-    padding: 5px 8px;
+    right: 34px;
+    width: 86px;
+    height: 34px;
+    padding: 3px 6px;
   }
 
-  .korlive-corner-logo strong {
-    font-size: 15px;
+  .korlive-corner-logo img {
+    width: 74px;
+    height: 26px;
+    max-width: 74px;
+    max-height: 26px;
   }
 
   .brand-watermark.bottom-line {
     bottom: 38px;
-    padding: 6px 12px;
+    min-height: 30px;
+    padding: 5px 12px;
     font-size: 11px;
+    gap: 6px;
+  }
+
+  .brand-watermark.bottom-line img {
+    width: 34px;
+    height: 16px;
+    max-width: 34px;
+    max-height: 16px;
+  }
+
+  .adblock-modal {
+    padding: 12px;
+  }
+
+  .adblock-modal-card {
+    padding: 18px 14px 16px;
+  }
+
+  .adblock-modal-card h3 {
+    font-size: 18px;
+  }
+
+  .adblock-modal-card p {
+    font-size: 12px;
+    line-height: 1.7;
   }
 
   .promo-pop {

@@ -402,21 +402,32 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         </a>
       </div>
 
-      {adNotice ? <div className="adblock-note">{adNotice}</div> : null}
-
       <div data-vjs-player className="secure-video-frame">
         <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
 
         <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
 
         <div className="korlive-corner-logo" aria-hidden="true">
-          <strong>KORALIVE</strong>
-          <small>.football</small>
+          <img src={logoSrc} alt="" />
         </div>
 
         <div className="brand-watermark bottom-line">
-          <span>مرحبا بك في {brandUrl} - استمتع بالمشاهدة ولا تنس تجربة سيرفر آخر إذا توقف البث</span>
+          <span>مرحبا بك في موقع كورة لايف Koralive.football &gt;</span>
+          <img src={logoSrc} alt="" aria-hidden="true" />
         </div>
+
+        {adNotice ? (
+          <div className="adblock-modal" role="alert" aria-live="polite">
+            <div className="adblock-modal-card">
+              <div className="adblock-modal-icon">!</div>
+              <h3>مانع الإعلانات مفعّل</h3>
+              <p>من فضلك أوقف مانع الإعلانات لهذا الموقع، ثم اضغط تحديث للعودة إلى المشاهدة بشكل عادي.</p>
+              <button type="button" onClick={() => window.location.reload()}>
+                تحديث الصفحة
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {promoOpen ? (
           <aside className="promo-pop" aria-label="إعلان">
