@@ -228,35 +228,19 @@ function loadPlayer(stream, container, loader) {
   container.style.backgroundColor = '#000';
   container.style.borderRadius = '12px';
 
-  if (stream.type === 'hls') {
-    const video = document.createElement('video');
-    video.controls = true;
-    video.playsInline = true;
-    video.style.position = 'absolute';
-    video.style.top = '0';
-    video.style.left = '0';
-    video.style.width = '100%';
-    video.style.height = '100%';
-
-    if (window.Hls && Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(stream.url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (loader) loader.style.display = 'none';
-      });
-    } else {
-      video.src = stream.url;
-      video.addEventListener('loadedmetadata', () => {
-        if (loader) loader.style.display = 'none';
-      });
-    }
-    container.appendChild(video);
-    return;
+  // --- التعديل الذهبي: تنظيف الرابط وتوجيهه لسيرفر Oracle المحمي ---
+  let channelName = stream.url;
+  // استخراج اسم القناة فقط سواء كان الرابط طويلاً أو يحتوي على m3u8
+  if (channelName.includes('/')) {
+    channelName = channelName.split('/').filter(Boolean).pop(); 
   }
+  channelName = channelName.replace('.m3u8', '').replace('.html', '').split('?')[0];
 
   const iframe = document.createElement('iframe');
-  iframe.src = stream.url;
+  // هنا يتم ربط الواجهة بنظام Next.js الذي بنيناه!
+  iframe.src = `/embed/${channelName}`; 
+  // ----------------------------------------------------------------
+
   iframe.frameBorder = '0';
   iframe.scrolling = 'no';
   iframe.allowFullscreen = true;
