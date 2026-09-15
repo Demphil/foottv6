@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import { fileURLToPath } from "node:url";
 import { getSupabaseAdmin } from "../src/lib/supabaseAdmin.js";
 import { enrichMatchChannels } from "./enrich-match-language-channels.js";
+import { applyTrustedBroadcastChannels } from "./trusted-broadcast-sources.js";
 
 const BASE_SITE_URL = process.env.MATCH_SOURCE_URL || "https://jsportlive.com";
 const matchesTable = process.env.SUPABASE_MATCHES_TABLE || "matches";
@@ -106,7 +107,7 @@ function parseMatches(html, dayOffset) {
         time: time.formatted,
         commentator: /غير معروف|unknown/i.test(commentator) ? "" : commentator,
         matchLink: matchEl.find("a").first().attr("href") || "",
-        channelSource: "gemini_required"
+        channelSource: "trusted_source_required"
       },
       updated_at: new Date().toISOString()
     });
@@ -166,31 +167,37 @@ export async function syncMatchesFromSource({ dryRunMode = dryRun } = {}) {
 
   if (dryRunMode || !uniqueRows.length) {
     for (const row of uniqueRows.slice(0, 10)) {
-      console.log(`[dry-run] ${row.home_team} vs ${row.away_team} channel=gemini_required`);
+      console.log(`[dry-run] ${row.home_team} vs ${row.away_team} channel=${row.channel || "trusted_source_required"}`);
     }
     return { parsed: uniqueRows.length, upserted: 0, enriched: null };
   }
 
   const supabase = getSupabaseAdmin();
   const rowsForUpsert = await mergeExistingChannels(supabase, uniqueRows);
+  const trustedResult = await applyTrustedBroadcastChannels(supabase, rowsForUpsert);
+  const finalRowsForUpsert = trustedResult.rows;
+  if (trustedResult.updated) {
+    console.log(`Trusted broadcast sources filled ${trustedResult.updated} match channels.`);
+  }
+
   const { error } = await supabase
     .from(matchesTable)
-    .upsert(rowsForUpsert, { onConflict: "match_id" });
+    .upsert(finalRowsForUpsert, { onConflict: "match_id" });
 
   if (error) throw error;
-  console.log(`Upserted ${rowsForUpsert.length} matches into ${matchesTable}.`);
+  console.log(`Upserted ${finalRowsForUpsert.length} matches into ${matchesTable}.`);
 
   let enrichmentResult = null;
   if (enrichAfterSync) {
     try {
-      enrichmentResult = await enrichMatchChannels({ rows: rowsForUpsert, table: matchesTable, dryRun: false });
+      enrichmentResult = await enrichMatchChannels({ rows: finalRowsForUpsert, table: matchesTable, dryRun: false });
       console.log(`Gemini post-sync enrichment: processed=${enrichmentResult.processed}, arabicUpdated=${enrichmentResult.arabicUpdated}, alternativesUpdated=${enrichmentResult.alternativesUpdated}.`);
     } catch (error) {
       console.error(`Gemini post-sync enrichment failed without aborting match sync: ${error.message}`);
     }
   }
 
-  return { parsed: uniqueRows.length, upserted: rowsForUpsert.length, enriched: enrichmentResult };
+  return { parsed: uniqueRows.length, upserted: finalRowsForUpsert.length, trustedChannels: trustedResult.updated, enriched: enrichmentResult };
 }
 
 async function main() {

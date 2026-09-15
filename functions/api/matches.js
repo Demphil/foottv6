@@ -23,6 +23,43 @@ function moroccoDate(value) {
   }).format(date);
 }
 
+function moroccoTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Casablanca',
+    hourCycle: 'h23',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
+function toFrontendMatch(row) {
+  const payload = row.payload || {};
+  const scheduledAt = row.kickoff_time || payload.scheduledAt || '';
+  const homeTeam = row.home_team || payload.homeTeam?.name || payload.homeTeam || '';
+  const awayTeam = row.away_team || payload.awayTeam?.name || payload.awayTeam || '';
+
+  return {
+    ...(payload || {}),
+    match_id: row.match_id || row.id,
+    matchId: row.match_id || row.id,
+    homeTeam,
+    awayTeam,
+    homeLogo: payload.homeLogo || payload.homeTeam?.logo || '',
+    awayLogo: payload.awayLogo || payload.awayTeam?.logo || '',
+    scheduledAt,
+    time: payload.time || moroccoTime(scheduledAt),
+    score: payload.score || 'VS',
+    league: row.league || payload.league || '',
+    channel: row.channel || payload.channel || '',
+    commentator: payload.commentator || '',
+    streams: Array.isArray(payload.streams) ? payload.streams : [],
+    isLive: Boolean(payload.isLive),
+    updatedAt: row.updated_at
+  };
+}
+
 export async function onRequestOptions({ request, env }) {
   const origin = env.PUBLIC_SITE_ORIGIN || request.headers.get('origin') || '*';
   return new Response(null, {
@@ -41,14 +78,14 @@ export async function onRequestGet({ request, env }) {
     return json({ error: 'Match service is not configured' }, 503, origin);
   }
 
-  const table = env.SUPABASE_STAGING_TABLE || 'media_qa_staging';
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(table)) return json({ error: 'Invalid staging table configuration' }, 500, origin);
+  const table = env.SUPABASE_MATCHES_TABLE || 'matches';
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(table)) return json({ error: 'Invalid matches table configuration' }, 500, origin);
 
   const endpoint = new URL(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${table}`);
-  endpoint.searchParams.set('select', 'match_id,payload,environment,updated_at');
-  endpoint.searchParams.set('environment', 'eq.staging');
-  endpoint.searchParams.set('order', 'updated_at.desc');
-  endpoint.searchParams.set('limit', '100');
+  endpoint.searchParams.set('select', 'id,match_id,home_team,away_team,league,kickoff_time,channel,payload,active,updated_at');
+  endpoint.searchParams.set('active', 'eq.true');
+  endpoint.searchParams.set('order', 'kickoff_time.asc.nullslast');
+  endpoint.searchParams.set('limit', '150');
 
   let response;
   try {
@@ -69,7 +106,7 @@ export async function onRequestGet({ request, env }) {
   const rows = await response.json();
   const seen = new Set();
   const matches = (Array.isArray(rows) ? rows : [])
-    .map((row) => ({ ...(row.payload || {}), match_id: row.match_id, updatedAt: row.updated_at }))
+    .map(toFrontendMatch)
     .filter((match) => match.homeTeam && match.awayTeam && match.scheduledAt)
     .filter((match) => String(match.homeTeam).trim() !== String(match.awayTeam).trim())
     .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'))
