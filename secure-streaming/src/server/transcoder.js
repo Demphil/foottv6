@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 
 const processes = new Map();
 const VARIANTS = {
@@ -45,6 +45,77 @@ export function hlsVariantId(value = "") {
   return match ? match[1].toLowerCase() : "720p";
 }
 
+function stopProcess(key) {
+  const entry = processes.get(key);
+  if (!entry) return;
+  try {
+    entry.child.kill("SIGTERM");
+  } catch {}
+  processes.delete(key);
+}
+
+function staleLock(lockPath) {
+  try {
+    const stat = fs.statSync(lockPath);
+    return Date.now() - stat.mtimeMs > 120000;
+  } catch {
+    return false;
+  }
+}
+
+function acquireLock(lockPath) {
+  try {
+    const fd = fs.openSync(lockPath, "wx");
+    fs.closeSync(fd);
+    return true;
+  } catch {
+    if (staleLock(lockPath)) {
+      try {
+        fs.unlinkSync(lockPath);
+      } catch {}
+      return acquireLock(lockPath);
+    }
+    return false;
+  }
+}
+
+function releaseLock(lockPath) {
+  try {
+    fs.unlinkSync(lockPath);
+  } catch {}
+}
+
+function stopSystemFfmpeg() {
+  if (process.platform === "win32") return;
+  try {
+    const output = execFileSync("pgrep", ["-x", "ffmpeg"], { encoding: "utf8" }).trim();
+    if (!output) return;
+    for (const pid of output.split(/\s+/).filter(Boolean)) {
+      try {
+        process.kill(Number(pid), "SIGTERM");
+      } catch {}
+    }
+  } catch {}
+}
+
+function stopCompetingVariants(channelName, variantId) {
+  for (const [key, entry] of processes.entries()) {
+    if (entry.channelName === channelName && entry.variantId !== variantId) {
+      stopProcess(key);
+    }
+  }
+}
+
+function enforceProcessLimit() {
+  const maxProcesses = Math.max(1, Number(process.env.MAX_ACTIVE_TRANSCODERS || 1));
+  while (processes.size >= maxProcesses) {
+    const oldest = [...processes.entries()]
+      .sort((a, b) => a[1].startedAt - b[1].startedAt)[0]?.[0];
+    if (!oldest) break;
+    stopProcess(oldest);
+  }
+}
+
 export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   if (process.env.TRANSCODE_ENABLED !== "true") {
     throw new Error("Transcoding is disabled. Set TRANSCODE_ENABLED=true on a Node server with FFmpeg installed.");
@@ -52,12 +123,20 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   const variantId = VARIANTS[variant] ? variant : "720p";
   const profile = VARIANTS[variantId];
   const processKey = `${channelName}:${variantId}`;
-  if (processes.has(processKey)) return processes.get(processKey);
+  if (processes.has(processKey)) return processes.get(processKey).child;
+  stopCompetingVariants(channelName, variantId);
+  enforceProcessLimit();
 
   const outputDir = hlsOutputDir(channelName);
   fs.mkdirSync(outputDir, { recursive: true });
+  const outputPlaylist = path.join(outputDir, `${variantId}.m3u8`);
+  const lockPath = path.join(outputDir, `${variantId}.lock`);
+  if (!acquireLock(lockPath)) return null;
 
   const ffmpeg = process.env.FFMPEG_PATH || "ffmpeg";
+  if (Math.max(1, Number(process.env.MAX_ACTIVE_TRANSCODERS || 1)) === 1) {
+    stopSystemFfmpeg();
+  }
   const args = [
     "-hide_banner",
     "-loglevel", "warning",
@@ -86,12 +165,20 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     "-hls_list_size", process.env.HLS_LIST_SIZE || "10",
     "-hls_flags", "delete_segments+independent_segments",
     "-hls_segment_filename", path.join(outputDir, `${variantId}_%03d.ts`),
-    path.join(outputDir, `${variantId}.m3u8`)
+    outputPlaylist
   ];
 
   const child = spawn(/* turbopackIgnore: true */ ffmpeg, args, { stdio: ["ignore", "ignore", "pipe"] });
   child.stderr.on("data", (chunk) => console.error(`[ffmpeg:${channelName}:${variantId}] ${chunk}`));
-  child.on("exit", () => processes.delete(processKey));
-  processes.set(processKey, child);
+  child.on("exit", () => {
+    processes.delete(processKey);
+    releaseLock(lockPath);
+  });
+  processes.set(processKey, {
+    child,
+    channelName,
+    variantId,
+    startedAt: Date.now()
+  });
   return child;
 }
