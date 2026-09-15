@@ -1,5 +1,4 @@
 // assets/js/streams.js
-import { manualStreamLinks } from './manual-stream-links.js';
 
 export const streamLinks = {
   // ================================================
@@ -128,4 +127,3 @@ export const streamLinks = {
 };
 
 // Manual values take precedence without removing the existing channel aliases.
-Object.assign(streamLinks, manualStreamLinks);
