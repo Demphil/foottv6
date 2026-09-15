@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getActiveChannelByName } from "../../../lib/channelStore";
-import { corsHeaders, getClientIp, getSessionId, isApprovedOrigin, signStreamToken } from "../../../lib/security";
+import { corsHeaders, getClientIp, getSessionId, signStreamToken } from "../../../lib/security";
 
 const schema = z.object({
   channelName: z.string().min(1).max(160),
@@ -19,9 +19,6 @@ export async function OPTIONS(request) {
 export async function POST(request) {
   try {
     const parsed = schema.parse(await request.json());
-    if (parsed.embed && !isApprovedOrigin(parsed.parentOrigin || "")) {
-      return Response.json({ error: "Embedding domain is not authorized." }, { status: 403, headers: corsHeaders(request) });
-    }
 
     const channel = await getActiveChannelByName(parsed.channelName);
     if (!channel) {
