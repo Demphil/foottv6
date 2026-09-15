@@ -198,10 +198,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     frame.style.setProperty("--video-w", `${renderedWidth}px`);
     frame.style.setProperty("--video-h", `${renderedHeight}px`);
 
-    const logoWidth = Math.min(148, Math.max(104, renderedWidth * 0.13));
-    const logoHeight = Math.min(30, Math.max(22, renderedHeight * 0.052));
-    const logoRight = Math.min(58, Math.max(16, renderedWidth * 0.048));
-    const logoTop = Math.min(36, Math.max(15, renderedHeight * 0.052));
+    const logoWidth = Math.min(170, Math.max(118, renderedWidth * 0.145));
+    const logoHeight = Math.min(28, Math.max(21, renderedHeight * 0.046));
+    const logoRight = Math.min(82, Math.max(22, renderedWidth * 0.062));
+    const logoTop = Math.min(34, Math.max(13, renderedHeight * 0.047));
     const tickerBottom = Math.min(42, Math.max(18, renderedHeight * 0.055));
 
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
