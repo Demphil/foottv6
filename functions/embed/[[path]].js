@@ -14,6 +14,7 @@ export async function onRequest({ request, params, env }) {
   target.search = url.search;
 
   const headers = new Headers(request.headers);
+  headers.delete('host');
   headers.set('x-koralive-proxied-embed', '1');
   headers.set('x-forwarded-host', url.host);
   headers.set('x-forwarded-proto', url.protocol.replace(':', ''));

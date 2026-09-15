@@ -20,6 +20,7 @@ export async function onRequest({ request, params, env }) {
   }
 
   const headers = new Headers(request.headers);
+  headers.delete('host');
   headers.set('x-koralive-proxied-watch', '1');
   headers.set('x-forwarded-host', url.host);
   headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
