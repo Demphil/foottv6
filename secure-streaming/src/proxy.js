@@ -22,6 +22,14 @@ function approvedOrigins(request) {
     .filter(Boolean));
 }
 
+function canonicalOrigin() {
+  return String(process.env.NEXT_PUBLIC_BRAND_URL || process.env.PUBLIC_SITE_ORIGIN || "https://koralive.football").replace(/\/$/, "");
+}
+
+function isIpHost(hostname) {
+  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
+}
+
 function approvedFrameAncestors() {
   const configured = Array.from(new Set([
     process.env.PUBLIC_SITE_ORIGIN || "",
@@ -37,11 +45,17 @@ function approvedFrameAncestors() {
 export function proxy(request) {
   const url = request.nextUrl;
   const userAgent = request.headers.get("user-agent") || "";
+  const hostName = String(request.headers.get("host") || url.hostname).split(":")[0];
   const refererOrigin = originFrom(request.headers.get("referer"));
   const requestOrigin = originFrom(request.headers.get("origin"));
   const acceptedOrigins = approvedOrigins(request);
   const lowerAgent = userAgent.toLowerCase();
   const response = NextResponse.next();
+
+  if (url.pathname.startsWith("/watch/") && isIpHost(hostName) && !request.headers.get("x-koralive-proxied-watch")) {
+    const target = new URL(`${url.pathname}${url.search}`, canonicalOrigin());
+    return NextResponse.redirect(target, 308);
+  }
 
   const goodBots = ["googlebot", "bingbot", "yandex", "duckduckbot", "slurp"];
   const isGoodBot = goodBots.some((bot) => lowerAgent.includes(bot));
@@ -70,5 +84,5 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/embed/:path*", "/api/:path*"]
+  matcher: ["/watch/:path*", "/embed/:path*", "/api/:path*"]
 };

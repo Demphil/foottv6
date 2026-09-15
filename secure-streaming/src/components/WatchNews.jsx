@@ -1,16 +1,23 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-const API_KEY = "pub_157246adfe04454f85ed58e4c55f77b3";
-const NEWS_URL = `https://newsdata.io/api/1/latest?apikey=${API_KEY}&size=6&removeduplicate=1&language=ar&category=sports&q=${encodeURIComponent("كرة القدم")}`;
-
 const fallbackArticles = [
   {
     title: "تابع آخر أخبار كرة القدم قبل وأثناء المباريات",
-    description: "ملخصات سريعة وأخبار محدثة حول القنوات، الفرق، وأهم المواجهات.",
+    description: "ملخصات سريعة حول القنوات، الفرق، وأهم المواجهات الجارية اليوم.",
     source_name: "KoraLive",
     link: "https://koralive.football/news.html",
+    image_url: "https://koralive.football/assets/images/default-news.jpg"
+  },
+  {
+    title: "جدول مباريات اليوم والقنوات الناقلة",
+    description: "تحديثات مستمرة لمواعيد المباريات والسيرفرات المتاحة قبل انطلاق البث.",
+    source_name: "KoraLive",
+    link: "https://koralive.football/",
+    image_url: "https://koralive.football/assets/images/default-news.jpg"
+  },
+  {
+    title: "اختر جودة المشاهدة المناسبة لاتصالك",
+    description: "يمكنك التبديل بين 1080 و720 و360 من شريط السيرفرات أعلى المشغل.",
+    source_name: "KoraLive",
+    link: "https://koralive.football/",
     image_url: "https://koralive.football/assets/images/default-news.jpg"
   }
 ];
@@ -31,28 +38,7 @@ function formatDate(dateString) {
 }
 
 export default function WatchNews() {
-  const [articles, setArticles] = useState(fallbackArticles);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadNews() {
-      try {
-        const response = await fetch(NEWS_URL);
-        if (!response.ok) return;
-        const data = await response.json();
-        const nextArticles = Array.isArray(data.results) && data.results.length ? data.results : fallbackArticles;
-        if (!cancelled) setArticles(nextArticles.slice(0, 6));
-      } catch {
-        if (!cancelled) setArticles(fallbackArticles);
-      }
-    }
-
-    loadNews();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const articles = fallbackArticles;
 
   return (
     <section className="watch-news-section" dir="rtl" aria-label="آخر أخبار كرة القدم">

@@ -651,7 +651,7 @@ body {
   font-size: 12px;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 720px) {
   .watch-page,
   .embed-page {
     padding: 10px;
