@@ -238,7 +238,7 @@ function loadPlayer(stream, container, loader) {
 
   const iframe = document.createElement('iframe');
   // هنا يتم ربط الواجهة بنظام Next.js الذي بنيناه!
-  iframe.src = `/embed/${channelName}`; 
+  iframe.src = `https://withered-mud-4e52.koora-live.workers.dev/embed/${channelName}`;
   // ----------------------------------------------------------------
 
   iframe.frameBorder = '0';
