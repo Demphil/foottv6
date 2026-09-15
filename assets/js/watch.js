@@ -233,8 +233,9 @@ function loadPlayer(stream, container, loader) {
 
   container.style.position = 'relative';
   container.style.width = '100%';
-  container.style.height = '0';
-  container.style.paddingBottom = '56.25%';
+  container.style.height = 'auto';
+  container.style.aspectRatio = '16 / 9';
+  container.style.paddingBottom = '0';
   container.style.overflow = 'hidden';
   container.style.backgroundColor = '#000';
   container.style.borderRadius = '12px';
@@ -292,9 +293,11 @@ function createPlayerWatermark() {
   watermark.className = 'watch-player-watermark';
   watermark.setAttribute('aria-hidden', 'true');
   watermark.style.position = 'absolute';
-  watermark.style.top = '5%';
-  watermark.style.right = '3%';
-  watermark.style.width = '12%';
+  watermark.style.top = '4%';
+  watermark.style.right = '4%';
+  watermark.style.width = '15%';
+  watermark.style.maxWidth = '130px';
+  watermark.style.minWidth = '70px';
   watermark.style.height = 'auto';
   watermark.style.zIndex = '10';
   watermark.style.pointerEvents = 'none';

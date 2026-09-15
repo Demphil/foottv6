@@ -123,13 +123,18 @@ body {
 #player-container {
   border-radius: 15px !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 .watch-player-watermark {
   position: absolute;
-  top: 5%;
-  right: 3%;
-  width: 12%;
+  top: 4%;
+  right: 4%;
+  width: 15%;
+  max-width: 130px;
+  min-width: 70px;
   height: auto;
   z-index: 10;
   pointer-events: none;
@@ -207,9 +212,9 @@ body {
   }
 
   .watch-player-watermark {
-    top: 5%;
+    top: 4%;
     right: 4%;
-    width: 18%;
+    width: 15%;
   }
   
   .server-btn {
