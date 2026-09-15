@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 
 const processes = new Map();
 const VARIANTS = {
@@ -77,20 +77,8 @@ function releaseLock(lockPath) {
   } catch {}
 }
 
-function stopSystemFfmpeg() {
-  if (process.platform === "win32") return;
-  try {
-    const output = execFileSync("pgrep", ["-x", "ffmpeg"], { encoding: "utf8" }).trim();
-    if (!output) return;
-    for (const pid of output.split(/\s+/).filter(Boolean)) {
-      try {
-        process.kill(Number(pid), "SIGTERM");
-      } catch {}
-    }
-  } catch {}
-}
-
 function stopCompetingVariants(channelName, variantId) {
+  if (process.env.TRANSCODER_SINGLE_VARIANT_PER_CHANNEL !== "1") return;
   for (const [key, entry] of processes.entries()) {
     if (entry.channelName === channelName && entry.variantId !== variantId) {
       stopProcess(key);
@@ -98,14 +86,19 @@ function stopCompetingVariants(channelName, variantId) {
   }
 }
 
-function enforceProcessLimit() {
+function hasTranscoderCapacity() {
   const maxProcesses = Math.max(1, Number(process.env.MAX_ACTIVE_TRANSCODERS || 1));
-  while (processes.size >= maxProcesses) {
-    const oldest = [...processes.entries()]
-      .sort((a, b) => a[1].startedAt - b[1].startedAt)[0]?.[0];
-    if (!oldest) break;
-    stopProcess(oldest);
-  }
+  return processes.size < maxProcesses;
+}
+
+function cleanupVariantFiles(outputDir, variantId) {
+  try {
+    for (const item of fs.readdirSync(outputDir)) {
+      if (item === `${variantId}.m3u8` || item.startsWith(`${variantId}_`)) {
+        fs.rmSync(path.join(outputDir, item), { force: true });
+      }
+    }
+  } catch {}
 }
 
 export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
@@ -120,24 +113,33 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   const processKey = `${channelName}:${variantId}`;
   if (processes.has(processKey)) return processes.get(processKey).child;
   stopCompetingVariants(channelName, variantId);
-  enforceProcessLimit();
+  if (!hasTranscoderCapacity()) {
+    console.warn(`[ffmpeg:${channelName}:${variantId}] transcoder capacity reached; keeping active streams alive`);
+    return null;
+  }
 
   const outputDir = hlsOutputDir(channelName);
   fs.mkdirSync(outputDir, { recursive: true });
   const outputPlaylist = path.join(outputDir, `${variantId}.m3u8`);
   const lockPath = path.join(outputDir, `${variantId}.lock`);
   if (!acquireLock(lockPath)) return null;
+  cleanupVariantFiles(outputDir, variantId);
 
   const ffmpeg = process.env.FFMPEG_PATH || "ffmpeg";
-  if (Math.max(1, Number(process.env.MAX_ACTIVE_TRANSCODERS || 1)) === 1) {
-    stopSystemFfmpeg();
-  }
   const args = [
     "-hide_banner",
     "-loglevel", "warning",
+    "-fflags", "+genpts+discardcorrupt",
+    "-err_detect", "ignore_err",
+    "-analyzeduration", process.env.FFMPEG_ANALYZE_DURATION || "3000000",
+    "-probesize", process.env.FFMPEG_PROBE_SIZE || "3000000",
     "-reconnect", "1",
     "-reconnect_streamed", "1",
-    "-reconnect_delay_max", "5",
+    "-reconnect_at_eof", "1",
+    "-reconnect_on_network_error", "1",
+    "-reconnect_on_http_error", "4xx,5xx",
+    "-reconnect_delay_max", process.env.FFMPEG_RECONNECT_DELAY_MAX || "2",
+    "-rw_timeout", process.env.FFMPEG_RW_TIMEOUT || "15000000",
     "-i", sourceUrl,
     "-map", "0:v:0",
     "-map", "0:a:0?",
@@ -155,10 +157,13 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     "-maxrate:v:0", profile.maxrate,
     "-bufsize:v:0", profile.bufsize,
     "-b:a:0", profile.audio,
+    "-max_muxing_queue_size", "1024",
     "-f", "hls",
-    "-hls_time", process.env.HLS_SEGMENT_TIME || "6",
-    "-hls_list_size", process.env.HLS_LIST_SIZE || "10",
-    "-hls_flags", "delete_segments+independent_segments",
+    "-hls_time", process.env.HLS_SEGMENT_TIME || "4",
+    "-hls_list_size", process.env.HLS_LIST_SIZE || "30",
+    "-hls_delete_threshold", process.env.HLS_DELETE_THRESHOLD || "30",
+    "-hls_start_number_source", "epoch",
+    "-hls_flags", "delete_segments+independent_segments+program_date_time+temp_file",
     "-hls_segment_filename", path.join(outputDir, `${variantId}_%03d.ts`),
     outputPlaylist
   ];
