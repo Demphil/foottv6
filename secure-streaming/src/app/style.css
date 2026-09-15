@@ -335,7 +335,7 @@ body {
 
 .korlive-corner-logo {
   position: absolute;
-  top: 34px;
+  top: 50px;
   right: 48px;
   z-index: 35;
   width: 152px;
@@ -805,7 +805,7 @@ body {
   }
 
   .korlive-corner-logo {
-    top: 32px;
+    top: 44px;
     right: 30px;
     width: 132px;
     height: 26px;
