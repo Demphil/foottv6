@@ -28,8 +28,8 @@ function liveWatchCss() {
 .player-topbar>.header-logo{grid-column:3!important;grid-row:1!important;width:164px!important;min-width:164px!important;max-width:164px!important;height:44px!important;min-height:44px!important;max-height:44px!important;padding:0 12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 164px!important;overflow:hidden!important;place-self:center end!important;background:linear-gradient(135deg,#6826a2,#e0187e)!important}
 .player-topbar>.header-logo img{display:block!important;width:148px!important;min-width:0!important;max-width:148px!important;height:38px!important;min-height:0!important;max-height:38px!important;object-fit:contain!important;object-position:center!important;position:static!important;transform:none!important}
 .player-topbar>.header-logo strong,.player-topbar>.header-logo span{opacity:0!important;font-size:0!important}
-.news-image-wrapper{background:url("/assets/images/logo.png") center/62% auto no-repeat,linear-gradient(135deg,#16294b,#4b1d78 62%,#d9167b)!important}
-.news-image-wrapper img[src*="default-news.jpg"]{display:none!important}
+.news-image-wrapper{background:#263a60!important}
+.news-image-wrapper img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
 @media(max-width:720px){
   .player-topbar{grid-template-columns:1fr!important}
   .player-topbar>.topbar-actions,.player-topbar>.quality-tabs,.player-topbar>.header-logo{grid-column:1!important;grid-row:auto!important}
@@ -69,9 +69,7 @@ async function patchWatchHtml(response) {
   if (!contentType.includes('text/html')) return response;
 
   let html = await response.text();
-  html = html
-    .replaceAll('/assets/images/default-news.jpg', '/assets/images/logo.png')
-    .replace('</head>', `${liveWatchCss()}${liveWatchScript()}</head>`);
+  html = html.replace('</head>', `${liveWatchCss()}${liveWatchScript()}</head>`);
 
   return new Response(html, {
     status: response.status,
