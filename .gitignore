@@ -45,6 +45,8 @@ logs/
 # ملفات مؤقتة
 *.tmp
 *.temp
+.deploy-pages/
+.deploy-nginx-*.conf
 
 # ملفات البيانات المحلية
 *.sqlite
