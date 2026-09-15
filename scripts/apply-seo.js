@@ -3,8 +3,9 @@ const path = require("path");
 
 const root = path.resolve(__dirname, "..");
 const siteUrl = "https://koralive.football";
-const imageUrl = `${siteUrl}/assets/images/logo.png`;
-const today = "2026-07-13";
+const logoUrl = `${siteUrl}/assets/images/logo.png`;
+const imageUrl = `${siteUrl}/assets/images/default-news.jpg`;
+const today = new Date().toISOString().slice(0, 10);
 
 const socials = [
   "https://www.tiktok.com/@koralive.football",
@@ -30,8 +31,8 @@ const streamPages = [
     featured: "بث مباشر مباريات اليوم",
   },
   {
-    file: "yalla-shoot.html",
-    slug: "yalla-shoot.html",
+    file: "yalla-shoot-today.html",
+    slug: "yalla-shoot-today.html",
     title: "يلا شوت | مباريات اليوم بث مباشر على كورة لايف",
     h1: "يلا شوت | مباريات اليوم بث مباشر",
     description:
@@ -186,8 +187,8 @@ const streamPages = [
     featured: "بوز كورة مباريات اليوم",
   },
   {
-    file: "syria-live.html",
-    slug: "syria-live.html",
+    file: "syria-live-tv.html",
+    slug: "syria-live-tv.html",
     title: "سوريا لايف | بث مباشر للمباريات العربية والعالمية",
     h1: "سوريا لايف | مباريات اليوم بث مباشر",
     description:
@@ -295,7 +296,7 @@ function buildSchema(page, type = "WebPage") {
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
-          url: imageUrl,
+          url: logoUrl,
         },
         sameAs: socials,
       },
@@ -327,6 +328,22 @@ function buildSchema(page, type = "WebPage") {
           url: imageUrl,
         },
         breadcrumb: { "@id": `${url}#breadcrumb` },
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": `${siteUrl}/#site-navigation`,
+        name: [
+          "مباريات اليوم بث مباشر",
+          "أخبار كرة القدم",
+          "مباريات الغد",
+          "القنوات الناقلة"
+        ],
+        url: [
+          `${siteUrl}/`,
+          `${siteUrl}/news.html`,
+          `${siteUrl}/#tomorrow-matches`,
+          `${siteUrl}/#featured-matches`
+        ]
       },
       {
         "@type": "BreadcrumbList",
@@ -383,6 +400,10 @@ ${extraVerification}    <link rel="canonical" href="${url}">
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/assets/images/logo.png">
+    <link rel="preload" as="image" href="/assets/images/default-news.jpg">
+    <link rel="dns-prefetch" href="//al5sm.com">
+    <link rel="dns-prefetch" href="//nap5k.com">
+    <link rel="dns-prefetch" href="//quge5.com">
     <meta property="og:site_name" content="KoraLive Football">
     <meta property="og:title" content="${esc(page.title)}">
     <meta property="og:description" content="${esc(page.description)}">
@@ -404,13 +425,6 @@ ${css
   .join("\n")}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVZ7KRDPEW"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-LVZ7KRDPEW');
-    </script>
 ${adScripts}
     <script type="application/ld+json">${JSON.stringify(buildSchema(page, type))}</script>
 </head>`;
@@ -441,9 +455,10 @@ function stripGeneratedIntro(html) {
 
 function stripLegacyAds(html) {
   return html
-    .replace(/\s*<script\b[^>]*src=["'][^"']*(?:ad-manager\.js|adsbygoogle\.js|revenuecpmgate\.com|fpyf8\.com)[^"']*["'][^>]*><\/script>\s*/gi, "\n")
+    .replace(/\s*<script\b[^>]*src=["'][^"']*(?:ad-manager\.js|adsbygoogle\.js|revenuecpmgate\.com|fpyf8\.com|surefootedpause\.com|googletagmanager\.com|google-analytics\.com|doubleclick\.net)[^"']*["'][^>]*><\/script>\s*/gi, "\n")
     .replace(/\s*<ins\b[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>\s*/gi, "\n")
-    .replace(/\s*<script\b[^>]*>[\s\S]*?\(adsbygoogle\s*=\s*window\.adsbygoogle[^<]*<\/script>\s*/gi, "\n");
+    .replace(/\s*<script\b[^>]*>[\s\S]*?\(adsbygoogle\s*=\s*window\.adsbygoogle[^<]*<\/script>\s*/gi, "\n")
+    .replace(/\s*<script\b[^>]*>[\s\S]*?(?:surefootedpause\.com|gtag\(|window\.dataLayer|googletagmanager\.com)[\s\S]*?<\/script>\s*/gi, "\n");
 }
 
 function hardenBlankTargets(html) {

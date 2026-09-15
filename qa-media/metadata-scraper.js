@@ -9,7 +9,7 @@ const { saveStaging } = require('./supabase-storage');
 
 puppeteer.use(StealthPlugin());
 
-const SCHEDULE_URL = 'https://yallashoot2day.online/';
+const SCHEDULE_URL = 'https://365kora.xyz/';
 const TIME_ZONE = 'Asia/Riyadh';
 
 const MATCH_SELECTORS = '.match-container, .c3-card, #today .match-container, .albaflex > div';
@@ -83,18 +83,16 @@ function parseSchedule(html) {
     const timeMatch = cardText.match(/(?:^|\D)([01]?\d|2[0-3])\s*:\s*([0-5]\d)(?!\d)/);
     
     // ==========================================
-    // التعديل: تصحيح التوقيت المسائي قبل حفظه في القاعدة
+    // تصحيح التوقيت المسائي
     // ==========================================
     let time = '';
     if (timeMatch) {
       let hour = Number(timeMatch[1]);
       const minute = timeMatch[2];
       
-      // إذا كان التوقيت بين 1 و 11، نضيف 12 ليصبح توقيتاً مسائياً (مثلاً 10 تصبح 22)
       if (hour >= 1 && hour <= 11) {
         hour += 12;
       }
-      
       time = `${String(hour).padStart(2, '0')}:${minute}`;
     }
     
@@ -128,6 +126,28 @@ function parseSchedule(html) {
     if (!league) {
       const leagueElement = first($, card, LEAGUE_SELECTORS);
       if (leagueElement) league = clean($(leagueElement).text());
+    }
+
+    // ==========================================
+    // 🚀 صائد القنوات الذكي (البحث الدلالي الشامل)
+    // ==========================================
+    // إذا لم يجد القناة بالكلاسات التقليدية، أو وجدها فارغة
+    if (!channel || channel.includes('تحدد لاحقا')) {
+        // قائمة الكلمات الدلالية للقنوات (إنجليزي وعربي، غير حساسة لحالة الأحرف)
+        const channelKeywords = /(beIN|SSC|Alkass|AD\s*Sports|ONTime|Arryadia|الكأس|أبوظبي|أون\s*تايم|دبي\s*الرياضية|الرياضية|السعودية الرياضية|SSC\s*EXTRA|SSC\s*NEWS)/i;
+        
+        // البحث في جميع العناصر التي تحتوي على نصوص داخل البطاقة
+        $(card).find('span, div, p, li, strong, b').each((_, el) => {
+            // نأخذ العناصر التي لا تحتوي على عناصر HTML بداخلها (أي النص الصافي فقط)
+            if ($(el).children().length === 0) {
+                const text = clean($(el).text());
+                // إذا كان النص يحتوي على كلمة مفتاحية، وطوله منطقي (بين 3 و 40 حرف لمنع التقاط فقرات كاملة)
+                if (channelKeywords.test(text) && text.length >= 3 && text.length <= 40) {
+                    channel = text;
+                    return false; // التوقف عن البحث بمجرد العثور على القناة
+                }
+            }
+        });
     }
 
     if (!channel) channel = 'تحدد لاحقا';

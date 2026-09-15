@@ -1,9 +1,5 @@
 // --- 1. Cache Configuration ---
 
-import { getChannelByTeam } from './chaine.js'; 
-
-
-
 const CACHE_EXPIRY_MS = 2 * 60 * 1000;
 
 const CACHE_KEY_TODAY = 'matches_cache_today_v2';
@@ -312,11 +308,8 @@ export function parseMatches(html, sourceBaseUrl = '', sourceTimeZone = 'Africa/
         }
       }
 
-      // جلب القناة من الملف المحلي في حال لم يوفرها الموقع المصدر
-      let finalChannel = channelFromSite;
-      if (!finalChannel || finalChannel.includes('غير معروف') || finalChannel === '') {
-         finalChannel = getChannelByTeam(homeTeamName, awayTeamName);
-      }
+      // القنوات تأتي من Supabase بعد حلها عبر Gemini، لا من ملف ثابت قديم.
+      const finalChannel = 'تحدد لاحقاً';
 
       const homeLogo = extractImageUrl(homeTeamEl?.querySelector('img'), sourceBaseUrl);
       const awayLogo = extractImageUrl(awayTeamEl?.querySelector('img'), sourceBaseUrl);

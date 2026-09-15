@@ -47,6 +47,22 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+// ==========================================
+// 🎯 رادار تحديد مدة المباراة الذكي
+// ==========================================
+function getMatchDuration(leagueName) {
+    if (!leagueName) return 120; // التوقيت الافتراضي للمباريات العادية
+    const name = leagueName.toLowerCase();
+    
+    // كلمات تدل على إمكانية وجود أشواط إضافية (بما فيها الربع والنصف)
+    const knockoutKeywords = ['كأس', 'نهائي', 'سوبر', 'cup', 'final', 'super', 'كوبا', 'خروج المغلوب', 'playoff', 'ربع', 'نصف', 'أبطال', 'champions'];
+    
+    const isKnockout = knockoutKeywords.some(keyword => name.includes(keyword));
+    
+    // 135 دقيقة للكؤوس والربع والنصف، و 100 دقيقة لمباريات الدوري العادية
+    return isKnockout ? 140 : 120; 
+}
+
 // تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
 function matchStartDate(match) {
   if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
@@ -88,25 +104,46 @@ function renderMatch(match) {
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+  const publicWatchId = opaqueWatchId(stableId);
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
   const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   
-  let watchUrl = `watch.html?id=${encodeURIComponent(stableId)}`;
+  let watchUrl = `watch.html?id=${encodeURIComponent(publicWatchId)}`;
+
+  // ==========================================
+  // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
+  // ==========================================
+  const now = new Date();
+  let matchDate = null;
+
+  try {
+      if (typeof matchStartDate === 'function') {
+          matchDate = matchStartDate(match);
+      }
+      if (!matchDate && match.scheduledAt) {
+          matchDate = new Date(match.scheduledAt);
+      }
+  } catch (e) {}
   
-  if (!hasStreams && manualLink) {
-      watchUrl += `&matchLink=${encodeURIComponent(manualLink)}`;
+  let diffMins;
+  // إذا كان الوقت سليماً وقابلاً للقراءة، نحسب الفارق
+  if (matchDate && !isNaN(matchDate.getTime())) {
+      diffMins = (matchDate - now) / 60000;
+  } else if (match.time === 'مباشر الآن' || match.time === 'جاري الآن') {
+      diffMins = 0;
+  } else {
+      // 🛡️ الحماية: إذا فشل النظام في معرفة الوقت (بسبب تغيير اليوم)،
+      // نعتبر المباراة بعيدة جداً (9999 دقيقة) كي لا تفتح بالخطأ أبداً!
+      diffMins = 9999; 
   }
 
-  // حساب الوقت بدقة
-  const now = new Date();
-  const matchDate = matchStartDate(match) || now;
-  const diffMins = (matchDate - now) / 60000;
-  
-  const hasData = hasStreams || match.status === 'PASSED_STAGING' || manualLink;
-  const isTimeAllowed = diffMins <= 25 && diffMins >= -240;
+  const hasData = hasStreams || manualLink;
 
-  const isLive = diffMins <= 0 && diffMins >= -240;
+  // ⏱️ حساب مدة المباراة بذكاء حسب البطولة
+  const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 120;
+  const isTimeAllowed = diffMins <= 25 && diffMins >= -matchDuration;
+  const isLive = diffMins <= 0 && diffMins >= -matchDuration;
   const isSoon = diffMins > 0 && diffMins <= 60; 
 
   const channelName = typeof match.channel === 'string' && match.channel.trim()
@@ -117,9 +154,8 @@ function renderMatch(match) {
   let timeText = match.time;
   
   if (match.time !== 'مباشر الآن' && match.time !== 'تحدد لاحقا') {
-      const localDate = matchStartDate(match);
-      if (localDate) {
-          timeText = localDate.toLocaleTimeString('ar-EG-u-nu-latn', {
+      if (matchDate && !isNaN(matchDate.getTime())) {
+          timeText = matchDate.toLocaleTimeString('ar-EG-u-nu-latn', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: false
@@ -135,24 +171,34 @@ function renderMatch(match) {
   let isClickableClass = 'not-clickable';
   let topBadge = '';
 
-  // تطبيق المنطق الذكي للقفل والفتح (مع تعديل الشارة)
+  // ==========================================
+  // 🛡️ منطق الشارات السليم للمباريات القادمة والمنتهية
+  // ==========================================
   if (hasData) {
       if (isTimeAllowed) {
           hrefAttribute = `href="${watchUrl}" target="_blank"`;
           clickAction = '';
           isClickableClass = 'clickable';
+      } else if (diffMins < -matchDuration) {
+          // 🛑 المباراة انتهت بالفعل
+          clickAction = '';
+          topBadge = ''; // إزالة أي شارة من المباريات المنتهية
       } else {
+          // ⏳ المباراة قادمة ولم يحن وقت البث
           clickAction = `onclick="openWaitModal('عذراً، رابط البث سيفتح قبل بداية المباراة بـ 25 دقيقة.')"`;
-          
-          // إظهار "يفتح قريباً" فقط إذا تبقى 60 دقيقة أو أقل
-          if (diffMins <= 60) {
+          if (diffMins > 0 && diffMins <= 60) {
               topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
           } else {
-              topBadge = ''; // إخفاء الشارة تماماً للمباريات البعيدة ليكون التصميم أنظف
+              topBadge = ''; 
           }
       }
   } else {
-      topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
+      // إذا لم يكن هناك بيانات بث
+      if (diffMins < -matchDuration) {
+          topBadge = ''; // لا تعرض "غير جاهز" لمباراة منتهية
+      } else {
+          topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
+      }
   }
 
   if (isSoon) {
@@ -181,7 +227,7 @@ function renderMatch(match) {
 
   return `
     <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
-      <article class="match-card ${matchStatusClass}" data-match-id="${stableId}">
+      <article class="match-card ${matchStatusClass}" data-match-id="${publicWatchId}">
         ${topBadge}
         ${statusBadge}
         <div class="league-info"><span>${match.league}</span></div>
@@ -207,6 +253,16 @@ function renderMatch(match) {
 
 function matchIdentity(match) {
   return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
+}
+
+function opaqueWatchId(value) {
+  let hash = 0x811c9dc5;
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return String(hash).padStart(10, '0');
 }
 
 function matchRenderSignature(match) {
@@ -276,31 +332,41 @@ async function loadAndRenderMatches() {
       const diffB = (matchStartDate(b) - now) / 60000;
 
       const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.status === 'PASSED_STAGING' || fallbackA;
-
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || !!fallbackA;
+    
       const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.status === 'PASSED_STAGING' || fallbackB;
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || !!fallbackB;
 
-      const getTier = (diff, hasLink) => {
-          if (diff <= 0 && diff >= -240) return 1; // جارية الآن
-          if (diff > 0 && diff <= 60) return 2;    // ستبدأ قريباً
-          if (!hasLink) return 5;                  // غير جاهزة
-          if (diff > 60) return 3;                 // قادمة لاحقاً
-          return 4;                                // منتهية
+      // ==========================================
+      // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
+      // ==========================================
+      const durationA = getMatchDuration(a.league);
+      const durationB = getMatchDuration(b.league);
+
+      const getTier = (diff, hasLink, duration) => {
+          const isLive = diff <= 0 && diff >= -duration; 
+          const isSoon = diff > 0 && diff <= 60;
+
+          if (isLive && hasLink) return 1;  
+          if (isSoon && hasLink) return 2;  
+          if (isSoon && !hasLink) return 3; 
+          if (isLive && !hasLink) return 4; 
+          if (diff < -duration) return 6;        
+          return 5;                         
       };
 
-      const tierA = getTier(diffA, hasLinkA);
-      const tierB = getTier(diffB, hasLinkB);
+      const tierA = getTier(diffA, hasLinkA, durationA);
+      const tierB = getTier(diffB, hasLinkB, durationB);
 
-      // 1. الترتيب حسب الأولوية (الجارية أولاً، ثم القريبة...)
+      // 1. الترتيب حسب الأولوية (الأوزان)
       if (tierA !== tierB) return tierA - tierB;
 
-      // 2. الفرز الداخلي للمباريات التي من نفس الأولوية
-      if (tierA === 1) {
-          // إذا كانت المباريات "جارية الآن": نعرض الأحدث (التي بدأت للتو) في القمة
+      // 2. الفرز الداخلي للمباريات التي تمتلك نفس الوزن
+      if (tierA === 1 || tierA === 4) {
+          // للمباريات الجارية: نعرض الأحدث (التي بدأت للتو) في القمة
           return matchStartDate(b) - matchStartDate(a);
       } else {
-          // بقية المباريات (القادمة): نعرض الأقرب وقتاً في القمة
+          // لبقية المباريات: نعرض الأقرب وقتاً في القمة
           return matchStartDate(a) - matchStartDate(b);
       }
   }

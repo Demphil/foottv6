@@ -19,9 +19,7 @@
     "seo:apply": "node scripts/apply-seo.js",
     "seo:check": "node scripts/check-seo.js",
     "indexnow": "node scripts/submit-indexnow.js",
-    "media:qa": "node qa-media/index.js --once",
-    "media:metadata": "node qa-media/metadata-scraper.js --once",
-    "media:resolver": "node qa-media/stream-resolver.js"
+    "matches:metadata": "node qa-media/metadata-scraper.js --once"
   },
   "author": "Your Name",
   "license": "MIT"
