@@ -47,6 +47,11 @@ function buildStreamSrc(channelName, server, token, fallbackUrl = "") {
   return buildAbrSrc(channelName, selected, token);
 }
 
+function streamTypeForServer(server, tokenData = {}) {
+  if (server?.file && !server.passthrough) return "hls";
+  return tokenData.streamType || "hls";
+}
+
 function parentOrigin() {
   if (!document.referrer) return "";
   try {
@@ -76,6 +81,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
   const selectedServerRef = useRef(DEFAULT_SERVER_ID);
+  const activeStreamTypeRef = useRef("hls");
   const liveRefreshRef = useRef(0);
   const progressRef = useRef({ time: 0, at: 0 });
   const [selectedServerId, setSelectedServerId] = useState(DEFAULT_SERVER_ID);
@@ -218,6 +224,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
   async function applyPlayerSource({ src, streamType = "hls", autoplay = false }) {
     if (!playerRef.current) return;
+    activeStreamTypeRef.current = streamType;
     const videoElement = playerRef.current.tech?.(true)?.el?.() || videoRef.current;
     if (streamType === "mpegts") {
       disposeMpegtsPlayer();
@@ -225,8 +232,9 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       const module = await import("mpegts.js");
       const mpegts = module.default || module;
       if (!videoElement || !mpegts.isSupported()) throw new Error("mpegts unsupported");
+      const absoluteSrc = new URL(src, window.location.origin).toString();
       const mpegtsPlayer = mpegts.createPlayer(
-        { type: "mpegts", isLive: true, url: src },
+        { type: "mse", isLive: true, url: absoluteSrc, cors: true, withCredentials: true },
         {
           enableWorker: true,
           liveBufferLatencyChasing: true,
@@ -237,10 +245,13 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         }
       );
       mpegtsPlayerRef.current = mpegtsPlayer;
-      mpegtsPlayer.on(mpegts.Events.ERROR, () => fallbackToNextServer());
+      mpegtsPlayer.on(mpegts.Events.ERROR, (type, detail, info) => {
+        console.warn("[KoraLive] MPEG-TS playback error", JSON.stringify({ type, detail, code: info?.code }));
+        refreshLiveSource("mpegts-error");
+      });
       mpegtsPlayer.attachMediaElement(videoElement);
       mpegtsPlayer.load();
-      if (autoplay) videoElement.play().catch(() => {});
+      if (autoplay) mpegtsPlayer.play();
       return;
     }
 
@@ -435,6 +446,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       });
 
       playerRef.current.on("error", () => {
+        if (activeStreamTypeRef.current === "mpegts") {
+          refreshLiveSource("mpegts-video-error");
+          return;
+        }
         fallbackToNextServer();
       });
       playerRef.current.on("loadedmetadata", seekToLiveEdge);
@@ -462,7 +477,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         }, 3500);
       });
 
-      await applyPlayerSource({ src, streamType: "hls" });
+      await applyPlayerSource({
+        src,
+        streamType: streamTypeForServer(initialServer, data)
+      });
     }
 
     boot().catch(() => setBlocked("تعذر تشغيل البث الآمن."));
@@ -502,7 +520,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         const wasPaused = playerRef.current.paused();
         await applyPlayerSource({
           src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
-          streamType: "hls",
+          streamType: streamTypeForServer(selected, data),
           autoplay: !wasPaused
         });
       } catch {
@@ -570,7 +588,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         const selected = allServers.find((item) => item.id === selectedServerId) || QUALITY_OPTIONS[0];
         await applyPlayerSource({
           src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
-          streamType: "hls",
+          streamType: streamTypeForServer(selected, data),
           autoplay: true
         });
       }
