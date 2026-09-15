@@ -195,6 +195,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       const resolvedChannelName = data.channelName || activeChannelRef.current || channelName;
       const src = abr ? buildAbrSrc(resolvedChannelName, QUALITY_OPTIONS[0], data.token) : data.streamUrl;
       if (disposed || !videoRef.current) return;
+      setBlocked("");
 
       playerRef.current = videojs(videoRef.current, {
         controls: true,
@@ -230,6 +231,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
     async function switchServer() {
       try {
+        setBlocked("");
         const response = await fetch("/api/stream-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -289,6 +291,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
   async function refreshStream() {
     try {
+      setBlocked("");
       const response = await fetch("/api/stream-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -331,6 +334,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   function selectServer(event, id) {
     event.preventDefault();
     event.stopPropagation();
+    setBlocked("");
     setSelectedServerId(id);
   }
 

@@ -1,5 +1,27 @@
 import { NextResponse } from "next/server";
 
+function originFrom(value) {
+  if (!value) return "";
+  try {
+    return new URL(value).origin;
+  } catch {
+    return "";
+  }
+}
+
+function approvedOrigins(request) {
+  const requestOrigin = request.nextUrl.origin;
+  return new Set([
+    requestOrigin,
+    process.env.PUBLIC_SITE_ORIGIN || "",
+    process.env.NEXT_PUBLIC_BRAND_URL || "",
+    process.env.NEXT_PUBLIC_CANONICAL_ORIGIN || "",
+    ...(process.env.APPROVED_IFRAME_ORIGINS || "").split(",")
+  ]
+    .map((item) => String(item || "").trim().replace(/\/$/, ""))
+    .filter(Boolean));
+}
+
 function approvedFrameAncestors() {
   const configured = Array.from(new Set([
     process.env.PUBLIC_SITE_ORIGIN || "",
@@ -13,7 +35,32 @@ function approvedFrameAncestors() {
 }
 
 export function proxy(request) {
+  const url = request.nextUrl;
+  const userAgent = request.headers.get("user-agent") || "";
+  const refererOrigin = originFrom(request.headers.get("referer"));
+  const requestOrigin = originFrom(request.headers.get("origin"));
+  const acceptedOrigins = approvedOrigins(request);
+  const lowerAgent = userAgent.toLowerCase();
   const response = NextResponse.next();
+
+  const goodBots = ["googlebot", "bingbot", "yandex", "duckduckbot", "slurp"];
+  const isGoodBot = goodBots.some((bot) => lowerAgent.includes(bot));
+
+  if (!isGoodBot) {
+    const badAgents = ["python", "curl", "wget", "scraper", "headless", "puppeteer", "selenium", "phantomjs", "playwright"];
+    if (badAgents.some((bot) => lowerAgent.includes(bot)) || userAgent.length < 10) {
+      return new NextResponse("Access Denied - Bot Detected", { status: 403 });
+    }
+  }
+
+  if (url.pathname.startsWith("/api/")) {
+    const suppliedOrigins = [refererOrigin, requestOrigin].filter(Boolean);
+    const isAllowed = suppliedOrigins.length === 0 || suppliedOrigins.every((origin) => acceptedOrigins.has(origin.replace(/\/$/, "")));
+    if (!isAllowed) {
+      return new NextResponse("Forbidden: stream API is locked to approved origins", { status: 403 });
+    }
+  }
+
   if (request.nextUrl.pathname.startsWith("/embed/")) {
     response.headers.set("Content-Security-Policy", `frame-ancestors ${approvedFrameAncestors()};`);
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -23,5 +70,5 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/embed/:path*"]
+  matcher: ["/embed/:path*", "/api/:path*"]
 };
