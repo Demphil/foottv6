@@ -639,44 +639,46 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         </a>
       </div>
 
-      <div data-vjs-player className="secure-video-frame" ref={frameRef}>
-        <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
+      <div className="secure-video-frame" ref={frameRef}>
+        <div data-vjs-player className="video-js-host">
+          <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
 
-        <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
+          <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
 
-        <div className="korlive-corner-logo" aria-hidden="true">
-          Koralive.football
-        </div>
-
-        <div className="brand-watermark bottom-line">
-          <span>مرحبا بك في موقع كورة لايف Koralive.football &gt;</span>
-          <b aria-hidden="true">KoraLive.football</b>
-        </div>
-
-        {adNotice && canShowInterruptions ? (
-          <div className="adblock-modal" role="alert" aria-live="polite">
-            <div className="adblock-modal-card">
-              <div className="adblock-modal-icon">!</div>
-              <h3>مانع الإعلانات مفعّل</h3>
-              <p>من فضلك أوقف مانع الإعلانات لهذا الموقع، ثم اضغط تحديث للعودة إلى المشاهدة بشكل عادي.</p>
-              <button type="button" onClick={() => window.location.reload()}>
-                تحديث الصفحة
-              </button>
-            </div>
+          <div className="korlive-corner-logo" aria-hidden="true">
+            Koralive.football
           </div>
-        ) : null}
 
-        {promoOpen && canShowInterruptions ? (
-          <aside className="promo-pop" aria-label="إعلان">
-            <button type="button" className="promo-close" onClick={() => setPromoOpen(false)} aria-label="إغلاق الإعلان">×</button>
-            <div className="promo-badge">🏆 بث مباشر بجودة عالية</div>
-            <h3>تابع المباريات على KoraLive</h3>
-            <p>إذا واجهت تقطيعاً، بدّل السيرفر من الأعلى أو اضغط تحديث البث.</p>
-            <a href={brandUrl} target="_blank" rel="noreferrer">زيارة الموقع</a>
-          </aside>
-        ) : null}
+          <div className="brand-watermark bottom-line">
+            <span>مرحبا بك في موقع كورة لايف Koralive.football &gt;</span>
+            <b aria-hidden="true">KoraLive.football</b>
+          </div>
 
-        {blocked ? <div className="player-block-overlay">{blocked}</div> : null}
+          {adNotice && canShowInterruptions ? (
+            <div className="adblock-modal" role="alert" aria-live="polite">
+              <div className="adblock-modal-card">
+                <div className="adblock-modal-icon">!</div>
+                <h3>مانع الإعلانات مفعّل</h3>
+                <p>من فضلك أوقف مانع الإعلانات لهذا الموقع، ثم اضغط تحديث للعودة إلى المشاهدة بشكل عادي.</p>
+                <button type="button" onClick={() => window.location.reload()}>
+                  تحديث الصفحة
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {promoOpen && canShowInterruptions ? (
+            <aside className="promo-pop" aria-label="إعلان">
+              <button type="button" className="promo-close" onClick={() => setPromoOpen(false)} aria-label="إغلاق الإعلان">×</button>
+              <div className="promo-badge">🏆 بث مباشر بجودة عالية</div>
+              <h3>تابع المباريات على KoraLive</h3>
+              <p>إذا واجهت تقطيعاً، بدّل السيرفر من الأعلى أو اضغط تحديث البث.</p>
+              <a href={brandUrl} target="_blank" rel="noreferrer">زيارة الموقع</a>
+            </aside>
+          ) : null}
+
+          {blocked ? <div className="player-block-overlay">{blocked}</div> : null}
+        </div>
       </div>
 
       {embedOpen ? (

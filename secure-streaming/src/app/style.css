@@ -303,6 +303,13 @@ body {
   background: #000;
 }
 
+.secure-video-frame .video-js-host,
+.secure-video-frame [data-vjs-player] {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .secure-video-frame .video-js {
   width: 100%;
   height: 100%;
@@ -863,7 +870,7 @@ body {
   }
 
   .brand-watermark.bottom-line {
-    bottom: 38px;
+    bottom: var(--ticker-bottom, 38px);
     min-height: 30px;
     padding: 5px 12px;
     font-size: 11px;
