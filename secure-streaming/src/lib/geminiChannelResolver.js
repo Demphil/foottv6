@@ -13,18 +13,20 @@ export async function resolveBroadcastChannelsWithGemini(match) {
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured.");
 
   const prompt = `
-You are helping a private sports media QA system map football matches to likely broadcast channel names.
+You are helping a private sports media QA system map football matches to verified broadcast channel names.
 Return strict JSON only, with this shape:
-{"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}
+{"ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}
 
 Rules:
-- Use only public, well-known broadcaster/channel names.
-- The provided existingChannel/source channel is usually Arabic and is only context, not the answer.
-- Search by homeTeam, awayTeam, league, and kickoff to identify broadcasters for this exact match.
-- Return French-language broadcasters in "fr" and English-language broadcasters in "en".
-- Do not return the Arabic source channel unless it genuinely carries a French or English feed for that match.
+- Return actual official or widely trusted broadcasters for this exact match.
+- Prioritize trusted broadcaster families such as beIN SPORTS, SSC, Alkass, Abu Dhabi Sports, Dubai Sports, ON Time Sports, Arryadia, Shahid, ESPN, TNT Sports, Canal+, DAZN, Sky Sports, SuperSport, and league/cup official broadcasters.
+- Return Arabic-language broadcasters in "ar", French-language broadcasters in "fr", and English-language broadcasters in "en".
+- The provided existingChannel/source channel may be missing or unreliable. Do not copy it blindly.
+- Use homeTeam, awayTeam, league, kickoff, and country/competition context to identify the real broadcaster.
 - If uncertain, return an empty array for that language.
 - Do not invent stream URLs. Channel names only.
+- Prefer exact channel names with numbers when known, for example "beIN SPORTS HD 1" instead of just "beIN SPORTS".
+- Keep confidence below 0.55 if you are not sure from trusted broadcaster information.
 
 Match data:
 ${JSON.stringify(match, null, 2)}
@@ -48,6 +50,7 @@ ${JSON.stringify(match, null, 2)}
   const parsed = JSON.parse(cleanJson(text));
 
   return {
+    ar: Array.isArray(parsed.ar) ? parsed.ar.filter(Boolean) : [],
     fr: Array.isArray(parsed.fr) ? parsed.fr.filter(Boolean) : [],
     en: Array.isArray(parsed.en) ? parsed.en.filter(Boolean) : [],
     confidence: Number(parsed.confidence || 0),
@@ -61,18 +64,20 @@ export async function resolveBroadcastChannelsBatchWithGemini(matches) {
   if (!matches.length) return new Map();
 
   const prompt = `
-You are helping a private sports media QA system map football matches to likely broadcast channel names.
+You are helping a private sports media QA system map football matches to verified broadcast channel names.
 Return strict JSON only, with this shape:
-{"items":[{"id":"match id","fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}]}
+{"items":[{"id":"match id","ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}]}
 
 Rules:
-- Use only public, well-known broadcaster/channel names.
-- The provided existingChannel/source channel is usually Arabic and is only context, not the answer.
-- Search by homeTeam, awayTeam, league, and kickoff to identify broadcasters for each exact match.
-- Return French-language broadcasters in "fr" and English-language broadcasters in "en".
-- Do not return the Arabic source channel unless it genuinely carries a French or English feed for that match.
+- Return actual official or widely trusted broadcasters for each exact match.
+- Prioritize trusted broadcaster families such as beIN SPORTS, SSC, Alkass, Abu Dhabi Sports, Dubai Sports, ON Time Sports, Arryadia, Shahid, ESPN, TNT Sports, Canal+, DAZN, Sky Sports, SuperSport, and league/cup official broadcasters.
+- Return Arabic-language broadcasters in "ar", French-language broadcasters in "fr", and English-language broadcasters in "en".
+- The provided existingChannel/source channel may be missing or unreliable. Do not copy it blindly.
+- Use homeTeam, awayTeam, league, kickoff, and country/competition context to identify the real broadcaster.
 - If uncertain, return an empty array for that language.
 - Do not invent stream URLs. Channel names only.
+- Prefer exact channel names with numbers when known, for example "beIN SPORTS HD 1" instead of just "beIN SPORTS".
+- Keep confidence below 0.55 if you are not sure from trusted broadcaster information.
 - Preserve every input id exactly.
 
 Match data:
@@ -100,6 +105,7 @@ ${JSON.stringify(matches, null, 2)}
   return new Map(items.map((item) => [
     String(item.id || ""),
     {
+      ar: Array.isArray(item.ar) ? item.ar.filter(Boolean) : [],
       fr: Array.isArray(item.fr) ? item.fr.filter(Boolean) : [],
       en: Array.isArray(item.en) ? item.en.filter(Boolean) : [],
       confidence: Number(item.confidence || 0),

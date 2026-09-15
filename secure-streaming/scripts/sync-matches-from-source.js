@@ -1,11 +1,13 @@
-import fs from "node:fs";
-import path from "node:path";
+import "../src/lib/loadEnv.js";
 import * as cheerio from "cheerio";
+import { fileURLToPath } from "node:url";
 import { getSupabaseAdmin } from "../src/lib/supabaseAdmin.js";
+import { enrichMatchChannels } from "./enrich-match-language-channels.js";
 
 const BASE_SITE_URL = process.env.MATCH_SOURCE_URL || "https://jsportlive.com";
 const matchesTable = process.env.SUPABASE_MATCHES_TABLE || "matches";
 const dryRun = process.argv.includes("--dry-run");
+const enrichAfterSync = process.env.GEMINI_ENRICH_AFTER_MATCH_SYNC !== "false";
 
 function moroccoDateParts(offsetDays = 0) {
   const now = new Date();
@@ -57,34 +59,6 @@ function slugify(value) {
     .toLowerCase();
 }
 
-function loadManualChannelMap() {
-  const filePath = path.resolve(process.cwd(), "../assets/js/chaine.js");
-  if (!fs.existsSync(filePath)) return [];
-  const text = fs.readFileSync(filePath, "utf8");
-  const block = text.match(/matchesData\s*=\s*`([\s\S]*?)`/)?.[1] || "";
-  return block
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line && line.includes(":"))
-    .map((line) => {
-      const [teams, ...channelParts] = line.split(":");
-      const [home, away] = teams.split(/[×xX]| ضد | vs /i).map((item) => item.trim());
-      return { home, away, channel: channelParts.join(":").trim() };
-    })
-    .filter((item) => item.home && item.channel);
-}
-
-const manualChannelMap = loadManualChannelMap();
-
-function fallbackChannel(homeTeam, awayTeam) {
-  const home = String(homeTeam || "").trim();
-  const away = String(awayTeam || "").trim();
-  const found = manualChannelMap.find((item) =>
-    [item.home, item.away].some((team) => team && (home.includes(team) || away.includes(team) || team.includes(home) || team.includes(away)))
-  );
-  return found?.channel || "";
-}
-
 async function fetchHtml(url) {
   const response = await fetch(url, {
     headers: {
@@ -113,10 +87,6 @@ function parseMatches(html, dayOffset) {
       : "VS";
     const time = convertSourceToMoroccoTime(matchEl.find(".MT_Time").first().text().trim());
     const infoItems = matchEl.find(".MT_Info ul li").map((__, item) => $(item).text().trim()).get();
-    const sourceChannel = infoItems[0] || "";
-    const channel = sourceChannel && !/غير معروف|unknown|غير محدد/i.test(sourceChannel)
-      ? sourceChannel
-      : fallbackChannel(homeTeam, awayTeam);
     const league = infoItems[infoItems.length - 1] || "League";
     const commentator = infoItems[1] || "";
     const matchId = `${slugify(homeTeam)}_vs_${slugify(awayTeam)}`;
@@ -128,7 +98,7 @@ function parseMatches(html, dayOffset) {
       away_team: awayTeam,
       league,
       kickoff_time: time.formatted && time.formatted.includes(":") ? `${date}T${time.formatted}:00+01:00` : null,
-      channel: channel || null,
+      channel: null,
       source: "metascrape",
       active: true,
       payload: {
@@ -136,7 +106,7 @@ function parseMatches(html, dayOffset) {
         time: time.formatted,
         commentator: /غير معروف|unknown/i.test(commentator) ? "" : commentator,
         matchLink: matchEl.find("a").first().attr("href") || "",
-        sourceChannel
+        channelSource: "gemini_required"
       },
       updated_at: new Date().toISOString()
     });
@@ -145,7 +115,37 @@ function parseMatches(html, dayOffset) {
   return rows;
 }
 
-async function main() {
+async function mergeExistingChannels(supabase, rows) {
+  const matchIds = rows.map((row) => row.match_id).filter(Boolean);
+  if (!matchIds.length) return rows;
+
+  const { data, error } = await supabase
+    .from(matchesTable)
+    .select("match_id,channel,payload")
+    .in("match_id", matchIds);
+
+  if (error) {
+    console.warn(`Could not read existing match channels before upsert: ${error.message}`);
+    return rows;
+  }
+
+  const existingByMatchId = new Map((data || []).map((row) => [row.match_id, row]));
+  return rows.map((row) => {
+    const existing = existingByMatchId.get(row.match_id);
+    if (!existing?.channel) return row;
+    return {
+      ...row,
+      channel: existing.channel,
+      payload: {
+        ...(existing.payload || {}),
+        ...(row.payload || {}),
+        previousChannelPreserved: true
+      }
+    };
+  });
+}
+
+export async function syncMatchesFromSource({ dryRunMode = dryRun } = {}) {
   const pages = [
     { url: `${BASE_SITE_URL}/`, dayOffset: 0 },
     { url: `${BASE_SITE_URL}/matches-tomorrow/`, dayOffset: 1 }
@@ -161,26 +161,45 @@ async function main() {
     }
   }
 
-  const uniqueRows = [...new Map(rows.map((row) => [row.id, row])).values()];
+  const uniqueRows = [...new Map(rows.map((row) => [row.match_id, row])).values()];
   console.log(`Parsed ${uniqueRows.length} matches from ${BASE_SITE_URL}.`);
 
-  if (dryRun || !uniqueRows.length) {
+  if (dryRunMode || !uniqueRows.length) {
     for (const row of uniqueRows.slice(0, 10)) {
-      console.log(`[dry-run] ${row.home_team} vs ${row.away_team} channel=${row.channel || "-"}`);
+      console.log(`[dry-run] ${row.home_team} vs ${row.away_team} channel=gemini_required`);
     }
-    return;
+    return { parsed: uniqueRows.length, upserted: 0, enriched: null };
   }
 
   const supabase = getSupabaseAdmin();
+  const rowsForUpsert = await mergeExistingChannels(supabase, uniqueRows);
   const { error } = await supabase
     .from(matchesTable)
-    .upsert(uniqueRows, { onConflict: "id" });
+    .upsert(rowsForUpsert, { onConflict: "match_id" });
 
   if (error) throw error;
-  console.log(`Upserted ${uniqueRows.length} matches into ${matchesTable}.`);
+  console.log(`Upserted ${rowsForUpsert.length} matches into ${matchesTable}.`);
+
+  let enrichmentResult = null;
+  if (enrichAfterSync) {
+    try {
+      enrichmentResult = await enrichMatchChannels({ rows: rowsForUpsert, table: matchesTable, dryRun: false });
+      console.log(`Gemini post-sync enrichment: processed=${enrichmentResult.processed}, arabicUpdated=${enrichmentResult.arabicUpdated}, alternativesUpdated=${enrichmentResult.alternativesUpdated}.`);
+    } catch (error) {
+      console.error(`Gemini post-sync enrichment failed without aborting match sync: ${error.message}`);
+    }
+  }
+
+  return { parsed: uniqueRows.length, upserted: rowsForUpsert.length, enriched: enrichmentResult };
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+async function main() {
+  await syncMatchesFromSource({ dryRunMode: dryRun });
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
