@@ -5,16 +5,19 @@
     "src": "/api/broadcaster-templates/bein-sports-2.png",
     "threshold": 0.58,
     "search": {
-      "left": 0.72,
-      "top": 0.035,
+      "left": 0.78,
+      "top": 0.045,
       "right": 0.99,
-      "bottom": 0.18
+      "bottom": 0.16,
+      "anchorLeft": 0.845,
+      "anchorTop": 0.085,
+      "positionWeight": 0.22
     },
     "cover": {
-      "left": -0.04,
-      "top": -0.42,
-      "width": 1.14,
-      "height": 1.7
+      "left": 0.02,
+      "top": -0.08,
+      "width": 1.05,
+      "height": 1.34
     }
   }
 ]

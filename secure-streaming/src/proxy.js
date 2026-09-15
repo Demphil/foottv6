@@ -30,16 +30,12 @@ function isIpHost(hostname) {
   return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname);
 }
 
-function approvedFrameAncestors() {
-  const configured = Array.from(new Set([
-    process.env.PUBLIC_SITE_ORIGIN || "",
-    ...(process.env.APPROVED_IFRAME_ORIGINS || "").split(",")
-  ]
-    .map((item) => item.trim())
-    .filter(Boolean)))
-    .join(" ");
-
-  return configured ? `'self' ${configured}` : "'self'";
+function applyPublicEmbedHeaders(response) {
+  response.headers.set("Content-Security-Policy", "frame-ancestors *;");
+  response.headers.delete("X-Frame-Options");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  return response;
 }
 
 export function proxy(request) {
@@ -76,9 +72,7 @@ export function proxy(request) {
   }
 
   if (request.nextUrl.pathname.startsWith("/embed/")) {
-    response.headers.set("Content-Security-Policy", `frame-ancestors ${approvedFrameAncestors()};`);
-    response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    response.headers.set("X-Content-Type-Options", "nosniff");
+    return applyPublicEmbedHeaders(response);
   }
   return response;
 }

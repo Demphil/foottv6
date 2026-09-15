@@ -117,13 +117,7 @@ export function isApprovedOrigin(value) {
 }
 
 export function isEmbedRequestAllowed(headersList) {
-  const referer = headersList.get("referer") || "";
-  const origin = headersList.get("origin") || "";
-  const destination = headersList.get("sec-fetch-dest") || "";
-  const parentOrigin = extractOrigin(referer) || extractOrigin(origin);
-
-  if (!parentOrigin) return destination !== "iframe";
-  return isApprovedOrigin(parentOrigin);
+  return true;
 }
 
 export function securityHeaders(request) {

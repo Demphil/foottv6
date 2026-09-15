@@ -22,16 +22,30 @@ function proxyHeaders(request, url) {
   return headers;
 }
 
+function publicEmbedHeaders(upstreamHeaders) {
+  const headers = new Headers(upstreamHeaders);
+  headers.set('Content-Security-Policy', 'frame-ancestors *;');
+  headers.delete('X-Frame-Options');
+  headers.delete('x-frame-options');
+  return headers;
+}
+
 export async function onRequest({ request, params, env }) {
   const url = new URL(request.url);
   const secureOrigin = cleanOrigin(env.SECURE_STREAMING_ORIGIN || env.STREAM_APP_ORIGIN || env.NEXT_PUBLIC_STREAM_APP_ORIGIN);
   const target = new URL(`/embed/${pathToken(params)}`, secureOrigin);
   target.search = url.search;
 
-  return fetch(new Request(target.toString(), {
+  const upstream = await fetch(new Request(target.toString(), {
     method: request.method,
     headers: proxyHeaders(request, url),
     body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
     redirect: 'manual'
   }));
+
+  return new Response(upstream.body, {
+    status: upstream.status,
+    statusText: upstream.statusText,
+    headers: publicEmbedHeaders(upstream.headers)
+  });
 }

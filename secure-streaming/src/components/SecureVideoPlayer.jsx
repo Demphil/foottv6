@@ -187,6 +187,9 @@ function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templa
     const top = Math.max(0, Math.floor(sampleHeight * (search.top ?? SMART_LOGO_SCAN.roiTop)));
     const right = Math.min(sampleWidth - template.width, Math.floor(sampleWidth * (search.right ?? SMART_LOGO_SCAN.roiRight)));
     const bottom = Math.min(sampleHeight - template.height, Math.floor(sampleHeight * (search.bottom ?? SMART_LOGO_SCAN.roiBottom)));
+    const anchorLeft = Number(search.anchorLeft ?? (search.left ?? SMART_LOGO_SCAN.roiLeft));
+    const anchorTop = Number(search.anchorTop ?? (search.top ?? SMART_LOGO_SCAN.roiTop));
+    const positionWeight = Number(search.positionWeight ?? 0.08);
     if (right <= left || bottom <= top) return;
 
     for (let y = top; y <= bottom; y += BROADCASTER_TEMPLATE_SCAN_STEP) {
@@ -197,7 +200,10 @@ function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templa
           if (featureMask[(y + point.y) * sampleWidth + x + point.x]) hits += 1;
         }
         const score = hits / template.activePixels;
-        if (score >= template.threshold && (!bestMatch || score > bestMatch.score)) {
+        const xDistance = Math.abs((x / sampleWidth) - anchorLeft);
+        const yDistance = Math.abs((y / sampleHeight) - anchorTop);
+        const adjustedScore = score - ((xDistance + yDistance) * positionWeight);
+        if (score >= template.threshold && (!bestMatch || adjustedScore > bestMatch.adjustedScore)) {
           const cover = template.cover || {};
           const coverLeft = Number(cover.left ?? 0);
           const coverTop = Number(cover.top ?? 0);
@@ -209,6 +215,7 @@ function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templa
             width: (template.width * coverWidth) / sampleWidth,
             height: (template.height * coverHeight) / sampleHeight,
             confidence: score,
+            adjustedScore,
             templateId: template.id
           };
         }
