@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 
 const processes = new Map();
+let cleanupTimer = null;
 const VARIANTS = {
   "720p": {
     width: 1280,
@@ -44,6 +45,22 @@ function stopProcess(key) {
     entry.child.kill("SIGTERM");
   } catch {}
   processes.delete(key);
+}
+
+function stopIdleTranscoders() {
+  const timeoutMs = Math.max(30000, Number(process.env.TRANSCODER_IDLE_TIMEOUT_MS || 120000));
+  const now = Date.now();
+  for (const [key, entry] of processes.entries()) {
+    if (now - (entry.lastAccessed || entry.startedAt) > timeoutMs) {
+      stopProcess(key);
+    }
+  }
+}
+
+function startCleanupTimer() {
+  if (cleanupTimer) return;
+  cleanupTimer = setInterval(stopIdleTranscoders, 30000);
+  cleanupTimer.unref?.();
 }
 
 function staleLock(lockPath) {
@@ -111,7 +128,12 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   const variantId = VARIANTS[variant] ? variant : "720p";
   const profile = VARIANTS[variantId];
   const processKey = `${channelName}:${variantId}`;
-  if (processes.has(processKey)) return processes.get(processKey).child;
+  startCleanupTimer();
+  if (processes.has(processKey)) {
+    const entry = processes.get(processKey);
+    entry.lastAccessed = Date.now();
+    return entry.child;
+  }
   stopCompetingVariants(channelName, variantId);
   if (!hasTranscoderCapacity()) {
     console.warn(`[ffmpeg:${channelName}:${variantId}] transcoder capacity reached; keeping active streams alive`);
@@ -178,7 +200,8 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     child,
     channelName,
     variantId,
-    startedAt: Date.now()
+    startedAt: Date.now(),
+    lastAccessed: Date.now()
   });
   return child;
 }
