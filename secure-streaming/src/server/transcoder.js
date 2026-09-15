@@ -5,6 +5,9 @@ import { spawn } from "node:child_process";
 const processes = new Map();
 let cleanupTimer = null;
 const VARIANTS = {
+  "1080p": {
+    copy: true
+  },
   "720p": {
     width: 1280,
     height: 720,
@@ -122,9 +125,6 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   if (process.env.TRANSCODE_ENABLED !== "true") {
     throw new Error("Transcoding is disabled. Set TRANSCODE_ENABLED=true on a Node server with FFmpeg installed.");
   }
-  if (variant === "1080p") {
-    throw new Error("1080p is served through the secure passthrough proxy and must not be transcoded.");
-  }
   const variantId = VARIANTS[variant] ? variant : "720p";
   const profile = VARIANTS[variantId];
   const processKey = `${channelName}:${variantId}`;
@@ -148,7 +148,7 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   cleanupVariantFiles(outputDir, variantId);
 
   const ffmpeg = process.env.FFMPEG_PATH || "ffmpeg";
-  const args = [
+  const inputArgs = [
     "-hide_banner",
     "-loglevel", "warning",
     "-fflags", "+genpts+discardcorrupt",
@@ -164,7 +164,15 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     "-rw_timeout", process.env.FFMPEG_RW_TIMEOUT || "15000000",
     "-i", sourceUrl,
     "-map", "0:v:0",
-    "-map", "0:a:0?",
+    "-map", "0:a:0?"
+  ];
+
+  const codecArgs = profile.copy
+    ? [
+      "-c", "copy",
+      "-avoid_negative_ts", "make_zero"
+    ]
+    : [
     "-vf", `scale=w=${profile.width}:h=${profile.height}:force_original_aspect_ratio=decrease`,
     "-c:v", "libx264",
     "-preset", process.env.FFMPEG_PRESET || "ultrafast",
@@ -179,7 +187,10 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     "-maxrate:v:0", profile.maxrate,
     "-bufsize:v:0", profile.bufsize,
     "-b:a:0", profile.audio,
-    "-max_muxing_queue_size", "1024",
+    "-max_muxing_queue_size", "1024"
+  ];
+
+  const hlsArgs = [
     "-f", "hls",
     "-hls_time", process.env.HLS_SEGMENT_TIME || "4",
     "-hls_list_size", process.env.HLS_LIST_SIZE || "30",
@@ -189,6 +200,8 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
     "-hls_segment_filename", path.join(outputDir, `${variantId}_%03d.ts`),
     outputPlaylist
   ];
+
+  const args = [...inputArgs, ...codecArgs, ...hlsArgs];
 
   const child = spawn(/* turbopackIgnore: true */ ffmpeg, args, { stdio: ["ignore", "ignore", "pipe"] });
   child.stderr.on("data", (chunk) => console.error(`[ffmpeg:${channelName}:${variantId}] ${chunk}`));

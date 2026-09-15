@@ -6,7 +6,7 @@ import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 
 const QUALITY_OPTIONS = [
-  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", passthrough: true },
+  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", file: "1080p.m3u8" },
   { id: "720p", type: "quality", label: "سيرفر 2", sub: "720 HD", file: "720p.m3u8" },
   { id: "360p", type: "quality", label: "سيرفر 3", sub: "360 SD", file: "360p.m3u8" }
 ];
@@ -33,12 +33,11 @@ function buildAbrSrc(channelName, server, token) {
   return `/api/abr/${encodeURIComponent(channelName)}/${selected.file}?token=${encodeURIComponent(token)}`;
 }
 
-function buildStreamSrc(channelName, server, token, fallbackUrl = "", directUrl = "") {
+function buildStreamSrc(channelName, server, token, fallbackUrl = "") {
   const selected = typeof server === "string"
     ? QUALITY_OPTIONS.find((item) => item.id === server)
     : server;
   if (!selected?.file || selected.passthrough) {
-    if (directUrl) return directUrl;
     return `/api/stream/${encodeURIComponent(channelName)}?token=${encodeURIComponent(token)}`;
   }
   if (!fallbackUrl && !selected.file) return fallbackUrl;
@@ -250,7 +249,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   useEffect(() => {
     let disposed = false;
 
-    async function issueToken(targetChannelName = channelName, options = {}) {
+    async function issueToken(targetChannelName = channelName) {
       const response = await fetch("/api/stream-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,8 +257,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         body: JSON.stringify({
           channelName: targetChannelName,
           embed,
-          parentOrigin: embed ? parentOrigin() : undefined,
-          directOriginal: Boolean(options.directOriginal)
+          parentOrigin: embed ? parentOrigin() : undefined
         })
       });
       if (!response.ok) throw new Error("token");
@@ -271,9 +269,9 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
     async function boot() {
       const initialServer = QUALITY_OPTIONS.find((item) => item.id === selectedServerRef.current) || QUALITY_OPTIONS[0];
-      const data = await issueToken(channelName, { directOriginal: initialServer.passthrough });
+      const data = await issueToken(channelName);
       const resolvedChannelName = data.channelName || activeChannelRef.current || channelName;
-      const src = abr ? buildStreamSrc(resolvedChannelName, initialServer, data.token, data.streamUrl, data.directStreamUrl) : data.streamUrl;
+      const src = abr ? buildStreamSrc(resolvedChannelName, initialServer, data.token, data.streamUrl) : data.streamUrl;
       if (disposed || !videoRef.current) return;
       setBlocked("");
 
@@ -298,8 +296,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         fallbackToNextServer();
       });
 
-      const streamType = initialServer.passthrough ? data.streamType : "hls";
-      await applyPlayerSource({ src, streamType });
+      await applyPlayerSource({ src, streamType: "hls" });
     }
 
     boot().catch(() => setBlocked("تعذر تشغيل البث الآمن."));
@@ -329,8 +326,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
           body: JSON.stringify({
             channelName: targetChannelName,
             embed,
-            parentOrigin: embed ? parentOrigin() : undefined,
-            directOriginal: Boolean(selected.passthrough)
+            parentOrigin: embed ? parentOrigin() : undefined
           })
         });
         if (!response.ok) throw new Error("token");
@@ -339,8 +335,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         activeChannelRef.current = data.channelName || targetChannelName;
         const wasPaused = playerRef.current.paused();
         await applyPlayerSource({
-          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl, data.directStreamUrl),
-          streamType: selected.passthrough ? data.streamType : "hls",
+          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
+          streamType: "hls",
           autoplay: !wasPaused
         });
       } catch {
@@ -397,8 +393,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         body: JSON.stringify({
           channelName: activeChannelRef.current,
           embed,
-          parentOrigin: embed ? parentOrigin() : undefined,
-          directOriginal: Boolean((QUALITY_OPTIONS.find((item) => item.id === selectedServerId) || {}).passthrough)
+          parentOrigin: embed ? parentOrigin() : undefined
         })
       });
       const data = await response.json();
@@ -408,8 +403,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         const allServers = [...QUALITY_OPTIONS, ...languageServers];
         const selected = allServers.find((item) => item.id === selectedServerId) || QUALITY_OPTIONS[0];
         await applyPlayerSource({
-          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl, data.directStreamUrl),
-          streamType: selected.passthrough ? data.streamType : "hls",
+          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
+          streamType: "hls",
           autoplay: true
         });
       }

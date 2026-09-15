@@ -5,8 +5,7 @@ import { corsHeaders, getClientIp, getSessionId, isApprovedOrigin, signStreamTok
 const schema = z.object({
   channelName: z.string().min(1).max(160),
   embed: z.boolean().optional(),
-  parentOrigin: z.string().max(300).optional(),
-  directOriginal: z.boolean().optional()
+  parentOrigin: z.string().max(300).optional()
 });
 
 function publicStreamType(sourceUrl = "") {
@@ -35,19 +34,16 @@ export async function POST(request) {
       sessionId: getSessionId(request)
     });
 
-    const payload = {
+    return Response.json(
+      {
         token,
         channelName: channel.name,
         expiresIn: 300,
         streamType: publicStreamType(channel.original_url),
         streamUrl: `/api/stream/${encodeURIComponent(channel.name)}?token=${encodeURIComponent(token)}`
-      };
-
-    if (parsed.directOriginal && process.env.EXPOSE_DIRECT_1080_URL === "true") {
-      payload.directStreamUrl = channel.original_url;
-    }
-
-    return Response.json(payload, { headers: corsHeaders(request) });
+      },
+      { headers: corsHeaders(request) }
+    );
   } catch {
     return Response.json({ error: "Unable to issue stream token." }, { status: 400, headers: corsHeaders(request) });
   }
