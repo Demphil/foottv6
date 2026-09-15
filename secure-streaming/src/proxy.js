@@ -31,7 +31,7 @@ function isIpHost(hostname) {
 }
 
 function applyPublicEmbedHeaders(response) {
-  response.headers.set("Content-Security-Policy", "frame-ancestors *;");
+  response.headers.set("Content-Security-Policy", "frame-ancestors * https: http: file:;");
   response.headers.delete("X-Frame-Options");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Content-Type-Options", "nosniff");

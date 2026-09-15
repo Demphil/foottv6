@@ -7,7 +7,7 @@ const nextConfig = {
       {
         source: "/embed/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: "frame-ancestors *;" },
+          { key: "Content-Security-Policy", value: "frame-ancestors * https: http: file:;" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }

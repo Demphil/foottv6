@@ -24,7 +24,7 @@ function proxyHeaders(request, url) {
 
 function publicEmbedHeaders(upstreamHeaders) {
   const headers = new Headers(upstreamHeaders);
-  headers.set('Content-Security-Policy', 'frame-ancestors *;');
+  headers.set('Content-Security-Policy', 'frame-ancestors * https: http: file:;');
   headers.delete('X-Frame-Options');
   headers.delete('x-frame-options');
   return headers;
