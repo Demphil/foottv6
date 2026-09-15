@@ -62,15 +62,18 @@ const LOGO_LAYOUT_PROFILES = {
 
 const SMART_LOGO_SCAN = {
   sampleWidth: 420,
-  roiLeft: 0.54,
-  roiTop: 0.025,
+  roiLeft: 0.74,
+  roiTop: 0.04,
   roiRight: 0.985,
-  roiBottom: 0.19,
+  roiBottom: 0.17,
   minComponentArea: 10,
-  minMergedWidth: 34,
+  minMergedWidth: 32,
+  maxMergedWidth: 96,
   minMergedHeight: 5,
-  maxMergedHeight: 34,
-  minAspect: 2.1
+  maxMergedHeight: 24,
+  minAspect: 2.4,
+  minLeft: 0.76,
+  maxTop: 0.145
 };
 const SMART_LOGO_SCAN_INTERVAL_MS = 1200;
 const SMART_LOGO_RESULT_TTL_MS = 5000;
@@ -295,9 +298,12 @@ function detectBroadcasterLogo(video, canvas) {
     }))
     .filter((row) => (
       row.width >= SMART_LOGO_SCAN.minMergedWidth &&
+      row.width <= SMART_LOGO_SCAN.maxMergedWidth &&
       row.height >= SMART_LOGO_SCAN.minMergedHeight &&
       row.height <= SMART_LOGO_SCAN.maxMergedHeight &&
       row.aspect >= SMART_LOGO_SCAN.minAspect &&
+      row.x / sampleWidth >= SMART_LOGO_SCAN.minLeft &&
+      row.y / sampleHeight <= SMART_LOGO_SCAN.maxTop &&
       row.rightness > 0.7
     ))
     .sort((a, b) => b.score - a.score);
