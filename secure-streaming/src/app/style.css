@@ -752,12 +752,16 @@ body {
 @media (max-width: 720px) {
   .watch-page,
   .embed-page {
-    padding: 10px;
+    padding: 8px;
   }
 
   .watch-page {
-    padding-top: 18px;
+    padding-top: 10px;
     display: block;
+  }
+
+  .player-card {
+    width: 100%;
   }
 
   .player-title {
@@ -771,37 +775,82 @@ body {
   }
 
   .player-topbar {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "brand brand"
+      "quality quality"
+      "actions actions";
+    gap: 6px;
+    padding: 7px;
   }
 
-  .header-logo,
-  .topbar-actions {
+  .header-logo {
+    grid-area: brand;
     width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 42px;
+    min-height: 42px;
+    flex-basis: auto;
+  }
+
+  .header-logo img {
+    width: 124px;
+    max-width: 124px;
+    height: 32px;
+    max-height: 32px;
   }
 
   .topbar-actions {
+    grid-area: actions;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     justify-content: stretch;
+    gap: 6px;
+  }
+
+  .quality-tabs {
+    grid-area: quality;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .back-site-btn,
   .embed-open-btn {
-    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 8px;
+    font-size: 13px;
   }
 
   .secure-player-shell {
-    border-width: 4px;
+    border-width: 3px;
     transform: none;
     border-radius: 12px;
   }
 
-  .quality-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .quality-tabs button {
+    min-height: 42px;
+    padding: 5px 3px;
+    font-size: 11px;
   }
 
-  .quality-tabs button {
-    min-height: 40px;
-    font-size: 12px;
+  .quality-tabs button small {
+    font-size: 9px;
+  }
+
+  .secure-video-frame {
+    min-height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .player-refresh {
+    top: 44px;
+    left: 8px;
+    width: 32px;
+    height: 28px;
+    font-size: 18px;
   }
 
   .korlive-corner-logo {
@@ -845,10 +894,19 @@ body {
   }
 
   .promo-pop {
-    right: 10px;
-    bottom: 72px;
-    width: min(260px, calc(100% - 20px));
-    padding: 14px;
+    right: 8px;
+    bottom: 58px;
+    width: min(245px, calc(100% - 16px));
+    padding: 12px;
+  }
+
+  .promo-pop h3 {
+    font-size: 15px;
+  }
+
+  .promo-pop p,
+  .promo-pop a {
+    font-size: 12px;
   }
 
   .watch-news-section {
@@ -862,11 +920,86 @@ body {
 }
 
 @media (max-width: 520px) {
-  .quality-tabs {
+  .watch-news-grid {
     grid-template-columns: 1fr;
   }
 
-  .secure-video-frame {
-    min-height: 260px;
+  .brand-watermark.bottom-line {
+    bottom: 34px;
+    padding-inline: 8px;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  .watch-page,
+  .embed-page {
+    padding: 18px;
+  }
+
+  .player-card {
+    width: min(960px, 100%);
+  }
+
+  .player-topbar {
+    grid-template-columns: 150px minmax(320px, 1fr) 150px;
+  }
+
+  .header-logo {
+    min-width: 150px;
+    width: 150px;
+    max-width: 150px;
+  }
+
+  .quality-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1500px) {
+  .watch-page {
+    padding-top: 26px;
+  }
+
+  .player-card {
+    width: min(1420px, 78vw);
+  }
+
+  .secure-player-shell {
+    border-width: 7px;
+    border-radius: 18px;
+  }
+
+  .player-topbar {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .quality-tabs button,
+  .back-site-btn,
+  .embed-open-btn,
+  .header-logo {
+    min-height: 50px;
+    height: 50px;
+  }
+
+  .quality-tabs button {
+    font-size: 15px;
+  }
+
+  .quality-tabs button small {
+    font-size: 12px;
+  }
+
+  .header-logo {
+    width: 190px;
+    max-width: 190px;
+    min-width: 190px;
+  }
+
+  .header-logo img {
+    width: 166px;
+    max-width: 166px;
+    height: 42px;
+    max-height: 42px;
   }
 }

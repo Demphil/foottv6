@@ -12,6 +12,8 @@ const QUALITY_OPTIONS = [
 ];
 const DEFAULT_SERVER_ID = "1080p";
 const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
+const FIRST_PROMO_DELAY_MS = 2 * 60 * 1000;
+const REPEAT_PROMO_DELAY_MS = 10 * 60 * 1000;
 
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
@@ -77,6 +79,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [blocked, setBlocked] = useState("");
   const [adNotice, setAdNotice] = useState("");
   const [promoOpen, setPromoOpen] = useState(false);
+  const [canShowInterruptions, setCanShowInterruptions] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
@@ -251,8 +254,11 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, []);
 
   useEffect(() => {
-    const first = window.setTimeout(() => setPromoOpen(true), 2500);
-    const every = window.setInterval(() => setPromoOpen(true), 8 * 60 * 1000);
+    const first = window.setTimeout(() => {
+      setCanShowInterruptions(true);
+      setPromoOpen(true);
+    }, FIRST_PROMO_DELAY_MS);
+    const every = window.setInterval(() => setPromoOpen(true), REPEAT_PROMO_DELAY_MS);
     return () => {
       window.clearTimeout(first);
       window.clearInterval(every);
@@ -540,7 +546,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
           <b aria-hidden="true">KoraLive.football</b>
         </div>
 
-        {adNotice ? (
+        {adNotice && canShowInterruptions ? (
           <div className="adblock-modal" role="alert" aria-live="polite">
             <div className="adblock-modal-card">
               <div className="adblock-modal-icon">!</div>
@@ -553,7 +559,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
           </div>
         ) : null}
 
-        {promoOpen ? (
+        {promoOpen && canShowInterruptions ? (
           <aside className="promo-pop" aria-label="إعلان">
             <button type="button" className="promo-close" onClick={() => setPromoOpen(false)} aria-label="إغلاق الإعلان">×</button>
             <div className="promo-badge">🏆 بث مباشر بجودة عالية</div>
