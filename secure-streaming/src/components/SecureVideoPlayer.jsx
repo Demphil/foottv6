@@ -78,7 +78,7 @@ const SMART_LOGO_SCAN = {
 const SMART_LOGO_SCAN_INTERVAL_MS = 1200;
 const SMART_LOGO_RESULT_TTL_MS = 5000;
 const SMART_LOGO_BLOCKED_RETRY_MS = 15000;
-const BROADCASTER_TEMPLATE_MANIFEST = "/assets/broadcaster-templates/templates.json";
+const BROADCASTER_TEMPLATE_MANIFEST = "/api/broadcaster-templates/templates.json";
 const BROADCASTER_TEMPLATE_MAX_WIDTH = 86;
 const BROADCASTER_TEMPLATE_SCAN_STEP = 3;
 

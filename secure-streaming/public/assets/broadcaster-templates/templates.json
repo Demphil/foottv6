@@ -2,7 +2,7 @@
   {
     "id": "bein-sports-2",
     "label": "beIN SPORTS 2",
-    "src": "/assets/broadcaster-templates/bein-sports-2.png",
+    "src": "/api/broadcaster-templates/bein-sports-2.png",
     "threshold": 0.58,
     "search": {
       "left": 0.72,
