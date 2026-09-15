@@ -221,10 +221,63 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     frame.style.setProperty("--video-w", `${visibleVideoWidth}px`);
     frame.style.setProperty("--video-h", `${visibleVideoHeight}px`);
 
-    const logoWidth = Math.min(230, Math.max(118, visibleVideoWidth * 0.115));
-    const logoHeight = Math.min(34, Math.max(24, visibleVideoHeight * 0.03));
-    const logoRightInsideVideo = Math.min(86, Math.max(34, visibleVideoWidth * 0.04));
-    const logoTopInsideVideo = Math.min(78, Math.max(42, visibleVideoHeight * 0.07));
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    const isFrameFullscreen = Boolean(
+      fullscreenElement &&
+      (fullscreenElement === frame || frame.contains(fullscreenElement) || fullscreenElement.contains(frame))
+    );
+    const isPlayerFullscreen = Boolean(playerRef.current?.isFullscreen?.());
+    const isFullscreenLayout = isFrameFullscreen || isPlayerFullscreen || frame.classList.contains("vjs-fullscreen");
+    const isLandscape = visibleVideoWidth >= visibleVideoHeight;
+    const logoProfile = isFullscreenLayout
+      ? isLandscape
+        ? {
+            widthRatio: 0.112,
+            minWidth: 160,
+            maxWidth: 230,
+            heightRatio: 0.031,
+            minHeight: 26,
+            maxHeight: 34,
+            rightRatio: 0.044,
+            minRight: 70,
+            maxRight: 105,
+            topRatio: 0.068,
+            minTop: 56,
+            maxTop: 84
+          }
+        : {
+            widthRatio: 0.18,
+            minWidth: 88,
+            maxWidth: 165,
+            heightRatio: 0.035,
+            minHeight: 22,
+            maxHeight: 32,
+            rightRatio: 0.045,
+            minRight: 22,
+            maxRight: 54,
+            topRatio: 0.062,
+            minTop: 28,
+            maxTop: 74
+          }
+      : {
+          widthRatio: 0.12,
+          minWidth: 118,
+          maxWidth: 190,
+          heightRatio: 0.034,
+          minHeight: 23,
+          maxHeight: 32,
+          rightRatio: 0.044,
+          minRight: 34,
+          maxRight: 84,
+          topRatio: 0.064,
+          minTop: 36,
+          maxTop: 72
+        };
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    const logoWidth = clamp(visibleVideoWidth * logoProfile.widthRatio, logoProfile.minWidth, logoProfile.maxWidth);
+    const logoHeight = clamp(visibleVideoHeight * logoProfile.heightRatio, logoProfile.minHeight, logoProfile.maxHeight);
+    const logoRightInsideVideo = clamp(visibleVideoWidth * logoProfile.rightRatio, logoProfile.minRight, logoProfile.maxRight);
+    const logoTopInsideVideo = clamp(visibleVideoHeight * logoProfile.topRatio, logoProfile.minTop, logoProfile.maxTop);
     const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
@@ -232,6 +285,12 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     frame.style.setProperty("--channel-logo-right", `${frameWidth - visibleVideoRight + logoRightInsideVideo}px`);
     frame.style.setProperty("--channel-logo-top", `${visibleVideoTop + logoTopInsideVideo}px`);
     frame.style.setProperty("--ticker-bottom", `${frameHeight - visibleVideoBottom + tickerBottom}px`);
+  }
+
+  function scheduleVideoLayoutRefresh() {
+    [0, 80, 180, 360, 700, 1200].forEach((delay) => {
+      window.setTimeout(updateVideoLayoutVars, delay);
+    });
   }
 
   function disposeMpegtsPlayer() {
@@ -297,7 +356,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const updateFullscreen = () => {
       const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
       setIsFullscreen(Boolean(fullscreenElement));
-      window.setTimeout(updateVideoLayoutVars, 120);
+      scheduleVideoLayoutRefresh();
     };
     document.addEventListener("fullscreenchange", updateFullscreen);
     document.addEventListener("webkitfullscreenchange", updateFullscreen);
