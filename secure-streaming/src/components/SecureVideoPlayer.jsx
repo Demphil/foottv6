@@ -468,12 +468,13 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
 
         <div className="korlive-corner-logo" aria-hidden="true">
-          <img src={logoSrc} alt="" />
+          <strong>KoraLive</strong>
+          <small>.football</small>
         </div>
 
         <div className="brand-watermark bottom-line">
           <span>مرحبا بك في موقع كورة لايف Koralive.football &gt;</span>
-          <img src={logoSrc} alt="" aria-hidden="true" />
+          <b aria-hidden="true">KoraLive.football</b>
         </div>
 
         {adNotice ? (
