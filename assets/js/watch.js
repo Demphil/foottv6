@@ -336,7 +336,7 @@ async function loadWatchNews() {
 
     if (allArticles.length > 0) {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), articles: allArticles }));
-      renderWatchNewsCards(allArticles.slice(0, 4), newsContainer);
+      renderWatchNewsCards(allArticles.slice(0, 8), newsContainer);
     } else {
       newsContainer.innerHTML = '<p class="news-empty-msg" style="text-align:center; padding: 20px;">لا توجد أخبار حالياً.</p>';
     }
