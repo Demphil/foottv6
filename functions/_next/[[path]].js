@@ -1,5 +1,6 @@
 function cleanOrigin(value) {
-  return String(value || 'http://51.170.48.95:3000').replace(/\/$/, '');
+  const origin = String(value || 'http://51.170.48.95.nip.io:3000').replace(/\/$/, '');
+  return origin.replace('http://51.170.48.95:3000', 'http://51.170.48.95.nip.io:3000');
 }
 
 function pathToken(params) {

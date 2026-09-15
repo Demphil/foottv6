@@ -329,6 +329,60 @@ function renderSection(container, matches, message) {
   }
 }
 
+function minutesUntilKickoff(match, now = new Date()) {
+  const start = matchStartDate(match);
+  if (!start || Number.isNaN(start.getTime())) return 9999;
+  return (start - now) / 60000;
+}
+
+function isMatchLive(match, now = new Date()) {
+  const diff = minutesUntilKickoff(match, now);
+  return diff <= 0 && diff >= -getMatchDuration(match.league);
+}
+
+function renderFeaturedGroup(title, matches) {
+  if (!matches.length) return '';
+  const cards = matches.map((match) => renderMatch({ ...match, matchId: matchIdentity(match) })).join('');
+  return `
+    <section class="featured-match-row" aria-label="${escapeAttribute(title)}">
+      <h3 class="featured-row-title">${title}</h3>
+      <div class="featured-row-grid">
+        ${cards}
+      </div>
+    </section>
+  `;
+}
+
+function renderFeaturedToday(container, matches, message) {
+  if (!container) return;
+  const now = new Date();
+  const liveMatches = [];
+  const soonMatches = [];
+  const laterMatches = [];
+
+  for (const match of matches || []) {
+    const diff = minutesUntilKickoff(match, now);
+    if (isMatchLive(match, now)) liveMatches.push(match);
+    else if (diff > 0 && diff <= 60) soonMatches.push(match);
+    else if (diff > 60 && diff <= 120) laterMatches.push(match);
+  }
+
+  liveMatches.sort((a, b) => matchStartDate(b) - matchStartDate(a));
+  soonMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
+  laterMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
+
+  const html = [
+    renderFeaturedGroup('المباريات الجارية الآن', liveMatches),
+    renderFeaturedGroup('مباريات ستبدأ قريباً', soonMatches),
+    renderFeaturedGroup('مباريات بعد ساعة أو ساعتين', laterMatches)
+  ].filter(Boolean).join('');
+
+  container.innerHTML = html || `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
+  container.dataset.matchSignature = [...liveMatches, ...soonMatches, ...laterMatches]
+    .map(matchRenderSignature)
+    .join('||');
+}
+
 async function loadAndRenderMatches() {
   const [rawTodayMatches, rawTomorrowMatches] = await Promise.all([
     getTodayMatches(),
@@ -399,7 +453,7 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  renderSection(DOM.featuredContainer, trueTodayMatches, 'لا توجد مباريات جارية أو قادمة اليوم.');
+  renderFeaturedToday(DOM.featuredContainer, trueTodayMatches, 'لا توجد مباريات جارية أو قادمة خلال ساعتين.');
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
