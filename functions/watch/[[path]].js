@@ -8,23 +8,9 @@ function pathToken(params, url) {
   return (rawPath || legacyId || '').replace(/^\/+|\/+$/g, '');
 }
 
-function proxyHeaders(request, url) {
-  const headers = new Headers();
-  for (const name of ['accept', 'accept-language', 'cookie', 'user-agent']) {
-    const value = request.headers.get(name);
-    if (value) headers.set(name, value);
-  }
-  headers.set('origin', url.origin);
-  headers.set('referer', url.toString());
-  headers.set('x-koralive-proxied-watch', '1');
-  headers.set('x-forwarded-host', url.host);
-  headers.set('x-forwarded-proto', url.protocol.replace(':', ''));
-  return headers;
-}
-
 export async function onRequest({ request, params, env }) {
   const url = new URL(request.url);
-  const secureOrigin = cleanOrigin(env.SECURE_STREAMING_ORIGIN || env.STREAM_APP_ORIGIN || env.NEXT_PUBLIC_STREAM_APP_ORIGIN);
+  const secureOrigin = cleanOrigin(env.BROWSER_STREAMING_ORIGIN || env.SECURE_STREAMING_ORIGIN || env.STREAM_APP_ORIGIN || env.NEXT_PUBLIC_STREAM_APP_ORIGIN);
   const token = pathToken(params, url);
   const target = new URL(token ? `/watch/${encodeURIComponent(token)}` : '/watch/KoraLive', secureOrigin);
 
@@ -33,10 +19,5 @@ export async function onRequest({ request, params, env }) {
     target.searchParams.append(key, value);
   }
 
-  return fetch(new Request(target.toString(), {
-    method: request.method,
-    headers: proxyHeaders(request, url),
-    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-    redirect: 'manual'
-  }));
+  return Response.redirect(target.toString(), 302);
 }

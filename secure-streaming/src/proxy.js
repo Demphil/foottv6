@@ -52,7 +52,7 @@ export function proxy(request) {
   const lowerAgent = userAgent.toLowerCase();
   const response = NextResponse.next();
 
-  if (url.pathname.startsWith("/watch/") && isIpHost(hostName) && !request.headers.get("x-koralive-proxied-watch")) {
+  if (process.env.FORCE_CANONICAL_WATCH_REDIRECT === "1" && url.pathname.startsWith("/watch/") && isIpHost(hostName) && !request.headers.get("x-koralive-proxied-watch")) {
     const target = new URL(`${url.pathname}${url.search}`, canonicalOrigin());
     return NextResponse.redirect(target, 308);
   }
