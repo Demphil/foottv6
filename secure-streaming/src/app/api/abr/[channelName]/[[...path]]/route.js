@@ -50,6 +50,11 @@ export async function GET(request, { params }) {
 
     const requested = resolvedParams.path?.length ? resolvedParams.path.join("/") : "master.m3u8";
     const variant = hlsVariantId(requested);
+    if (variant === "1080p") {
+      const passthroughUrl = new URL(`/api/stream/${encodeURIComponent(channelName)}`, request.url);
+      passthroughUrl.searchParams.set("token", token);
+      return Response.redirect(passthroughUrl, 307);
+    }
     ensureTranscoder({ channelName, sourceUrl: channel.original_url, variant });
 
     const outputDir = hlsOutputDir(channelName);

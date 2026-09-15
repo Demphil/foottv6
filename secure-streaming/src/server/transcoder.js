@@ -4,14 +4,6 @@ import { execFileSync, spawn } from "node:child_process";
 
 const processes = new Map();
 const VARIANTS = {
-  "1080p": {
-    width: 1920,
-    height: 1080,
-    bitrate: process.env.ABR_1080_BITRATE || "3000k",
-    maxrate: process.env.ABR_1080_MAXRATE || "3400k",
-    bufsize: process.env.ABR_1080_BUFSIZE || "5000k",
-    audio: "128k"
-  },
   "720p": {
     width: 1280,
     height: 720,
@@ -119,6 +111,9 @@ function enforceProcessLimit() {
 export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   if (process.env.TRANSCODE_ENABLED !== "true") {
     throw new Error("Transcoding is disabled. Set TRANSCODE_ENABLED=true on a Node server with FFmpeg installed.");
+  }
+  if (variant === "1080p") {
+    throw new Error("1080p is served through the secure passthrough proxy and must not be transcoded.");
   }
   const variantId = VARIANTS[variant] ? variant : "720p";
   const profile = VARIANTS[variantId];

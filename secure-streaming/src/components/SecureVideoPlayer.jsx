@@ -6,11 +6,11 @@ import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 
 const QUALITY_OPTIONS = [
-  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", file: "1080p.m3u8" },
+  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", passthrough: true },
   { id: "720p", type: "quality", label: "سيرفر 2", sub: "720 HD", file: "720p.m3u8" },
   { id: "360p", type: "quality", label: "سيرفر 3", sub: "360 SD", file: "360p.m3u8" }
 ];
-const DEFAULT_SERVER_ID = "720p";
+const DEFAULT_SERVER_ID = "1080p";
 const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
 
 const DEFAULT_AD_SCRIPTS = [
@@ -31,6 +31,17 @@ function configuredAdScripts() {
 function buildAbrSrc(channelName, server, token) {
   const selected = server?.file ? server : QUALITY_OPTIONS.find((item) => item.id === server) || QUALITY_OPTIONS[0];
   return `/api/abr/${encodeURIComponent(channelName)}/${selected.file}?token=${encodeURIComponent(token)}`;
+}
+
+function buildStreamSrc(channelName, server, token, fallbackUrl = "") {
+  const selected = typeof server === "string"
+    ? QUALITY_OPTIONS.find((item) => item.id === server)
+    : server;
+  if (!selected?.file || selected.passthrough) {
+    return `/api/stream/${encodeURIComponent(channelName)}?token=${encodeURIComponent(token)}`;
+  }
+  if (!fallbackUrl && !selected.file) return fallbackUrl;
+  return buildAbrSrc(channelName, selected, token);
 }
 
 function parentOrigin() {
@@ -198,8 +209,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     async function boot() {
       const data = await issueToken();
       const resolvedChannelName = data.channelName || activeChannelRef.current || channelName;
-      const initialServer = QUALITY_OPTIONS.find((item) => item.id === selectedServerRef.current) || QUALITY_OPTIONS[1] || QUALITY_OPTIONS[0];
-      const src = abr ? buildAbrSrc(resolvedChannelName, initialServer, data.token) : data.streamUrl;
+      const initialServer = QUALITY_OPTIONS.find((item) => item.id === selectedServerRef.current) || QUALITY_OPTIONS[0];
+      const src = abr ? buildStreamSrc(resolvedChannelName, initialServer, data.token, data.streamUrl) : data.streamUrl;
       if (disposed || !videoRef.current) return;
       setBlocked("");
 
@@ -262,7 +273,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         tokenRef.current = data.token;
         activeChannelRef.current = data.channelName || targetChannelName;
         const wasPaused = playerRef.current.paused();
-        playerRef.current.src({ src: buildAbrSrc(activeChannelRef.current, selected, data.token), type: "application/x-mpegURL" });
+        playerRef.current.src({ src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl), type: "application/x-mpegURL" });
         if (!wasPaused) playerRef.current.play().catch(() => {});
       } catch {
         setBlocked("تعذر تشغيل هذا السيرفر الآن.");
@@ -323,7 +334,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (playerRef.current) {
         const allServers = [...QUALITY_OPTIONS, ...languageServers];
         const selected = allServers.find((item) => item.id === selectedServerId) || QUALITY_OPTIONS[0];
-        playerRef.current.src({ src: buildAbrSrc(activeChannelRef.current, selected, data.token), type: "application/x-mpegURL" });
+        playerRef.current.src({ src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl), type: "application/x-mpegURL" });
         playerRef.current.play().catch(() => {});
       }
     } catch {

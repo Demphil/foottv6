@@ -49,14 +49,14 @@ function liveWatchScript() {
     if (target && !target.classList.contains('active')) target.click();
   }
   window.addEventListener('load', function(){
-    setTimeout(function(){ clickQuality('720'); }, 900);
-    var tried360 = false;
+    var fallbackSteps = ['720','360'];
+    var fallbackIndex = 0;
     setInterval(function(){
       var errorBox = document.querySelector('.vjs-error-display');
       var visibleError = errorBox && getComputedStyle(errorBox).display !== 'none' && (errorBox.textContent || '').trim();
-      if (visibleError && !tried360) {
-        tried360 = true;
-        clickQuality('360');
+      if (visibleError && fallbackIndex < fallbackSteps.length) {
+        clickQuality(fallbackSteps[fallbackIndex]);
+        fallbackIndex += 1;
       }
     }, 2500);
   });
