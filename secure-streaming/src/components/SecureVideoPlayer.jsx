@@ -16,6 +16,49 @@ const AD_NORMAL_INTERVAL_MS = 3 * 60 * 1000;
 const AD_FULLSCREEN_INTERVAL_MS = 10 * 60 * 1000;
 const AD_SCRIPT_SLOT_MS = 25 * 1000;
 
+const LOGO_LAYOUT_PROFILES = {
+  normal: {
+    left: 0.835,
+    top: 0.083,
+    width: 0.135,
+    height: 0.04,
+    minWidth: 138,
+    maxWidth: 180,
+    minHeight: 27,
+    maxHeight: 34
+  },
+  wide: {
+    left: 0.842,
+    top: 0.069,
+    width: 0.108,
+    height: 0.033,
+    minWidth: 198,
+    maxWidth: 232,
+    minHeight: 30,
+    maxHeight: 36
+  },
+  mobileLandscape: {
+    left: 0.8,
+    top: 0.078,
+    width: 0.16,
+    height: 0.045,
+    minWidth: 96,
+    maxWidth: 160,
+    minHeight: 22,
+    maxHeight: 32
+  },
+  mobilePortrait: {
+    left: 0.62,
+    top: 0.06,
+    width: 0.26,
+    height: 0.035,
+    minWidth: 86,
+    maxWidth: 145,
+    minHeight: 21,
+    maxHeight: 30
+  }
+};
+
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
   { src: "https://quge5.com/88/tag.min.js", zone: "260051", cfasync: "false" },
@@ -228,63 +271,33 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     );
     const isPlayerFullscreen = Boolean(playerRef.current?.isFullscreen?.());
     const isLandscape = visibleVideoWidth >= visibleVideoHeight;
-    const isWideTheaterLayout = isLandscape && visibleVideoWidth >= 1200;
-    const isFullscreenLayout = isFrameFullscreen || isPlayerFullscreen || frame.classList.contains("vjs-fullscreen") || isWideTheaterLayout;
-    const logoProfile = isFullscreenLayout
-      ? isLandscape
-        ? {
-            widthRatio: 0.108,
-            minWidth: 190,
-            maxWidth: 245,
-            heightRatio: 0.031,
-            minHeight: 28,
-            maxHeight: 36,
-            rightRatio: 0.052,
-            minRight: 92,
-            maxRight: 132,
-            topRatio: 0.074,
-            minTop: 76,
-            maxTop: 96
-          }
-        : {
-            widthRatio: 0.18,
-            minWidth: 88,
-            maxWidth: 165,
-            heightRatio: 0.035,
-            minHeight: 22,
-            maxHeight: 32,
-            rightRatio: 0.045,
-            minRight: 22,
-            maxRight: 54,
-            topRatio: 0.062,
-            minTop: 28,
-            maxTop: 74
-          }
-      : {
-          widthRatio: 0.12,
-          minWidth: 118,
-          maxWidth: 190,
-          heightRatio: 0.034,
-          minHeight: 23,
-          maxHeight: 32,
-          rightRatio: 0.044,
-          minRight: 34,
-          maxRight: 84,
-          topRatio: 0.064,
-          minTop: 36,
-          maxTop: 72
-        };
+    const viewportWidth = window.visualViewport?.width || window.innerWidth || frameWidth;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight || frameHeight;
+    const isFullscreenLayout = Boolean(
+      isFrameFullscreen ||
+      isPlayerFullscreen ||
+      frame.classList.contains("vjs-fullscreen") ||
+      (frameWidth >= viewportWidth * 0.92 && frameHeight >= viewportHeight * 0.82 && frameRect.top <= 24)
+    );
+    const isPhoneLayout = Math.min(viewportWidth, viewportHeight) <= 720;
+    const logoProfileName = isPhoneLayout
+      ? (isLandscape ? "mobileLandscape" : "mobilePortrait")
+      : (isFullscreenLayout && isLandscape ? "wide" : "normal");
+    const logoProfile = LOGO_LAYOUT_PROFILES[logoProfileName];
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-    const logoWidth = clamp(visibleVideoWidth * logoProfile.widthRatio, logoProfile.minWidth, logoProfile.maxWidth);
-    const logoHeight = clamp(visibleVideoHeight * logoProfile.heightRatio, logoProfile.minHeight, logoProfile.maxHeight);
-    const logoRightInsideVideo = clamp(visibleVideoWidth * logoProfile.rightRatio, logoProfile.minRight, logoProfile.maxRight);
-    const logoTopInsideVideo = clamp(visibleVideoHeight * logoProfile.topRatio, logoProfile.minTop, logoProfile.maxTop);
+    const logoWidth = clamp(visibleVideoWidth * logoProfile.width, logoProfile.minWidth, logoProfile.maxWidth);
+    const logoHeight = clamp(visibleVideoHeight * logoProfile.height, logoProfile.minHeight, logoProfile.maxHeight);
+    const logoLeft = visibleVideoLeft + visibleVideoWidth * logoProfile.left;
+    const logoTop = visibleVideoTop + visibleVideoHeight * logoProfile.top;
+    const boundedLogoLeft = clamp(logoLeft, visibleVideoLeft + 6, visibleVideoRight - logoWidth - 6);
+    const boundedLogoTop = clamp(logoTop, visibleVideoTop + 6, visibleVideoBottom - logoHeight - 6);
     const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
+    frame.dataset.logoLayoutProfile = logoProfileName;
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
     frame.style.setProperty("--channel-logo-height", `${logoHeight}px`);
-    frame.style.setProperty("--channel-logo-right", `${frameWidth - visibleVideoRight + logoRightInsideVideo}px`);
-    frame.style.setProperty("--channel-logo-top", `${visibleVideoTop + logoTopInsideVideo}px`);
+    frame.style.setProperty("--channel-logo-left", `${boundedLogoLeft}px`);
+    frame.style.setProperty("--channel-logo-top", `${boundedLogoTop}px`);
     frame.style.setProperty("--ticker-bottom", `${frameHeight - visibleVideoBottom + tickerBottom}px`);
   }
 
