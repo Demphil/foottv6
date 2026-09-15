@@ -176,39 +176,62 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const videoHeight = video?.videoHeight || 9;
     if (!frameWidth || !frameHeight || !videoWidth || !videoHeight) return;
 
-    const frameAspect = frameWidth / frameHeight;
+    const frameRect = frame.getBoundingClientRect();
+    const videoRect = video?.getBoundingClientRect?.();
+    const videoBox = videoRect?.width && videoRect?.height
+      ? {
+          x: videoRect.left - frameRect.left,
+          y: videoRect.top - frameRect.top,
+          width: videoRect.width,
+          height: videoRect.height
+        }
+      : { x: 0, y: 0, width: frameWidth, height: frameHeight };
+    const fitMode = video ? window.getComputedStyle(video).objectFit || "contain" : "contain";
+    const frameAspect = videoBox.width / videoBox.height;
     const videoAspect = videoWidth / videoHeight;
-    let renderedWidth = frameWidth;
-    let renderedHeight = frameHeight;
-    let insetX = 0;
-    let insetY = 0;
+    let renderedWidth = videoBox.width;
+    let renderedHeight = videoBox.height;
+    let insetX = videoBox.x;
+    let insetY = videoBox.y;
 
-    if (frameAspect > videoAspect) {
-      renderedHeight = frameHeight;
-      renderedWidth = frameHeight * videoAspect;
-      insetX = (frameWidth - renderedWidth) / 2;
-    } else {
-      renderedWidth = frameWidth;
-      renderedHeight = frameWidth / videoAspect;
-      insetY = (frameHeight - renderedHeight) / 2;
+    if (fitMode !== "fill") {
+      const shouldContain = fitMode !== "cover";
+      const boxIsWider = frameAspect > videoAspect;
+      const sizeByHeight = shouldContain ? boxIsWider : !boxIsWider;
+      if (sizeByHeight) {
+        renderedHeight = videoBox.height;
+        renderedWidth = videoBox.height * videoAspect;
+        insetX = videoBox.x + (videoBox.width - renderedWidth) / 2;
+      } else {
+        renderedWidth = videoBox.width;
+        renderedHeight = videoBox.width / videoAspect;
+        insetY = videoBox.y + (videoBox.height - renderedHeight) / 2;
+      }
     }
 
-    frame.style.setProperty("--video-x", `${insetX}px`);
-    frame.style.setProperty("--video-y", `${insetY}px`);
-    frame.style.setProperty("--video-w", `${renderedWidth}px`);
-    frame.style.setProperty("--video-h", `${renderedHeight}px`);
+    const visibleVideoLeft = Math.max(0, insetX);
+    const visibleVideoTop = Math.max(0, insetY);
+    const visibleVideoRight = Math.min(frameWidth, insetX + renderedWidth);
+    const visibleVideoBottom = Math.min(frameHeight, insetY + renderedHeight);
+    const visibleVideoWidth = Math.max(0, visibleVideoRight - visibleVideoLeft);
+    const visibleVideoHeight = Math.max(0, visibleVideoBottom - visibleVideoTop);
 
-    const logoWidth = Math.min(170, Math.max(118, renderedWidth * 0.145));
-    const logoHeight = Math.min(28, Math.max(21, renderedHeight * 0.046));
-    const logoRight = Math.min(82, Math.max(22, renderedWidth * 0.062));
-    const logoTop = Math.min(34, Math.max(13, renderedHeight * 0.047));
-    const tickerBottom = Math.min(42, Math.max(18, renderedHeight * 0.055));
+    frame.style.setProperty("--video-x", `${visibleVideoLeft}px`);
+    frame.style.setProperty("--video-y", `${visibleVideoTop}px`);
+    frame.style.setProperty("--video-w", `${visibleVideoWidth}px`);
+    frame.style.setProperty("--video-h", `${visibleVideoHeight}px`);
+
+    const logoWidth = Math.min(230, Math.max(118, visibleVideoWidth * 0.115));
+    const logoHeight = Math.min(34, Math.max(24, visibleVideoHeight * 0.03));
+    const logoRightInsideVideo = Math.min(86, Math.max(34, visibleVideoWidth * 0.04));
+    const logoTopInsideVideo = Math.min(78, Math.max(42, visibleVideoHeight * 0.07));
+    const tickerBottom = Math.min(42, Math.max(18, visibleVideoHeight * 0.055));
 
     frame.style.setProperty("--channel-logo-width", `${logoWidth}px`);
     frame.style.setProperty("--channel-logo-height", `${logoHeight}px`);
-    frame.style.setProperty("--channel-logo-right", `${insetX + logoRight}px`);
-    frame.style.setProperty("--channel-logo-top", `${insetY + logoTop}px`);
-    frame.style.setProperty("--ticker-bottom", `${frameHeight - insetY - renderedHeight + tickerBottom}px`);
+    frame.style.setProperty("--channel-logo-right", `${frameWidth - visibleVideoRight + logoRightInsideVideo}px`);
+    frame.style.setProperty("--channel-logo-top", `${visibleVideoTop + logoTopInsideVideo}px`);
+    frame.style.setProperty("--ticker-bottom", `${frameHeight - visibleVideoBottom + tickerBottom}px`);
   }
 
   function disposeMpegtsPlayer() {
