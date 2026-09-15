@@ -46,6 +46,7 @@ logs/
 *.tmp
 *.temp
 .deploy-pages/
+.deploy-pages-*/
 .deploy-nginx-*.conf
 .oci-open80-check.sh
 
