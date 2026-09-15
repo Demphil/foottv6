@@ -125,6 +125,17 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.watch-player-watermark {
+  position: absolute;
+  top: 5%;
+  right: 3%;
+  width: 12%;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  object-fit: contain;
+}
+
 /* الفوتر */
 .footer {
   background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
@@ -193,6 +204,12 @@ body {
   #match-container {
     margin-top: 80px;
     padding: 10px;
+  }
+
+  .watch-player-watermark {
+    top: 5%;
+    right: 4%;
+    width: 18%;
   }
   
   .server-btn {

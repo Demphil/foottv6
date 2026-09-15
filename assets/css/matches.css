@@ -153,6 +153,16 @@ body {
   width: 100%;
 }
 
+.all-matches .matches-grid {
+  width: 100%;
+}
+
+.all-matches .tab-content.active {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: stretch;
+  max-width: none;
+}
+
 /* 5. بطاقة المباراة الموحدة */
 a.match-card-link {
   text-decoration: none;
@@ -413,6 +423,9 @@ a.match-card-link {
   .tab-content.active {
     grid-template-columns: 1fr;
   }
+  .all-matches .tab-content.active {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* --- الأجهزة اللوحية (Tablets) --- */
@@ -422,6 +435,9 @@ a.match-card-link {
   }
   .tab-content.active {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .all-matches .tab-content.active {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
   .header .header-title {
     font-size: 1.2rem;

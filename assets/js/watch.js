@@ -72,6 +72,8 @@ function streamsFromMatch(match) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  loadWatchNews();
+
   const playerContainer = document.getElementById('player-container');
   const playerLoader = document.getElementById('player-loader');
   const serversContainer = document.getElementById('servers-container') || createServersContainer(playerContainer);
@@ -79,9 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!playerContainer || !playerLoader) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const matchId = normalizeMatchId(urlParams.get('id'));
-  redirectLegacyWatchRoute(matchId);
-  return;
+  const pathMatch = window.location.pathname.match(/\/watch\/([^/?#]+)/);
+  const matchId = normalizeMatchId(urlParams.get('id') || (pathMatch ? decodeURIComponent(pathMatch[1]) : ''));
 
   let streams = [];
   if (matchId) {
@@ -268,6 +269,9 @@ function loadPlayer(stream, container, loader) {
   iframe.onload = () => { if (loader) loader.style.display = 'none'; };
   container.appendChild(iframe);
 
+  const watermark = createPlayerWatermark();
+  container.appendChild(watermark);
+
   const clickTrap = document.createElement('div');
   clickTrap.style.position = 'absolute';
   clickTrap.style.inset = '0';
@@ -279,6 +283,24 @@ function loadPlayer(stream, container, loader) {
     clickTrap.remove();
   }, { once: true });
   container.appendChild(clickTrap);
+}
+
+function createPlayerWatermark() {
+  const watermark = document.createElement('img');
+  watermark.src = 'assets/images/logo.png';
+  watermark.alt = 'KoraLive Football';
+  watermark.className = 'watch-player-watermark';
+  watermark.setAttribute('aria-hidden', 'true');
+  watermark.style.position = 'absolute';
+  watermark.style.top = '5%';
+  watermark.style.right = '3%';
+  watermark.style.width = '12%';
+  watermark.style.height = 'auto';
+  watermark.style.zIndex = '10';
+  watermark.style.pointerEvents = 'none';
+  watermark.style.objectFit = 'contain';
+  watermark.onerror = function() { this.style.display = 'none'; };
+  return watermark;
 }
 
 async function loadWatchNews() {

@@ -26,6 +26,74 @@ const DOM = {
   tomorrowTab: document.getElementById('tomorrow-tab'),
 };
 
+const TODAY_RETENTION_KEY = 'koralive_retained_today_matches_v1';
+let midnightRefreshTimer = null;
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function millisecondsUntilLocalMidnight(now = new Date()) {
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return Math.max(1000, nextMidnight.getTime() - now.getTime());
+}
+
+function readRetainedTodayMatches() {
+  try {
+    const payload = JSON.parse(localStorage.getItem(TODAY_RETENTION_KEY) || 'null');
+    if (!payload || payload.localDate !== localDateKey() || !Array.isArray(payload.matches)) {
+      localStorage.removeItem(TODAY_RETENTION_KEY);
+      return [];
+    }
+    return payload.matches;
+  } catch {
+    localStorage.removeItem(TODAY_RETENTION_KEY);
+    return [];
+  }
+}
+
+function retainTodayMatches(matches) {
+  try {
+    localStorage.setItem(TODAY_RETENTION_KEY, JSON.stringify({
+      localDate: localDateKey(),
+      savedAt: Date.now(),
+      matches
+    }));
+  } catch (error) {
+    console.warn('[MATCHES] Could not retain today matches until midnight:', error);
+  }
+}
+
+function mergeByMatchIdentity(primaryMatches, fallbackMatches) {
+  const merged = [];
+  const seen = new Set();
+
+  [...(primaryMatches || []), ...(fallbackMatches || [])].forEach((match) => {
+    if (!match?.homeTeam?.name || !match?.awayTeam?.name) return;
+    const key = matchIdentity(match);
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(match);
+  });
+
+  return merged;
+}
+
+function scheduleMidnightRefresh() {
+  if (midnightRefreshTimer) window.clearTimeout(midnightRefreshTimer);
+  midnightRefreshTimer = window.setTimeout(() => {
+    localStorage.removeItem(TODAY_RETENTION_KEY);
+    loadAndRenderMatches().catch(error => {
+      console.error("An error occurred while refreshing matches at midnight:", error);
+      hideLoading();
+    });
+  }, millisecondsUntilLocalMidnight() + 1000);
+}
+
 function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
 }
@@ -438,10 +506,17 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  renderFeaturedToday(DOM.featuredContainer, trueTodayMatches, 'لا توجد مباريات جارية أو قادمة خلال ساعتين.');
-  renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
-  renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
+  const retainedTodayMatches = readRetainedTodayMatches()
+    .filter(match => localMatchDay(match, now) === 'today');
+  const todayMatchesUntilMidnight = mergeByMatchIdentity(trueTodayMatches, retainedTodayMatches);
+  todayMatchesUntilMidnight.sort(sortMatches);
+  retainTodayMatches(todayMatchesUntilMidnight);
+
+  renderFeaturedToday(DOM.featuredContainer, todayMatchesUntilMidnight, 'لا توجد مباريات جارية أو قادمة خلال ساعتين.');
+  renderSection(DOM.broadcastContainer, todayMatchesUntilMidnight, 'لا توجد مباريات هامة اليوم.');
+  renderSection(DOM.todayContainer, todayMatchesUntilMidnight, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
+  scheduleMidnightRefresh();
 }
 
 function setupTabs() {

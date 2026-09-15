@@ -95,6 +95,14 @@ function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
 // --- 3. Database API ---
 
 let stagingMatchesPromise = null;
+let stagingMatchesLocalDateKey = '';
+
+function browserLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function normalizeStagingMatch(match) {
   const homeName = typeof match.homeTeam === 'object' ? match.homeTeam.name : match.homeTeam;
@@ -123,6 +131,12 @@ function normalizeStagingMatch(match) {
 }
 
 async function getStagingMatches() {
+  const currentLocalDateKey = browserLocalDateKey();
+  if (stagingMatchesLocalDateKey && stagingMatchesLocalDateKey !== currentLocalDateKey) {
+    stagingMatchesPromise = null;
+  }
+  stagingMatchesLocalDateKey = currentLocalDateKey;
+
   if (!stagingMatchesPromise) {
     stagingMatchesPromise = fetch(`/api/matches?t=${Date.now()}`, { cache: 'no-store' })
       .then((response) => {
