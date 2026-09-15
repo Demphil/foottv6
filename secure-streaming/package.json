@@ -28,6 +28,7 @@
     "@videojs/http-streaming": "3.17.5",
     "cheerio": "^1.1.2",
     "jsonwebtoken": "9.0.3",
+    "mpegts.js": "^1.8.2",
     "next": "16.3.5",
     "node-cron": "^4.2.1",
     "react": "19.3.0",

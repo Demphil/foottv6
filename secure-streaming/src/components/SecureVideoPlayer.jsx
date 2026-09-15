@@ -66,6 +66,7 @@ function opaqueWatchId(value) {
 export default function SecureVideoPlayer({ channelName, matchId = "", publicStreamId = "", embed = false, abr = true }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
+  const mpegtsPlayerRef = useRef(null);
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
   const selectedServerRef = useRef(DEFAULT_SERVER_ID);
@@ -79,6 +80,62 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
   const brandRoot = brandUrl.replace(/\/$/, "");
   const logoSrc = `${brandRoot}/assets/images/logo.png`;
+
+  function fallbackToNextServer() {
+    const currentIndex = FALLBACK_SERVER_ORDER.indexOf(selectedServerRef.current);
+    const nextServerId = currentIndex >= 0 ? FALLBACK_SERVER_ORDER[currentIndex + 1] : "360p";
+    if (nextServerId) {
+      selectedServerRef.current = nextServerId;
+      setSelectedServerId(nextServerId);
+      return true;
+    }
+    setBlocked("تعذر تشغيل هذا السيرفر الآن. يرجى تحديث البث أو المحاولة لاحقاً.");
+    return false;
+  }
+
+  function disposeMpegtsPlayer() {
+    if (!mpegtsPlayerRef.current) return;
+    try {
+      mpegtsPlayerRef.current.pause();
+      mpegtsPlayerRef.current.unload();
+      mpegtsPlayerRef.current.detachMediaElement();
+      mpegtsPlayerRef.current.destroy();
+    } catch {}
+    mpegtsPlayerRef.current = null;
+  }
+
+  async function applyPlayerSource({ src, streamType = "hls", autoplay = false }) {
+    if (!playerRef.current) return;
+    const videoElement = playerRef.current.tech?.(true)?.el?.() || videoRef.current;
+    if (streamType === "mpegts") {
+      disposeMpegtsPlayer();
+      playerRef.current.pause();
+      const module = await import("mpegts.js");
+      const mpegts = module.default || module;
+      if (!videoElement || !mpegts.isSupported()) throw new Error("mpegts unsupported");
+      const mpegtsPlayer = mpegts.createPlayer(
+        { type: "mpegts", isLive: true, url: src },
+        {
+          enableWorker: true,
+          liveBufferLatencyChasing: true,
+          liveBufferLatencyMaxLatency: 8,
+          liveBufferLatencyMinRemain: 1,
+          lazyLoad: false,
+          stashInitialSize: 384 * 1024
+        }
+      );
+      mpegtsPlayerRef.current = mpegtsPlayer;
+      mpegtsPlayer.on(mpegts.Events.ERROR, () => fallbackToNextServer());
+      mpegtsPlayer.attachMediaElement(videoElement);
+      mpegtsPlayer.load();
+      if (autoplay) videoElement.play().catch(() => {});
+      return;
+    }
+
+    disposeMpegtsPlayer();
+    playerRef.current.src({ src, type: "application/x-mpegURL" });
+    if (autoplay) playerRef.current.play().catch(() => {});
+  }
 
   useEffect(() => {
     if (embed || !brandUrl) return;
@@ -228,25 +285,22 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
             playlistExclusionDuration: 12
           }
         },
-        sources: [{ src, type: "application/x-mpegURL" }]
+        sources: []
       });
 
       playerRef.current.on("error", () => {
-        const currentIndex = FALLBACK_SERVER_ORDER.indexOf(selectedServerRef.current);
-        const nextServerId = currentIndex >= 0 ? FALLBACK_SERVER_ORDER[currentIndex + 1] : "360p";
-        if (nextServerId) {
-          selectedServerRef.current = nextServerId;
-          setSelectedServerId(nextServerId);
-        } else {
-          setBlocked("تعذر تشغيل هذا السيرفر الآن. يرجى تحديث البث أو المحاولة لاحقاً.");
-        }
+        fallbackToNextServer();
       });
+
+      const streamType = initialServer.passthrough ? data.streamType : "hls";
+      await applyPlayerSource({ src, streamType });
     }
 
     boot().catch(() => setBlocked("تعذر تشغيل البث الآمن."));
     return () => {
       disposed = true;
       if (playerRef.current) {
+        disposeMpegtsPlayer();
         playerRef.current.dispose();
         playerRef.current = null;
       }
@@ -273,8 +327,11 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         tokenRef.current = data.token;
         activeChannelRef.current = data.channelName || targetChannelName;
         const wasPaused = playerRef.current.paused();
-        playerRef.current.src({ src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl), type: "application/x-mpegURL" });
-        if (!wasPaused) playerRef.current.play().catch(() => {});
+        await applyPlayerSource({
+          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
+          streamType: selected.passthrough ? data.streamType : "hls",
+          autoplay: !wasPaused
+        });
       } catch {
         setBlocked("تعذر تشغيل هذا السيرفر الآن.");
       }
@@ -334,8 +391,11 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (playerRef.current) {
         const allServers = [...QUALITY_OPTIONS, ...languageServers];
         const selected = allServers.find((item) => item.id === selectedServerId) || QUALITY_OPTIONS[0];
-        playerRef.current.src({ src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl), type: "application/x-mpegURL" });
-        playerRef.current.play().catch(() => {});
+        await applyPlayerSource({
+          src: buildStreamSrc(activeChannelRef.current, selected, data.token, data.streamUrl),
+          streamType: selected.passthrough ? data.streamType : "hls",
+          autoplay: true
+        });
       }
     } catch {
       setBlocked("تعذر تحديث البث الآن.");
