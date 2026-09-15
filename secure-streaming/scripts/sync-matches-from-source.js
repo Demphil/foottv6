@@ -60,6 +60,27 @@ function slugify(value) {
     .toLowerCase();
 }
 
+function absoluteUrl(value, baseUrl = BASE_SITE_URL) {
+  const src = String(value || "").trim();
+  if (!src || src.startsWith("data:") || src.startsWith("blob:")) return "";
+  try {
+    return new URL(src, baseUrl).href;
+  } catch {
+    return "";
+  }
+}
+
+function imageUrlFrom($, root, selector) {
+  const image = root.find(selector).first();
+  const src = image.attr("data-src") ||
+    image.attr("data-lazy-src") ||
+    image.attr("data-original") ||
+    image.attr("src") ||
+    image.attr("srcset")?.split(",")?.[0]?.trim()?.split(/\s+/)?.[0] ||
+    "";
+  return absoluteUrl(src);
+}
+
 async function fetchHtml(url) {
   const response = await fetch(url, {
     headers: {
@@ -91,6 +112,8 @@ function parseMatches(html, dayOffset) {
     const league = infoItems[infoItems.length - 1] || "League";
     const commentator = infoItems[1] || "";
     const matchId = `${slugify(homeTeam)}_vs_${slugify(awayTeam)}`;
+    const homeLogo = imageUrlFrom($, matchEl, ".MT_Team.TM1 img");
+    const awayLogo = imageUrlFrom($, matchEl, ".MT_Team.TM2 img");
 
     rows.push({
       id: `${date}_${matchId}`,
@@ -105,6 +128,10 @@ function parseMatches(html, dayOffset) {
       payload: {
         score,
         time: time.formatted,
+        homeLogo,
+        awayLogo,
+        homeTeam: { name: homeTeam, logo: homeLogo },
+        awayTeam: { name: awayTeam, logo: awayLogo },
         commentator: /غير معروف|unknown/i.test(commentator) ? "" : commentator,
         matchLink: matchEl.find("a").first().attr("href") || "",
         channelSource: "trusted_source_required"
@@ -133,14 +160,23 @@ async function mergeExistingChannels(supabase, rows) {
   const existingByMatchId = new Map((data || []).map((row) => [row.match_id, row]));
   return rows.map((row) => {
     const existing = existingByMatchId.get(row.match_id);
-    if (!existing?.channel) return row;
+    if (!existing?.channel && !existing?.payload) return row;
+    const existingPayload = existing.payload || {};
+    const nextPayload = row.payload || {};
+    const homeLogo = nextPayload.homeLogo || nextPayload.homeTeam?.logo || existingPayload.homeLogo || existingPayload.homeTeam?.logo || "";
+    const awayLogo = nextPayload.awayLogo || nextPayload.awayTeam?.logo || existingPayload.awayLogo || existingPayload.awayTeam?.logo || "";
+
     return {
       ...row,
-      channel: existing.channel,
+      channel: existing.channel || row.channel,
       payload: {
-        ...(existing.payload || {}),
-        ...(row.payload || {}),
-        previousChannelPreserved: true
+        ...existingPayload,
+        ...nextPayload,
+        homeLogo,
+        awayLogo,
+        homeTeam: { name: row.home_team, ...(existingPayload.homeTeam || {}), ...(nextPayload.homeTeam || {}), logo: homeLogo },
+        awayTeam: { name: row.away_team, ...(existingPayload.awayTeam || {}), ...(nextPayload.awayTeam || {}), logo: awayLogo },
+        previousChannelPreserved: Boolean(existing.channel)
       }
     };
   });

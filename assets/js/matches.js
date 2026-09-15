@@ -17,6 +17,8 @@ const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url
 
 if (!supabaseClient) console.info('[MATCHES] Public Supabase client is not configured; using the server match feed.');
 
+const DEFAULT_TEAM_LOGO = 'assets/images/default-team.svg';
+
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
   broadcastContainer: document.getElementById('broadcast-matches'),
@@ -98,8 +100,8 @@ function renderMatch(match) {
   const { homeTeam, awayTeam } = match;
   const homeTeamName = homeTeam.name;
   const awayTeamName = awayTeam.name;
-  const homeLogo = homeTeam.logo || 'assets/images/default-logo.jpg';
-  const awayLogo = awayTeam.logo || 'assets/images/default-logo.jpg';
+  const homeLogo = safeImageUrl(homeTeam.logo, DEFAULT_TEAM_LOGO);
+  const awayLogo = safeImageUrl(awayTeam.logo, DEFAULT_TEAM_LOGO);
   const matchSpecificKey = `${homeTeamName}-${awayTeamName}`;
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
@@ -233,7 +235,7 @@ function renderMatch(match) {
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${homeLogo}" alt="${homeTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <img src="${escapeAttribute(homeLogo)}" alt="${escapeAttribute(homeTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
             <span class="team-name">${homeTeamName}</span>
           </div>
           <div class="match-info">
@@ -241,7 +243,7 @@ function renderMatch(match) {
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
-            <img src="${awayLogo}" alt="${awayTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
+            <img src="${escapeAttribute(awayLogo)}" alt="${escapeAttribute(awayTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
             <span class="team-name">${awayTeamName}</span>
           </div>
         </div>
@@ -250,6 +252,33 @@ function renderMatch(match) {
     </a>
   `;
 }
+
+function safeImageUrl(value, fallback = DEFAULT_TEAM_LOGO) {
+  const url = String(value || '').trim();
+  if (!url) return fallback;
+  try {
+    const parsed = new URL(url, window.location.href);
+    return ['http:', 'https:'].includes(parsed.protocol) || parsed.origin === window.location.origin
+      ? parsed.href
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function escapeAttribute(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+window.useDefaultTeamLogo = function(image) {
+  if (!image || image.dataset.fallbackApplied === 'true') return;
+  image.dataset.fallbackApplied = 'true';
+  image.src = DEFAULT_TEAM_LOGO;
+};
 
 function matchIdentity(match) {
   return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;

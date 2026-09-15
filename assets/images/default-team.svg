@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Team logo">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="84" y2="88" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9d2df"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="28" y1="20" x2="68" y2="78" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#e63946"/>
+    </linearGradient>
+  </defs>
+  <circle cx="48" cy="48" r="45" fill="url(#bg)"/>
+  <path fill="url(#mark)" d="M48 15 77 31v23c0 17-12 27-29 33-17-6-29-16-29-33V31l29-16Z"/>
+  <path fill="#1d3557" d="M48 26c12 0 22 10 22 22S60 70 48 70 26 60 26 48s10-22 22-22Zm0 8-6 4 2 7-6 4 7 1 3 7 3-7 7-1-6-4 2-7-6-4Z"/>
+</svg>
