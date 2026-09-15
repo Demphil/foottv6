@@ -10,6 +10,8 @@ const QUALITY_OPTIONS = [
   { id: "720p", type: "quality", label: "سيرفر 2", sub: "720 HD", file: "720p.m3u8" },
   { id: "360p", type: "quality", label: "سيرفر 3", sub: "360 SD", file: "360p.m3u8" }
 ];
+const DEFAULT_SERVER_ID = "720p";
+const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
 
 const DEFAULT_AD_SCRIPTS = [
   { src: "https://al5sm.com/tag.min.js", zone: "11638896" },
@@ -55,7 +57,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const playerRef = useRef(null);
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
-  const [selectedServerId, setSelectedServerId] = useState("1080p");
+  const selectedServerRef = useRef(DEFAULT_SERVER_ID);
+  const [selectedServerId, setSelectedServerId] = useState(DEFAULT_SERVER_ID);
   const [languageServers, setLanguageServers] = useState([]);
   const [blocked, setBlocked] = useState("");
   const [adNotice, setAdNotice] = useState("");
@@ -195,7 +198,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     async function boot() {
       const data = await issueToken();
       const resolvedChannelName = data.channelName || activeChannelRef.current || channelName;
-      const src = abr ? buildAbrSrc(resolvedChannelName, QUALITY_OPTIONS[0], data.token) : data.streamUrl;
+      const initialServer = QUALITY_OPTIONS.find((item) => item.id === selectedServerRef.current) || QUALITY_OPTIONS[1] || QUALITY_OPTIONS[0];
+      const src = abr ? buildAbrSrc(resolvedChannelName, initialServer, data.token) : data.streamUrl;
       if (disposed || !videoRef.current) return;
       setBlocked("");
 
@@ -208,10 +212,23 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         html5: {
           vhs: {
             overrideNative: true,
-            enableLowInitialPlaylist: false
+            enableLowInitialPlaylist: true,
+            handleManifestRedirects: true,
+            playlistExclusionDuration: 12
           }
         },
         sources: [{ src, type: "application/x-mpegURL" }]
+      });
+
+      playerRef.current.on("error", () => {
+        const currentIndex = FALLBACK_SERVER_ORDER.indexOf(selectedServerRef.current);
+        const nextServerId = currentIndex >= 0 ? FALLBACK_SERVER_ORDER[currentIndex + 1] : "360p";
+        if (nextServerId) {
+          selectedServerRef.current = nextServerId;
+          setSelectedServerId(nextServerId);
+        } else {
+          setBlocked("تعذر تشغيل هذا السيرفر الآن. يرجى تحديث البث أو المحاولة لاحقاً.");
+        }
       });
     }
 
@@ -337,6 +354,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     event.preventDefault();
     event.stopPropagation();
     setBlocked("");
+    selectedServerRef.current = id;
     setSelectedServerId(id);
   }
 

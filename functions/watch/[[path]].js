@@ -37,6 +37,31 @@ function liveWatchCss() {
 </style>`;
 }
 
+function liveWatchScript() {
+  return `
+<script id="koralive-watch-stability-fix">
+(function(){
+  function clickQuality(label){
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.quality-tabs button'));
+    var target = buttons.find(function(button){ return (button.textContent || '').indexOf(label) !== -1; });
+    if (target && !target.classList.contains('active')) target.click();
+  }
+  window.addEventListener('load', function(){
+    setTimeout(function(){ clickQuality('720'); }, 900);
+    var tried360 = false;
+    setInterval(function(){
+      var errorBox = document.querySelector('.vjs-error-display');
+      var visibleError = errorBox && getComputedStyle(errorBox).display !== 'none' && (errorBox.textContent || '').trim();
+      if (visibleError && !tried360) {
+        tried360 = true;
+        clickQuality('360');
+      }
+    }, 2500);
+  });
+})();
+</script>`;
+}
+
 async function patchWatchHtml(response) {
   const contentType = response.headers.get('content-type') || '';
   if (!contentType.includes('text/html')) return response;
@@ -44,7 +69,7 @@ async function patchWatchHtml(response) {
   let html = await response.text();
   html = html
     .replaceAll('/assets/images/default-news.jpg', '/assets/images/logo.png')
-    .replace('</head>', `${liveWatchCss()}</head>`);
+    .replace('</head>', `${liveWatchCss()}${liveWatchScript()}</head>`);
 
   return new Response(html, {
     status: response.status,

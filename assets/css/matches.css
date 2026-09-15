@@ -137,14 +137,20 @@ body {
 .tab-content { display: none; }
 .tab-content.active {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: 760px;
+  margin-inline: auto;
+  width: 100%;
 }
 
 .featured-slider {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: 760px;
+  margin-inline: auto;
+  width: 100%;
 }
 
 /* 5. بطاقة المباراة الموحدة */
