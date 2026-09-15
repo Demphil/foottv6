@@ -31,7 +31,25 @@ npm run import:m3u:dry
 npm run import:m3u
 ```
 
-5. Run locally:
+5. Optional provider URL auto-sync:
+
+Set `IPTV_PROVIDER_URL` in `.env.local` to the provider's dynamic M3U URL. The sync command refreshes URLs for existing Supabase channels only, so provider token changes do not require a manual import.
+
+```bash
+npm run sync:iptv:dry
+npm run sync:iptv
+```
+
+Run the background cron next to the Next.js PM2 app:
+
+```bash
+pm2 start npm --name "iptv-provider-sync" -- run cron:iptv-provider
+pm2 save
+```
+
+The default schedule is every 6 hours (`IPTV_PROVIDER_SYNC_CRON=0 */6 * * *`) using `Africa/Casablanca`. Missing provider entries are not deactivated unless `IPTV_SYNC_DEACTIVATE_MISSING=true`. Provider sync is sports-only by default (`IPTV_SYNC_ONLY_SPORTS=true`) so movie, VOD, and series links are ignored.
+
+6. Run locally:
 
 ```bash
 npm run dev

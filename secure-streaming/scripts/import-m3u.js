@@ -74,8 +74,7 @@ function entrySearchText(entry) {
   return normalizeName(`${entry.name} ${entry.group || ""}`);
 }
 
-export function parseM3u(filePath) {
-  const text = fs.readFileSync(filePath, "utf8");
+export function parseM3uText(text) {
   const lines = text.split(/\r?\n/);
   const entries = [];
   let current = null;
@@ -103,6 +102,10 @@ export function parseM3u(filePath) {
     }
   }
   return entries;
+}
+
+export function parseM3u(filePath) {
+  return parseM3uText(fs.readFileSync(filePath, "utf8"));
 }
 
 function channelRule(name) {
