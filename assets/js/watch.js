@@ -318,7 +318,7 @@ async function loadWatchNews() {
     if (cachedData) {
       const { timestamp, articles } = JSON.parse(cachedData);
       if (Date.now() - timestamp < CACHE_TIME && articles?.length) {
-        renderWatchNewsCards(articles.slice(0, 4), newsContainer);
+        renderWatchNewsCards(articles.slice(0, 10), newsContainer);
         return;
       }
     }
@@ -336,7 +336,7 @@ async function loadWatchNews() {
 
     if (allArticles.length > 0) {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), articles: allArticles }));
-      renderWatchNewsCards(allArticles.slice(0, 8), newsContainer);
+      renderWatchNewsCards(allArticles.slice(0, 4), newsContainer);
     } else {
       newsContainer.innerHTML = '<p class="news-empty-msg" style="text-align:center; padding: 20px;">لا توجد أخبار حالياً.</p>';
     }
