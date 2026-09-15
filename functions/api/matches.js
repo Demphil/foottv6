@@ -34,6 +34,37 @@ function moroccoTime(value) {
   }).format(date);
 }
 
+function moroccoParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Casablanca',
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(date);
+
+  return Object.fromEntries(parts
+    .filter(({ type }) => type !== 'literal')
+    .map(({ type, value }) => [type, Number(value)]));
+}
+
+function localMoroccoDateTimeToUtcIso(dateKey, hour = 0, minute = 0, second = 0) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const localAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  const zoned = moroccoParts(new Date(localAsUtc));
+  const offsetAsUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, zoned.hour, zoned.minute, zoned.second);
+  return new Date(localAsUtc - (offsetAsUtc - localAsUtc)).toISOString();
+}
+
+function addDaysToDateKey(dateKey, days) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+}
+
 function normalizeChannelName(value) {
   return String(value || '')
     .normalize('NFKC')
@@ -176,9 +207,13 @@ export async function onRequestGet({ request, env }) {
 
   const endpoint = new URL(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${table}`);
   endpoint.searchParams.set('select', 'id,match_id,home_team,away_team,league,kickoff_time,channel,payload,active,updated_at');
-  endpoint.searchParams.set('active', 'eq.true');
+  const todayKey = moroccoDate(new Date());
+  const rangeStart = localMoroccoDateTimeToUtcIso(todayKey, 0, 0, 0);
+  const rangeEnd = localMoroccoDateTimeToUtcIso(addDaysToDateKey(todayKey, 2), 0, 0, 0);
+  endpoint.searchParams.set('kickoff_time', `gte.${rangeStart}`);
+  endpoint.searchParams.append('kickoff_time', `lt.${rangeEnd}`);
   endpoint.searchParams.set('order', 'kickoff_time.asc.nullslast');
-  endpoint.searchParams.set('limit', '150');
+  endpoint.searchParams.set('limit', '300');
 
   let response;
   try {
