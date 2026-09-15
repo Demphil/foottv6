@@ -2,9 +2,7 @@
 
 import {
   getTodayMatches,
-  getTomorrowMatches,
-  getMoroccoWallClockNow,
-  getMoroccoDay
+  getTomorrowMatches
 } from './api.js';
 
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
@@ -64,10 +62,15 @@ function getMatchDuration(leagueName) {
     return isKnockout ? 140 : 120; 
 }
 
-// تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
+// التوقيت المخزن في scheduledAt هو المصدر الأدق، ويعرض لاحقاً بتوقيت زائر الموقع.
+// إذا لم يصل scheduledAt نستخدم وقت المصدر السعودي كخطة احتياطية فقط.
 function matchStartDate(match) {
+  if (match?.scheduledAt) {
+    const scheduledDate = new Date(match.scheduledAt);
+    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
+  }
+
   if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
-    // إزالة ^ و $ من البحث لكي نلتقط الوقت حتى لو كان محاطاً بمسافات مخفية
     const timeMatch = String(match.time).match(/(\d{1,2}):(\d{2})/);
     if (timeMatch) {
       let hour = Number(timeMatch[1]);
@@ -82,12 +85,6 @@ function matchStartDate(match) {
       const now = new Date();
       return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), utcHour, minute, 0));
     }
-  }
-
-  // كخيار احتياطي
-  if (match?.scheduledAt) {
-    const scheduledDate = new Date(match.scheduledAt);
-    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
   }
 
   return null;
@@ -340,19 +337,6 @@ function isMatchLive(match, now = new Date()) {
   return diff <= 0 && diff >= -getMatchDuration(match.league);
 }
 
-function renderFeaturedGroup(title, matches) {
-  if (!matches.length) return '';
-  const cards = matches.map((match) => renderMatch({ ...match, matchId: matchIdentity(match) })).join('');
-  return `
-    <section class="featured-match-row" aria-label="${escapeAttribute(title)}">
-      <h3 class="featured-row-title">${title}</h3>
-      <div class="featured-row-grid">
-        ${cards}
-      </div>
-    </section>
-  `;
-}
-
 function renderFeaturedToday(container, matches, message) {
   if (!container) return;
   const now = new Date();
@@ -371,16 +355,17 @@ function renderFeaturedToday(container, matches, message) {
   soonMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
   laterMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
 
-  const html = [
-    renderFeaturedGroup('المباريات الجارية الآن', liveMatches),
-    renderFeaturedGroup('مباريات ستبدأ قريباً', soonMatches),
-    renderFeaturedGroup('مباريات بعد ساعة أو ساعتين', laterMatches)
-  ].filter(Boolean).join('');
+  renderSection(container, [...liveMatches, ...soonMatches, ...laterMatches], message);
+}
 
-  container.innerHTML = html || `<div class="no-matches"><i class="fas fa-futbol"></i><p>${message}</p></div>`;
-  container.dataset.matchSignature = [...liveMatches, ...soonMatches, ...laterMatches]
-    .map(matchRenderSignature)
-    .join('||');
+function localMatchDay(match, reference = new Date()) {
+  const start = matchStartDate(match);
+  if (!start || Number.isNaN(start.getTime())) return null;
+
+  const target = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+  const current = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate()).getTime();
+  const difference = Math.round((target - current) / 86400000);
+  return difference === 0 ? 'today' : difference === 1 ? 'tomorrow' : difference === -1 ? 'yesterday' : 'other';
 }
 
 async function loadAndRenderMatches() {
@@ -403,7 +388,7 @@ async function loadAndRenderMatches() {
       if (seenMatches.has(matchKey)) return;
       seenMatches.add(matchKey);
       
-      const day = getMoroccoDay(match.scheduledAt, new Date());
+      const day = localMatchDay(match, new Date());
       if (day === 'today') trueTodayMatches.push(match);
       else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });

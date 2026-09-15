@@ -143,27 +143,6 @@ body {
 
 .featured-slider {
   display: grid;
-  gap: 22px;
-}
-
-.featured-match-row {
-  display: grid;
-  gap: 12px;
-}
-
-.featured-row-title {
-  margin: 0;
-  padding: 8px 14px;
-  width: fit-content;
-  border-radius: 999px;
-  background: rgba(255, 209, 102, 0.14);
-  color: var(--secondary-color);
-  font-size: clamp(1rem, 3vw, 1.18rem);
-  font-weight: 800;
-}
-
-.featured-row-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }

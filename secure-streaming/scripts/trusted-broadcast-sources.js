@@ -2,7 +2,8 @@ import * as cheerio from "cheerio";
 
 const DEFAULT_SOURCE_URLS = [
   "https://www.beinsports.com/ar-mena/%D8%AC%D8%AF%D9%88%D9%84-%D8%A7%D9%84%D8%A8%D8%AB",
-  "https://www.beinsports.com/en-mena/tv-guide"
+  "https://www.beinsports.com/en-mena/tv-guide",
+  "https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85"
 ];
 
 const sourceCache = new Map();
@@ -160,7 +161,13 @@ function findExistingChannel(channels, candidate) {
     );
     if (partial) return partial.name;
   }
-  return candidate;
+  return null;
+}
+
+function trustedSourceLabel(sourceUrl) {
+  if (/beinsports\.com/i.test(sourceUrl)) return "bein-official-tv-guide";
+  if (/kooora\.com/i.test(sourceUrl)) return "kooora-today-matches";
+  return "trusted-broadcast-source";
 }
 
 export async function resolveTrustedBroadcastChannel(row, { sourceUrls = configuredSourceUrls() } = {}) {
@@ -171,10 +178,10 @@ export async function resolveTrustedBroadcastChannel(row, { sourceUrls = configu
       if (channelName) {
         return {
           channelName,
-          source: "bein-official-tv-guide",
+          source: trustedSourceLabel(sourceUrl),
           sourceUrl,
           confidence: 0.96,
-          notes: "source: official beIN SPORTS TV guide; both teams were found near the channel name"
+          notes: `source: ${trustedSourceLabel(sourceUrl)}; both teams were found near the channel name on the current schedule`
         };
       }
     } catch (error) {
@@ -207,7 +214,13 @@ export async function applyTrustedBroadcastChannels(supabase, rows, options = {}
 
     const mappedChannel = channels.length
       ? findExistingChannel(channels, resolved.channelName)
-      : resolved.channelName;
+      : null;
+
+    if (!mappedChannel) {
+      output.push(row);
+      console.warn(`Trusted channel skipped because it is not in active channels: ${row.home_team} vs ${row.away_team} -> ${resolved.channelName}`);
+      continue;
+    }
 
     updated += 1;
     output.push({

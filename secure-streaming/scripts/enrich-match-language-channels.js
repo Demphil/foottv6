@@ -214,14 +214,33 @@ function findChannelByCandidate(channels, candidates) {
   return null;
 }
 
-function hasEvidenceNotes(notes) {
-  return /official|schedule|rights holder|tv guide|confirmed|source:/i.test(String(notes || ""));
+function kickoffDate(match) {
+  const value = match?.kickoff || match?.scheduledAt || match?.date || "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
-async function updateMatchArabicChannel(supabase, { table, row, channelName, confidence, notes, dryRun }) {
+function hasTrustedEvidenceNotes(notes, match) {
+  const value = String(notes || "");
+  if (!/source:/i.test(value)) return false;
+  if (!/(beIN|bein|kooora|official|tv guide|broadcast(?:er)? schedule|competition|league|club|rights[- ]?holder|جدول|رسمي)/i.test(value)) {
+    return false;
+  }
+
+  const kickoff = kickoffDate(match);
+  if (kickoff) {
+    const expectedYear = String(kickoff.getUTCFullYear());
+    const years = value.match(/\b20\d{2}\b/g) || [];
+    if (!years.length || years.some((year) => year !== expectedYear)) return false;
+  }
+
+  return true;
+}
+
+async function updateMatchArabicChannel(supabase, { table, row, match, channelName, confidence, notes, dryRun }) {
   if (!channelName || table !== "matches") return;
   if (!autoApplyArabicChannels) return;
-  if (confidence < arabicMinConfidence || !hasEvidenceNotes(notes)) return;
+  if (confidence < arabicMinConfidence || !hasTrustedEvidenceNotes(notes, match)) return;
 
   const payload = {
     channel: channelName,
@@ -248,9 +267,9 @@ async function updateMatchArabicChannel(supabase, { table, row, channelName, con
   if (error) throw error;
 }
 
-async function upsertAlternative(supabase, { baseChannelName, language, channelName, matchId, confidence, notes, dryRun }) {
+async function upsertAlternative(supabase, { baseChannelName, language, channelName, match, matchId, confidence, notes, dryRun }) {
   if (!baseChannelName || !channelName) return;
-  const isVerifiedEnough = autoActivateLanguageAlternatives && confidence >= 0.92 && hasEvidenceNotes(notes);
+  const isVerifiedEnough = autoActivateLanguageAlternatives && confidence >= 0.92 && hasTrustedEvidenceNotes(notes, match);
 
   const payload = {
     base_channel_name: baseChannelName,
@@ -333,13 +352,15 @@ export async function enrichMatchChannels({ rows, table = "matches", dryRun = cl
       const arChannel = findChannelByCandidate(channels, arCandidates);
       const frChannel = findChannelByCandidate(channels, frCandidates);
       const enChannel = findChannelByCandidate(channels, enCandidates);
-      const firstTrustedArabic = arChannel?.name || (finalResolved.confidence >= arabicMinConfidence ? arCandidates[0] : "");
+      const hasTrustedEvidence = hasTrustedEvidenceNotes(finalResolved.notes, match);
+      const firstTrustedArabic = hasTrustedEvidence ? arChannel?.name || "" : "";
       const baseChannelName = firstTrustedArabic || match.existingChannel || "";
 
       if (firstTrustedArabic) {
         await updateMatchArabicChannel(supabase, {
           table: loaded.table,
           row,
+          match,
           channelName: firstTrustedArabic,
           confidence: finalResolved.confidence,
           notes: finalResolved.notes,
@@ -353,6 +374,7 @@ export async function enrichMatchChannels({ rows, table = "matches", dryRun = cl
           baseChannelName,
           language: "fr",
           channelName: frChannel.name,
+          match,
           matchId: match.matchId,
           confidence: finalResolved.confidence,
           notes: finalResolved.notes,
@@ -366,6 +388,7 @@ export async function enrichMatchChannels({ rows, table = "matches", dryRun = cl
           baseChannelName,
           language: "en",
           channelName: enChannel.name,
+          match,
           matchId: match.matchId,
           confidence: finalResolved.confidence,
           notes: finalResolved.notes,
