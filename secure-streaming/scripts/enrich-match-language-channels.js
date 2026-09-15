@@ -18,8 +18,10 @@ const configuredMatchTables = (tableArg?.split("=")[1] || process.env.SUPABASE_M
 const matchesTables = [...new Set([...configuredMatchTables, ...fallbackMatchTables])];
 const alternativesTable = process.env.SUPABASE_CHANNEL_ALTERNATIVES_TABLE || "channel_language_alternatives";
 const geminiDelayMs = Number(process.env.GEMINI_REQUEST_DELAY_MS || 7000);
-const arabicMinConfidence = Number(process.env.GEMINI_AR_CHANNEL_MIN_CONFIDENCE || 0.55);
+const arabicMinConfidence = Number(process.env.GEMINI_AR_CHANNEL_MIN_CONFIDENCE || 0.92);
 const allowPerMatchFallback = process.env.GEMINI_PER_MATCH_FALLBACK === "true";
+const autoApplyArabicChannels = process.env.GEMINI_AUTO_APPLY_AR_CHANNELS === "true";
+const autoActivateLanguageAlternatives = process.env.GEMINI_AUTO_ACTIVATE_LANGUAGE_ALTERNATIVES === "true";
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -212,8 +214,14 @@ function findChannelByCandidate(channels, candidates) {
   return null;
 }
 
+function hasEvidenceNotes(notes) {
+  return /official|schedule|rights holder|tv guide|confirmed|source:/i.test(String(notes || ""));
+}
+
 async function updateMatchArabicChannel(supabase, { table, row, channelName, confidence, notes, dryRun }) {
   if (!channelName || table !== "matches") return;
+  if (!autoApplyArabicChannels) return;
+  if (confidence < arabicMinConfidence || !hasEvidenceNotes(notes)) return;
 
   const payload = {
     channel: channelName,
@@ -242,6 +250,7 @@ async function updateMatchArabicChannel(supabase, { table, row, channelName, con
 
 async function upsertAlternative(supabase, { baseChannelName, language, channelName, matchId, confidence, notes, dryRun }) {
   if (!baseChannelName || !channelName) return;
+  const isVerifiedEnough = autoActivateLanguageAlternatives && confidence >= 0.92 && hasEvidenceNotes(notes);
 
   const payload = {
     base_channel_name: baseChannelName,
@@ -251,7 +260,7 @@ async function upsertAlternative(supabase, { baseChannelName, language, channelN
     match_id: matchId || null,
     confidence,
     notes,
-    active: true,
+    active: isVerifiedEnough,
     updated_at: new Date().toISOString()
   };
 

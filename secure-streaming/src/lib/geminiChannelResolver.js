@@ -15,7 +15,7 @@ export async function resolveBroadcastChannelsWithGemini(match) {
   const prompt = `
 You are helping a private sports media QA system map football matches to verified broadcast channel names.
 Return strict JSON only, with this shape:
-{"ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}
+{"ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason with source name"}
 
 Rules:
 - Return actual official or widely trusted broadcasters for this exact match.
@@ -23,6 +23,9 @@ Rules:
 - Return Arabic-language broadcasters in "ar", French-language broadcasters in "fr", and English-language broadcasters in "en".
 - The provided existingChannel/source channel may be missing or unreliable. Do not copy it blindly.
 - Use homeTeam, awayTeam, league, kickoff, and country/competition context to identify the real broadcaster.
+- Do not infer an exact numbered channel only because the league is usually carried by a broadcaster.
+- If you cannot name the trusted schedule/source used for the exact fixture, return empty arrays and confidence below 0.55.
+- In notes, name the source used, for example "source: beIN official TV guide" or "source: competition broadcaster schedule".
 - If uncertain, return an empty array for that language.
 - Do not invent stream URLs. Channel names only.
 - Prefer exact channel names with numbers when known, for example "beIN SPORTS HD 1" instead of just "beIN SPORTS".
@@ -66,7 +69,7 @@ export async function resolveBroadcastChannelsBatchWithGemini(matches) {
   const prompt = `
 You are helping a private sports media QA system map football matches to verified broadcast channel names.
 Return strict JSON only, with this shape:
-{"items":[{"id":"match id","ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason"}]}
+{"items":[{"id":"match id","ar":["channel name"],"fr":["channel name"],"en":["channel name"],"confidence":0.0,"notes":"short reason with source name"}]}
 
 Rules:
 - Return actual official or widely trusted broadcasters for each exact match.
@@ -74,6 +77,9 @@ Rules:
 - Return Arabic-language broadcasters in "ar", French-language broadcasters in "fr", and English-language broadcasters in "en".
 - The provided existingChannel/source channel may be missing or unreliable. Do not copy it blindly.
 - Use homeTeam, awayTeam, league, kickoff, and country/competition context to identify the real broadcaster.
+- Do not infer an exact numbered channel only because the league is usually carried by a broadcaster.
+- If you cannot name the trusted schedule/source used for the exact fixture, return empty arrays and confidence below 0.55.
+- In notes, name the source used, for example "source: beIN official TV guide" or "source: competition broadcaster schedule".
 - If uncertain, return an empty array for that language.
 - Do not invent stream URLs. Channel names only.
 - Prefer exact channel names with numbers when known, for example "beIN SPORTS HD 1" instead of just "beIN SPORTS".

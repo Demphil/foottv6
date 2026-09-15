@@ -19,7 +19,9 @@
     "cron:matches": "node scripts/match-sync-cron.js",
     "export:local": "node scripts/export-local-channels.js",
     "enrich:languages": "node scripts/enrich-match-language-channels.js",
-    "enrich:languages:dry": "node scripts/enrich-match-language-channels.js --dry-run"
+    "enrich:languages:dry": "node scripts/enrich-match-language-channels.js --dry-run",
+    "disable:gemini-channels": "node scripts/disable-gemini-channel-suggestions.js",
+    "disable:gemini-channels:dry": "node scripts/disable-gemini-channel-suggestions.js --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
