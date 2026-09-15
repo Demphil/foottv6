@@ -63,6 +63,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [embedOpen, setEmbedOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
+  const brandRoot = brandUrl.replace(/\/$/, "");
+  const logoSrc = `${brandRoot}/assets/images/logo.png`;
 
   useEffect(() => {
     if (embed || !brandUrl) return;
@@ -313,7 +315,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }
 
   const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
-  const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(embedId)}`;
+  const embedUrl = `${brandRoot}/embed/${encodeURIComponent(embedId)}`;
   const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
   async function copyEmbedCode() {
@@ -341,9 +343,17 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   return (
     <div className="secure-player-shell">
       <div className="player-topbar">
-        <a className="header-logo" href={brandUrl} target="_blank" rel="noreferrer" aria-label="KoraLive football">
-          <strong>KORALIVE</strong><span>.football</span>
-        </a>
+        <div className="topbar-actions">
+          {!embed ? (
+            <button type="button" className="embed-open-btn" onClick={() => setEmbedOpen(true)} aria-label="كود التضمين">
+              <span aria-hidden="true">&lt;/&gt;</span>
+              <strong>Embed</strong>
+            </button>
+          ) : null}
+          {!embed ? (
+            <a className="back-site-btn" href={brandUrl} onClick={goHome}>العودة للموقع</a>
+          ) : null}
+        </div>
         <div className="quality-tabs" aria-label="اختيار سيرفر المشاهدة">
           {[...QUALITY_OPTIONS, ...languageServers].map((item) => (
             <button
@@ -358,17 +368,9 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
             </button>
           ))}
         </div>
-        <div className="topbar-actions">
-          {!embed ? (
-            <a className="back-site-btn" href={brandUrl} onClick={goHome}>العودة للموقع</a>
-          ) : null}
-          {!embed ? (
-            <button type="button" className="embed-open-btn" onClick={() => setEmbedOpen(true)} aria-label="كود التضمين">
-              <span aria-hidden="true">&lt;/&gt;</span>
-              <strong>Embed</strong>
-            </button>
-          ) : null}
-        </div>
+        <a className="header-logo" href={brandUrl} target="_blank" rel="noreferrer" aria-label="KoraLive football">
+          <img src={logoSrc} alt="KoraLive football" />
+        </a>
       </div>
 
       {adNotice ? <div className="adblock-note">{adNotice}</div> : null}

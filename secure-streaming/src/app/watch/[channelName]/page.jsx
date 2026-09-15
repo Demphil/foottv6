@@ -62,9 +62,6 @@ export default async function WatchPage({ params, searchParams }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <section className="player-card">
-        <h1 className="player-title">{seo.title}</h1>
-        <p className="player-seo-description">{seo.description}</p>
-        <div className="alert-box">تنبيه: في حال توقف البث، قم بتحديث الصفحة أو جرّب جودة أقل.</div>
         <SecureVideoPlayer channelName={channelName} matchId={matchId || seo.matchId} publicStreamId={publicStreamId} abr={abr} />
         <WatchNews />
       </section>

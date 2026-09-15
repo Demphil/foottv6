@@ -1,24 +1,26 @@
+const WATCH_NEWS_FALLBACK_IMAGE = "https://koralive.football/assets/images/logo.png";
+
 const fallbackArticles = [
   {
     title: "تابع آخر أخبار كرة القدم قبل وأثناء المباريات",
     description: "ملخصات سريعة حول القنوات، الفرق، وأهم المواجهات الجارية اليوم.",
     source_name: "KoraLive",
     link: "https://koralive.football/news.html",
-    image_url: "https://koralive.football/assets/images/default-news.jpg"
+    image_url: WATCH_NEWS_FALLBACK_IMAGE
   },
   {
     title: "جدول مباريات اليوم والقنوات الناقلة",
     description: "تحديثات مستمرة لمواعيد المباريات والسيرفرات المتاحة قبل انطلاق البث.",
     source_name: "KoraLive",
     link: "https://koralive.football/",
-    image_url: "https://koralive.football/assets/images/default-news.jpg"
+    image_url: WATCH_NEWS_FALLBACK_IMAGE
   },
   {
     title: "اختر جودة المشاهدة المناسبة لاتصالك",
     description: "يمكنك التبديل بين 1080 و720 و360 من شريط السيرفرات أعلى المشغل.",
     source_name: "KoraLive",
     link: "https://koralive.football/",
-    image_url: "https://koralive.football/assets/images/default-news.jpg"
+    image_url: WATCH_NEWS_FALLBACK_IMAGE
   }
 ];
 
@@ -49,14 +51,19 @@ export default function WatchNews() {
       <div className="watch-news-grid">
         {articles.map((article, index) => {
           const title = article.title || "خبر كرة قدم";
-          const imageUrl = article.image_url || "https://koralive.football/assets/images/default-news.jpg";
+          const imageUrl = article.image_url || WATCH_NEWS_FALLBACK_IMAGE;
           const sourceName = article.source_name || article.source_id || "مصدر رياضي";
           const link = article.link || "https://koralive.football/news.html";
           return (
             <article className="news-card watch-news-card" key={`${title}-${index}`}>
               <div className="news-image-wrapper">
                 <span className="news-category-badge">عالمي</span>
-                <img src={imageUrl} alt={title} loading="lazy" />
+                <img
+                  src={imageUrl}
+                  alt={title}
+                  loading="lazy"
+                  className={imageUrl === WATCH_NEWS_FALLBACK_IMAGE ? "is-logo-fallback" : ""}
+                />
               </div>
               <div className="news-content">
                 <h3 className="news-title">

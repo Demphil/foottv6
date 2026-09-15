@@ -25,7 +25,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 64px 24px 42px;
+  padding: 16px 24px 42px;
   box-sizing: border-box;
   perspective: 1300px;
 }
@@ -138,7 +138,7 @@ body {
   box-shadow:
     0 30px 74px rgba(0, 0, 0, 0.55),
     0 12px 0 rgba(14, 5, 23, 0.65);
-  transform: rotateX(1.4deg) translateZ(0);
+  transform: translateZ(0);
 }
 
 .player-topbar {
@@ -164,30 +164,24 @@ body {
 
 .header-logo {
   min-height: 44px;
-  padding: 0 16px;
-  border-radius: 10px;
+  min-width: 164px;
+  padding: 0 12px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  color: #fff;
   text-decoration: none;
   white-space: nowrap;
   background: linear-gradient(135deg, #6826a2, #e0187e);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
-.header-logo strong {
-  font-size: clamp(15px, 1.7vw, 22px);
-  line-height: 1;
-  font-weight: 900;
-}
-
-.header-logo span {
-  color: #fff;
-  font-size: clamp(11px, 1vw, 14px);
-  font-weight: 900;
-  opacity: 0.96;
+.header-logo img {
+  display: block;
+  width: 148px;
+  max-width: 100%;
+  height: 38px;
+  object-fit: contain;
 }
 
 .quality-tabs {
@@ -236,7 +230,7 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-  direction: rtl;
+  direction: ltr;
 }
 
 .back-site-btn,
@@ -601,6 +595,14 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.news-image-wrapper img.is-logo-fallback {
+  object-fit: contain;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.14), transparent 44%),
+    linear-gradient(135deg, #16294b, #4b1d78 62%, #d9167b);
 }
 
 .news-category-badge {
