@@ -336,11 +336,11 @@ body {
 .korlive-corner-logo {
   position: absolute;
   top: 34px;
-  right: 28px;
+  right: 48px;
   z-index: 35;
-  width: 136px;
-  height: 30px;
-  padding: 0 10px;
+  width: 152px;
+  height: 28px;
+  padding: 0 8px;
   border-radius: 5px;
   background: linear-gradient(135deg, rgba(95, 18, 145, 0.94), rgba(222, 25, 127, 0.94));
   display: flex;
@@ -348,7 +348,7 @@ body {
   justify-content: center;
   overflow: hidden;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -806,11 +806,11 @@ body {
 
   .korlive-corner-logo {
     top: 32px;
-    right: 18px;
-    width: 118px;
-    height: 27px;
-    padding: 0 8px;
-    font-size: 13px;
+    right: 30px;
+    width: 132px;
+    height: 26px;
+    padding: 0 7px;
+    font-size: 12px;
   }
 
   .brand-watermark.bottom-line {
