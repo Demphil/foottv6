@@ -70,6 +70,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
   const selectedServerRef = useRef(DEFAULT_SERVER_ID);
+  const liveRefreshRef = useRef(0);
+  const progressRef = useRef({ time: 0, at: 0 });
   const [selectedServerId, setSelectedServerId] = useState(DEFAULT_SERVER_ID);
   const [languageServers, setLanguageServers] = useState([]);
   const [blocked, setBlocked] = useState("");
@@ -91,6 +93,28 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     }
     setBlocked("تعذر تشغيل هذا السيرفر الآن. يرجى تحديث البث أو المحاولة لاحقاً.");
     return false;
+  }
+
+  function seekToLiveEdge() {
+    const player = playerRef.current;
+    if (!player) return;
+    try {
+      const seekable = player.seekable();
+      if (seekable?.length) {
+        const liveEdge = seekable.end(seekable.length - 1);
+        if (Number.isFinite(liveEdge) && liveEdge > 8 && liveEdge - player.currentTime() > 10) {
+          player.currentTime(Math.max(0, liveEdge - 4));
+        }
+      }
+    } catch {}
+  }
+
+  function refreshLiveSource(reason = "stalled") {
+    const now = Date.now();
+    if (now - liveRefreshRef.current < 8000) return;
+    liveRefreshRef.current = now;
+    console.warn(`[KoraLive] refreshing live stream after ${reason}`);
+    refreshStream();
   }
 
   function disposeMpegtsPlayer() {
@@ -133,6 +157,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     }
 
     disposeMpegtsPlayer();
+    progressRef.current = { time: 0, at: Date.now() };
     playerRef.current.src({ src, type: "application/x-mpegURL" });
     if (autoplay) playerRef.current.play().catch(() => {});
   }
@@ -281,6 +306,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         preload: "auto",
         fluid: true,
         liveui: true,
+        liveTracker: {
+          trackingThreshold: 0,
+          liveTolerance: 15
+        },
         html5: {
           vhs: {
             overrideNative: true,
@@ -294,6 +323,30 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
       playerRef.current.on("error", () => {
         fallbackToNextServer();
+      });
+      playerRef.current.on("loadedmetadata", seekToLiveEdge);
+      playerRef.current.on("timeupdate", () => {
+        progressRef.current = { time: playerRef.current.currentTime(), at: Date.now() };
+      });
+      playerRef.current.on("ended", () => refreshLiveSource("ended-playlist"));
+      playerRef.current.on("waiting", () => {
+        window.setTimeout(() => {
+          const player = playerRef.current;
+          if (!player || player.paused()) return;
+          const duration = player.duration();
+          const progress = progressRef.current;
+          const stalledMs = Date.now() - progress.at;
+          const nearFiniteEnd = Number.isFinite(duration) && duration > 0 && duration - player.currentTime() < 3;
+          if (nearFiniteEnd || stalledMs > 7000) refreshLiveSource("waiting");
+        }, 3500);
+      });
+      playerRef.current.on("stalled", () => {
+        window.setTimeout(() => {
+          const player = playerRef.current;
+          if (!player || player.paused()) return;
+          const progress = progressRef.current;
+          if (Date.now() - progress.at > 7000) refreshLiveSource("stalled");
+        }, 3500);
       });
 
       await applyPlayerSource({ src, streamType: "hls" });

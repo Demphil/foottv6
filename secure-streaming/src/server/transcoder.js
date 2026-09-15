@@ -41,6 +41,42 @@ export function hlsVariantId(value = "") {
   return match ? match[1].toLowerCase() : "720p";
 }
 
+function variantPlaylistPath(channelName, variantId) {
+  return path.join(hlsOutputDir(channelName), `${variantId}.m3u8`);
+}
+
+function readPlaylistStatus(channelName, variantId) {
+  const playlistPath = variantPlaylistPath(channelName, variantId);
+  try {
+    const stat = fs.statSync(playlistPath);
+    const content = fs.readFileSync(playlistPath, "utf8");
+    const targetMatch = content.match(/#EXT-X-TARGETDURATION:(\d+)/);
+    const targetDuration = Math.max(2, Number(targetMatch?.[1] || process.env.HLS_SEGMENT_TIME || 4));
+    const maxAgeMs = Number(process.env.HLS_MAX_PLAYLIST_AGE_MS || targetDuration * 4500);
+    const mediaSequence = content.match(/#EXT-X-MEDIA-SEQUENCE:(\d+)/)?.[1] || "";
+    const segments = (content.match(/^[^#\s].+\.ts(?:\?.*)?$/gm) || []).length;
+    const ageMs = Date.now() - stat.mtimeMs;
+
+    return {
+      exists: true,
+      fresh: ageMs <= maxAgeMs && segments > 0 && !content.includes("#EXT-X-ENDLIST"),
+      stale: ageMs > maxAgeMs || content.includes("#EXT-X-ENDLIST"),
+      ageMs,
+      maxAgeMs,
+      mediaSequence,
+      segments,
+      hasEndlist: content.includes("#EXT-X-ENDLIST")
+    };
+  } catch {
+    return { exists: false, fresh: false, stale: true, ageMs: Infinity, maxAgeMs: 0, mediaSequence: "", segments: 0, hasEndlist: false };
+  }
+}
+
+export function hlsPlaylistStatus(channelName, variant = "720p") {
+  const variantId = VARIANTS[variant] ? variant : "720p";
+  return readPlaylistStatus(channelName, variantId);
+}
+
 function stopProcess(key) {
   const entry = processes.get(key);
   if (!entry) return;
@@ -121,6 +157,12 @@ function cleanupVariantFiles(outputDir, variantId) {
   } catch {}
 }
 
+export function resetTranscoderVariant(channelName, variant = "720p") {
+  const variantId = VARIANTS[variant] ? variant : "720p";
+  stopProcess(`${channelName}:${variantId}`);
+  cleanupVariantFiles(hlsOutputDir(channelName), variantId);
+}
+
 export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   if (process.env.TRANSCODE_ENABLED !== "true") {
     throw new Error("Transcoding is disabled. Set TRANSCODE_ENABLED=true on a Node server with FFmpeg installed.");
@@ -132,7 +174,14 @@ export function ensureTranscoder({ channelName, sourceUrl, variant = "720p" }) {
   if (processes.has(processKey)) {
     const entry = processes.get(processKey);
     entry.lastAccessed = Date.now();
-    return entry.child;
+    const status = readPlaylistStatus(channelName, variantId);
+    if (status.exists && status.stale) {
+      console.warn(`[ffmpeg:${channelName}:${variantId}] stale live playlist detected (${Math.round(status.ageMs)}ms); restarting`);
+      stopProcess(processKey);
+      cleanupVariantFiles(hlsOutputDir(channelName), variantId);
+    } else {
+      return entry.child;
+    }
   }
   stopCompetingVariants(channelName, variantId);
   if (!hasTranscoderCapacity()) {

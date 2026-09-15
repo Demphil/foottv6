@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getActiveChannelByName } from "../../../../../lib/channelStore";
 import { getClientIp, getSessionId, securityHeaders, verifyStreamToken } from "../../../../../lib/security";
-import { ensureTranscoder, hlsOutputDir, hlsVariantId } from "../../../../../server/transcoder";
+import { ensureTranscoder, hlsOutputDir, hlsPlaylistStatus, hlsVariantId, resetTranscoderVariant } from "../../../../../server/transcoder";
 
 const TYPES = {
   ".m3u8": "application/vnd.apple.mpegurl",
@@ -37,6 +37,16 @@ function outputReady(filePath) {
   }
 }
 
+function liveHeaders(request, extra = {}) {
+  return {
+    ...securityHeaders(request),
+    "Cache-Control": "no-store, no-cache, must-revalidate, private",
+    "Pragma": "no-cache",
+    "Expires": "0",
+    ...extra
+  };
+}
+
 export async function GET(request, { params }) {
   const resolvedParams = await params;
   const channelName = decodeURIComponent(resolvedParams.channelName);
@@ -50,13 +60,22 @@ export async function GET(request, { params }) {
 
     const requested = resolvedParams.path?.length ? resolvedParams.path.join("/") : "master.m3u8";
     const variant = hlsVariantId(requested);
-    ensureTranscoder({ channelName, sourceUrl: channel.original_url, variant });
+    let transcoder = ensureTranscoder({ channelName, sourceUrl: channel.original_url, variant });
 
     const outputDir = hlsOutputDir(channelName);
     const safeRequested = requested === "master.m3u8" ? `${variant}.m3u8` : requested;
     const filePath = path.resolve(outputDir, safeRequested);
+    const ext = path.extname(filePath);
     if (!filePath.startsWith(outputDir)) {
       return new Response("Invalid path.", { status: 400, headers: securityHeaders(request) });
+    }
+
+    if (ext === ".m3u8") {
+      const status = hlsPlaylistStatus(channelName, variant);
+      if (status.exists && status.stale) {
+        resetTranscoderVariant(channelName, variant);
+        transcoder = ensureTranscoder({ channelName, sourceUrl: channel.original_url, variant });
+      }
     }
 
     const start = Date.now();
@@ -64,21 +83,31 @@ export async function GET(request, { params }) {
     while (!outputReady(filePath) && Date.now() - start < waitMs) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    if (!outputReady(filePath)) return new Response("Transcode output not ready.", { status: 503, headers: securityHeaders(request) });
+    if (!outputReady(filePath)) return new Response("Transcode output not ready.", { status: 503, headers: liveHeaders(request) });
 
-    const ext = path.extname(filePath);
+    if (ext === ".m3u8") {
+      const status = hlsPlaylistStatus(channelName, variant);
+      if (!transcoder && !status.fresh) {
+        return new Response("Live stream is warming up.", { status: 503, headers: liveHeaders(request, { "Retry-After": "2" }) });
+      }
+      if (!status.fresh) {
+        resetTranscoderVariant(channelName, variant);
+        return new Response("Live stream is refreshing.", { status: 503, headers: liveHeaders(request, { "Retry-After": "2" }) });
+      }
+    }
+
     const body = ext === ".m3u8"
       ? rewritePlaylist(fs.readFileSync(filePath, "utf8"), token)
       : fs.readFileSync(filePath);
 
     return new Response(body, {
       headers: {
-        ...securityHeaders(request),
+        ...liveHeaders(request),
         "Content-Type": TYPES[ext] || "application/octet-stream",
-        "Cache-Control": "no-store, private"
+        "X-KoraLive-Live": "1"
       }
     });
   } catch {
-    return new Response("Unauthorized ABR request.", { status: 401, headers: securityHeaders(request) });
+    return new Response("Unauthorized ABR request.", { status: 401, headers: liveHeaders(request) });
   }
 }
