@@ -335,11 +335,11 @@ body {
 
 .korlive-corner-logo {
   position: absolute;
-  top: 44px;
+  top: 30px;
   right: 48px;
   z-index: 35;
   width: 152px;
-  height: 38px;
+  height: 36px;
   padding: 0 8px;
   border-radius: 5px;
   background: linear-gradient(135deg, rgba(95, 18, 145, 0.94), rgba(222, 25, 127, 0.94));
@@ -805,10 +805,10 @@ body {
   }
 
   .korlive-corner-logo {
-    top: 42px;
+    top: 30px;
     right: 30px;
     width: 132px;
-    height: 34px;
+    height: 32px;
     padding: 0 7px;
     font-size: 12px;
   }
