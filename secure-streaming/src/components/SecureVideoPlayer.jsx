@@ -6,7 +6,7 @@ import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 
 const QUALITY_OPTIONS = [
-  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", file: "1080p.m3u8" },
+  { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", passthrough: true },
   { id: "720p", type: "quality", label: "سيرفر 2", sub: "720 HD", file: "720p.m3u8" },
   { id: "360p", type: "quality", label: "سيرفر 3", sub: "360 SD", file: "360p.m3u8" }
 ];
