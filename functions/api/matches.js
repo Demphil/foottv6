@@ -35,7 +35,59 @@ function moroccoTime(value) {
 }
 
 function normalizeChannelName(value) {
-  return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ar');
+  return String(value || '')
+    .normalize('NFKC')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/[إأآا]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[|/\\_\-:]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLocaleLowerCase('ar');
+}
+
+function firstNumber(value) {
+  const normalizedDigits = String(value || '').replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
+  const match = normalizedDigits.match(/\d+/);
+  return match ? match[0] : '';
+}
+
+function canonicalChannelName(value) {
+  const text = normalizeChannelName(value);
+  const compact = text.replace(/\s+/g, '');
+  const number = firstNumber(text);
+
+  if (/bein|be in|بي ?ان|بى ?ان|بين/.test(text) || compact.includes('بيان') || compact.includes('بين')) {
+    if (/max|ماكس/i.test(text)) return `bein sports max ${number || '1'}`;
+    return `bein sports hd ${number || '1'}`;
+  }
+
+  if (/ssc|اس ?اس ?سي/i.test(text)) return `ssc ${number || '1'} hd`;
+  if (/on ?time|on ?sport|اون ?تايم|اون ?سبورت|أون ?سبورت/i.test(text) || compact.includes('اونسبورت')) {
+    if (/plus|بلس/i.test(text)) return 'on sport plus';
+    if (/max|ماكس/i.test(text)) return 'on sport max';
+    return `on time sports ${number || '1'}`;
+  }
+  if (/arryadia|رياضيه|الرياضيه|المغربيه الرياضيه/i.test(text)) return 'arryadia tnt';
+  if (/shahid|شاهد/i.test(text)) return 'shahid vip';
+  if (/mbc/i.test(text)) return 'mbc action';
+  if (/ad sports|abu dhabi|ابو ظبي|ابوظبي/i.test(text)) return `ad sports premium ${number || '1'}`;
+
+  return text;
+}
+
+function addChannelKeys(target, value) {
+  const normalized = normalizeChannelName(value);
+  const canonical = canonicalChannelName(value);
+  if (normalized) target.add(normalized);
+  if (canonical) target.add(canonical);
+}
+
+function channelExists(activeChannelNames, value) {
+  const normalized = normalizeChannelName(value);
+  const canonical = canonicalChannelName(value);
+  return activeChannelNames.has(normalized) || activeChannelNames.has(canonical);
 }
 
 async function readActiveChannelNames(env, origin) {
@@ -56,7 +108,9 @@ async function readActiveChannelNames(env, origin) {
     });
     if (!response.ok) return new Set();
     const rows = await response.json();
-    return new Set((Array.isArray(rows) ? rows : []).map((row) => normalizeChannelName(row.name)).filter(Boolean));
+    const names = new Set();
+    for (const row of Array.isArray(rows) ? rows : []) addChannelKeys(names, row.name);
+    return names;
   } catch {
     return new Set();
   }
@@ -68,7 +122,7 @@ function toFrontendMatch(row, activeChannelNames = new Set()) {
   const homeTeam = row.home_team || payload.homeTeam?.name || payload.homeTeam || '';
   const awayTeam = row.away_team || payload.awayTeam?.name || payload.awayTeam || '';
   const channel = row.channel || payload.channel || '';
-  const streamReady = activeChannelNames.has(normalizeChannelName(channel));
+  const streamReady = channelExists(activeChannelNames, channel);
 
   return {
     ...(payload || {}),
