@@ -33,6 +33,7 @@ export async function POST(request) {
     return Response.json(
       {
         token,
+        channelName: channel.name,
         expiresIn: 300,
         streamUrl: `/api/stream/${encodeURIComponent(channel.name)}?token=${encodeURIComponent(token)}`
       },

@@ -62,6 +62,16 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [promoOpen, setPromoOpen] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
+
+  useEffect(() => {
+    if (embed || !brandUrl) return;
+    const canonical = new URL(brandUrl);
+    const currentHost = window.location.hostname;
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(currentHost) && currentHost !== canonical.hostname) {
+      window.location.replace(`${canonical.origin}${window.location.pathname}${window.location.search}`);
+    }
+  }, [brandUrl, embed]);
 
   useEffect(() => {
     let loaded = 0;
@@ -73,7 +83,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (item.cfasync) script.dataset.cfasync = item.cfasync;
       script.onload = () => { loaded += 1; };
       script.onerror = () => {
-        setBlocked("يرجى تعطيل مانع الإعلانات لتشغيل البث. الإعلانات جزء من حماية الخدمة واستمرارها.");
+        setAdNotice("قد تمنع بعض الإضافات ظهور الإعلانات، لكن البث سيبقى يعمل.");
       };
       document.head.appendChild(script);
       return script;
@@ -81,7 +91,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
     const timer = window.setTimeout(() => {
       if (scripts.length && loaded === 0) {
-        setBlocked("يرجى تعطيل مانع الإعلانات لتشغيل البث. الإعلانات جزء من حماية الخدمة واستمرارها.");
+        setAdNotice("إذا لم تظهر الإعلانات لديك فربما توجد إضافة حجب، ويمكنك متابعة البث بشكل عادي.");
       }
     }, 5500);
 
@@ -131,7 +141,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const timer = window.setTimeout(() => {
       const style = window.getComputedStyle(bait);
       if (bait.offsetParent === null || style.display === "none" || style.visibility === "hidden") {
-        setBlocked("تم اكتشاف مانع إعلانات. يرجى تعطيله ثم تحديث الصفحة لتشغيل البث.");
+        setAdNotice("تم اكتشاف حجب لبعض الإعلانات. البث لن يتوقف، لكن دعم الإعلانات يساعد على استمرار الخدمة.");
       }
       bait.remove();
     }, 1200);
@@ -176,13 +186,14 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (!response.ok) throw new Error("token");
       const data = await response.json();
       tokenRef.current = data.token;
-      activeChannelRef.current = targetChannelName;
+      activeChannelRef.current = data.channelName || targetChannelName;
       return data;
     }
 
     async function boot() {
       const data = await issueToken();
-      const src = abr ? buildAbrSrc(channelName, QUALITY_OPTIONS[0], data.token) : data.streamUrl;
+      const resolvedChannelName = data.channelName || activeChannelRef.current || channelName;
+      const src = abr ? buildAbrSrc(resolvedChannelName, QUALITY_OPTIONS[0], data.token) : data.streamUrl;
       if (disposed || !videoRef.current) return;
 
       playerRef.current = videojs(videoRef.current, {
@@ -228,9 +239,9 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         if (!response.ok) throw new Error("token");
         const data = await response.json();
         tokenRef.current = data.token;
-        activeChannelRef.current = targetChannelName;
+        activeChannelRef.current = data.channelName || targetChannelName;
         const wasPaused = playerRef.current.paused();
-        playerRef.current.src({ src: buildAbrSrc(targetChannelName, selected, data.token), type: "application/x-mpegURL" });
+        playerRef.current.src({ src: buildAbrSrc(activeChannelRef.current, selected, data.token), type: "application/x-mpegURL" });
         if (!wasPaused) playerRef.current.play().catch(() => {});
       } catch {
         setBlocked("تعذر تشغيل هذا السيرفر الآن.");
@@ -286,6 +297,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       });
       const data = await response.json();
       tokenRef.current = data.token;
+      activeChannelRef.current = data.channelName || activeChannelRef.current;
       if (playerRef.current) {
         const allServers = [...QUALITY_OPTIONS, ...languageServers];
         const selected = allServers.find((item) => item.id === selectedServerId) || QUALITY_OPTIONS[0];
@@ -297,7 +309,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     }
   }
 
-  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
   const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
   const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(embedId)}`;
   const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
