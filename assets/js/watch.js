@@ -228,17 +228,23 @@ function loadPlayer(stream, container, loader) {
   container.style.backgroundColor = '#000';
   container.style.borderRadius = '12px';
 
-  // --- التعديل الذهبي: تنظيف الرابط وتوجيهه لسيرفر Oracle المحمي ---
+  // --- الحل القاطع: جلب الـ ID من الرابط مباشرة كبديل آمن ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const matchId = urlParams.get('id') || 'bein1';
+  
   let channelName = stream.url;
-  // استخراج اسم القناة فقط سواء كان الرابط طويلاً أو يحتوي على m3u8
-  if (channelName.includes('/')) {
-    channelName = channelName.split('/').filter(Boolean).pop(); 
+  if (channelName && channelName.includes('/')) {
+    const parts = channelName.split('/').filter(Boolean);
+    channelName = parts.pop() || matchId;
   }
-  channelName = channelName.replace('.m3u8', '').replace('.html', '').split('?')[0];
+  channelName = channelName ? channelName.replace('.m3u8', '').replace('.html', '').split('?')[0] : matchId;
+  
+  // إذا فشل الاستخراج لأي سبب، نستخدم الـ ID الموجود في الرابط لضمان عدم حدوث خطأ 403
+  const finalTarget = (channelName && channelName.length > 1) ? channelName : matchId;
 
   const iframe = document.createElement('iframe');
-  // هنا يتم ربط الواجهة بنظام Next.js الذي بنيناه!
-  iframe.src = `https://withered-mud-4e52.koora-live.workers.dev/embed/${channelName}`;
+  // تمرير القناة أو الـ ID بشكل صحيح ومباشر إلى جسر Cloudflare ومنه إلى سيرفر Oracle
+  iframe.src = `https://withered-mud-4e52.koora-live.workers.dev/embed/${finalTarget}`;
   // ----------------------------------------------------------------
 
   iframe.frameBorder = '0';
