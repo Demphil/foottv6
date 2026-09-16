@@ -313,7 +313,8 @@ body:has(.embed-page) {
 
 .secure-video-frame .video-js-host,
 .secure-video-frame [data-vjs-player] {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
 }
@@ -321,7 +322,12 @@ body:has(.embed-page) {
 .secure-video-frame .video-js {
   width: 100%;
   height: 100%;
+  padding: 0;
   background: #000;
+}
+
+.secure-video-frame .vjs-tech {
+  object-fit: contain;
 }
 
 .secure-video-frame .vjs-control-bar {
@@ -1056,7 +1062,9 @@ body:has(.embed-page) {
 }
 
 .embed-page.embed-page {
-  height: 100vh;
+  position: fixed;
+  inset: 0;
+  height: 100%;
   min-height: 0;
   align-items: flex-start;
   justify-content: center;
@@ -1073,8 +1081,8 @@ body:has(.embed-page) {
 }
 
 .embed-player-shell.embed-player-shell {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   border: 0;
@@ -1084,13 +1092,51 @@ body:has(.embed-page) {
 }
 
 .embed-player-shell .player-topbar {
-  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(60px, 14%);
+  grid-template-areas: "quality brand";
+  gap: 6px;
+  padding: 6px;
+}
+
+.embed-player-shell .topbar-actions {
+  display: none;
+}
+
+.embed-player-shell .quality-tabs {
+  grid-area: quality;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.embed-player-shell .header-logo {
+  grid-area: brand;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 4px;
+}
+
+.embed-player-shell .header-logo img {
+  max-width: 100%;
+  height: 38px;
+}
+
+.embed-player-shell .quality-tabs button {
+  height: 44px;
+  min-height: 44px;
 }
 
 .embed-player-shell .secure-video-frame {
-  flex: 1 1 auto;
   width: 100%;
-  height: auto;
+  height: 100%;
   min-height: 0;
   aspect-ratio: auto;
+}
+
+.embed-player-shell .video-js.vjs-controls-enabled .vjs-control-bar,
+.embed-player-shell .secure-video-frame .video-js.vjs-controls-enabled.vjs-has-started .vjs-control-bar {
+  display: flex;
+  visibility: visible;
+  opacity: 1;
 }

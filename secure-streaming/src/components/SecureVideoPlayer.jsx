@@ -844,15 +844,29 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, []);
 
   useEffect(() => {
-    if (!embed || !videoRef.current) return;
+    const frame = frameRef.current;
+    if (!embed || !frame) return;
+    let visibilityTimer;
     const observer = new IntersectionObserver(([entry]) => {
+      window.clearTimeout(visibilityTimer);
       const box = entry.boundingClientRect;
       if (!entry.isIntersecting || box.width < 240 || box.height < 140) {
-        setBlocked("تم إيقاف البث لأن إطار المشاهدة غير ظاهر بشكل صحيح.");
+        // Video.js replaces the video wrapper; observe the stable frame and allow resize to settle.
+        visibilityTimer = window.setTimeout(() => {
+          const fullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+          if (fullscreen && (frame.contains(fullscreen) || fullscreen.contains(frame))) return;
+          const currentBox = frame.getBoundingClientRect();
+          if (!entry.isIntersecting || currentBox.width < 240 || currentBox.height < 140) {
+            setBlocked("تم إيقاف البث لأن إطار المشاهدة غير ظاهر بشكل صحيح.");
+          }
+        }, 1500);
       }
     }, { threshold: 0.35 });
-    observer.observe(videoRef.current);
-    return () => observer.disconnect();
+    observer.observe(frame);
+    return () => {
+      window.clearTimeout(visibilityTimer);
+      observer.disconnect();
+    };
   }, [embed]);
 
   useEffect(() => {
@@ -888,7 +902,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         controls: true,
         autoplay: false,
         preload: "auto",
-        fluid: true,
+        fluid: false,
+        fill: true,
         liveui: true,
         liveTracker: {
           trackingThreshold: 0,
@@ -1070,7 +1085,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
   const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
   const embedUrl = `${brandRoot}/embed/${encodeURIComponent(embedId)}`;
-  const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+  const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" style="display:block;border:0" sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
 
   async function copyEmbedCode() {
     try {
