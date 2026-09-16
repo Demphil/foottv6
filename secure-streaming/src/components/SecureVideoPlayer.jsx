@@ -463,6 +463,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [promoOpen, setPromoOpen] = useState(false);
   const [canShowInterruptions, setCanShowInterruptions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const adIntervalMs = embed ? AD_EMBED_INTERVAL_MS : (isFullscreen ? AD_FULLSCREEN_INTERVAL_MS : AD_NORMAL_INTERVAL_MS);
   const [embedOpen, setEmbedOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koralive.football";
@@ -756,19 +757,16 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, []);
 
   useEffect(() => {
-    const intervalMs = embed ? AD_EMBED_INTERVAL_MS : (isFullscreen ? AD_FULLSCREEN_INTERVAL_MS : AD_NORMAL_INTERVAL_MS);
     const showAdSlot = () => {
       setCanShowInterruptions(true);
       setPromoOpen(true);
       runAdSlot();
     };
-    const first = window.setTimeout(showAdSlot, intervalMs);
-    const every = window.setInterval(showAdSlot, intervalMs);
+    const every = window.setInterval(showAdSlot, adIntervalMs);
     return () => {
-      window.clearTimeout(first);
       window.clearInterval(every);
     };
-  }, [embed, isFullscreen]);
+  }, [adIntervalMs]);
 
   useEffect(() => {
     let disposed = false;
