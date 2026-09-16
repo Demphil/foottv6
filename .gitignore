@@ -45,10 +45,6 @@ logs/
 # ملفات مؤقتة
 *.tmp
 *.temp
-.deploy-pages/
-.deploy-pages-*/
-.deploy-nginx-*.conf
-.oci-open80-check.sh
 
 # ملفات البيانات المحلية
 *.sqlite

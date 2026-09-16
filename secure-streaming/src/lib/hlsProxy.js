@@ -33,9 +33,10 @@ function rewriteAttributeUris(line, baseUrl, channelName, token, requestPath) {
   });
 }
 
-export async function fetchUpstream(url, request, { timeoutMs = Number(process.env.STREAM_PROXY_TIMEOUT_MS || 15000) } = {}) {
-  const controller = timeoutMs > 0 ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+export async function fetchUpstream(url, request) {
+  const timeoutMs = Number(process.env.STREAM_PROXY_TIMEOUT_MS || 15000);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, {
     headers: {
       "User-Agent": request.headers.get("user-agent") || "KoraLiveProxy/1.0",
@@ -43,10 +44,8 @@ export async function fetchUpstream(url, request, { timeoutMs = Number(process.e
     },
     redirect: "follow",
     cache: "no-store",
-    signal: controller?.signal
-  }).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
+    signal: controller.signal
+  }).finally(() => clearTimeout(timer));
 }
 
 export async function proxyPlaylist({ sourceUrl, channelName, token, request }) {
@@ -77,9 +76,7 @@ export async function proxyPlaylist({ sourceUrl, channelName, token, request }) 
 }
 
 export async function proxyMedia({ sourceUrl, request }) {
-  const upstream = await fetchUpstream(sourceUrl, request, {
-    timeoutMs: Number(process.env.STREAM_MEDIA_PROXY_TIMEOUT_MS || 0)
-  });
+  const upstream = await fetchUpstream(sourceUrl, request);
   if (!upstream.ok || !upstream.body) {
     return new Response("Upstream media unavailable.", { status: 502 });
   }

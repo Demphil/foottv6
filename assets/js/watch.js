@@ -1,14 +1,6 @@
 // assets/js/watch.js
 import { streamLinks } from './streams.js';
 
-function redirectLegacyWatchRoute(target = '') {
-  const token = String(target || '').trim() || 'KoraLive';
-  const destination = `/watch/${encodeURIComponent(token)}`;
-  if (window.location.pathname !== destination) {
-    window.location.replace(destination);
-  }
-}
-
 function makeMatchKey(homeTeam, awayTeam) {
   return `${homeTeam || ''}-${awayTeam || ''}`;
 }
@@ -72,8 +64,6 @@ function streamsFromMatch(match) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  loadWatchNews();
-
   const playerContainer = document.getElementById('player-container');
   const playerLoader = document.getElementById('player-loader');
   const serversContainer = document.getElementById('servers-container') || createServersContainer(playerContainer);
@@ -81,8 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!playerContainer || !playerLoader) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const pathMatch = window.location.pathname.match(/\/watch\/([^/?#]+)/);
-  const matchId = normalizeMatchId(urlParams.get('id') || (pathMatch ? decodeURIComponent(pathMatch[1]) : ''));
+  const matchId = normalizeMatchId(urlParams.get('id'));
 
   let streams = [];
   if (matchId) {
@@ -233,14 +222,13 @@ function loadPlayer(stream, container, loader) {
 
   container.style.position = 'relative';
   container.style.width = '100%';
-  container.style.height = 'auto';
-  container.style.aspectRatio = '16 / 9';
-  container.style.paddingBottom = '0';
+  container.style.height = '0';
+  container.style.paddingBottom = '56.25%';
   container.style.overflow = 'hidden';
   container.style.backgroundColor = '#000';
   container.style.borderRadius = '12px';
 
-  // Legacy fallback only. Normal traffic is redirected to the secure Next.js watch route.
+  // --- الحل القاطع: جلب الـ ID من الرابط مباشرة كبديل آمن ---
   const urlParams = new URLSearchParams(window.location.search);
   const matchId = urlParams.get('id') || 'bein1';
   
@@ -255,7 +243,9 @@ function loadPlayer(stream, container, loader) {
   const finalTarget = (channelName && channelName.length > 1) ? channelName : matchId;
 
   const iframe = document.createElement('iframe');
-  iframe.src = `/embed/${encodeURIComponent(finalTarget)}`;
+  // تمرير القناة أو الـ ID بشكل صحيح ومباشر إلى جسر Cloudflare ومنه إلى سيرفر Oracle
+  iframe.src = `https://withered-mud-4e52.koora-live.workers.dev/embed/${finalTarget}`;
+  // ----------------------------------------------------------------
 
   iframe.frameBorder = '0';
   iframe.scrolling = 'no';
@@ -270,9 +260,6 @@ function loadPlayer(stream, container, loader) {
   iframe.onload = () => { if (loader) loader.style.display = 'none'; };
   container.appendChild(iframe);
 
-  const watermark = createPlayerWatermark();
-  container.appendChild(watermark);
-
   const clickTrap = document.createElement('div');
   clickTrap.style.position = 'absolute';
   clickTrap.style.inset = '0';
@@ -284,26 +271,6 @@ function loadPlayer(stream, container, loader) {
     clickTrap.remove();
   }, { once: true });
   container.appendChild(clickTrap);
-}
-
-function createPlayerWatermark() {
-  const watermark = document.createElement('img');
-  watermark.src = 'assets/images/logo.png';
-  watermark.alt = 'KoraLive Football';
-  watermark.className = 'watch-player-watermark';
-  watermark.setAttribute('aria-hidden', 'true');
-  watermark.style.position = 'absolute';
-  watermark.style.top = '4%';
-  watermark.style.right = '4%';
-  watermark.style.width = '15%';
-  watermark.style.maxWidth = '130px';
-  watermark.style.minWidth = '70px';
-  watermark.style.height = 'auto';
-  watermark.style.zIndex = '10';
-  watermark.style.pointerEvents = 'none';
-  watermark.style.objectFit = 'contain';
-  watermark.onerror = function() { this.style.display = 'none'; };
-  return watermark;
 }
 
 async function loadWatchNews() {
@@ -318,7 +285,7 @@ async function loadWatchNews() {
     if (cachedData) {
       const { timestamp, articles } = JSON.parse(cachedData);
       if (Date.now() - timestamp < CACHE_TIME && articles?.length) {
-        renderWatchNewsCards(articles.slice(0, 10), newsContainer);
+        renderWatchNewsCards(articles.slice(0, 4), newsContainer);
         return;
       }
     }

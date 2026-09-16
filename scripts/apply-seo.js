@@ -2,14 +2,14 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const siteUrl = "https://koralive.football";
+const siteUrl = "https://koratv.click";
 const logoUrl = `${siteUrl}/assets/images/logo.png`;
 const imageUrl = `${siteUrl}/assets/images/default-news.jpg`;
 const today = new Date().toISOString().slice(0, 10);
 
 const socials = [
-  "https://www.tiktok.com/@koralive.football",
-  "https://www.instagram.com/koralive.football",
+  "https://www.tiktok.com/@koratv.click",
+  "https://www.instagram.com/koratv.click",
   "https://www.youtube.com/@MaghribiTv-i5t",
 ];
 

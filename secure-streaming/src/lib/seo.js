@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from "./supabaseAdmin";
 
 export const SITE_NAME = "KoraLive Football";
-export const CANONICAL_ORIGIN = (process.env.NEXT_PUBLIC_CANONICAL_ORIGIN || "https://koralive.football").replace(/\/$/, "");
+export const CANONICAL_ORIGIN = (process.env.NEXT_PUBLIC_CANONICAL_ORIGIN || "https://koratv.click").replace(/\/$/, "");
 
 const UNKNOWN_CHANNELS = new Set(["", "غير محدد", "غير معروف", "unknown", "تحدد لاحقا", "تحدد لاحقاً"]);
 

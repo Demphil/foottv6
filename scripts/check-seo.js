@@ -54,12 +54,12 @@ for (const [description, files] of descriptions.entries()) {
 
 const sitemap = read("sitemap.xml");
 for (const url of [
-  "https://koralive.football/",
-  "https://koralive.football/news.html",
-  "https://koralive.football/at-work/",
-  "https://koralive.football/smart-tv/",
-  "https://koralive.football/low-internet/",
-  "https://koralive.football/abroad/",
+  "https://koratv.click/",
+  "https://koratv.click/news.html",
+  "https://koratv.click/at-work/",
+  "https://koratv.click/smart-tv/",
+  "https://koratv.click/low-internet/",
+  "https://koratv.click/abroad/",
 ]) {
   if (!sitemap.includes(`<loc>${url}</loc>`)) {
     problems.push(`sitemap.xml missing ${url}`);

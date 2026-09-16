@@ -29,6 +29,7 @@ export default async function EmbedPage({ params, searchParams }) {
   return (
     <main className="embed-page">
       <section className="player-card">
+        <div className="alert-box">تنبيه: إذا توقف البث أو واجهت تقطيعاً، يرجى تجربة سيرفر أو جودة أخرى.</div>
         <SecureVideoPlayer channelName={channelName} matchId={matchId || target.match?.match_id || ""} publicStreamId={publicStreamId} embed abr={abr} />
       </section>
     </main>

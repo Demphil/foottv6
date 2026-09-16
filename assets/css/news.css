@@ -197,19 +197,15 @@ body {
 /* حاوية الصورة */
 .news-image-wrapper {
   position: relative;
-  aspect-ratio: 16 / 9;
-  min-height: 170px;
-  max-height: 240px;
+  height: 200px;
   overflow: hidden;
   background-color: #2a3b4c;
 }
 
 .news-image-wrapper img {
-  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
   transition: transform 0.5s ease;
 }
 

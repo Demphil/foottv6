@@ -2,8 +2,11 @@
 
 import {
   getTodayMatches,
-  getTomorrowMatches
+  getTomorrowMatches,
+  getMoroccoWallClockNow,
+  getMoroccoDay
 } from './api.js';
+import { streamLinks } from './streams.js';
 
 const publicSupabaseConfig = window.__SUPABASE_CONFIG__ || {};
 const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url && publicSupabaseConfig.anonKey
@@ -14,8 +17,6 @@ const supabaseClient = window.supabase?.createClient && publicSupabaseConfig.url
 
 if (!supabaseClient) console.info('[MATCHES] Public Supabase client is not configured; using the server match feed.');
 
-const DEFAULT_TEAM_LOGO = 'assets/images/default-team.svg';
-
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
   broadcastContainer: document.getElementById('broadcast-matches'),
@@ -25,74 +26,6 @@ const DOM = {
   todayTab: document.getElementById('today-tab'),
   tomorrowTab: document.getElementById('tomorrow-tab'),
 };
-
-const TODAY_RETENTION_KEY = 'koralive_retained_today_matches_v1';
-let midnightRefreshTimer = null;
-
-function localDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function millisecondsUntilLocalMidnight(now = new Date()) {
-  const nextMidnight = new Date(now);
-  nextMidnight.setHours(24, 0, 0, 0);
-  return Math.max(1000, nextMidnight.getTime() - now.getTime());
-}
-
-function readRetainedTodayMatches() {
-  try {
-    const payload = JSON.parse(localStorage.getItem(TODAY_RETENTION_KEY) || 'null');
-    if (!payload || payload.localDate !== localDateKey() || !Array.isArray(payload.matches)) {
-      localStorage.removeItem(TODAY_RETENTION_KEY);
-      return [];
-    }
-    return payload.matches;
-  } catch {
-    localStorage.removeItem(TODAY_RETENTION_KEY);
-    return [];
-  }
-}
-
-function retainTodayMatches(matches) {
-  try {
-    localStorage.setItem(TODAY_RETENTION_KEY, JSON.stringify({
-      localDate: localDateKey(),
-      savedAt: Date.now(),
-      matches
-    }));
-  } catch (error) {
-    console.warn('[MATCHES] Could not retain today matches until midnight:', error);
-  }
-}
-
-function mergeByMatchIdentity(primaryMatches, fallbackMatches) {
-  const merged = [];
-  const seen = new Set();
-
-  [...(primaryMatches || []), ...(fallbackMatches || [])].forEach((match) => {
-    if (!match?.homeTeam?.name || !match?.awayTeam?.name) return;
-    const key = matchIdentity(match);
-    if (seen.has(key)) return;
-    seen.add(key);
-    merged.push(match);
-  });
-
-  return merged;
-}
-
-function scheduleMidnightRefresh() {
-  if (midnightRefreshTimer) window.clearTimeout(midnightRefreshTimer);
-  midnightRefreshTimer = window.setTimeout(() => {
-    localStorage.removeItem(TODAY_RETENTION_KEY);
-    loadAndRenderMatches().catch(error => {
-      console.error("An error occurred while refreshing matches at midnight:", error);
-      hideLoading();
-    });
-  }, millisecondsUntilLocalMidnight() + 1000);
-}
 
 function hideLoading() {
   if (DOM.loadingScreen) DOM.loadingScreen.style.display = 'none';
@@ -130,15 +63,10 @@ function getMatchDuration(leagueName) {
     return isKnockout ? 140 : 120; 
 }
 
-// التوقيت المخزن في scheduledAt هو المصدر الأدق، ويعرض لاحقاً بتوقيت زائر الموقع.
-// إذا لم يصل scheduledAt نستخدم وقت المصدر السعودي كخطة احتياطية فقط.
+// تصحيح التوقيت الذكي لتجاهل أخطاء قاعدة البيانات والمسافات المخفية (مثل 12:00)
 function matchStartDate(match) {
-  if (match?.scheduledAt) {
-    const scheduledDate = new Date(match.scheduledAt);
-    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
-  }
-
   if (match?.time && match.time !== 'مباشر الآن' && match.time.includes(':')) {
+    // إزالة ^ و $ من البحث لكي نلتقط الوقت حتى لو كان محاطاً بمسافات مخفية
     const timeMatch = String(match.time).match(/(\d{1,2}):(\d{2})/);
     if (timeMatch) {
       let hour = Number(timeMatch[1]);
@@ -155,6 +83,12 @@ function matchStartDate(match) {
     }
   }
 
+  // كخيار احتياطي
+  if (match?.scheduledAt) {
+    const scheduledDate = new Date(match.scheduledAt);
+    if (!Number.isNaN(scheduledDate.getTime())) return scheduledDate;
+  }
+
   return null;
 }
 
@@ -164,17 +98,18 @@ function renderMatch(match) {
   const { homeTeam, awayTeam } = match;
   const homeTeamName = homeTeam.name;
   const awayTeamName = awayTeam.name;
-  const homeLogo = safeImageUrl(homeTeam.logo, DEFAULT_TEAM_LOGO);
-  const awayLogo = safeImageUrl(awayTeam.logo, DEFAULT_TEAM_LOGO);
+  const homeLogo = homeTeam.logo || 'assets/images/default-logo.jpg';
+  const awayLogo = awayTeam.logo || 'assets/images/default-logo.jpg';
+  const matchSpecificKey = `${homeTeamName}-${awayTeamName}`;
   const matchId = `${homeTeamName}_vs_${awayTeamName}`
     .toLocaleLowerCase('ar').trim().replace(/\s+/g, '_');
   const stableId = match.matchId || match.match_id || `${matchId}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
   const publicWatchId = opaqueWatchId(stableId);
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
-  const hasIptvStream = match.streamReady === true;
+  const manualLink = streamLinks[match.channel] || streamLinks[matchSpecificKey];
   
-  let watchUrl = `/watch/${encodeURIComponent(publicWatchId)}`;
+  let watchUrl = `watch.html?id=${encodeURIComponent(publicWatchId)}`;
 
   // ==========================================
   // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
@@ -203,7 +138,7 @@ function renderMatch(match) {
       diffMins = 9999; 
   }
 
-  const hasData = hasStreams || hasIptvStream;
+  const hasData = hasStreams || manualLink;
 
   // ⏱️ حساب مدة المباراة بذكاء حسب البطولة
   const matchDuration = typeof getMatchDuration === 'function' ? getMatchDuration(match.league) : 120;
@@ -298,7 +233,7 @@ function renderMatch(match) {
         <div class="league-info"><span>${match.league}</span></div>
         <div class="teams">
           <div class="team">
-            <img src="${escapeAttribute(homeLogo)}" alt="${escapeAttribute(homeTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
+            <img src="${homeLogo}" alt="${homeTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${homeTeamName}</span>
           </div>
           <div class="match-info">
@@ -306,7 +241,7 @@ function renderMatch(match) {
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
-            <img src="${escapeAttribute(awayLogo)}" alt="${escapeAttribute(awayTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
+            <img src="${awayLogo}" alt="${awayTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${awayTeamName}</span>
           </div>
         </div>
@@ -315,33 +250,6 @@ function renderMatch(match) {
     </a>
   `;
 }
-
-function safeImageUrl(value, fallback = DEFAULT_TEAM_LOGO) {
-  const url = String(value || '').trim();
-  if (!url) return fallback;
-  try {
-    const parsed = new URL(url, window.location.href);
-    return ['http:', 'https:'].includes(parsed.protocol) || parsed.origin === window.location.origin
-      ? parsed.href
-      : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function escapeAttribute(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-window.useDefaultTeamLogo = function(image) {
-  if (!image || image.dataset.fallbackApplied === 'true') return;
-  image.dataset.fallbackApplied = 'true';
-  image.src = DEFAULT_TEAM_LOGO;
-};
 
 function matchIdentity(match) {
   return match.matchId || match.match_id || `${match.homeTeam.name}-${match.awayTeam.name}-${match.scheduledAt?.slice(0, 10) || 'undated'}`;
@@ -394,55 +302,6 @@ function renderSection(container, matches, message) {
   }
 }
 
-function minutesUntilKickoff(match, now = new Date()) {
-  const start = matchStartDate(match);
-  if (!start || Number.isNaN(start.getTime())) return 9999;
-  return (start - now) / 60000;
-}
-
-function isMatchLive(match, now = new Date()) {
-  const diff = minutesUntilKickoff(match, now);
-  return diff <= 0 && diff >= -getMatchDuration(match.league);
-}
-
-function renderFeaturedToday(container, matches, message) {
-  if (!container) return;
-  const now = new Date();
-  const liveMatches = [];
-  const soonMatches = [];
-  const laterMatches = [];
-  const finishedMatches = [];
-  const otherTodayMatches = [];
-
-  for (const match of matches || []) {
-    const diff = minutesUntilKickoff(match, now);
-    const duration = getMatchDuration(match.league);
-    if (isMatchLive(match, now)) liveMatches.push(match);
-    else if (diff > 0 && diff <= 60) soonMatches.push(match);
-    else if (diff > 60) laterMatches.push(match);
-    else if (diff < -duration) finishedMatches.push(match);
-    else otherTodayMatches.push(match);
-  }
-
-  liveMatches.sort((a, b) => matchStartDate(b) - matchStartDate(a));
-  soonMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
-  laterMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
-  otherTodayMatches.sort((a, b) => matchStartDate(a) - matchStartDate(b));
-  finishedMatches.sort((a, b) => matchStartDate(b) - matchStartDate(a));
-
-  renderSection(container, [...liveMatches, ...soonMatches, ...laterMatches, ...otherTodayMatches, ...finishedMatches], message);
-}
-
-function localMatchDay(match, reference = new Date()) {
-  const start = matchStartDate(match);
-  if (!start || Number.isNaN(start.getTime())) return null;
-
-  const target = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
-  const current = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate()).getTime();
-  const difference = Math.round((target - current) / 86400000);
-  return difference === 0 ? 'today' : difference === 1 ? 'tomorrow' : difference === -1 ? 'yesterday' : 'other';
-}
-
 async function loadAndRenderMatches() {
   const [rawTodayMatches, rawTomorrowMatches] = await Promise.all([
     getTodayMatches(),
@@ -463,7 +322,7 @@ async function loadAndRenderMatches() {
       if (seenMatches.has(matchKey)) return;
       seenMatches.add(matchKey);
       
-      const day = localMatchDay(match, new Date());
+      const day = getMoroccoDay(match.scheduledAt, new Date());
       if (day === 'today') trueTodayMatches.push(match);
       else if (day === 'tomorrow') trueTomorrowMatches.push(match);
   });
@@ -472,9 +331,11 @@ async function loadAndRenderMatches() {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.streamReady === true;
+      const fallbackA = streamLinks[a.channel] || streamLinks[`${a.homeTeam?.name}-${a.awayTeam?.name}`];
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || !!fallbackA;
     
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.streamReady === true;
+      const fallbackB = streamLinks[b.channel] || streamLinks[`${b.homeTeam?.name}-${b.awayTeam?.name}`];
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || !!fallbackB;
 
       // ==========================================
       // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
@@ -513,17 +374,10 @@ async function loadAndRenderMatches() {
   trueTodayMatches.sort(sortMatches);
   trueTomorrowMatches.sort(sortMatches);
 
-  const retainedTodayMatches = readRetainedTodayMatches()
-    .filter(match => localMatchDay(match, now) === 'today');
-  const todayMatchesUntilMidnight = mergeByMatchIdentity(trueTodayMatches, retainedTodayMatches);
-  todayMatchesUntilMidnight.sort(sortMatches);
-  retainTodayMatches(todayMatchesUntilMidnight);
-
-  renderFeaturedToday(DOM.featuredContainer, todayMatchesUntilMidnight, 'لا توجد مباريات جارية أو قادمة خلال ساعتين.');
-  renderSection(DOM.broadcastContainer, todayMatchesUntilMidnight, 'لا توجد مباريات هامة اليوم.');
-  renderSection(DOM.todayContainer, todayMatchesUntilMidnight, 'لا توجد مباريات اليوم.');
+  renderSection(DOM.featuredContainer, trueTodayMatches, 'لا توجد مباريات جارية أو قادمة اليوم.');
+  renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مباريات هامة اليوم.');
+  renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مباريات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مباريات غداً.');
-  scheduleMidnightRefresh();
 }
 
 function setupTabs() {
