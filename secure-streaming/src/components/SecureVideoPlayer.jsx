@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
+import { logoLuminance, prepareWatchTemplate, matchWatchLogo, mapWatchLogo, videoContentRect, watchLogoAnchor } from "../lib/watch-logo-layout";
 
 const QUALITY_OPTIONS = [
   { id: "1080p", type: "quality", label: "سيرفر 1", sub: "1080 HD", passthrough: true },
@@ -226,7 +227,7 @@ function matchBroadcasterTemplate(featureMask, sampleWidth, sampleHeight, templa
   return bestMatch;
 }
 
-async function loadBroadcasterTemplates() {
+async function loadBroadcasterTemplates(forWatch = false) {
   const response = await fetch(BROADCASTER_TEMPLATE_MANIFEST, { cache: "force-cache" });
   if (!response.ok) return [];
   const manifest = await response.json();
@@ -237,6 +238,17 @@ async function loadBroadcasterTemplates() {
   const templates = await Promise.all((Array.isArray(manifest) ? manifest : []).map((item) => new Promise((resolve) => {
     const image = new Image();
     image.onload = () => {
+      if (forWatch) {
+        const variants = [40, 42, 44, 46, 48, 50, 52].map(width => {
+          const height = Math.max(1, Math.round(width * image.naturalHeight / image.naturalWidth));
+          canvas.width = width;
+          canvas.height = height;
+          context.drawImage(image, 0, 0, width, height);
+          return prepareWatchTemplate(logoLuminance(context.getImageData(0, 0, width, height).data), width, height, item.id);
+        });
+        resolve(variants);
+        return;
+      }
       const targetWidth = Math.min(BROADCASTER_TEMPLATE_MAX_WIDTH, image.naturalWidth || BROADCASTER_TEMPLATE_MAX_WIDTH);
       const targetHeight = Math.max(1, Math.round(targetWidth * ((image.naturalHeight || 1) / (image.naturalWidth || targetWidth))));
       canvas.width = targetWidth;
@@ -267,7 +279,7 @@ async function loadBroadcasterTemplates() {
     image.src = item.src;
   })));
 
-  return templates.filter(Boolean);
+  return templates.flat().filter(Boolean);
 }
 
 function detectBroadcasterLogo(video, canvas, templates = []) {
@@ -523,6 +535,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }
 
   function updateVideoLayoutVars() {
+    if (!embed) {
+      updateWatchVideoLayout();
+      return;
+    }
     const frame = frameRef.current;
     const video = videoRef.current;
     if (!frame) return;
@@ -662,6 +678,58 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     frame.style.setProperty("--ticker-bottom", `${frameHeight - visibleVideoBottom + tickerBottom}px`);
   }
 
+  function updateWatchVideoLayout() {
+    const frame = frameRef.current;
+    const video = playerRef.current?.tech?.(true)?.el?.() || videoRef.current;
+    const logo = frame?.querySelector(".korlive-corner-logo");
+    const parent = logo?.offsetParent;
+    if (!frame || !video || !parent) return;
+    const parentBox = parent.getBoundingClientRect();
+    if (!parentBox.width || !parentBox.height) return;
+    const videoBox = videoContentRect(video.getBoundingClientRect(), video.videoWidth || 16, video.videoHeight || 9, getComputedStyle(video).objectFit);
+    const channel = activeChannelRef.current || channelName;
+    const anchor = watchLogoAnchor(channel);
+    const tracker = logoTrackerRef.current;
+    const now = Date.now();
+    if (tracker.channel !== channel) {
+      Object.assign(tracker, { channel, lastLogo: null, candidate: null, lastScanAt: 0 });
+    }
+    if (video.readyState >= 2 && now >= tracker.disabledUntil && now - tracker.lastScanAt >= SMART_LOGO_SCAN_INTERVAL_MS) {
+      tracker.lastScanAt = now;
+      const canvas = logoScanCanvasRef.current || (logoScanCanvasRef.current = document.createElement("canvas"));
+      canvas.width = SMART_LOGO_SCAN.sampleWidth;
+      canvas.height = Math.round(canvas.width * (video.videoHeight || 9) / (video.videoWidth || 16));
+      try {
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const templates = /bein/i.test(channel) ? broadcasterTemplatesRef.current.templates : [];
+        const detected = matchWatchLogo(logoLuminance(context.getImageData(0, 0, canvas.width, canvas.height).data), canvas.width, canvas.height, templates, anchor);
+        if (detected) {
+          const previous = tracker.candidate;
+          if (previous && Math.abs(previous.left - detected.left) < 0.008 && Math.abs(previous.top - detected.top) < 0.008) {
+            tracker.lastLogo = detected;
+          }
+          tracker.candidate = detected;
+        } else {
+          tracker.candidate = null;
+        }
+      } catch {
+        tracker.disabledUntil = now + SMART_LOGO_BLOCKED_RETRY_MS;
+      }
+    }
+    const rect = mapWatchLogo(tracker.lastLogo || anchor, videoBox, parentBox, parent.clientWidth, parent.clientHeight);
+    frame.dataset.logoLayoutProfile = "watch-video";
+    frame.dataset.logoTracker = tracker.lastLogo ? `watch-template:${tracker.lastLogo.templateId}` : "watch-calibrated";
+    frame.style.setProperty("--channel-logo-position", "absolute");
+    frame.style.setProperty("--channel-logo-z", "35");
+    for (const key of ["left", "top", "width", "height"]) {
+      frame.style.setProperty(`--channel-logo-${key}`, `${rect[key]}px`);
+    }
+    frame.style.setProperty("--channel-logo-font-size", `${Math.min(13, rect.width * 0.079)}px`);
+    const bottomInset = (parentBox.top + parentBox.height - videoBox.top - videoBox.height) * parent.clientHeight / parentBox.height;
+    frame.style.setProperty("--ticker-bottom", `${Math.max(34, bottomInset + 34)}px`);
+  }
+
   function scheduleVideoLayoutRefresh() {
     [0, 80, 180, 360, 700, 1200].forEach((delay) => {
       window.setTimeout(updateVideoLayoutVars, delay);
@@ -795,7 +863,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
   useEffect(() => {
     let disposed = false;
-    loadBroadcasterTemplates()
+    loadBroadcasterTemplates(!embed)
       .then((templates) => {
         if (!disposed) broadcasterTemplatesRef.current = { loaded: true, templates };
       })
