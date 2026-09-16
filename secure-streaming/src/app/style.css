@@ -37,6 +37,12 @@ body {
   perspective: none;
 }
 
+body:has(.embed-page) {
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+
 .player-card {
   width: min(1160px, 100%);
   max-width: 100%;
@@ -1050,28 +1056,41 @@ body {
 }
 
 .embed-page.embed-page {
-  min-height: 100%;
+  height: 100vh;
+  min-height: 0;
   align-items: flex-start;
   justify-content: center;
   padding: 0;
   background: #000;
+  overflow: hidden;
   perspective: none;
 }
 
 .embed-page .player-card {
   width: 100%;
+  height: 100%;
   min-height: 0;
 }
 
 .embed-player-shell.embed-player-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   background: #000;
 }
 
+.embed-player-shell .player-topbar {
+  flex: 0 0 auto;
+}
+
 .embed-player-shell .secure-video-frame {
+  flex: 1 1 auto;
   width: 100%;
+  height: auto;
   min-height: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: auto;
 }
