@@ -15,7 +15,6 @@ const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
 const AD_NORMAL_INTERVAL_MS = 3 * 60 * 1000;
 const AD_FULLSCREEN_INTERVAL_MS = 10 * 60 * 1000;
 const AD_EMBED_INTERVAL_MS = 8 * 60 * 1000;
-const AD_SCRIPT_SLOT_MS = 25 * 1000;
 
 const LOGO_LAYOUT_PROFILES = {
   normal: {
@@ -450,7 +449,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const playerRef = useRef(null);
   const mpegtsPlayerRef = useRef(null);
   const adScriptsRef = useRef([]);
-  const adCleanupTimerRef = useRef(null);
   const tokenRef = useRef("");
   const activeChannelRef = useRef(channelName);
   const selectedServerRef = useRef(DEFAULT_SERVER_ID);
@@ -507,15 +505,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   function cleanupAdScripts() {
     adScriptsRef.current.forEach((script) => script.remove());
     adScriptsRef.current = [];
-    if (adCleanupTimerRef.current) {
-      window.clearTimeout(adCleanupTimerRef.current);
-      adCleanupTimerRef.current = null;
-    }
   }
 
-  function runAdSlot() {
-    let loaded = 0;
-    cleanupAdScripts();
+  function loadNetworkAds() {
+    if (adScriptsRef.current.length) return;
     const scripts = configuredAdScripts().map((item) => {
       const script = document.createElement("script");
       script.src = item.src;
@@ -523,14 +516,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       script.dataset.koraliveAdSlot = "true";
       if (item.zone) script.dataset.zone = item.zone;
       if (item.cfasync) script.dataset.cfasync = item.cfasync;
-      script.onload = () => { loaded += 1; };
       document.head.appendChild(script);
       return script;
     });
     adScriptsRef.current = scripts;
-    adCleanupTimerRef.current = window.setTimeout(() => {
-      cleanupAdScripts();
-    }, AD_SCRIPT_SLOT_MS);
   }
 
   function updateVideoLayoutVars() {
@@ -760,7 +749,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const showAdSlot = () => {
       setCanShowInterruptions(true);
       setPromoOpen(true);
-      runAdSlot();
     };
     const every = window.setInterval(showAdSlot, adIntervalMs);
     return () => {
@@ -918,6 +906,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         sources: []
       });
 
+      playerRef.current.one("play", loadNetworkAds);
       playerRef.current.on("error", () => {
         if (activeStreamTypeRef.current === "mpegts") {
           refreshLiveSource("mpegts-video-error");
