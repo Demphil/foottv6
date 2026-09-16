@@ -14,6 +14,7 @@ const DEFAULT_SERVER_ID = "1080p";
 const FALLBACK_SERVER_ORDER = ["1080p", "720p", "360p"];
 const AD_NORMAL_INTERVAL_MS = 3 * 60 * 1000;
 const AD_FULLSCREEN_INTERVAL_MS = 10 * 60 * 1000;
+const AD_EMBED_INTERVAL_MS = 8 * 60 * 1000;
 const AD_SCRIPT_SLOT_MS = 25 * 1000;
 
 const LOGO_LAYOUT_PROFILES = {
@@ -459,7 +460,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   const [selectedServerId, setSelectedServerId] = useState(DEFAULT_SERVER_ID);
   const [languageServers, setLanguageServers] = useState([]);
   const [blocked, setBlocked] = useState("");
-  const [adNotice, setAdNotice] = useState("");
   const [promoOpen, setPromoOpen] = useState(false);
   const [canShowInterruptions, setCanShowInterruptions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -523,17 +523,11 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (item.zone) script.dataset.zone = item.zone;
       if (item.cfasync) script.dataset.cfasync = item.cfasync;
       script.onload = () => { loaded += 1; };
-      script.onerror = () => {
-        setAdNotice("قد تمنع بعض الإضافات ظهور الإعلانات، لكن البث سيبقى يعمل.");
-      };
       document.head.appendChild(script);
       return script;
     });
     adScriptsRef.current = scripts;
     adCleanupTimerRef.current = window.setTimeout(() => {
-      if (scripts.length && loaded === 0) {
-        setAdNotice("إذا لم تظهر الإعلانات لديك فربما توجد إضافة حجب، ويمكنك متابعة البث بشكل عادي.");
-      }
       cleanupAdScripts();
     }, AD_SCRIPT_SLOT_MS);
   }
@@ -762,8 +756,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, []);
 
   useEffect(() => {
-    if (embed) return undefined;
-    const intervalMs = isFullscreen ? AD_FULLSCREEN_INTERVAL_MS : AD_NORMAL_INTERVAL_MS;
+    const intervalMs = embed ? AD_EMBED_INTERVAL_MS : (isFullscreen ? AD_FULLSCREEN_INTERVAL_MS : AD_NORMAL_INTERVAL_MS);
     const showAdSlot = () => {
       setCanShowInterruptions(true);
       setPromoOpen(true);
@@ -807,26 +800,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       disposed = true;
     };
   }, [channelName, matchId]);
-
-  useEffect(() => {
-    const bait = document.createElement("div");
-    bait.className = "adsbox ad-banner ad-unit pub_300x250";
-    bait.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;";
-    document.body.appendChild(bait);
-
-    const timer = window.setTimeout(() => {
-      const style = window.getComputedStyle(bait);
-      if (bait.offsetParent === null || style.display === "none" || style.visibility === "hidden") {
-        setAdNotice("تم اكتشاف حجب لبعض الإعلانات. البث لن يتوقف، لكن دعم الإعلانات يساعد على استمرار الخدمة.");
-      }
-      bait.remove();
-    }, 1200);
-
-    return () => {
-      window.clearTimeout(timer);
-      bait.remove();
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -1023,7 +996,14 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }, [blocked]);
 
   useEffect(() => {
-    const protectedSelectors = [".korlive-corner-logo", ".brand-watermark"];
+    const protectedSelectors = [
+      ".korlive-corner-logo",
+      ".brand-watermark",
+      ".player-topbar",
+      ".quality-tabs",
+      ".header-logo",
+      ...(promoOpen && canShowInterruptions ? [".promo-pop"] : [])
+    ];
     const isHidden = (element) => {
       if (!element) return true;
       const style = window.getComputedStyle(element);
@@ -1031,6 +1011,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     };
 
     const checkProtection = () => {
+      if (embed && (window.innerWidth < 280 || window.innerHeight < 220)) {
+        setBlocked("تم إيقاف البث لأن إطار التضمين صغير أو تم قص عناصر المشغل.");
+        return;
+      }
       const tampered = protectedSelectors.some((selector) => isHidden(document.querySelector(selector)));
       if (tampered) setBlocked("تم إيقاف البث بسبب تعديل عناصر الحماية داخل المشغل.");
     };
@@ -1052,7 +1036,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       observer.disconnect();
       window.clearInterval(timer);
     };
-  }, []);
+  }, [embed, promoOpen, canShowInterruptions]);
 
   async function refreshStream() {
     try {
@@ -1112,7 +1096,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   }
 
   return (
-    <div className="secure-player-shell">
+    <div className={`secure-player-shell${embed ? " embed-player-shell" : ""}`}>
       <div className="player-topbar">
         <div className="topbar-actions">
           {!embed ? (
@@ -1158,19 +1142,6 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
             <span>مرحبا بك في موقع كورة لايف Koralive.football &gt;</span>
             <b aria-hidden="true">KoraLive.football</b>
           </div>
-
-          {adNotice && canShowInterruptions ? (
-            <div className="adblock-modal" role="alert" aria-live="polite">
-              <div className="adblock-modal-card">
-                <div className="adblock-modal-icon">!</div>
-                <h3>مانع الإعلانات مفعّل</h3>
-                <p>من فضلك أوقف مانع الإعلانات لهذا الموقع، ثم اضغط تحديث للعودة إلى المشاهدة بشكل عادي.</p>
-                <button type="button" onClick={() => window.location.reload()}>
-                  تحديث الصفحة
-                </button>
-              </div>
-            </div>
-          ) : null}
 
           {promoOpen && canShowInterruptions ? (
             <aside className="promo-pop" aria-label="إعلان">
