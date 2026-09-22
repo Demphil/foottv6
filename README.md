@@ -2,15 +2,11 @@
 
 https://fraja.online
 
-## Match Metadata
+## Static Frontend
 
-This repository keeps match discovery separate from stream delivery. Match metadata can still be refreshed with:
+This repository is now a GitHub Pages static frontend only. Match data is fetched in the browser from the shared gateway at `https://stream-api.koratv.click/api/matches`, and watch links hand off to the unified player at `https://medic.cymru/`.
 
-```bash
-npm run matches:metadata
-```
-
-The legacy stream resolver and external-source QA pipeline were removed. Live channel links are now managed by the secure streaming service under `secure-streaming`, where provider M3U updates refresh sports channels only.
+There is no site-specific backend, local player, Supabase scraper, or gateway code in this repository.
 
 ## SEO Maintenance
 
@@ -21,4 +17,4 @@ npm run seo:apply
 npm run seo:check
 ```
 
-The generated static pages keep canonical URLs, Arabic/x-default alternates, sitemap entries, structured data, and Monetag-only ad scripts.
+The generated static pages keep canonical URLs, Arabic/x-default alternates, sitemap entries, and structured data.

@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
 
 const root = path.resolve(__dirname, "..");
 const siteHost = "fraja.online";
@@ -19,20 +18,21 @@ async function submitIndexNow() {
     throw new Error("No URLs found in sitemap.xml");
   }
 
-  const response = await axios.post(
-    "https://api.indexnow.org/indexnow",
-    {
+  const response = await fetch("https://api.indexnow.org/indexnow", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify({
       host: siteHost,
       key,
       keyLocation,
       urlList,
-    },
-    {
-      headers: { "Content-Type": "application/json; charset=utf-8" },
-      timeout: 15000,
-      validateStatus: (status) => status >= 200 && status < 300,
-    },
-  );
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`IndexNow returned ${response.status}`);
+  }
 
   console.log(`IndexNow submitted ${urlList.length} URLs. Status: ${response.status}`);
 }

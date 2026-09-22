@@ -411,7 +411,6 @@ ${extraVerification}    <link rel="canonical" href="${url}">
     <meta name="twitter:title" content="${esc(page.title)}">
     <meta name="twitter:description" content="${esc(page.description)}">
     <meta name="twitter:image" content="${imageUrl}">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
