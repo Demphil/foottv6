@@ -141,10 +141,6 @@ body {
 }
 
 /* 5. بطاقة المباراة الموحدة */
-a.match-card-link {
-  text-decoration: none;
-  color: inherit;
-}
 .match-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -154,6 +150,7 @@ a.match-card-link {
   display: flex;
   flex-direction: column;
   position: relative;
+  min-height: 245px;
 }
 .match-card:hover {
   transform: translateY(-5px);
@@ -224,6 +221,107 @@ a.match-card-link {
   font-size: 0.8rem;
   opacity: 0.9;
 }
+.live-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.live-minute,
+.cards-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.live-minute {
+  color: #7CFFB2;
+}
+.card-stat {
+  width: 9px;
+  height: 13px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.yellow-card {
+  background: #ffd166;
+}
+.red-card {
+  background: #ef476f;
+}
+.goals-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  background: rgba(255, 209, 102, 0.14);
+  border: 1px solid rgba(255, 209, 102, 0.28);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.goal-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 170px;
+}
+.goal-chip i,
+.goal-chip small {
+  color: var(--secondary-color);
+}
+.goal-chip small {
+  font-size: 0.72rem;
+}
+.match-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 14px;
+}
+.watch-action {
+  font-family: 'Cairo', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 128px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2dd4bf, #16a34a);
+  color: #07111d;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+.watch-action:hover {
+  filter: brightness(1.05);
+}
+.watch-action.disabled,
+.watch-action:disabled {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.78);
+  cursor: not-allowed;
+  box-shadow: none;
+}
 .match-detail-item {
   display: flex;
   align-items: center;
@@ -233,9 +331,6 @@ a.match-card-link {
   color: var(--secondary-color);
   width: 15px;
   text-align: center;
-}
-.match-card-link.not-clickable {
-  cursor: not-allowed;
 }
 .no-stream-badge {
   position: absolute;

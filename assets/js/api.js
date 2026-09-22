@@ -94,7 +94,8 @@ function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
 
 // --- 3. Database API ---
 
-const MATCHES_API_URL = 'https://stream-api.koratv.click/api/matches';
+export const STREAM_GATEWAY_ORIGIN = 'https://stream-api.koratv.click';
+const MATCHES_API_URL = `${STREAM_GATEWAY_ORIGIN}/api/matches`;
 
 let stagingMatchesPromise = null;
 
@@ -119,7 +120,15 @@ function normalizeStagingMatch(match) {
     league: match.league || '',
     channel: match.channel || match.channels?.[0] || 'تحدد لاحقاً',
     streams: Array.isArray(match.streams) ? match.streams : [],
-    isLive: Boolean(match.isLive),
+    streamReady: Boolean(match.streamReady ?? match.sourceReady ?? match.sourceAvailable),
+    sourceReady: Boolean(match.sourceReady ?? match.streamReady),
+    sourceAvailable: Boolean(match.sourceAvailable ?? match.sourceReady ?? match.streamReady),
+    playbackState: match.playbackState || '',
+    isLive: Boolean(match.isLive) || match.playbackState === 'live',
+    liveMinute: Number.isFinite(Number(match.liveMinute)) ? Number(match.liveMinute) : null,
+    yellowCards: match.yellowCards || null,
+    redCards: match.redCards || null,
+    goals: Array.isArray(match.goals) ? match.goals : [],
     commentator: match.commentator || ''
   };
 }

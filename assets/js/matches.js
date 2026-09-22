@@ -1,11 +1,12 @@
 // assets/js/matches.js
 
 import {
+  STREAM_GATEWAY_ORIGIN,
   getTodayMatches,
   getTomorrowMatches
 } from './api.js';
 
-const DEFAULT_TEAM_LOGO = 'assets/images/default-team.svg';
+const DEFAULT_TEAM_LOGO = 'assets/images/default-team.png';
 
 const DOM = {
   featuredContainer: document.getElementById('featured-matches'),
@@ -105,6 +106,38 @@ window.closeWaitModal = function() {
     if (modal) modal.style.display = 'none';
 }
 
+window.openMatchPlayer = async function(matchId) {
+  const id = String(matchId || '').trim();
+  if (!id) return openWaitModal('تعذر تحديد المباراة حالياً.');
+
+  const playerWindow = window.open('', '_blank', 'noopener,noreferrer');
+  try {
+    const response = await fetch(`${STREAM_GATEWAY_ORIGIN}/api/generate-token`, {
+      method: 'POST',
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({ matchId: id })
+    });
+
+    if (!response.ok) throw new Error(`token_${response.status}`);
+    const data = await response.json();
+    if (!data?.token) throw new Error('missing_token');
+
+    const target = `https://medic.cymru/?k=${encodeURIComponent(data.token)}`;
+    if (playerWindow) playerWindow.location.href = target;
+    else window.open(target, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    if (playerWindow) playerWindow.close();
+    console.error('[MATCHES] Player token request failed:', error);
+    openWaitModal('تعذر فتح البث حالياً. يرجى المحاولة بعد قليل.');
+  }
+};
+
 // ==========================================
 // 🎯 رادار تحديد مدة المباراة الذكي
 // ==========================================
@@ -163,9 +196,7 @@ function renderMatch(match) {
   const publicWatchId = opaqueWatchId(stableId);
   
   const hasStreams = Array.isArray(match.streams) && match.streams.length > 0;
-  const hasIptvStream = match.streamReady === true;
-  
-  const watchUrl = `https://medic.cymru/?match_id=${encodeURIComponent(stableId)}`;
+  const hasIptvStream = match.streamReady === true || match.sourceReady === true || match.sourceAvailable === true;
 
   // ==========================================
   // 🚀 الإصلاح الجذري لمشكلة منتصف الليل والتوقيت
@@ -222,9 +253,10 @@ function renderMatch(match) {
   let statusBadge = '';
   let matchStatusClass = '';
   
-  let hrefAttribute = `href="javascript:void(0)"`;
-  let clickAction = `onclick="openWaitModal('رابط البث يفتح قبل بداية المباراة بـ 20 دقيقة.')"`;
-  let isClickableClass = 'not-clickable';
+  let watchActionHTML = `<button type="button" class="watch-action disabled" onclick="openWaitModal('رابط البث يفتح قبل بداية المباراة بـ 20 دقيقة.')">
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <span>لم يفتح البث</span>
+  </button>`;
   let topBadge = '';
 
   // ==========================================
@@ -232,16 +264,19 @@ function renderMatch(match) {
   // ==========================================
   if (hasData) {
       if (isTimeAllowed) {
-          hrefAttribute = `href="${watchUrl}" target="_blank"`;
-          clickAction = '';
-          isClickableClass = 'clickable';
+          watchActionHTML = `<button type="button" class="watch-action" onclick="openMatchPlayer('${escapeJsString(stableId)}')">
+            <i class="fas fa-play" aria-hidden="true"></i>
+            <span>مشاهدة</span>
+          </button>`;
       } else if (isEnded) {
           // 🛑 المباراة انتهت بالفعل
-          clickAction = '';
+          watchActionHTML = `<button type="button" class="watch-action disabled" disabled>
+            <i class="fas fa-flag-checkered" aria-hidden="true"></i>
+            <span>انتهت</span>
+          </button>`;
           topBadge = ''; // إزالة أي شارة من المباريات المنتهية
       } else {
           // ⏳ المباراة قادمة ولم يحن وقت البث
-          clickAction = `onclick="openWaitModal('رابط البث يفتح قبل بداية المباراة بـ 20 دقيقة.')"`;
           if (diffMins > 0 && diffMins <= 60) {
               topBadge = '<span class="no-stream-badge" style="background: #e67e22; color: #fff;">يفتح قريباً</span>';
           } else {
@@ -252,13 +287,20 @@ function renderMatch(match) {
       // إذا لم يكن هناك بيانات بث
       if (isEnded) {
           topBadge = ''; // لا تعرض "غير جاهز" لمباراة منتهية
+          watchActionHTML = `<button type="button" class="watch-action disabled" disabled>
+            <i class="fas fa-flag-checkered" aria-hidden="true"></i>
+            <span>انتهت</span>
+          </button>`;
       } else {
           topBadge = '<span class="no-stream-badge">غير جاهز الان</span>';
+          watchActionHTML = `<button type="button" class="watch-action disabled" onclick="openWaitModal('البث غير جاهز حالياً.')">
+            <i class="fas fa-ban" aria-hidden="true"></i>
+            <span>غير جاهز</span>
+          </button>`;
       }
   }
 
   if (isEnded) {
-      clickAction = '';
       statusBadge = '<span class="live-badge ended">انتهت المباراة</span>';
   } else if (isSoon) {
       timeText = '<span class="soon-text-blink">ستبدأ قريباً</span>';
@@ -267,46 +309,103 @@ function renderMatch(match) {
       statusBadge = '<span class="live-badge live">جاري الآن</span>';
       matchStatusClass = 'is-live';
       if (match.score && match.score.includes('-')) {
-          timeText = `<span class="live-score">${match.score}</span>`;
+          timeText = `<span class="live-score">${escapeHTML(match.score)}</span>`;
       }
   }
+
+  const timeHTML = String(timeText || '').includes('<span')
+    ? timeText
+    : escapeHTML(timeText || '');
+
+  const liveMetaHTML = renderLiveMeta(match, isLive);
+  const goalsHTML = renderGoals(match.goals);
 
   const matchDetailsHTML = `
     <div class="match-detail-item">
       <i class="fas fa-tv" aria-hidden="true"></i>
-      <span>${channelName}</span>
+      <span>${escapeHTML(channelName)}</span>
     </div>
     ${match.commentator ? `
       <div class="match-detail-item">
         <i class="fas fa-microphone-alt" aria-hidden="true"></i>
-        <span>${match.commentator}</span>
+        <span>${escapeHTML(match.commentator)}</span>
       </div>
     ` : ''}
   `;
 
   return `
-    <a ${hrefAttribute} ${clickAction} class="match-card-link ${isClickableClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${publicWatchId}">
         ${topBadge}
         ${statusBadge}
-        <div class="league-info"><span>${match.league}</span></div>
+        <div class="league-info"><span>${escapeHTML(match.league)}</span></div>
         <div class="teams">
           <div class="team">
             <img src="${escapeAttribute(homeLogo)}" alt="${escapeAttribute(homeTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
-            <span class="team-name">${homeTeamName}</span>
+            <span class="team-name">${escapeHTML(homeTeamName)}</span>
           </div>
           <div class="match-info">
-            <span class="score">${match.score}</span>
-            <span class="time">${timeText}</span>
+            <span class="score">${escapeHTML(match.score)}</span>
+            <span class="time">${timeHTML}</span>
           </div>
           <div class="team">
             <img src="${escapeAttribute(awayLogo)}" alt="${escapeAttribute(awayTeamName)}" loading="lazy" decoding="async" width="56" height="56" onerror="useDefaultTeamLogo(this);">
-            <span class="team-name">${awayTeamName}</span>
+            <span class="team-name">${escapeHTML(awayTeamName)}</span>
           </div>
         </div>
+        ${liveMetaHTML}
+        ${goalsHTML}
         ${matchDetailsHTML.trim() ? `<div class="match-details-extra">${matchDetailsHTML}</div>` : ''}
+        <div class="match-actions">${watchActionHTML}</div>
       </article>
-    </a>
+  `;
+}
+
+function numberValue(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function cardPair(cards) {
+  if (!cards || typeof cards !== 'object') return { home: 0, away: 0 };
+  return {
+    home: numberValue(cards.home ?? cards.homeTeam ?? cards.local ?? cards[0]),
+    away: numberValue(cards.away ?? cards.awayTeam ?? cards.visitor ?? cards[1])
+  };
+}
+
+function renderLiveMeta(match, isLive) {
+  const yellow = cardPair(match.yellowCards);
+  const red = cardPair(match.redCards);
+  const minute = Number.isFinite(Number(match.liveMinute)) ? `${Math.max(0, Math.round(Number(match.liveMinute)))}'` : (isLive ? 'مباشر' : '');
+  const hasCards = yellow.home || yellow.away || red.home || red.away;
+  if (!minute && !hasCards) return '';
+
+  return `
+    <div class="live-meta">
+      ${minute ? `<span class="live-minute"><i class="fas fa-stopwatch" aria-hidden="true"></i>${escapeHTML(minute)}</span>` : ''}
+      ${hasCards ? `
+        <span class="cards-line">
+          <span class="card-stat yellow-card"></span>${yellow.home} - ${yellow.away}
+          <span class="card-stat red-card"></span>${red.home} - ${red.away}
+        </span>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderGoals(goals) {
+  const list = Array.isArray(goals) ? goals.filter((goal) => goal?.player || goal?.name).slice(0, 8) : [];
+  if (!list.length) return '';
+  return `
+    <div class="goals-list" aria-label="مسجلو الأهداف">
+      ${list.map((goal) => `
+        <span class="goal-chip">
+          <i class="fas fa-futbol" aria-hidden="true"></i>
+          <span>${escapeHTML(goal.player || goal.name || '')}</span>
+          ${goal.minute ? `<small>${escapeHTML(goal.minute)}</small>` : ''}
+        </span>
+      `).join('')}
+    </div>
   `;
 }
 
@@ -329,6 +428,22 @@ function escapeAttribute(value) {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+function escapeHTML(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeJsString(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, ' ');
 }
 
 window.useDefaultTeamLogo = function(image) {
@@ -466,9 +581,9 @@ async function loadAndRenderMatches() {
       const diffA = (matchStartDate(a) - now) / 60000;
       const diffB = (matchStartDate(b) - now) / 60000;
 
-      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.streamReady === true;
+      const hasLinkA = (Array.isArray(a.streams) && a.streams.length > 0) || a.streamReady === true || a.sourceReady === true;
     
-      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.streamReady === true;
+      const hasLinkB = (Array.isArray(b.streams) && b.streams.length > 0) || b.streamReady === true || b.sourceReady === true;
 
       // ==========================================
       // 🚀 نظام الأوزان الجديد (الترتيب الذكي)
