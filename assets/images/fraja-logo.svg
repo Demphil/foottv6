@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 116" role="img" aria-labelledby="title desc">
+  <title id="title">Fraja.online</title>
+  <desc id="desc">Dark sports themed Fraja.online logo</desc>
+  <defs>
+    <linearGradient id="mark" x1="20" y1="20" x2="100" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#31d084"/>
+      <stop offset="1" stop-color="#ffd166"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="116" rx="8" fill="#070b12"/>
+  <g transform="translate(20 18)">
+    <circle cx="40" cy="40" r="39" fill="#101823" stroke="url(#mark)" stroke-width="3"/>
+    <path d="M18 44c17-19 35-26 58-22M18 44c22 2 39 12 52 32M41 7c-2 24-1 45 5 66M11 55c17-5 36-6 58 0" fill="none" stroke="url(#mark)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M22 25h31v10H36v12h15v10H36v22H22z" fill="#f6f8fb"/>
+  </g>
+  <text x="118" y="58" fill="#f6f8fb" font-family="Cairo, Tahoma, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0">Fraja</text>
+  <text x="220" y="58" fill="#31d084" font-family="Cairo, Tahoma, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0">.online</text>
+  <text x="120" y="82" fill="#a9b6c7" font-family="Cairo, Tahoma, Arial, sans-serif" font-size="14" font-weight="600" letter-spacing="0">LIVE MATCHES. CLEAN FEED. DARK SPORTS.</text>
+</svg>

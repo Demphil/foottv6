@@ -3,131 +3,111 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>مشاهدة المباراة بث مباشر | KoraLive Football</title>
-  <meta name="description" content="صفحة مشاهدة كورة لايف تعرض مشغل المباراة وروابط السيرفرات المتاحة قبل بداية اللقاء مع أخبار رياضية محدثة.">
-  <meta name="robots" content="noindex, follow">
-  <link rel="canonical" href="https://koratv.click/watch.html">
+  <title>انتقال إلى المشغل الموحد | Fraja.online</title>
+  <meta name="description" content="تم نقل مشاهدة المباريات إلى المشغل الموحد الآمن على medic.cymru.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://fraja.online/watch.html">
   <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
-  <meta property="og:site_name" content="KoraLive Football">
-  <meta property="og:title" content="مشاهدة المباراة بث مباشر | KoraLive Football">
-  <meta property="og:description" content="مشغل كورة لايف للمباريات المباشرة مع أخبار رياضية أسفل الفيديو.">
+  <meta property="og:site_name" content="Fraja.online">
+  <meta property="og:title" content="انتقال إلى المشغل الموحد | Fraja.online">
+  <meta property="og:description" content="تم نقل مشاهدة المباريات إلى المشغل الموحد الآمن.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://koratv.click/watch.html">
-  <meta property="og:image" content="https://koratv.click/assets/images/default-news.jpg">
-  
-  <!-- المكتبات وملفات التنسيق -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <link rel="stylesheet" href="assets/css/watch.css">
-  
+  <meta property="og:url" content="https://fraja.online/watch.html">
+  <meta property="og:image" content="https://fraja.online/assets/images/fraja-logo.svg">
   <style>
-    /* إعدادات مساحة العرض الجديدة لدعم الإعلانات الجانبية */
-    .layout-wrapper {
-        display: flex;
-        flex-direction: column; /* العرض عمودي في الهواتف */
-        gap: 20px;
-        max-width: 1300px; /* تم توسيع المساحة لاستيعاب البنرات */
-        margin: 0 auto;
-        width: 100%;
-    }
-    
-    .main-content {
-        flex-grow: 1;
-        width: 100%;
+    :root {
+      color-scheme: dark;
+      --bg: #070b12;
+      --panel: #101823;
+      --line: #213043;
+      --text: #f6f8fb;
+      --muted: #a9b6c7;
+      --accent: #31d084;
     }
 
-    /* إعدادات البنرات الإعلانية (Direct Link) */
-    .ad-sidebar {
-        width: 100%; 
-        min-height: 100px; /* ارتفاع البنرات في الهاتف */
-        background-color: #222;
-        border: 1px solid #333;
-        border-radius: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 78% 10%, rgba(49, 208, 132, 0.16), transparent 30%),
+        linear-gradient(135deg, #070b12, #111827 62%, #09111d);
+      color: var(--text);
+      font-family: Cairo, Tahoma, Arial, sans-serif;
+      padding: 24px;
     }
 
-    .ad-sidebar a {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        text-decoration: none;
-        padding: 10px;
-        color: #fff;
+    main {
+      width: min(560px, 100%);
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(24px, 5vw, 42px);
+      text-align: center;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
     }
 
-    .ad-sidebar a:hover {
-        background-color: #333;
+    img {
+      width: 150px;
+      height: auto;
+      margin-bottom: 24px;
     }
 
-    /* تغيير التصميم لشاشات الكمبيوتر والتابلت الكبير */
-    @media (min-width: 992px) {
-        .layout-wrapper {
-            flex-direction: row; /* العرض جنباً إلى جنب في الكمبيوتر */
-            align-items: flex-start;
-        }
-        .ad-sidebar {
-            width: 160px; /* العرض القياسي لإعلان ناطحة السحاب */
-            min-height: 600px; /* الارتفاع القياسي */
-            flex-shrink: 0;
-        }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.45rem, 6vw, 2.2rem);
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 auto 24px;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 38rem;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 22px;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #04100b;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    small {
+      display: block;
+      margin-top: 18px;
+      color: var(--muted);
     }
   </style>
+    <script defer src="/assets/js/client-security.js"></script>
 </head>
-<body style="background-color: #111; color: #fff; margin: 0; padding: 20px; font-family: sans-serif;">
-  
-  <!-- الحاوية الرئيسية الشاملة -->
-  <div class="layout-wrapper">
-      
-      <!-- إعلان اليمين (رابط مباشر) -->
-      <aside class="ad-sidebar">
-          <a href="https://omg10.com/4/11795894" target="_blank" rel="noopener noreferrer">
-              <span style="color: #3b82f6; font-size: 18px; font-weight: bold; margin-bottom: 8px; text-align: center;">⚽ سيرفر احتياطي</span>
-              <span style="color: #aaa; font-size: 12px; text-align: center;">اضغط هنا للمشاهدة بدون تقطيع</span>
-          </a>
-      </aside>
-
-      <!-- القسم الأوسط (الفيديو والأخبار) -->
-      <div class="main-content">
-          <!-- المشغل -->
-          <main id="player-container" class="iframe-container" aria-live="polite" style="background-color: #000; border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
-            <p id="player-loader" style="text-align: center; padding: 50px;">جاري تحميل البث...</p>
-          </main>
-          
-          <!-- قسم الأخبار -->
-          <div class="watch-news-section">
-              <h3 class="watch-news-title">أحدث الأخبار الرياضية</h3>
-              <div id="watch-news-container" class="watch-news-grid"></div>
-          </div>
-      </div>
-
-      <!-- إعلان اليسار (رابط مباشر) -->
-      <aside class="ad-sidebar">
-          <a href="https://omg10.com/4/11795894" target="_blank" rel="noopener noreferrer">
-              <span style="color: #ef4444; font-size: 18px; font-weight: bold; margin-bottom: 8px; text-align: center;">🔥 تطبيق كورة</span>
-              <span style="color: #aaa; font-size: 12px; text-align: center;">حمل التطبيق لمتابعة المباريات</span>
-          </a>
-      </aside>
-
-  </div>
-  
-  <!-- ملف التشغيل الخاص بك -->
-  <script type="module" src="assets/js/watch.js"></script>
-
-  <!-- ========================================== -->
-  <!-- أكواد الإعلانات العائمة والمنبثقة (نهاية الصفحة) -->
-  <!-- ========================================== -->
-  
-  <!-- In-Page Push Monetag -->
-  <script>(function(s){s.dataset.zone='11704762',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  
-  <!-- Banner / Vignette Monetag -->
-  <script>(function(s){s.dataset.zone='11795901',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>
-
+<body>
+  <main>
+    <img src="/assets/images/fraja-logo.svg" alt="Fraja.online">
+    <h1>المشاهدة انتقلت إلى المشغل الموحد</h1>
+    <p>هذه الصفحة لم تعد تحتوي على مشغل محلي. روابط المباريات في Fraja.online تفتح الآن عبر المشغل الموحد الآمن على medic.cymru.</p>
+    <a id="player-link" href="https://medic.cymru/" rel="noopener noreferrer">فتح المشغل الموحد</a>
+    <small>لن يتم تحميل أي سكربت إعلانات أو مشغل محلي من هذه الصفحة.</small>
+  </main>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("match_id") || params.get("id");
+      const target = new URL("https://medic.cymru/");
+      if (id) target.searchParams.set("match_id", id);
+      document.getElementById("player-link").href = target.href;
+      window.location.replace(target.href);
+    })();
+  </script>
 </body>
 </html>

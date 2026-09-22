@@ -2,30 +2,30 @@ const fs = require("fs");
 const path = require("path");
 
 const root = path.resolve(__dirname, "..");
-const siteUrl = "https://koratv.click";
-const logoUrl = `${siteUrl}/assets/images/logo.png`;
+const siteUrl = "https://fraja.online";
+const logoUrl = `${siteUrl}/assets/images/fraja-logo.svg`;
 const imageUrl = `${siteUrl}/assets/images/default-news.jpg`;
 const today = new Date().toISOString().slice(0, 10);
 
 const socials = [
-  "https://www.tiktok.com/@koratv.click",
-  "https://www.instagram.com/koratv.click",
+  "https://www.tiktok.com/@fraja.online",
+  "https://www.instagram.com/fraja.online",
   "https://www.youtube.com/@MaghribiTv-i5t",
 ];
 
 const sharedKeywords =
-  "كورة لايف, koora live, koralive, مباريات اليوم, بث مباشر, أخبار كرة القدم, القنوات الناقلة";
+  "فرجة أونلاين, fraja online, Fraja.online, مباريات اليوم, بث مباشر, أخبار كرة القدم, القنوات الناقلة";
 
 const streamPages = [
   {
     file: "index.html",
     slug: "",
-    title: "كورة لايف | مباريات اليوم بث مباشر وجدول القنوات",
-    h1: "كورة لايف | مباريات اليوم بث مباشر KoraLive Football",
+    title: "فرجة أونلاين | مباريات اليوم بث مباشر وجدول القنوات",
+    h1: "فرجة أونلاين | مباريات اليوم بث مباشر Fraja.online",
     description:
-      "تابع مباريات اليوم بث مباشر على كورة لايف مع جدول المواعيد، نتائج لحظية، أخبار كرة القدم، وتفاصيل القنوات الناقلة للبطولات العربية والعالمية.",
+      "تابع مباريات اليوم بث مباشر على فرجة أونلاين مع جدول المواعيد، نتائج لحظية، أخبار كرة القدم، وتفاصيل القنوات الناقلة للبطولات العربية والعالمية.",
     intro:
-      "تجمع كورة لايف روابط متابعة مباريات اليوم وجدول المواعيد والقنوات الناقلة في صفحة واحدة مهيأة للبحث السريع قبل بداية كل مباراة.",
+      "تجمع فرجة أونلاين روابط متابعة مباريات اليوم وجدول المواعيد والقنوات الناقلة في صفحة واحدة مهيأة للبحث السريع قبل بداية كل مباراة.",
     priority: "1.0",
     changefreq: "daily",
     featured: "بث مباشر مباريات اليوم",
@@ -33,10 +33,10 @@ const streamPages = [
   {
     file: "yalla-shoot-today.html",
     slug: "yalla-shoot-today.html",
-    title: "يلا شوت | مباريات اليوم بث مباشر على كورة لايف",
+    title: "يلا شوت | مباريات اليوم بث مباشر على فرجة أونلاين",
     h1: "يلا شوت | مباريات اليوم بث مباشر",
     description:
-      "صفحة يلا شوت على كورة لايف تعرض أهم مباريات اليوم بث مباشر مع مواعيد دقيقة وروابط مشاهدة محدثة قبل انطلاق اللقاءات.",
+      "صفحة يلا شوت على فرجة أونلاين تعرض أهم مباريات اليوم بث مباشر مع مواعيد دقيقة وروابط مشاهدة محدثة قبل انطلاق اللقاءات.",
     intro:
       "إذا كنت تبحث عن يلا شوت لمتابعة مباريات اليوم، فهذه الصفحة تجمع جدول المباريات وروابط المشاهدة المتاحة فور اقتراب موعد البث.",
     priority: "0.72",
@@ -49,7 +49,7 @@ const streamPages = [
     title: "كورة سيتي | متابعة مباريات اليوم بث مباشر",
     h1: "كورة سيتي | مباريات اليوم بث مباشر",
     description:
-      "تابع عبر كورة سيتي على KoraLive جدول مباريات اليوم، روابط البث المباشر، وأبرز أخبار كرة القدم العربية والعالمية في مكان واحد.",
+      "تابع عبر كورة سيتي على Fraja.online جدول مباريات اليوم، روابط البث المباشر، وأبرز أخبار كرة القدم العربية والعالمية في مكان واحد.",
     intro:
       "تساعدك صفحة كورة سيتي على الوصول السريع إلى مباريات اليوم وأخبار الكرة دون التنقل بين أكثر من مصدر.",
     priority: "0.72",
@@ -62,7 +62,7 @@ const streamPages = [
     title: "يلا شوت HD | بث مباريات اليوم بجودة عالية",
     h1: "يلا شوت HD | بث مباشر بجودة عالية",
     description:
-      "شاهد مباريات اليوم عبر يلا شوت HD من كورة لايف مع روابط بث عالية الجودة، تفاصيل القنوات، وتحديثات فورية قبل بداية اللقاء.",
+      "شاهد مباريات اليوم عبر يلا شوت HD من فرجة أونلاين مع روابط بث عالية الجودة، تفاصيل القنوات، وتحديثات فورية قبل بداية اللقاء.",
     intro:
       "تركز صفحة يلا شوت HD على تجربة مشاهدة واضحة للمباريات المهمة مع عرض القناة والموعد وحالة البث عند توفرها.",
     priority: "0.72",
@@ -75,7 +75,7 @@ const streamPages = [
     title: "يلا لايف | بث مباشر وجدول مباريات اليوم",
     h1: "يلا لايف | بث مباشر مباريات اليوم",
     description:
-      "يلا لايف من كورة لايف يوفر جدول مباريات اليوم وروابط البث المباشر للأندية والمنتخبات مع تحديثات مستمرة للقنوات الناقلة.",
+      "يلا لايف من فرجة أونلاين يوفر جدول مباريات اليوم وروابط البث المباشر للأندية والمنتخبات مع تحديثات مستمرة للقنوات الناقلة.",
     intro:
       "في صفحة يلا لايف ستجد المباريات الأقرب للبداية وروابط المشاهدة عند توفرها مع جدول مرتب لليوم والغد.",
     priority: "0.72",
@@ -88,7 +88,7 @@ const streamPages = [
     title: "كورة اكسترا | أخبار ومباريات اليوم بث مباشر",
     h1: "كورة اكسترا | مباريات وأخبار كرة القدم",
     description:
-      "كورة اكسترا على KoraLive تجمع مباريات اليوم بث مباشر مع أخبار الكرة، الانتقالات، ونتائج أبرز الدوريات العربية والأوروبية.",
+      "كورة اكسترا على Fraja.online تجمع مباريات اليوم بث مباشر مع أخبار الكرة، الانتقالات، ونتائج أبرز الدوريات العربية والأوروبية.",
     intro:
       "تقدم صفحة كورة اكسترا تجربة أوسع تجمع جدول البث مع الأخبار الرياضية الحديثة لتسهيل متابعة اليوم الكروي.",
     priority: "0.72",
@@ -98,12 +98,12 @@ const streamPages = [
   {
     file: "yall-extra.html",
     slug: "yall-extra.html",
-    title: "يلا اكسترا | مباريات اليوم بث مباشر على كورة لايف",
+    title: "يلا اكسترا | مباريات اليوم بث مباشر على فرجة أونلاين",
     h1: "يلا اكسترا | بث مباشر مباريات اليوم",
     description:
-      "يلا اكسترا على KoraLive تعرض مباريات اليوم بث مباشر مع مواعيد اللقاءات، القنوات الناقلة، وروابط المشاهدة قبل الانطلاق.",
+      "يلا اكسترا على Fraja.online تعرض مباريات اليوم بث مباشر مع مواعيد اللقاءات، القنوات الناقلة، وروابط المشاهدة قبل الانطلاق.",
     intro:
-      "صفحة يلا اكسترا تمنح الزائر نافذة إضافية لمتابعة مباريات اليوم وروابط البث المباشر داخل شبكة كورة لايف.",
+      "صفحة يلا اكسترا تمنح الزائر نافذة إضافية لمتابعة مباريات اليوم وروابط البث المباشر داخل شبكة فرجة أونلاين.",
     priority: "0.7",
     changefreq: "daily",
     featured: "يلا اكسترا مباريات اليوم",
@@ -124,12 +124,12 @@ const streamPages = [
   {
     file: "sir-tv.html",
     slug: "sir-tv.html",
-    title: "سير تيفي | مشاهدة مباريات اليوم على كورة لايف",
+    title: "سير تيفي | مشاهدة مباريات اليوم على فرجة أونلاين",
     h1: "سير تيفي | مشاهدة مباريات اليوم",
     description:
-      "صفحة سير تيفي توفر متابعة مباريات اليوم بث مباشر، مواعيد اللقاءات، وتفاصيل القنوات الناقلة عبر كورة لايف.",
+      "صفحة سير تيفي توفر متابعة مباريات اليوم بث مباشر، مواعيد اللقاءات، وتفاصيل القنوات الناقلة عبر فرجة أونلاين.",
     intro:
-      "سير تيفي صفحة بديلة داخل KoraLive لمتابعة جدول المباريات وروابط المشاهدة المحدثة للمواجهات المهمة.",
+      "سير تيفي صفحة بديلة داخل Fraja.online لمتابعة جدول المباريات وروابط المشاهدة المحدثة للمواجهات المهمة.",
     priority: "0.7",
     changefreq: "daily",
     featured: "سير تيفي مباريات اليوم",
@@ -153,9 +153,9 @@ const streamPages = [
     title: "ياسين تيفي | جدول المباريات والقنوات الناقلة",
     h1: "ياسين تيفي | مباريات اليوم والقنوات الناقلة",
     description:
-      "تابع عبر ياسين تيفي على كورة لايف جدول مباريات اليوم والقنوات الناقلة وروابط البث المباشر للبطولات العربية والعالمية.",
+      "تابع عبر ياسين تيفي على فرجة أونلاين جدول مباريات اليوم والقنوات الناقلة وروابط البث المباشر للبطولات العربية والعالمية.",
     intro:
-      "صفحة ياسين تيفي تساعدك على معرفة موعد المباراة والقناة الناقلة مع روابط البث عند توفرها داخل KoraLive.",
+      "صفحة ياسين تيفي تساعدك على معرفة موعد المباراة والقناة الناقلة مع روابط البث عند توفرها داخل Fraja.online.",
     priority: "0.7",
     changefreq: "daily",
     featured: "ياسين تيفي مباريات اليوم",
@@ -166,7 +166,7 @@ const streamPages = [
     title: "LiveHD7 | بث مباريات اليوم بجودة HD",
     h1: "LiveHD7 | بث مباشر مباريات اليوم HD",
     description:
-      "LiveHD7 على كورة لايف يقدم روابط بث مباريات اليوم بجودة HD مع جدول المواعيد وأخبار كرة القدم والقنوات الناقلة.",
+      "LiveHD7 على فرجة أونلاين يقدم روابط بث مباريات اليوم بجودة HD مع جدول المواعيد وأخبار كرة القدم والقنوات الناقلة.",
     intro:
       "تجمع صفحة LiveHD7 بين جدول المباريات وروابط المشاهدة عالية الجودة عندما تكون متاحة قبل بداية البث.",
     priority: "0.7",
@@ -179,9 +179,9 @@ const streamPages = [
     title: "بوز كورة | مباريات اليوم بث مباشر وأخبار الكرة",
     h1: "بوز كورة | مباريات اليوم وأخبار كرة القدم",
     description:
-      "بوز كورة من KoraLive يجمع مباريات اليوم بث مباشر مع آخر أخبار كرة القدم ونتائج البطولات المحلية والعالمية.",
+      "بوز كورة من Fraja.online يجمع مباريات اليوم بث مباشر مع آخر أخبار كرة القدم ونتائج البطولات المحلية والعالمية.",
     intro:
-      "صفحة بوز كورة مناسبة لمن يريد متابعة الأخبار والمباريات في نفس المكان مع روابط داخلية واضحة لبقية صفحات كورة لايف.",
+      "صفحة بوز كورة مناسبة لمن يريد متابعة الأخبار والمباريات في نفس المكان مع روابط داخلية واضحة لبقية صفحات فرجة أونلاين.",
     priority: "0.7",
     changefreq: "daily",
     featured: "بوز كورة مباريات اليوم",
@@ -192,7 +192,7 @@ const streamPages = [
     title: "سوريا لايف | بث مباشر للمباريات العربية والعالمية",
     h1: "سوريا لايف | مباريات اليوم بث مباشر",
     description:
-      "سوريا لايف على كورة لايف تعرض مباريات اليوم العربية والعالمية بث مباشر مع تفاصيل القنوات، المواعيد، وروابط المشاهدة.",
+      "سوريا لايف على فرجة أونلاين تعرض مباريات اليوم العربية والعالمية بث مباشر مع تفاصيل القنوات، المواعيد، وروابط المشاهدة.",
     intro:
       "تمنحك صفحة سوريا لايف وصولا سريعا إلى مباريات اليوم المهمة عربيا وعالميا مع جدول مبسط وروابط محدثة.",
     priority: "0.7",
@@ -204,7 +204,7 @@ const streamPages = [
 const useCasePages = [
   {
     dir: "at-work",
-    title: "بث مباشر للمباريات في العمل | كورة لايف",
+    title: "بث مباشر للمباريات في العمل | فرجة أونلاين",
     h1: "بث مباشر للمباريات في العمل",
     description:
       "تابع مباريات اليوم من المكتب أو مكان العمل عبر صفحة خفيفة تعرض جدول المباريات وروابط البث المباشر المتاحة قبل البداية.",
@@ -214,17 +214,17 @@ const useCasePages = [
   },
   {
     dir: "smart-tv",
-    title: "تشغيل كورة لايف على الشاشة الذكية | Smart TV",
-    h1: "تشغيل كورة لايف على الشاشة الذكية",
+    title: "تشغيل فرجة أونلاين على الشاشة الذكية | Smart TV",
+    h1: "تشغيل فرجة أونلاين على الشاشة الذكية",
     description:
-      "دليل سريع لمتابعة مباريات اليوم على شاشات Smart TV مع روابط كورة لايف وجدول القنوات الناقلة للمباريات المهمة.",
+      "دليل سريع لمتابعة مباريات اليوم على شاشات Smart TV مع روابط فرجة أونلاين وجدول القنوات الناقلة للمباريات المهمة.",
     intro:
       "صفحة Smart TV تساعد الزائر على فتح جدول المباريات وروابط المشاهدة من متصفح الشاشة الذكية بأقل خطوات ممكنة.",
     priority: "0.82",
   },
   {
     dir: "low-internet",
-    title: "مشاهدة مباريات اليوم مع إنترنت ضعيف | كورة لايف",
+    title: "مشاهدة مباريات اليوم مع إنترنت ضعيف | فرجة أونلاين",
     h1: "مشاهدة مباريات اليوم مع إنترنت ضعيف",
     description:
       "تابع مباريات اليوم عند ضعف الإنترنت من خلال صفحة خفيفة تعرض المواعيد وروابط البث المتاحة بدون عناصر زائدة.",
@@ -234,10 +234,10 @@ const useCasePages = [
   },
   {
     dir: "abroad",
-    title: "مشاهدة المباريات العربية من الخارج | كورة لايف",
+    title: "مشاهدة المباريات العربية من الخارج | فرجة أونلاين",
     h1: "مشاهدة المباريات العربية من الخارج",
     description:
-      "تابع مباريات الأندية والمنتخبات العربية من الخارج عبر كورة لايف مع جدول مواعيد وروابط بث مباشر عند توفرها.",
+      "تابع مباريات الأندية والمنتخبات العربية من الخارج عبر فرجة أونلاين مع جدول مواعيد وروابط بث مباشر عند توفرها.",
     intro:
       "هذه الصفحة موجهة للمغتربين ومحبي الكرة العربية خارج المنطقة، وتجمع مباريات اليوم وروابط المتابعة في مكان واحد.",
     priority: "0.82",
@@ -291,8 +291,8 @@ function buildSchema(page, type = "WebPage") {
       {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
-        name: "KoraLive Football",
-        alternateName: ["كورة لايف", "koora live", "koralive"],
+        name: "Fraja.online",
+        alternateName: ["فرجة أونلاين", "fraja online", "Fraja.online"],
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
@@ -304,8 +304,8 @@ function buildSchema(page, type = "WebPage") {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
         url: siteUrl,
-        name: "كورة لايف",
-        alternateName: "KoraLive Football",
+        name: "فرجة أونلاين",
+        alternateName: "Fraja.online",
         inLanguage: "ar",
         publisher: { "@id": `${siteUrl}/#organization` },
         potentialAction: {
@@ -381,9 +381,7 @@ function buildHead(page, options = {}) {
       ? '    <meta name="ezoic-site-verification" content="45zSAuwQACheMQtQ6bGh81bIrm2Rsk">\n'
       : "";
   const adScripts = `
-    <script>(function(s){s.dataset.zone='11639220',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <script>(function(s){s.dataset.zone='11638896',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>`;
+`;
 
   return `<head>
     <meta charset="UTF-8">
@@ -391,7 +389,7 @@ function buildHead(page, options = {}) {
     <title>${esc(page.title)}</title>
     <meta name="description" content="${esc(page.description)}">
     <meta name="keywords" content="${esc(`${sharedKeywords}, ${page.h1 || page.title}`)}">
-    <meta name="author" content="KoraLive Team">
+    <meta name="author" content="Fraja.online Team">
     <meta name="robots" content="${robots}">
     <meta name="theme-color" content="#1d3557">
 ${extraVerification}    <link rel="canonical" href="${url}">
@@ -399,18 +397,15 @@ ${extraVerification}    <link rel="canonical" href="${url}">
     <link rel="alternate" hreflang="x-default" href="${url}">
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" href="/assets/images/logo.png">
+    <link rel="apple-touch-icon" href="/assets/images/fraja-logo.svg">
     <link rel="preload" as="image" href="/assets/images/default-news.jpg">
-    <link rel="dns-prefetch" href="//al5sm.com">
-    <link rel="dns-prefetch" href="//nap5k.com">
-    <link rel="dns-prefetch" href="//quge5.com">
-    <meta property="og:site_name" content="KoraLive Football">
+    <meta property="og:site_name" content="Fraja.online">
     <meta property="og:title" content="${esc(page.title)}">
     <meta property="og:description" content="${esc(page.description)}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${imageUrl}">
-    <meta property="og:image:alt" content="KoraLive Football logo">
+    <meta property="og:image:alt" content="Fraja.online logo">
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${esc(page.title)}">
@@ -454,11 +449,7 @@ function stripGeneratedIntro(html) {
 }
 
 function stripLegacyAds(html) {
-  return html
-    .replace(/\s*<script\b[^>]*src=["'][^"']*(?:ad-manager\.js|adsbygoogle\.js|revenuecpmgate\.com|fpyf8\.com|surefootedpause\.com|googletagmanager\.com|google-analytics\.com|doubleclick\.net)[^"']*["'][^>]*><\/script>\s*/gi, "\n")
-    .replace(/\s*<ins\b[^>]*class=["'][^"']*adsbygoogle[^"']*["'][\s\S]*?<\/ins>\s*/gi, "\n")
-    .replace(/\s*<script\b[^>]*>[\s\S]*?\(adsbygoogle\s*=\s*window\.adsbygoogle[^<]*<\/script>\s*/gi, "\n")
-    .replace(/\s*<script\b[^>]*>[\s\S]*?(?:surefootedpause\.com|gtag\(|window\.dataLayer|googletagmanager\.com)[\s\S]*?<\/script>\s*/gi, "\n");
+  return html;
 }
 
 function hardenBlankTargets(html) {
@@ -480,10 +471,10 @@ function updateNewsPage() {
   const page = {
     file: "news.html",
     slug: "news.html",
-    title: "آخر أخبار كرة القدم اليوم | KoraLive Football",
+    title: "آخر أخبار كرة القدم اليوم | Fraja.online",
     h1: "آخر أخبار كرة القدم اليوم",
     description:
-      "تابع آخر أخبار كرة القدم اليوم على كورة لايف: انتقالات اللاعبين، نتائج المباريات، أخبار الدوريات، والقنوات الناقلة للأحداث المهمة.",
+      "تابع آخر أخبار كرة القدم اليوم على فرجة أونلاين: انتقالات اللاعبين، نتائج المباريات، أخبار الدوريات، والقنوات الناقلة للأحداث المهمة.",
   };
 
   let html = read("news.html");
@@ -517,8 +508,8 @@ ${buildHead(page)}
 <body>
     <header class="header">
         <div class="logo">
-            <a href="/" aria-label="كورة لايف">
-                <img src="/assets/images/logo.png" alt="KoraLive Football" loading="lazy" width="45" height="45">
+            <a href="/" aria-label="فرجة أونلاين">
+                <img src="/assets/images/fraja-logo.svg" alt="Fraja.online" loading="lazy" width="45" height="45">
             </a>
         </div>
         <h1 class="header-title">${page.h1}</h1>
@@ -546,14 +537,14 @@ ${buildHead(page)}
 
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-logo"><a href="/" class="logo-text">كورة لايف</a></div>
+            <div class="footer-logo"><a href="/" class="logo-text">فرجة أونلاين</a></div>
             <div class="footer-links">
                 <a href="/news.html"><i class="fas fa-newspaper"></i> أخبار الرياضة</a>
                 <a href="/"><i class="fas fa-home"></i> مباريات اليوم بث مباشر</a>
             </div>
         </div>
         <div class="copyright">
-            <p>Copyright © <span id="current-year"></span> Koralive.Football - All rights reserved</p>
+            <p>Copyright © <span id="current-year"></span> fraja.online - All rights reserved</p>
         </div>
     </footer>
 
@@ -581,10 +572,10 @@ function update404() {
   const page = {
     file: "404.html",
     slug: "404.html",
-    title: "الصفحة غير موجودة | كورة لايف",
+    title: "الصفحة غير موجودة | فرجة أونلاين",
     h1: "الصفحة غير موجودة",
     description:
-      "الصفحة المطلوبة غير موجودة في كورة لايف. عد إلى جدول مباريات اليوم أو صفحة أخبار كرة القدم.",
+      "الصفحة المطلوبة غير موجودة في فرجة أونلاين. عد إلى جدول مباريات اليوم أو صفحة أخبار كرة القدم.",
   };
   let html = read("404.html");
   html = updateHead(html, page, { noindex: true });
@@ -597,10 +588,10 @@ function updateLegacyUsecase() {
   const page = {
     file: "usecase.html",
     slug: "usecase.html",
-    title: "صفحة توجيه مباريات اليوم | كورة لايف",
+    title: "صفحة توجيه مباريات اليوم | فرجة أونلاين",
     h1: "صفحة توجيه مباريات اليوم",
     description:
-      "صفحة قديمة لتوجيه زوار كورة لايف إلى صفحات مباريات اليوم المخصصة حسب طريقة المشاهدة.",
+      "صفحة قديمة لتوجيه زوار فرجة أونلاين إلى صفحات مباريات اليوم المخصصة حسب طريقة المشاهدة.",
   };
   let html = read("usecase.html");
   html = updateHead(html, page, { noindex: true });

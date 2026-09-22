@@ -94,6 +94,8 @@ function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
 
 // --- 3. Database API ---
 
+const MATCHES_API_URL = 'https://stream-api.koratv.click/api/matches';
+
 let stagingMatchesPromise = null;
 
 function normalizeStagingMatch(match) {
@@ -124,12 +126,31 @@ function normalizeStagingMatch(match) {
 
 async function getStagingMatches() {
   if (!stagingMatchesPromise) {
-    stagingMatchesPromise = fetch(`/api/matches?t=${Date.now()}`, { cache: 'no-store' })
+    const endpoint = new URL(MATCHES_API_URL);
+    endpoint.searchParams.set('t', String(Date.now()));
+
+    stagingMatchesPromise = fetch(endpoint.href, {
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      headers: {
+        accept: 'application/json'
+      }
+    })
       .then((response) => {
         if (!response.ok) throw new Error(`Status: ${response.status}`);
         return response.json();
       })
-      .then((body) => (Array.isArray(body.matches) ? body.matches : []).map(normalizeStagingMatch).filter(Boolean))
+      .then((body) => {
+        const rows = Array.isArray(body)
+          ? body
+          : Array.isArray(body.matches)
+            ? body.matches
+            : Array.isArray(body.data)
+              ? body.data
+              : [];
+        return rows.map(normalizeStagingMatch).filter(Boolean);
+      })
       .catch((error) => {
         stagingMatchesPromise = null;
         throw error;
