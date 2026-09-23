@@ -55,6 +55,12 @@ jobs:
               rm -f "$tmp"
             }
 
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGIN 'https://fraja.online'
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGINS 'https://fraja.online,https://koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" PUBLIC_SITE_ORIGIN 'https://fraja.online'
+            set_env_value "$SECURE_APP_DIR/.env" APPROVED_IFRAME_ORIGINS 'https://fraja.online,https://koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" NEXT_PUBLIC_BRAND_URL 'https://fraja.online'
+
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_HOST '${{ secrets.IPTV_PROVIDER_HOST }}'
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_BACKUP_HOST '${{ secrets.IPTV_PROVIDER_BACKUP_HOST }}'
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_USERNAME '${{ secrets.IPTV_PROVIDER_USERNAME }}'
@@ -113,8 +119,8 @@ jobs:
             curl --fail --silent --show-error https://medic.cymru/739184.html >/dev/null
             curl --fail --silent --show-error -D /tmp/koratv-api-headers -o /dev/null \
               -A 'Koratv-Deployment-Check/1.0' \
-              -H 'Origin: https://koratv.click' https://stream-api.koratv.click/api/matches
-            grep -qi '^access-control-allow-origin: https://koratv.click' /tmp/koratv-api-headers
+              -H 'Origin: https://fraja.online' https://stream-api.koratv.click/api/matches
+            grep -qi '^access-control-allow-origin: https://fraja.online' /tmp/koratv-api-headers
             curl --fail --silent --show-error -D /tmp/koratv-player-headers -o /dev/null \
               https://medic.cymru/739184.html
             grep -qi '^content-security-policy:.*connect-src https:' /tmp/koratv-player-headers
