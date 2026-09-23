@@ -41,7 +41,7 @@ for (const file of htmlFiles) {
 }
 
 for (const [title, files] of titles.entries()) {
-  if (files.length > 1 && title !== "الصفحة غير موجودة | فرجة أونلاين") {
+  if (files.length > 1 && title !== "الصفحة غير موجودة | كورة لايف") {
     problems.push(`Duplicate title "${title}" in: ${files.join(", ")}`);
   }
 }
@@ -54,12 +54,12 @@ for (const [description, files] of descriptions.entries()) {
 
 const sitemap = read("sitemap.xml");
 for (const url of [
-  "https://fraja.online/",
-  "https://fraja.online/news.html",
-  "https://fraja.online/at-work/",
-  "https://fraja.online/smart-tv/",
-  "https://fraja.online/low-internet/",
-  "https://fraja.online/abroad/",
+  "https://koratv.click/",
+  "https://koratv.click/news.html",
+  "https://koratv.click/at-work/",
+  "https://koratv.click/smart-tv/",
+  "https://koratv.click/low-internet/",
+  "https://koratv.click/abroad/",
 ]) {
   if (!sitemap.includes(`<loc>${url}</loc>`)) {
     problems.push(`sitemap.xml missing ${url}`);

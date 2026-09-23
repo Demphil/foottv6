@@ -1,0 +1,120 @@
+name: Deploy streaming gateway
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: streaming-gateway-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Njalla VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Pull, test, build, and restart
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          timeout: 30s
+          command_timeout: 12m
+          script: |
+            set -euo pipefail
+
+            PROJECT_DIR=/opt/koratv/koratv-web
+            APP_DIR="$PROJECT_DIR/streaming-gateway"
+            SECURE_APP_DIR="$PROJECT_DIR/secure-streaming"
+
+            test -d "$PROJECT_DIR/.git"
+            test -f "$APP_DIR/.env"
+            touch "$SECURE_APP_DIR/.env"
+            chmod 600 "$SECURE_APP_DIR/.env"
+
+            set_env_value() {
+              file="$1"
+              key="$2"
+              value="$3"
+              if [ -z "$value" ]; then
+                return 0
+              fi
+              tmp="$(mktemp)"
+              grep -v "^${key}=" "$file" > "$tmp" || true
+              printf '%s=%s\n' "$key" "$value" >> "$tmp"
+              cat "$tmp" > "$file"
+              rm -f "$tmp"
+            }
+
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_HOST '${{ secrets.IPTV_PROVIDER_HOST }}'
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_BACKUP_HOST '${{ secrets.IPTV_PROVIDER_BACKUP_HOST }}'
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_USERNAME '${{ secrets.IPTV_PROVIDER_USERNAME }}'
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_PASSWORD '${{ secrets.IPTV_PROVIDER_PASSWORD }}'
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_TYPE '${{ secrets.IPTV_PROVIDER_TYPE }}'
+            set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_OUTPUT '${{ secrets.IPTV_PROVIDER_OUTPUT }}'
+
+            cd "$PROJECT_DIR"
+            git fetch --prune origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            cd "$APP_DIR"
+            npm ci --omit=dev
+            node scripts/setup-env.js
+            node --env-file=.env --input-type=module -e "import { loadConfig } from './config.js'; loadConfig(); console.log('Gateway configuration is valid')"
+            npm test
+            npm run check:supabase
+            npm run build:player
+
+            cd "$SECURE_APP_DIR"
+            npm ci --omit=dev
+            node --check scripts/daily-refresh-cron.js
+            node --check scripts/refresh-streaming-data.js
+
+            cd "$APP_DIR"
+            install -d -m 0755 /var/www/koratv-player
+            cp -a dist/. /var/www/koratv-player/
+            find /var/www/koratv-player -type d -exec chmod 0755 {} +
+            find /var/www/koratv-player -type f -exec chmod 0644 {} +
+            install -m 0644 nginx.conf.example /etc/nginx/sites-available/koratv
+            ln -sfn /etc/nginx/sites-available/koratv /etc/nginx/sites-enabled/koratv
+            rm -f /etc/nginx/sites-enabled/stream-api-bootstrap
+            nginx -t
+
+            cd "$PROJECT_DIR"
+            pm2 startOrReload ecosystem.config.js --env production
+            pm2 save
+            systemctl reload nginx
+
+            healthy=false
+            for attempt in 1 2 3 4 5 6; do
+              if curl --fail --silent --show-error http://127.0.0.1:3100/healthz >/dev/null; then
+                healthy=true
+                break
+              fi
+              sleep 2
+            done
+
+            if [ "$healthy" != true ]; then
+              pm2 logs koratv-gateway --lines 80 --nostream
+              exit 1
+            fi
+
+            curl --fail --silent --show-error https://stream-api.koratv.click/healthz >/dev/null
+            curl --fail --silent --show-error https://medic.cymru/739184.html >/dev/null
+            curl --fail --silent --show-error -D /tmp/koratv-api-headers -o /dev/null \
+              -A 'Koratv-Deployment-Check/1.0' \
+              -H 'Origin: https://koratv.click' https://stream-api.koratv.click/api/matches
+            grep -qi '^access-control-allow-origin: https://koratv.click' /tmp/koratv-api-headers
+            curl --fail --silent --show-error -D /tmp/koratv-player-headers -o /dev/null \
+              https://medic.cymru/739184.html
+            grep -qi '^content-security-policy:.*connect-src https:' /tmp/koratv-player-headers

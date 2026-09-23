@@ -12,6 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 !package-lock.json
+!secure-streaming/package-lock.json
 yarn.lock
 
 # ملفات نظام التشغيل
@@ -55,5 +56,6 @@ logs/
 
 # استثناءات خاصة بالمشروع
 /assets/data/temp/
+secure-streaming/runtime/
 .htaccess
 .env

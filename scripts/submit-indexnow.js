@@ -1,8 +1,9 @@
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 
 const root = path.resolve(__dirname, "..");
-const siteHost = "fraja.online";
+const siteHost = "koratv.click";
 const key = "7fbee603f5d44620b6cf6cdff1cb2156";
 const keyLocation = `https://${siteHost}/${key}.txt`;
 const sitemapPath = path.join(root, "sitemap.xml");
@@ -18,21 +19,20 @@ async function submitIndexNow() {
     throw new Error("No URLs found in sitemap.xml");
   }
 
-  const response = await fetch("https://api.indexnow.org/indexnow", {
-    method: "POST",
-    headers: { "Content-Type": "application/json; charset=utf-8" },
-    body: JSON.stringify({
+  const response = await axios.post(
+    "https://api.indexnow.org/indexnow",
+    {
       host: siteHost,
       key,
       keyLocation,
       urlList,
-    }),
-    signal: AbortSignal.timeout(15000),
-  });
-
-  if (!response.ok) {
-    throw new Error(`IndexNow returned ${response.status}`);
-  }
+    },
+    {
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      timeout: 15000,
+      validateStatus: (status) => status >= 200 && status < 300,
+    },
+  );
 
   console.log(`IndexNow submitted ${urlList.length} URLs. Status: ${response.status}`);
 }
