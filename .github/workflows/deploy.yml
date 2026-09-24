@@ -117,12 +117,28 @@ jobs:
               exit 1
             fi
 
-            curl --fail --silent --show-error https://stream-api.koratv.click/healthz >/dev/null
-            curl --fail --silent --show-error https://medic.cymru/739184.html >/dev/null
-            curl --fail --silent --show-error -D /tmp/koratv-api-headers -o /dev/null \
-              -A 'Koratv-Deployment-Check/1.0' \
-              -H 'Origin: https://fraja.online' https://stream-api.koratv.click/api/matches
-            grep -qi '^access-control-allow-origin: https://fraja.online' /tmp/koratv-api-headers
-            curl --fail --silent --show-error -D /tmp/koratv-player-headers -o /dev/null \
-              https://medic.cymru/739184.html
-            grep -qi '^content-security-policy:.*connect-src https:' /tmp/koratv-player-headers
+            public_checks_passed=false
+            for attempt in $(seq 1 12); do
+              rm -f /tmp/koratv-api-headers /tmp/koratv-player-headers
+              if curl --fail --silent --show-error https://stream-api.koratv.click/healthz >/dev/null \
+                && curl --fail --silent --show-error https://medic.cymru/739184.html >/dev/null \
+                && curl --fail --silent --show-error -D /tmp/koratv-api-headers -o /dev/null \
+                  -A 'Koratv-Deployment-Check/1.0' \
+                  -H 'Origin: https://fraja.online' https://stream-api.koratv.click/api/matches \
+                && grep -qi '^access-control-allow-origin: https://fraja.online' /tmp/koratv-api-headers \
+                && curl --fail --silent --show-error -D /tmp/koratv-player-headers -o /dev/null \
+                  https://medic.cymru/739184.html \
+                && grep -qi '^content-security-policy:.*connect-src https:' /tmp/koratv-player-headers; then
+                public_checks_passed=true
+                break
+              fi
+              sleep 5
+            done
+
+            if [ "$public_checks_passed" != true ]; then
+              echo "API headers from final attempt:"
+              [ ! -f /tmp/koratv-api-headers ] || cat /tmp/koratv-api-headers
+              echo "Player headers from final attempt:"
+              [ ! -f /tmp/koratv-player-headers ] || cat /tmp/koratv-player-headers
+              exit 1
+            fi
