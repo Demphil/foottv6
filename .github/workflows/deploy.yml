@@ -82,7 +82,9 @@ jobs:
             npm run build:player
 
             cd "$SECURE_APP_DIR"
+            git pull --ff-only origin main
             npm ci --omit=dev
+            npm run build
             node --check scripts/daily-refresh-cron.js
             node --check scripts/refresh-streaming-data.js
 
@@ -99,6 +101,7 @@ jobs:
             cd "$PROJECT_DIR"
             pm2 delete koratv-gateway || true
             pm2 start ecosystem.config.js --only koratv-gateway --env production
+            pm2 restart secure-streaming --update-env
             pm2 save
             systemctl reload nginx
             sleep 10
