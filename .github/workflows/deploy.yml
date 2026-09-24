@@ -101,6 +101,7 @@ jobs:
             pm2 start ecosystem.config.js --only koratv-gateway --env production
             pm2 save
             systemctl reload nginx
+            sleep 10
 
             healthy=false
             for attempt in $(seq 1 30); do
