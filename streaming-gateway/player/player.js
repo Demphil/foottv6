@@ -85,7 +85,7 @@ async function withRetry(operation, label, retries = 3) {
   let lastError;
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
-      if (attempt > 1) showLoading('البث غير متوفر حالياً - جاري المحاولة...', `${label} (${attempt}/${retries})`);
+      if (attempt > 1) showLoading('انقطع الاتصال بخادم البيانات - جاري المحاولة...', `${label} (${attempt}/${retries})`);
       return await operation(attempt);
     } catch (error) {
       lastError = error;
@@ -167,7 +167,7 @@ function failTamper(reason) {
   video.removeAttribute('src');
   video.load();
   document.body.classList.add('tamper-lock');
-  showError('تم إيقاف البث', reason || 'تم اكتشاف تعديل غير مسموح به على المشغل.');
+  showError('تم إيقاف الاتصال', reason || 'تم اكتشاف تعديل غير مسموح به على المشغل.');
   notifyParent('error', 'player_tampering_detected');
 }
 
@@ -181,11 +181,11 @@ function enforceTamperState() {
   if (!isFramed()) return true;
   if (!embedIntegrityOk()) return enforceEmbedIntegrity();
   if (!protectedElementsOk()) {
-    failTamper('محاولة إخفاء العلامة أو الإعلانات أوقفت البث فوراً.');
+    failTamper('محاولة إخفاء العلامة أو الإعلانات أوقفت الاتصال فوراً.');
     return false;
   }
   if (overlayTamperingDetected()) {
-    failTamper('تم اكتشاف طبقة أو رابط فوق المشغل. توقف البث فوراً.');
+    failTamper('تم اكتشاف طبقة أو رابط فوق المشغل. توقف الاتصال فوراً.');
     return false;
   }
   return true;
@@ -247,7 +247,7 @@ async function loadMatchPanel(matchId) {
     if (!match) return;
     const panel = document.getElementById('match-panel');
     panel.hidden = false;
-    setText('match-league', match.league || 'Koratv.click');
+    setText('match-league', match.league || 'لوحة الإحصائيات');
     setText('match-state-pill', match.playbackState === 'ended' ? 'انتهت' : match.playbackState === 'live' ? 'مباشر الآن' : 'قريباً');
     setText('match-home-name', match.homeTeam || '');
     setText('match-away-name', match.awayTeam || '');
@@ -268,8 +268,8 @@ async function loadMatchPanel(matchId) {
 async function start() {
   if (!enforceEmbedIntegrity()) return;
   notifyParent('connecting');
-  showLoading('جاري تجهيز البث...', 'يتم إنشاء جلسة مشاهدة آمنة');
-  if (!Hls.isSupported()) throw new Error('المتصفح لا يدعم تشغيل هذا البث. يرجى تحديثه أو استخدام متصفح حديث.');
+  showLoading('جاري تجهيز البيانات...', 'يتم إنشاء جلسة مزامنة آمنة');
+  if (!Hls.isSupported()) throw new Error('المتصفح لا يدعم تشغيل الوسائط. يرجى تحديثه أو استخدام متصفح حديث.');
   let session;
   if (entry) {
     try { sessionStorage.removeItem(sessionKey); } catch {}
@@ -284,18 +284,18 @@ async function start() {
     }).then((result) => {
       if (!result.ok && ![401, 403, 429].includes(result.status)) throw new Error('redeem_retryable');
       return result;
-    }), 'جاري فتح رابط المشاهدة');
+    }), 'جاري فتح رابط الحدث');
     if (!response.ok) throw new Error(response.status === 403
-      ? 'انتهت صلاحية رابط المشاهدة. افتح المباراة مجدداً من الموقع.'
-      : 'تعذر الاتصال بخادم المشاهدة. حاول فتح المباراة مرة أخرى.');
+      ? 'انتهت صلاحية رابط الحدث. افتح الحدث مجدداً من اللوحة.'
+      : 'تعذر الاتصال بخادم البيانات. حاول فتح الحدث مرة أخرى.');
     const data = await response.json();
-    if (!data.token || !(data.expiresIn > 0)) throw new Error('تعذر إنشاء جلسة المشاهدة.');
+    if (!data.token || !(data.expiresIn > 0)) throw new Error('تعذر إنشاء جلسة مزامنة.');
     session = { token: data.token, qualities: data.qualities || [], matchId: activeMatchId, expiresAt: Date.now() + data.expiresIn * 1000 };
     try { sessionStorage.setItem(sessionKey, JSON.stringify(session)); } catch {}
   } else {
     try { session = JSON.parse(sessionStorage.getItem(sessionKey)); } catch {}
   }
-  if (!session?.token || session.expiresAt <= Date.now()) throw new Error('انتهت جلسة المشاهدة. افتح المباراة من الموقع للمتابعة.');
+  if (!session?.token || session.expiresAt <= Date.now()) throw new Error('انتهت صلاحية الجلسة. يرجى العودة لتحديث الإحصائيات المباشرة.');
   hlsSessionToken = session.token;
   activeMatchId = session.matchId;
   sessionExpiresAt = session.expiresAt;
@@ -305,7 +305,7 @@ async function start() {
   connectStream(0);
   expiryTimer = setTimeout(() => {
     try { sessionStorage.removeItem(sessionKey); } catch {}
-    failPlayback('انتهت جلسة المشاهدة. افتح المباراة من الموقع للمتابعة.', false);
+    failPlayback('انتهت صلاحية الجلسة. يرجى العودة لتحديث الإحصائيات المباشرة.', false);
   }, sessionExpiresAt - Date.now());
 }
 
@@ -355,25 +355,25 @@ function connectStream(attempt = 0) {
   reconnectAttempt = attempt;
   networkRetries = 0;
   mediaRetries = 0;
-  showLoading(attempt ? 'البث غير متوفر حالياً - جاري المحاولة...' : 'جاري الاتصال بالبث...', attempt ? `إعادة المحاولة ${attempt}/${MAX_RECONNECT_ATTEMPTS}` : 'نختار أفضل جودة متاحة');
+  showLoading(attempt ? 'انقطع الاتصال بخادم البيانات - جاري المحاولة...' : 'جاري الاتصال بخادم البيانات...', attempt ? `إعادة المحاولة ${attempt}/${MAX_RECONNECT_ATTEMPTS}` : 'نختار أفضل جودة متاحة');
   armLoadTimeout();
   hls = new Hls(hlsOptions());
   hls.on(Hls.Events.ERROR, (_, data) => {
     if (!data.fatal) return;
     if ([401, 403].includes(data.response?.code)) {
-      failPlayback('انتهت جلسة المشاهدة أو رُفض الوصول. افتح المباراة مجدداً من الموقع.', false);
+      failPlayback('انتهت صلاحية الجلسة أو تعذر الوصول. يرجى العودة لتحديث الإحصائيات المباشرة.', false);
     } else if (selectedManualHeight && (data.type === Hls.ErrorTypes.NETWORK_ERROR || data.type === Hls.ErrorTypes.MEDIA_ERROR)) {
       fallbackToAuto('الجودة المختارة غير مستقرة. تم الرجوع للوضع التلقائي.');
     } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR && networkRetries < 2) {
       networkRetries += 1;
-      showLoading('البث غير متوفر حالياً - جاري المحاولة...', `إعادة تحميل المقطع ${networkRetries}/2`);
+      showLoading('انقطع الاتصال بخادم البيانات - جاري المحاولة...', `إعادة تحميل المقطع ${networkRetries}/2`);
       retryTimer = setTimeout(() => hls?.startLoad(), networkRetries * 1500);
     } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRetries < MAX_MEDIA_RECOVERIES) {
       mediaRetries += 1;
-      showLoading('جاري إصلاح البث...', `محاولة إصلاح الفيديو ${mediaRetries}/${MAX_MEDIA_RECOVERIES}`);
+      showLoading('جاري استعادة البيانات...', `محاولة إصلاح الوسائط ${mediaRetries}/${MAX_MEDIA_RECOVERIES}`);
       hls.recoverMediaError();
     } else {
-      scheduleReconnect('تعذر تحميل البث من المصدر.');
+      scheduleReconnect('تعذر تحميل البيانات من المصدر.');
     }
   });
   hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -392,7 +392,7 @@ function connectStream(attempt = 0) {
 
 function armLoadTimeout() {
   clearTimeout(loadTimer);
-  loadTimer = setTimeout(() => scheduleReconnect('تأخر وصول البث من المصدر.'), INITIAL_LOAD_TIMEOUT_MS);
+  loadTimer = setTimeout(() => scheduleReconnect('تأخر وصول البيانات من المصدر.'), INITIAL_LOAD_TIMEOUT_MS);
 }
 
 function scheduleReconnect(reason) {
@@ -401,11 +401,11 @@ function scheduleReconnect(reason) {
   if (reconnectAttempt < MAX_RECONNECT_ATTEMPTS && sessionExpiresAt > Date.now()) {
     const nextAttempt = reconnectAttempt + 1;
     const delay = retryDelay(nextAttempt);
-    showLoading('البث غير متوفر حالياً - جاري المحاولة...', `${reason} سنعيد الاتصال خلال ${Math.ceil(delay / 1000)} ثواني`);
+    showLoading('انقطع الاتصال بخادم البيانات - جاري المحاولة...', `${reason} سنعيد الاتصال خلال ${Math.ceil(delay / 1000)} ثواني`);
     retryTimer = setTimeout(() => connectStream(nextAttempt), delay);
     return;
   }
-  failPlayback('البث غير متوفر حالياً - حاول لاحقاً.', true);
+  failPlayback('انقطع الاتصال بخادم البيانات. حاول لاحقاً.', true);
 }
 
 function failPlayback(message, retry = true) {
@@ -414,7 +414,7 @@ function failPlayback(message, retry = true) {
   clearTimeout(qualityStallTimer);
   hls?.destroy();
   hls = null;
-  showError('البث غير متوفر حالياً', message, retry && sessionExpiresAt > Date.now());
+  showError('انقطع الاتصال بخادم البيانات', message, retry && sessionExpiresAt > Date.now());
   notifyParent('error', message);
 }
 
@@ -551,7 +551,7 @@ function hideStatus() {
 
 function showError(title, message, retry = false) {
   status.classList.add('error');
-  status.innerHTML = `<div class="player-error-box"><span class="error-symbol" aria-hidden="true">!</span><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>${retry ? '<button type="button" id="retry-stream">إعادة المحاولة</button>' : '<a href="https://koratv.click/" target="_blank" rel="noopener">العودة للمباريات</a>'}</div>`;
+  status.innerHTML = `<div class="player-error-box"><span class="error-symbol" aria-hidden="true">!</span><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>${retry ? '<button type="button" id="retry-stream">إعادة المحاولة</button>' : '<a href="https://fraja.online/" target="_blank" rel="noopener">العودة للوحة الإحصائيات</a>'}</div>`;
   document.getElementById('retry-stream')?.addEventListener('click', () => {
     networkRetries = 0;
     mediaRetries = 0;
@@ -584,7 +584,7 @@ async function loadWatchNews() {
       .slice(0, 4);
     container.innerHTML = items.length ? items.map((item) => {
       const title = item.title || 'أحدث الأخبار الرياضية';
-      const image = item.thumbnail || item.enclosure?.link || 'https://koratv.click/assets/images/default-news.jpg';
+      const image = item.thumbnail || item.enclosure?.link || 'https://fraja.online/assets/images/default-news.jpg';
       const date = item.pubDate ? new Date(item.pubDate.replace(/-/g, '/')).toLocaleDateString('ar-EG-u-nu-latn') : '';
       return `<a class="watch-news-card" href="${escapeHtml(item.link || '#')}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"><div><h4>${escapeHtml(title)}</h4><span>${escapeHtml(date)}</span></div></a>`;
     }).join('') : '<p>لا توجد أخبار حالياً.</p>';
@@ -651,6 +651,6 @@ startTamperObserver();
 loadWatchNews();
 setupQualityControl();
 start().catch((error) => {
-  showError('البث غير متوفر حالياً', error.name === 'TimeoutError' ? 'تعذر الاتصال بالخادم في الوقت المحدد. افتح المباراة مجدداً.' : error.message);
-  notifyParent('error', 'تعذر إنشاء اتصال آمن مع البث.');
+  showError('انقطع الاتصال بخادم البيانات', error.name === 'TimeoutError' ? 'تعذر الاتصال بالخادم في الوقت المحدد. افتح الحدث مجدداً.' : error.message);
+  notifyParent('error', 'تعذر إنشاء اتصال آمن مع البيانات.');
 });

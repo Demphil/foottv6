@@ -63,7 +63,7 @@ export default async function WatchPage({ params, searchParams }) {
       <section className="player-card">
         <h1 className="player-title">{seo.title}</h1>
         <p className="player-seo-description">{seo.description}</p>
-        <div className="alert-box">تنبيه: في حال توقف البث، قم بتحديث الصفحة أو جرّب جودة أقل.</div>
+        <div className="alert-box">تنبيه: في حال انقطع اتصال البيانات، قم بتحديث الصفحة أو جرّب جودة أقل.</div>
         <SecureVideoPlayer channelName={channelName} matchId={matchId || seo.matchId} publicStreamId={publicStreamId} />
         <WatchNews />
       </section>

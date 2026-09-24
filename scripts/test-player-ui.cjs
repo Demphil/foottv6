@@ -75,7 +75,7 @@ const fakeHls = `class Hls {
       assert.equal(redeemed, 1, 'reload must reuse the tab session, not redeem a consumed ticket');
       await page.evaluate(() => { testHls.handlers.error(null, {fatal:true, type:'other'}); });
       await page.waitForSelector('#retry-stream');
-      assert.match(await page.$eval('#status', el => el.textContent), /البث غير متوفر/);
+      assert.match(await page.$eval('#status', el => el.textContent), /انقطع الاتصال بخادم البيانات/);
       await page.evaluateOnNewDocument(() => { window.fixtureStall = true; });
       await page.reload();
       await page.waitForSelector('.plyr__controls');

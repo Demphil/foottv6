@@ -18,7 +18,7 @@ export default async function EmbedPage({ params, searchParams }) {
       <main className="embed-page">
         <section className="player-card">
           <div className="player-block-overlay static-lock">
-            هذا النطاق غير مصرح له بتضمين مشغل koratv.
+            هذا النطاق غير مصرح له بتضمين لوحة Fraja.
           </div>
         </section>
       </main>
@@ -28,7 +28,7 @@ export default async function EmbedPage({ params, searchParams }) {
   return (
     <main className="embed-page">
       <section className="player-card">
-        <div className="alert-box">تنبيه: إذا توقف البث أو واجهت تقطيعاً، يرجى تجربة سيرفر أو جودة أخرى.</div>
+        <div className="alert-box">تنبيه: إذا انقطع اتصال البيانات أو واجهت تأخيراً، يرجى تجربة مصدر أو جودة أخرى.</div>
         <SecureVideoPlayer channelName={channelName} matchId={matchId || target.match?.match_id || ""} publicStreamId={publicStreamId} embed />
       </section>
     </main>

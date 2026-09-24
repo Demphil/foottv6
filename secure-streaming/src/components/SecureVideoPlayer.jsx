@@ -6,7 +6,7 @@ import "video.js/dist/video-js.css";
 import "@videojs/http-streaming";
 
 const QUALITY_OPTIONS = [
-  { id: "origin", type: "source", label: "البث الأصلي", sub: "Original" }
+  { id: "origin", type: "source", label: "المصدر الأساسي", sub: "Primary" }
 ];
 
 const DEFAULT_AD_SCRIPTS = [
@@ -114,7 +114,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       if (item.cfasync) script.dataset.cfasync = item.cfasync;
       script.onload = () => { loaded += 1; };
       script.onerror = () => {
-        setBlocked("يرجى تعطيل مانع الإعلانات لتشغيل البث. الإعلانات جزء من حماية الخدمة واستمرارها.");
+        setBlocked("يرجى تعطيل مانع الإعلانات لعرض البيانات. الإعلانات جزء من حماية الخدمة واستمرارها.");
       };
       document.head.appendChild(script);
       return script;
@@ -122,7 +122,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
     const timer = window.setTimeout(() => {
       if (scripts.length && loaded === 0) {
-        setBlocked("يرجى تعطيل مانع الإعلانات لتشغيل البث. الإعلانات جزء من حماية الخدمة واستمرارها.");
+        setBlocked("يرجى تعطيل مانع الإعلانات لعرض البيانات. الإعلانات جزء من حماية الخدمة واستمرارها.");
       }
     }, 5500);
 
@@ -171,7 +171,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const timer = window.setTimeout(() => {
       const style = window.getComputedStyle(bait);
       if (bait.offsetParent === null || style.display === "none" || style.visibility === "hidden") {
-        setBlocked("تم اكتشاف مانع إعلانات. يرجى تعطيله ثم تحديث الصفحة لتشغيل البث.");
+        setBlocked("تم اكتشاف مانع إعلانات. يرجى تعطيله ثم تحديث الصفحة لعرض البيانات.");
       }
       bait.remove();
     }, 1200);
@@ -196,7 +196,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     const observer = new IntersectionObserver(([entry]) => {
       const box = entry.boundingClientRect;
       if (!entry.isIntersecting || box.width < 240 || box.height < 140) {
-        setBlocked("تم إيقاف البث لأن إطار المشاهدة غير ظاهر بشكل صحيح.");
+        setBlocked("تم إيقاف الاتصال لأن إطار البيانات غير ظاهر بشكل صحيح.");
       }
     }, { threshold: 0.35 });
     observer.observe(videoRef.current);
@@ -244,7 +244,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       });
     }
 
-    boot().catch(() => setBlocked("تعذر تشغيل البث الآمن."));
+    boot().catch(() => setBlocked("تعذر تشغيل اتصال البيانات الآمن."));
     return () => {
       disposed = true;
       if (playerRef.current) {
@@ -271,7 +271,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         playerRef.current.src({ src: data.streamUrl || buildStreamSrc(targetChannelName), type: "application/x-mpegURL" });
         if (!wasPaused) playerRef.current.play().catch(() => {});
       } catch {
-        setBlocked("تعذر تشغيل هذا السيرفر الآن.");
+        setBlocked("تعذر تشغيل هذا المصدر الآن.");
       }
     }
 
@@ -292,7 +292,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
 
     const checkProtection = () => {
       const tampered = protectedSelectors.some((selector) => isHidden(document.querySelector(selector)));
-      if (tampered) setBlocked("تم إيقاف البث بسبب تعديل عناصر الحماية داخل المشغل.");
+      if (tampered) setBlocked("تم إيقاف الاتصال بسبب تعديل عناصر الحماية داخل المشغل.");
     };
 
     const observer = new MutationObserver(() => {
@@ -327,11 +327,11 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         playerRef.current.play().catch(() => {});
       }
     } catch {
-      setBlocked("تعذر تحديث البث الآن.");
+      setBlocked("تعذر تحديث البيانات الآن.");
     }
   }
 
-  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://koratv.click";
+  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://fraja.online";
   const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
   const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(embedId)}`;
   const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
@@ -360,10 +360,10 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
   return (
     <div className="secure-player-shell">
       <div className="player-topbar">
-        <a className="header-logo" href={brandUrl} target="_blank" rel="noreferrer" aria-label="موقع البث">
-          <strong>koratv</strong><span>.tv</span>
+        <a className="header-logo" href={brandUrl} target="_blank" rel="noreferrer" aria-label="لوحة الإحصائيات">
+          <strong>Fraja</strong><span>.online</span>
         </a>
-        <div className="quality-tabs" aria-label="اختيار سيرفر المشاهدة">
+        <div className="quality-tabs" aria-label="اختيار مصدر البيانات">
           {[...QUALITY_OPTIONS, ...languageServers].map((item) => (
             <button
               key={item.id}
@@ -395,23 +395,23 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
       <div data-vjs-player className="secure-video-frame">
         <video ref={videoRef} className="video-js vjs-big-play-centered" playsInline />
 
-        <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البث">↻</button>
+        <button type="button" className="player-refresh" onClick={refreshStream} aria-label="تحديث البيانات">↻</button>
 
         <div className="korlive-corner-logo" aria-hidden="true">
-          <strong>koratv</strong>
-          <small>.tv</small>
+          <strong>Fraja</strong>
+          <small>.online</small>
         </div>
 
         <div className="brand-watermark bottom-line">
-          <span>مرحبا بك في {brandUrl} - استمتع بالمشاهدة ولا تنس تجربة سيرفر آخر إذا توقف البث</span>
+          <span>مرحباً بك في لوحة الإحصائيات - استخدم مصدراً آخر إذا انقطع اتصال البيانات</span>
         </div>
 
         {promoOpen ? (
           <aside className="promo-pop" aria-label="إعلان">
             <button type="button" className="promo-close" onClick={() => setPromoOpen(false)} aria-label="إغلاق الإعلان">×</button>
-            <div className="promo-badge">🏆 بث مباشر بجودة عالية</div>
-            <h3>تابع المباريات على موقعنا</h3>
-            <p>إذا واجهت تقطيعاً، بدّل السيرفر من الأعلى أو اضغط تحديث البث.</p>
+            <div className="promo-badge">🏆 بيانات محدثة بجودة عالية</div>
+            <h3>تابع التحديثات على لوحتنا</h3>
+            <p>إذا تأخر الاتصال، بدّل المصدر من الأعلى أو اضغط تحديث البيانات.</p>
             <a href={brandUrl} target="_blank" rel="noreferrer">زيارة الموقع</a>
           </aside>
         ) : null}
@@ -423,8 +423,8 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
         <div className="embed-modal" role="dialog" aria-modal="true" aria-label="كود تضمين المشغل">
           <div className="embed-modal-card">
             <button type="button" className="embed-close" onClick={() => setEmbedOpen(false)} aria-label="إغلاق">×</button>
-            <h2>كود تضمين البث</h2>
-            <p>انسخ هذا الكود وضعه في أي صفحة تريد عرض المشغل داخلها.</p>
+            <h2>كود تضمين البيانات</h2>
+            <p>انسخ هذا الكود وضعه في أي صفحة تريد عرض لوحة البيانات داخلها.</p>
             <textarea readOnly value={embedCode} onFocus={(event) => event.currentTarget.select()} />
             <button type="button" className="copy-embed-btn" onClick={copyEmbedCode}>
               {copied ? "تم النسخ" : "Copy Code"}
