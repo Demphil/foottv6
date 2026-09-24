@@ -2,7 +2,7 @@
 
 The supported production layout is the split VPS player stack:
 
-- `koratv.click` renders the static site and `watch.html`.
+- `fraja.online` renders the static site and links to the Next.js watch route.
 - `medic.cymru` serves the isolated HLS player.
 - `stream-api.koratv.click` runs this Express gateway and proxies IPTV HLS sources.
 - Supabase stores matches and channel source URLs. Raw `.m3u8` values never belong in browser-visible payloads.
@@ -74,7 +74,7 @@ import MatchCard from "@/components/isolated-player/MatchCard";
 />;
 ```
 
-Playable match cards open only `https://medic.cymru/739184.html?k=...`. The browser never receives the raw upstream `.m3u8`; all media URLs are rewritten through `stream-api.koratv.click`.
+Playable match cards open the Next.js route `/watch/[channelName]` on the frontend or the isolated player at `https://medic.cymru/739184.html?k=...`. The browser never receives the raw upstream `.m3u8`; all media URLs are rewritten through `stream-api.koratv.click`.
 
 ## Verification
 

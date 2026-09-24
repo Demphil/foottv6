@@ -50,7 +50,7 @@ const fakeHls = `class Hls {
         return request.respond({ contentType: 'application/json', body: '{"items":[]}' });
       });
       const ticket = `a.${Buffer.from(JSON.stringify({matchId:'fixture-match'})).toString('base64url')}.c`;
-      await page.goto(`http://127.0.0.1:${server.address().port}/watch.html?k=${ticket}`);
+      await page.goto(`http://127.0.0.1:${server.address().port}/739184.html?k=${ticket}`);
       await page.waitForSelector('.plyr__controls', {timeout: 10000}).catch(async error => {
         console.log(await page.$eval('#status', el => el.textContent), errors);
         throw error;

@@ -13,7 +13,6 @@ if (api.protocol !== 'https:') throw new Error('HTTPS required');
 await mkdir('dist', { recursive: true });
 await cp('player', 'dist', { recursive: true });
 await cp('player/player.html', 'dist/739184.html');
-await cp('player/player.html', 'dist/watch.html');
 await cp(require.resolve('hls.js/dist/hls.min.js'), 'dist/hls.min.js');
 for (const asset of ['plyr.js', 'plyr.css', 'plyr.svg']) {
   await cp(join(dirname(require.resolve('plyr')), asset), `dist/${asset}`);

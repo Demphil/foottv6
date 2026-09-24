@@ -16,7 +16,7 @@
 .
 ├── index.html                         الصفحة الرئيسية وجدول المباريات
 ├── news.html                          صفحة الأخبار
-├── watch.html                         صفحة المشاهدة
+├── secure-streaming/src/app/watch/    صفحة المشاهدة في Next.js
 ├── 404.html                           صفحة عدم العثور على الصفحة
 ├── yalla-shoot-tv.html                صفحة ثابتة باسم Yalla Shoot TV
 ├── yalla-live.html                    صفحة ثابتة باسم Yalla Live
