@@ -161,7 +161,7 @@ export async function getTodayMatches(options = {}) {
     const matches = await getStagingMatches(options);
     return matches.filter((match) => {
       const day = getMoroccoDay(match.scheduledAt);
-      return day === 'today' || (day === 'yesterday' && match.playbackState === 'ended');
+      return day === 'today';
     });
   } catch (error) {
     console.error(`Today matches fetch failed: ${error.message}`);

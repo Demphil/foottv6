@@ -284,11 +284,14 @@ export function createApp({ config, redis, fetchImpl = fetch }) {
       const day = req.query.day;
       const today = moroccoPart(Date.now(), { year: 'numeric', month: '2-digit', day: '2-digit' });
       const tomorrow = moroccoPart(Date.now() + 86400000, { year: 'numeric', month: '2-digit', day: '2-digit' });
-      const filtered = day === 'today'
-        ? matches.filter((match) => moroccoPart(match.scheduledAt, { year: 'numeric', month: '2-digit', day: '2-digit' }) === today)
+      const targetDates = day === 'today'
+        ? new Set([today])
         : day === 'tomorrow'
-          ? matches.filter((match) => moroccoPart(match.scheduledAt, { year: 'numeric', month: '2-digit', day: '2-digit' }) === tomorrow)
-          : matches;
+          ? new Set([tomorrow])
+          : new Set([today, tomorrow]);
+      const filtered = matches.filter((match) => targetDates.has(
+        moroccoPart(match.scheduledAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
+      ));
       res.json({ matches: filtered.filter(allowedMatch) });
     } catch {
       res.status(503).json({ error: 'Match service is unavailable' });

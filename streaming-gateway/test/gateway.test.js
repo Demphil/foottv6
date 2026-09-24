@@ -6,6 +6,7 @@ import { createApp } from '../app.js';
 test('token lifecycle, IP checks and protected HLS resources', async (t) => {
   const store = new Map();
   const liveKickoff = new Date(Date.now() + 10 * 60_000).toISOString();
+  const yesterdayKickoff = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
   const config = {
     secret: 'test-only-secret-with-at-least-32-bytes',
     hmacSecret: 'test-only-separate-hmac-secret-with-32-bytes',
@@ -42,6 +43,10 @@ test('token lifecycle, IP checks and protected HLS resources', async (t) => {
       league: 'Campeonato Brasileiro Série A', kickoff_time: liveKickoff, channel: 'demo',
       payload: { score: '2 - 1', goals: [{ player: 'Test Scorer', minute: 55, team: 'home' }] },
       source_ready: true, active: true, updated_at: '2026-09-20T10:00:00Z'
+    }, {
+      id: 'match-yesterday', match_id: 'match-yesterday', home_team: 'Yesterday Home', away_team: 'Yesterday Away',
+      league: 'Campeonato Brasileiro Série A', kickoff_time: yesterdayKickoff, channel: 'demo',
+      payload: {}, source_ready: true, active: true, updated_at: '2026-09-20T10:00:00Z'
     }],
   };
   const redis = {
