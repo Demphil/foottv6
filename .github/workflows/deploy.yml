@@ -52,11 +52,11 @@ jobs:
               rm -f "$tmp"
             }
 
-            set_env_value "$APP_DIR/.env" FRONTEND_ORIGIN 'https://frajatv.fun'
-            set_env_value "$APP_DIR/.env" FRONTEND_ORIGINS 'https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
-            set_env_value "$SECURE_APP_DIR/.env" PUBLIC_SITE_ORIGIN 'https://frajatv.fun'
-            set_env_value "$SECURE_APP_DIR/.env" APPROVED_IFRAME_ORIGINS 'https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
-            set_env_value "$SECURE_APP_DIR/.env" NEXT_PUBLIC_BRAND_URL 'https://frajatv.fun'
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGIN 'https://fraja.fun'
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGINS 'https://fraja.fun,https://www.fraja.fun,https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" PUBLIC_SITE_ORIGIN 'https://fraja.fun'
+            set_env_value "$SECURE_APP_DIR/.env" APPROVED_IFRAME_ORIGINS 'https://fraja.fun,https://www.fraja.fun,https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" NEXT_PUBLIC_BRAND_URL 'https://fraja.fun'
 
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_HOST '${{ secrets.IPTV_PROVIDER_HOST }}'
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_BACKUP_HOST '${{ secrets.IPTV_PROVIDER_BACKUP_HOST }}'

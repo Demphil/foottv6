@@ -54,12 +54,12 @@ for (const [description, files] of descriptions.entries()) {
 
 const sitemap = read("sitemap.xml");
 for (const url of [
-  "https://frajatv.fun/",
-  "https://frajatv.fun/news.html",
-  "https://frajatv.fun/at-work/",
-  "https://frajatv.fun/smart-tv/",
-  "https://frajatv.fun/low-internet/",
-  "https://frajatv.fun/abroad/",
+  "https://fraja.fun/",
+  "https://fraja.fun/news.html",
+  "https://fraja.fun/at-work/",
+  "https://fraja.fun/smart-tv/",
+  "https://fraja.fun/low-internet/",
+  "https://fraja.fun/abroad/",
 ]) {
   if (!sitemap.includes(`<loc>${url}</loc>`)) {
     problems.push(`sitemap.xml missing ${url}`);
