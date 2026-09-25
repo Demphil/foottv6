@@ -55,11 +55,11 @@ jobs:
               rm -f "$tmp"
             }
 
-            set_env_value "$APP_DIR/.env" FRONTEND_ORIGIN 'https://fraja.online'
-            set_env_value "$APP_DIR/.env" FRONTEND_ORIGINS 'https://fraja.online,https://koratv.click'
-            set_env_value "$SECURE_APP_DIR/.env" PUBLIC_SITE_ORIGIN 'https://fraja.online'
-            set_env_value "$SECURE_APP_DIR/.env" APPROVED_IFRAME_ORIGINS 'https://fraja.online,https://koratv.click'
-            set_env_value "$SECURE_APP_DIR/.env" NEXT_PUBLIC_BRAND_URL 'https://fraja.online'
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGIN 'https://frajatv.fun'
+            set_env_value "$APP_DIR/.env" FRONTEND_ORIGINS 'https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" PUBLIC_SITE_ORIGIN 'https://frajatv.fun'
+            set_env_value "$SECURE_APP_DIR/.env" APPROVED_IFRAME_ORIGINS 'https://frajatv.fun,https://www.frajatv.fun,https://fraja.online,https://koratv.click,https://www.koratv.click'
+            set_env_value "$SECURE_APP_DIR/.env" NEXT_PUBLIC_BRAND_URL 'https://frajatv.fun'
 
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_HOST '${{ secrets.IPTV_PROVIDER_HOST }}'
             set_env_value "$SECURE_APP_DIR/.env" IPTV_PROVIDER_BACKUP_HOST '${{ secrets.IPTV_PROVIDER_BACKUP_HOST }}'
@@ -74,6 +74,7 @@ jobs:
             git pull --ff-only origin main
 
             cd "$APP_DIR"
+            rm -rf node_modules
             npm ci --omit=dev
             node scripts/setup-env.js
             node --env-file=.env --input-type=module -e "import { loadConfig } from './config.js'; loadConfig(); console.log('Gateway configuration is valid')"
@@ -83,6 +84,7 @@ jobs:
 
             cd "$SECURE_APP_DIR"
             git pull --ff-only origin main
+            rm -rf node_modules
             npm ci --omit=dev
             npm run build
             node --check scripts/daily-refresh-cron.js
