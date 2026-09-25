@@ -6,4 +6,4 @@ Allow: /assets/css/
 Allow: /assets/js/
 Allow: /assets/images/
 
-Sitemap: https://fraja.online/sitemap.xml
+Sitemap: https://frajatv.fun/sitemap.xml

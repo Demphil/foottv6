@@ -1,18 +1,18 @@
-# Oracle Cloud watch-proxy deployment for medic.cymru.
+# Oracle Cloud watch-proxy deployment for fabor.sbs.
 # This host serves the isolated player and proxies HLS. No FFmpeg is installed.
 
 server {
     listen 80;
-    server_name medic.cymru www.medic.cymru;
+    server_name fabor.sbs www.fabor.sbs;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name medic.cymru www.medic.cymru;
+    server_name fabor.sbs www.fabor.sbs;
 
-    ssl_certificate /etc/letsencrypt/live/medic.cymru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/medic.cymru/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/fabor.sbs/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/fabor.sbs/privkey.pem;
 
     root /var/www/koratv-player;
     access_log off;

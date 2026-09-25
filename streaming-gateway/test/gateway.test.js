@@ -10,7 +10,7 @@ test('token lifecycle, IP checks and protected HLS resources', async (t) => {
   const config = {
     secret: 'test-only-secret-with-at-least-32-bytes',
     hmacSecret: 'test-only-separate-hmac-secret-with-32-bytes',
-    frontend: 'https://koratv.click', player: 'https://medic.cymru', api: 'https://api.example.com',
+    frontend: 'https://koratv.click', player: 'https://fabor.sbs', api: 'https://api.example.com',
     trustedProxies: ['loopback'], sessionTtl: 7200,
     upstreamOrigins: new Set(['https://media.example.com']),
     getPlayback: async () => ({

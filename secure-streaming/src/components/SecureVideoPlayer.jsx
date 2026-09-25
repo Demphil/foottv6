@@ -331,7 +331,7 @@ export default function SecureVideoPlayer({ channelName, matchId = "", publicStr
     }
   }
 
-  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://fraja.online";
+  const brandUrl = process.env.NEXT_PUBLIC_BRAND_URL || "https://frajatv.fun";
   const embedId = publicStreamId || opaqueWatchId(matchId || channelName);
   const embedUrl = `${brandUrl.replace(/\/$/, "")}/embed/${encodeURIComponent(embedId)}`;
   const embedCode = `<iframe src="${embedUrl}" width="100%" height="500" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;

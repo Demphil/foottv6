@@ -48,7 +48,7 @@ const gatewayText = await configure(gateway, await readFile(new URL('../.env.exa
     valid: validHttpsOrigin
   },
   FRONTEND_ORIGIN: { value: 'https://koratv.click', valid: validHttpsOrigin },
-  PLAYER_ORIGIN: { value: 'https://medic.cymru', valid: validHttpsOrigin }
+  PLAYER_ORIGIN: { value: 'https://fabor.sbs', valid: validHttpsOrigin }
 });
 const jwtSecret = gatewayText.match(/^JWT_SECRET=(.*)$/m)?.[1]?.trim();
 await configure(gateway, gatewayText, {

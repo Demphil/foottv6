@@ -4,7 +4,7 @@ const path = require("path");
 const root = path.resolve(__dirname, "..");
 const htmlFiles = fs
   .readdirSync(root)
-  .filter((file) => file.endsWith(".html") && !file.startsWith("pinterest-"));
+  .filter((file) => file.endsWith(".html") && !file.startsWith("pinterest-") && !file.startsWith("google"));
 
 for (const dir of ["at-work", "smart-tv", "low-internet", "abroad"]) {
   htmlFiles.push(path.join(dir, "index.html"));
@@ -54,12 +54,12 @@ for (const [description, files] of descriptions.entries()) {
 
 const sitemap = read("sitemap.xml");
 for (const url of [
-  "https://koratv.click/",
-  "https://koratv.click/news.html",
-  "https://koratv.click/at-work/",
-  "https://koratv.click/smart-tv/",
-  "https://koratv.click/low-internet/",
-  "https://koratv.click/abroad/",
+  "https://frajatv.fun/",
+  "https://frajatv.fun/news.html",
+  "https://frajatv.fun/at-work/",
+  "https://frajatv.fun/smart-tv/",
+  "https://frajatv.fun/low-internet/",
+  "https://frajatv.fun/abroad/",
 ]) {
   if (!sitemap.includes(`<loc>${url}</loc>`)) {
     problems.push(`sitemap.xml missing ${url}`);

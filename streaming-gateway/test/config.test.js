@@ -8,7 +8,7 @@ const valid = {
   HMAC_SECRET: 'h'.repeat(48),
   PUBLIC_API_ORIGIN: 'https://stream-api.koratv.click',
   FRONTEND_ORIGIN: 'https://koratv.click',
-  PLAYER_ORIGIN: 'https://medic.cymru',
+  PLAYER_ORIGIN: 'https://fabor.sbs',
   NEXT_PUBLIC_SUPABASE_URL: 'https://project.supabase.co',
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'public-test-key',
   STREAM_SESSION_TTL_SECONDS: '7200',

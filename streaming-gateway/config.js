@@ -38,7 +38,7 @@ export function loadConfig(env = process.env) {
     enableAntiBot: String(env.ENABLE_ANTI_BOT || 'true').trim().toLowerCase() !== 'false',
     frontend: publicOrigin('FRONTEND_ORIGIN', env.FRONTEND_ORIGIN || 'https://koratv.click'),
     frontendOrigins: publicOrigins('FRONTEND_ORIGINS', env.FRONTEND_ORIGINS || env.FRONTEND_ORIGIN || 'https://koratv.click'),
-    player: publicOrigin('PLAYER_ORIGIN', env.PLAYER_ORIGIN || 'https://medic.cymru'),
+    player: publicOrigin('PLAYER_ORIGIN', env.PLAYER_ORIGIN || 'https://fabor.sbs'),
     api: publicOrigin('PUBLIC_API_ORIGIN', env.PUBLIC_API_ORIGIN),
     trustedProxies: (env.TRUSTED_PROXIES || '').split(',').filter(Boolean),
     cloudflareProxies: (env.CLOUDFLARE_HEADER_TRUSTED_PROXIES || '').split(',').filter(Boolean),
