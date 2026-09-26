@@ -150,6 +150,33 @@ function renderLiveData(match, matchDate, isLive) {
   `;
 }
 
+function renderApiFootballMap(match, isLive, isEnded) {
+  const scoreReady = Boolean(match.score && match.score !== 'VS');
+  const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player) : [];
+  const hasCards = cardsTotal(match.yellowCards) > 0 || cardsTotal(match.redCards) > 0;
+  const hasEvents = isLive || isEnded || goals.length > 0 || hasCards;
+  const hasStats = scoreReady || hasCards || Number.isFinite(Number(match.liveMinute));
+  const nodes = [
+    { key: 'fixtures', label: 'Fixtures', value: 'المباراة', tone: 'green', active: true },
+    { key: 'live', label: 'Live', value: isLive ? 'مباشر' : isEnded ? 'منتهية' : 'منتظرة', tone: 'green', active: isLive || isEnded },
+    { key: 'events', label: 'Events', value: hasEvents ? 'أحداث' : 'قريباً', tone: 'green', active: hasEvents },
+    { key: 'statistics', label: 'Statistics', value: hasStats ? 'إحصائيات' : 'جاهزة', tone: 'blue', active: hasStats },
+    { key: 'players', label: 'Players', value: goals.length ? 'مسجلون' : 'لاعبون', tone: 'red', active: goals.length > 0 },
+    { key: 'teams', label: 'Teams', value: 'الفريقان', tone: 'cyan', active: true }
+  ];
+
+  return `
+    <div class="api-football-map" aria-label="خريطة بيانات API-Football">
+      ${nodes.map((node) => `
+        <span class="api-map-node tone-${node.tone}${node.active ? ' is-active' : ''}" data-endpoint="${node.key}">
+          <b>${node.label}</b>
+          <small>${node.value}</small>
+        </span>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
@@ -251,6 +278,7 @@ function renderMatch(match) {
           </div>
         </div>
         ${renderLiveData(match, matchDate, isLive)}
+        ${renderApiFootballMap(match, isLive, isEnded)}
       </article>
     </a>
   `;
