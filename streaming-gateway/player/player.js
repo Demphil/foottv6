@@ -551,7 +551,7 @@ function hideStatus() {
 
 function showError(title, message, retry = false) {
   status.classList.add('error');
-  status.innerHTML = `<div class="player-error-box"><span class="error-symbol" aria-hidden="true">!</span><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>${retry ? '<button type="button" id="retry-stream">إعادة المحاولة</button>' : '<a href="https://fraja.fun/" target="_blank" rel="noopener">العودة للوحة الإحصائيات</a>'}</div>`;
+  status.innerHTML = `<div class="player-error-box"><span class="error-symbol" aria-hidden="true">!</span><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>${retry ? '<button type="button" id="retry-stream">إعادة المحاولة</button>' : '<a href="https://frajatv.fun/" target="_blank" rel="noopener">العودة للوحة الإحصائيات</a>'}</div>`;
   document.getElementById('retry-stream')?.addEventListener('click', () => {
     networkRetries = 0;
     mediaRetries = 0;
@@ -584,7 +584,7 @@ async function loadWatchNews() {
       .slice(0, 4);
     container.innerHTML = items.length ? items.map((item) => {
       const title = item.title || 'أحدث الأخبار الرياضية';
-      const image = item.thumbnail || item.enclosure?.link || 'https://fraja.fun/assets/images/default-news.jpg';
+      const image = item.thumbnail || item.enclosure?.link || 'https://frajatv.fun/assets/images/default-news.jpg';
       const date = item.pubDate ? new Date(item.pubDate.replace(/-/g, '/')).toLocaleDateString('ar-EG-u-nu-latn') : '';
       return `<a class="watch-news-card" href="${escapeHtml(item.link || '#')}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"><div><h4>${escapeHtml(title)}</h4><span>${escapeHtml(date)}</span></div></a>`;
     }).join('') : '<p>لا توجد أخبار حالياً.</p>';
