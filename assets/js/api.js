@@ -94,6 +94,20 @@ function stableMatchId(homeTeam, awayTeam, scheduledAt = '') {
   return `${slug(homeTeam)}-${slug(awayTeam)}-${date}`;
 }
 
+function cleanApiText(value, fallback = '') {
+  const text = String(value ?? '').trim();
+  if (!text || /^null$/i.test(text) || /^undefined$/i.test(text)) return fallback;
+  return text;
+}
+
+function cleanApiScore(value) {
+  const score = cleanApiText(value);
+  if (!score || /^vs$/i.test(score) || /null|undefined/i.test(score)) return 'VS';
+  const parts = score.split('-').map((part) => cleanApiText(part));
+  if (parts.length >= 2 && parts[0] !== '' && parts[1] !== '') return `${parts[0]} - ${parts[1]}`;
+  return 'VS';
+}
+
 // --- 3. Database API ---
 
 let stagingMatchesPromise = null;
@@ -114,9 +128,9 @@ function normalizeStagingMatch(match) {
     homeTeam: { name: homeName, logo: homeLogo || '' },
     awayTeam: { name: awayName, logo: awayLogo || '' },
     scheduledAt,
-    time: match.time || `${String(dateParts.hour).padStart(2, '0')}:${String(dateParts.minute).padStart(2, '0')}`,
+    time: cleanApiText(match.time, `${String(dateParts.hour).padStart(2, '0')}:${String(dateParts.minute).padStart(2, '0')}`),
     rawMinutes: dateParts.hour * 60 + dateParts.minute,
-    score: match.score || 'VS',
+    score: cleanApiScore(match.score),
     league: match.league || '',
     streams: [],
     sourceReady: match.sourceReady === true,

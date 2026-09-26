@@ -88,6 +88,28 @@ function matchStartDate(match) {
   return null;
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cleanText(value, fallback = '') {
+  const text = String(value ?? '').trim();
+  if (!text || /^null$/i.test(text) || /^undefined$/i.test(text)) return fallback;
+  return text;
+}
+
+function cleanScore(value) {
+  const score = cleanText(value);
+  if (!score || /^vs$/i.test(score) || /null|undefined/i.test(score)) return 'VS';
+  const parts = score.split('-').map((part) => cleanText(part));
+  if (parts.length >= 2 && parts[0] !== '' && parts[1] !== '') return `${parts[0]} - ${parts[1]}`;
+  return 'VS';
+}
+
 function liveMinuteText(match, matchDate) {
   const explicit = Number(match.liveMinute);
   if (Number.isFinite(explicit) && explicit >= 0) return `${Math.round(explicit)}'`;
@@ -114,7 +136,8 @@ function cardsSide(cards, side) {
 
 function renderLiveData(match, matchDate, isLive) {
   if (!isLive && match.playbackState !== 'ended') return '';
-  const score = match.score && match.score !== 'VS' ? match.score : '0 - 0';
+  const score = cleanScore(match.score);
+  const displayScore = score !== 'VS' ? score : '0 - 0';
   const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player).slice(0, 4) : [];
   const minute = match.playbackState === 'ended' ? 'نهاية المباراة' : liveMinuteText(match, matchDate);
   const yellowHome = cardsSide(match.yellowCards, 'home');
@@ -124,7 +147,7 @@ function renderLiveData(match, matchDate, isLive) {
   return `
     <div class="live-data-strip" aria-label="بيانات المباراة الحية">
       <span class="live-stat"><i class="fas fa-stopwatch" aria-hidden="true"></i>${minute}</span>
-      <span class="live-stat live-stat-score">${score}</span>
+      <span class="live-stat live-stat-score">${displayScore}</span>
       <span class="live-stat"><span class="card-dot yellow"></span>${cardsTotal(match.yellowCards)}</span>
       <span class="live-stat"><span class="card-dot red"></span>${cardsTotal(match.redCards)}</span>
     </div>
@@ -151,28 +174,33 @@ function renderLiveData(match, matchDate, isLive) {
 }
 
 function renderApiFootballMap(match, isLive, isEnded) {
-  const scoreReady = Boolean(match.score && match.score !== 'VS');
+  const score = cleanScore(match.score);
+  const scoreReady = score !== 'VS';
   const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player) : [];
   const hasCards = cardsTotal(match.yellowCards) > 0 || cardsTotal(match.redCards) > 0;
   const hasEvents = isLive || isEnded || goals.length > 0 || hasCards;
   const hasStats = scoreReady || hasCards || Number.isFinite(Number(match.liveMinute));
   const nodes = [
-    { key: 'fixtures', label: 'Fixtures', value: 'المباراة', tone: 'green', active: true },
-    { key: 'live', label: 'Live', value: isLive ? 'مباشر' : isEnded ? 'منتهية' : 'منتظرة', tone: 'green', active: isLive || isEnded },
-    { key: 'events', label: 'Events', value: hasEvents ? 'أحداث' : 'قريباً', tone: 'green', active: hasEvents },
-    { key: 'statistics', label: 'Statistics', value: hasStats ? 'إحصائيات' : 'جاهزة', tone: 'blue', active: hasStats },
-    { key: 'players', label: 'Players', value: goals.length ? 'مسجلون' : 'لاعبون', tone: 'red', active: goals.length > 0 },
-    { key: 'teams', label: 'Teams', value: 'الفريقان', tone: 'cyan', active: true }
+    { key: 'fixtures', label: 'Fixtures', value: 'المباراة', tone: 'green', active: true, detail: `${cleanText(match.league, 'بطولة غير محددة')} · ${cleanText(match.time, 'توقيت غير محدد')}` },
+    { key: 'live', label: 'Live', value: isLive ? 'مباشر' : isEnded ? 'منتهية' : 'منتظرة', tone: 'green', active: isLive || isEnded, detail: isLive ? `الدقيقة ${liveMinuteText(match, matchStartDate(match))}` : isEnded ? 'المباراة انتهت' : 'المباراة لم تبدأ بعد' },
+    { key: 'events', label: 'Events', value: hasEvents ? 'أحداث' : 'قريباً', tone: 'green', active: hasEvents, detail: goals.length ? goals.slice(0, 6).map((goal) => `${goal.minute ? `${goal.minute}' ` : ''}${goal.player}`).join(' · ') : 'لا توجد أحداث أهداف مسجلة بعد' },
+    { key: 'statistics', label: 'Statistics', value: hasStats ? 'إحصائيات' : 'جاهزة', tone: 'blue', active: hasStats, detail: `النتيجة: ${scoreReady ? score : '0 - 0'} · صفراء: ${cardsTotal(match.yellowCards)} · حمراء: ${cardsTotal(match.redCards)}` },
+    { key: 'players', label: 'Players', value: goals.length ? 'مسجلون' : 'لاعبون', tone: 'red', active: goals.length > 0, detail: goals.length ? goals.slice(0, 6).map((goal) => goal.player).join(' · ') : 'أسماء اللاعبين تظهر عند توفر الأحداث من API-Football' },
+    { key: 'teams', label: 'Teams', value: 'الفريقان', tone: 'cyan', active: true, detail: `${cleanText(match.homeTeam?.name || match.homeTeam)} ضد ${cleanText(match.awayTeam?.name || match.awayTeam)}` }
   ];
 
   return `
     <div class="api-football-map" aria-label="خريطة بيانات API-Football">
       ${nodes.map((node) => `
-        <span class="api-map-node tone-${node.tone}${node.active ? ' is-active' : ''}" data-endpoint="${node.key}">
+        <span class="api-map-node tone-${node.tone}${node.active ? ' is-active' : ''}" data-endpoint="${node.key}" data-detail="${escapeHtml(node.detail)}" role="button" tabindex="0">
           <b>${node.label}</b>
           <small>${node.value}</small>
         </span>
       `).join('')}
+    </div>
+    <div class="api-map-detail" aria-live="polite">
+      <strong>Teams</strong>
+      <span>${escapeHtml(nodes.find((node) => node.key === 'teams')?.detail || '')}</span>
     </div>
   `;
 }
@@ -180,6 +208,7 @@ function renderApiFootballMap(match, isLive, isEnded) {
 function renderMatch(match) {
   if (!match || !match.homeTeam || !match.awayTeam) return '';
 
+  const normalizedScore = cleanScore(match.score);
   const { homeTeam, awayTeam } = match;
   const homeTeamName = homeTeam.name;
   const awayTeamName = awayTeam.name;
@@ -229,7 +258,7 @@ function renderMatch(match) {
     : 'href="javascript:void(0)"';
   const linkClass = canOpenSecurePlayer ? 'clickable' : 'not-clickable';
 
-  let timeText = match.time;
+  let timeText = cleanText(match.time, '');
   
   if (match.time !== 'مباشر الآن' && match.time !== 'تحدد لاحقا') {
       if (matchDate && !isNaN(matchDate.getTime())) {
@@ -246,7 +275,7 @@ function renderMatch(match) {
   
   if (isEnded) {
       statusBadge = '<span class="live-badge ended">انتهت</span>';
-      timeText = match.score && match.score !== 'VS' ? `<span class="live-score">${match.score}</span>` : 'انتهت';
+      timeText = normalizedScore !== 'VS' ? `<span class="live-score">${normalizedScore}</span>` : 'انتهت';
       matchStatusClass = 'is-ended';
   } else if (isSoon) {
       timeText = '<span class="soon-text-blink">تبدأ قريباً</span>';
@@ -254,10 +283,15 @@ function renderMatch(match) {
   } else if (isLive) {
       statusBadge = '<span class="live-badge live">جارية</span>';
       matchStatusClass = 'is-live';
-      if (match.score && match.score.includes('-')) {
-          timeText = `<span class="live-score">${match.score}</span>`;
+      if (normalizedScore.includes('-')) {
+          timeText = `<span class="live-score">${normalizedScore}</span>`;
       }
   }
+  if (!timeText) timeText = matchDate && !isNaN(matchDate.getTime()) ? matchDate.toLocaleTimeString('ar-EG-u-nu-latn', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }) : 'تحدد لاحقاً';
 
   return `
     <a ${linkAttributes} class="match-card-link ${linkClass}">
@@ -269,7 +303,7 @@ function renderMatch(match) {
             <span class="team-name">${homeTeamName}</span>
           </div>
           <div class="match-info">
-            <span class="score">${match.score}</span>
+            <span class="score">${normalizedScore}</span>
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
@@ -407,6 +441,31 @@ function setupSecurePlayerLinks() {
   });
 }
 
+function activateApiMapNode(node) {
+  const card = node.closest('.match-card');
+  if (!card) return;
+  card.querySelectorAll('.api-map-node').forEach((item) => item.classList.toggle('is-selected', item === node));
+  const detail = card.querySelector('.api-map-detail');
+  if (!detail) return;
+  detail.innerHTML = `<strong>${escapeHtml(node.querySelector('b')?.textContent || '')}</strong><span>${escapeHtml(node.dataset.detail || '')}</span>`;
+}
+
+function setupApiFootballDetails() {
+  document.addEventListener('click', (event) => {
+    const node = event.target.closest?.('.api-map-node');
+    if (!node) return;
+    event.preventDefault();
+    event.stopPropagation();
+    activateApiMapNode(node);
+  });
+  document.addEventListener('keydown', (event) => {
+    const node = event.target.closest?.('.api-map-node');
+    if (!node || !['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    activateApiMapNode(node);
+  });
+}
+
 function matchRenderSignature(match) {
   return [
     matchIdentity(match),
@@ -537,6 +596,7 @@ function setupTabs() {
 document.addEventListener('DOMContentLoaded', () => {
     setupTabs();
   setupSecurePlayerLinks();
+  setupApiFootballDetails();
     loadAndRenderMatches().catch(error => {
         console.error("An error occurred while loading matches:", error);
         hideLoading();

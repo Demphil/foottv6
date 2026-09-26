@@ -455,6 +455,7 @@ html.crawler-view .match-card-link {
   background: rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
+  cursor: pointer;
 }
 .api-map-node::after {
   content: "";
@@ -488,6 +489,10 @@ html.crawler-view .match-card-link {
   color: #fff;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
+.api-map-node.is-selected {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
 .api-map-node.tone-green.is-active {
   background: linear-gradient(145deg, rgba(0, 168, 107, 0.26), rgba(0, 86, 58, 0.2));
   border-color: rgba(0, 168, 107, 0.38);
@@ -503,6 +508,29 @@ html.crawler-view .match-card-link {
 .api-map-node.tone-cyan.is-active {
   background: linear-gradient(145deg, rgba(69, 205, 214, 0.22), rgba(8, 87, 93, 0.18));
   border-color: rgba(93, 227, 235, 0.32);
+}
+.api-map-detail {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(5, 18, 12, 0.62), rgba(88, 23, 46, 0.22));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+.api-map-detail strong {
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+.api-map-detail span {
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 .no-stream-badge {
   position: absolute;
