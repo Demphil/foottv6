@@ -45,7 +45,7 @@ const gatewayText = await configure(gateway, await readFile(new URL('../.env.exa
   HMAC_SECRET: { value: randomSecret(), valid: validSecret },
   PUBLIC_API_ORIGIN: {
     value: 'https://stream-api.koratv.click',
-    valid: validHttpsOrigin
+    valid: (value) => value === 'https://stream-api.koratv.click'
   },
   FRONTEND_ORIGIN: { value: 'https://koratv.click', valid: validHttpsOrigin },
   PLAYER_ORIGIN: { value: 'https://fabor.sbs', valid: validHttpsOrigin }
