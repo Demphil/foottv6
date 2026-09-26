@@ -381,9 +381,24 @@ function buildHead(page, options = {}) {
       ? '    <meta name="ezoic-site-verification" content="45zSAuwQACheMQtQ6bGh81bIrm2Rsk">\n'
       : "";
   const adScripts = `
-    <script>(function(s){s.dataset.zone='11639220',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <script>(function(s){s.dataset.zone='11638896',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <script src="https://quge5.com/88/tag.min.js" data-zone="260051" async data-cfasync="false"></script>`;
+    <script src="https://pl31523824.profitableratecpmnetwork.com/c4/18/78/c41878438aa2c054481eecd2157df420.js"></script>
+    <script async="async" data-cfasync="false" src="https://pl31523825.profitableratecpmnetwork.com/d87bcd63b6537a30d475f2f2626a0e99/invoke.js"></script>
+    <div id="container-d87bcd63b6537a30d475f2f2626a0e99"></div>
+    <script src="https://pl31523827.profitableratecpmnetwork.com/b1/46/24/b14624c7134b9fd667b36a47f050bb9b.js"></script>
+    <script>
+      atOptions = {
+        'key' : '0270082f6557c55bdadc70c78319d6d0',
+        'format' : 'iframe',
+        'height' : 300,
+        'width' : 160,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highrevenueformat.com/0270082f6557c55bdadc70c78319d6d0/invoke.js"></script>
+    <script src="https://quge5.com/88/tag.min.js" data-zone="287238" async data-cfasync="false"></script>
+    <script>(function(s){s.dataset.zone='11898555',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <a href="https://www.profitableratecpmnetwork.com/pw5igeg9w?key=c01178cb95b87cffc5f5cfefc49b2d3c" target="_blank" rel="sponsored noopener noreferrer" hidden></a>
+    <a href="https://omg10.com/4/11898557" target="_blank" rel="sponsored noopener noreferrer" hidden></a>`;
 
   return `<head>
     <meta charset="UTF-8">
@@ -401,9 +416,10 @@ ${extraVerification}    <link rel="canonical" href="${url}">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="/assets/images/logo.png">
     <link rel="preload" as="image" href="/assets/images/default-news.jpg">
-    <link rel="dns-prefetch" href="//al5sm.com">
-    <link rel="dns-prefetch" href="//nap5k.com">
+    <link rel="dns-prefetch" href="//profitableratecpmnetwork.com">
+    <link rel="dns-prefetch" href="//highrevenueformat.com">
     <link rel="dns-prefetch" href="//quge5.com">
+    <link rel="dns-prefetch" href="//al5sm.com">
     <meta property="og:site_name" content="koratv Football">
     <meta property="og:title" content="${esc(page.title)}">
     <meta property="og:description" content="${esc(page.description)}">
