@@ -138,72 +138,33 @@ function cardsSide(cards, side) {
 
 function renderLiveData(match, matchDate, isLive) {
   if (!isLive && match.playbackState !== 'ended') return '';
-  const score = cleanScore(match.score);
-  const displayScore = score !== 'VS' ? score : '0 - 0';
-  const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player).slice(0, 4) : [];
-  const minute = match.playbackState === 'ended' ? 'نهاية المباراة' : liveMinuteText(match, matchDate);
-  const yellowHome = cardsSide(match.yellowCards, 'home');
-  const yellowAway = cardsSide(match.yellowCards, 'away');
-  const redHome = cardsSide(match.redCards, 'home');
-  const redAway = cardsSide(match.redCards, 'away');
+  const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player) : [];
+  const yellow = cardsTotal(match.yellowCards);
+  const red = cardsTotal(match.redCards);
   return `
-    <div class="live-data-strip" aria-label="بيانات المباراة الحية">
-      <span class="live-stat"><i class="fas fa-stopwatch" aria-hidden="true"></i>${minute}</span>
-      <span class="live-stat live-stat-score">${displayScore}</span>
-      <span class="live-stat"><span class="card-dot yellow"></span>${cardsTotal(match.yellowCards)}</span>
-      <span class="live-stat"><span class="card-dot red"></span>${cardsTotal(match.redCards)}</span>
-    </div>
-    <div class="live-detail-panel" aria-label="تفاصيل مباشرة">
-      <div>
-        <small>الدقيقة</small>
-        <strong>${minute}</strong>
-      </div>
-      <div>
-        <small>الصفراء</small>
-        <strong><span class="card-dot yellow"></span>${yellowHome} - ${yellowAway}</strong>
-      </div>
-      <div>
-        <small>الحمراء</small>
-        <strong><span class="card-dot red"></span>${redHome} - ${redAway}</strong>
-      </div>
-    </div>
-    ${goals.length ? `
-      <div class="match-scorers" aria-label="مسجلو الأهداف">
-        ${goals.map((goal) => `<span><i class="fas fa-futbol" aria-hidden="true"></i>${goal.minute ? `${goal.minute}' ` : ''}${goal.player}</span>`).join('')}
-      </div>
-    ` : ''}
+    ${yellow > 0 || red > 0 ? `<div class="match-card-counts" aria-label="البطاقات">
+      ${yellow > 0 ? `<span><i class="card-dot yellow" aria-hidden="true"></i>${yellow}<span class="sr-only">بطاقات صفراء</span></span>` : ''}
+      ${red > 0 ? `<span><i class="card-dot red" aria-hidden="true"></i>${red}<span class="sr-only">بطاقات حمراء</span></span>` : ''}
+    </div>` : ''}
+    ${goals.length ? `<div class="match-scorers" tabindex="0" aria-label="مسجلو الأهداف">
+      ${goals.map((goal) => `<span><i class="fas fa-futbol" aria-hidden="true"></i>${goal.minute ? escapeHtml(goal.minute) + "' " : ''}${escapeHtml(goal.player)}</span>`).join('')}
+    </div>` : ''}
   `;
 }
 
 function renderApiFootballMap(match, isLive, isEnded) {
-  const score = cleanScore(match.score);
-  const scoreReady = score !== 'VS';
   const goals = Array.isArray(match.goals) ? match.goals.filter((goal) => goal?.player) : [];
-  const hasCards = cardsTotal(match.yellowCards) > 0 || cardsTotal(match.redCards) > 0;
-  const hasEvents = isLive || isEnded || goals.length > 0 || hasCards;
-  const hasStats = scoreReady || hasCards || Number.isFinite(Number(match.liveMinute));
   const nodes = [
-    { key: 'fixtures', label: 'Fixtures', value: 'المباراة', tone: 'green', active: true, detail: `${cleanText(match.league, 'بطولة غير محددة')} · ${cleanText(match.time, 'توقيت غير محدد')}` },
-    { key: 'live', label: 'Live', value: isLive ? 'مباشر' : isEnded ? 'منتهية' : 'منتظرة', tone: 'green', active: isLive || isEnded, detail: isLive ? `الدقيقة ${liveMinuteText(match, matchStartDate(match))}` : isEnded ? 'المباراة انتهت' : 'المباراة لم تبدأ بعد' },
-    { key: 'events', label: 'Events', value: hasEvents ? 'أحداث' : 'قريباً', tone: 'green', active: hasEvents, detail: goals.length ? goals.slice(0, 6).map((goal) => `${goal.minute ? `${goal.minute}' ` : ''}${goal.player}`).join(' · ') : 'لا توجد أحداث أهداف مسجلة بعد' },
-    { key: 'statistics', label: 'Statistics', value: hasStats ? 'إحصائيات' : 'جاهزة', tone: 'blue', active: hasStats, detail: `النتيجة: ${scoreReady ? score : '0 - 0'} · صفراء: ${cardsTotal(match.yellowCards)} · حمراء: ${cardsTotal(match.redCards)}` },
-    { key: 'players', label: 'Players', value: goals.length ? 'مسجلون' : 'لاعبون', tone: 'red', active: goals.length > 0, detail: goals.length ? goals.slice(0, 6).map((goal) => goal.player).join(' · ') : 'أسماء اللاعبين تظهر عند توفر الأحداث من API-Football' },
-    { key: 'teams', label: 'Teams', value: 'الفريقان', tone: 'cyan', active: true, detail: `${cleanText(match.homeTeam?.name || match.homeTeam)} ضد ${cleanText(match.awayTeam?.name || match.awayTeam)}` }
+    { key: 'live', label: 'مباشر', detail: isLive ? `الدقيقة ${liveMinuteText(match, matchStartDate(match))}` : isEnded ? 'انتهت المباراة' : 'لم تبدأ المباراة بعد' },
+    { key: 'events', label: 'أحداث', detail: goals.length ? goals.map((goal) => `${goal.minute ? goal.minute + "' " : ''}${goal.player}`).join(' · ') : 'لا توجد أحداث أهداف مسجلة بعد' },
+    { key: 'statistics', label: 'إحصائيات', detail: `بطاقات صفراء: ${cardsTotal(match.yellowCards)} · بطاقات حمراء: ${cardsTotal(match.redCards)}` },
+    { key: 'teams', label: 'الفرق', detail: '' }
   ];
-
   return `
-    <div class="api-football-map" aria-label="خريطة بيانات API-Football">
-      ${nodes.map((node) => `
-        <span class="api-map-node tone-${node.tone}${node.active ? ' is-active' : ''}" data-endpoint="${node.key}" data-detail="${escapeHtml(node.detail)}" role="button" tabindex="0">
-          <b>${node.label}</b>
-          <small>${node.value}</small>
-        </span>
-      `).join('')}
+    <div class="api-football-map" role="tablist" aria-label="تفاصيل المباراة">
+      ${nodes.map((node) => `<button type="button" class="api-map-node" data-endpoint="${node.key}" data-detail="${escapeHtml(node.detail)}" role="tab" aria-selected="false">${node.label}</button>`).join('')}
     </div>
-    <div class="api-map-detail" aria-live="polite">
-      <strong>Teams</strong>
-      <span>${escapeHtml(nodes.find((node) => node.key === 'teams')?.detail || '')}</span>
-    </div>
+    <div class="api-map-detail" role="tabpanel" aria-live="polite" hidden></div>
   `;
 }
 
@@ -257,7 +218,7 @@ function renderMatch(match) {
   const canOpenSecurePlayer = isLive && !isEnded;
   const linkAttributes = canOpenSecurePlayer
     ? `href="${watchUrl}" data-secure-match-id="${encodeURIComponent(stableId)}"`
-    : 'href="javascript:void(0)"';
+    : 'aria-disabled="true"';
   const linkClass = canOpenSecurePlayer ? 'clickable' : 'not-clickable';
 
   let timeText = cleanText(match.time, '');
@@ -277,7 +238,7 @@ function renderMatch(match) {
   
   if (isEnded) {
       statusBadge = '<span class="live-badge ended">انتهت</span>';
-      timeText = normalizedScore !== 'VS' ? `<span class="live-score">${normalizedScore}</span>` : 'انتهت';
+      timeText = 'انتهت';
       matchStatusClass = 'is-ended';
   } else if (isSoon) {
       timeText = '<span class="soon-text-blink">تبدأ قريباً</span>';
@@ -285,9 +246,7 @@ function renderMatch(match) {
   } else if (isLive) {
       statusBadge = '<span class="live-badge live">جارية</span>';
       matchStatusClass = 'is-live';
-      if (normalizedScore.includes('-')) {
-          timeText = `<span class="live-score">${normalizedScore}</span>`;
-      }
+      timeText = liveMinuteText(match, matchDate);
   }
   if (!timeText) timeText = matchDate && !isNaN(matchDate.getTime()) ? matchDate.toLocaleTimeString('ar-EG-u-nu-latn', {
     hour: '2-digit',
@@ -296,10 +255,10 @@ function renderMatch(match) {
   }) : 'تحدد لاحقاً';
 
   return `
-    <a ${linkAttributes} class="match-card-link ${linkClass}">
+    <div class="match-card-link ${linkClass}">
       <article class="match-card ${matchStatusClass}" data-match-id="${stableId}" data-watch-id="${publicWatchId}">
         ${statusBadge}
-        <div class="teams">
+        <a ${linkAttributes} class="match-watch-link"><div class="teams">
           <div class="team">
             <img src="${homeLogo}" alt="${homeTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${homeTeamName}</span>
@@ -312,11 +271,11 @@ function renderMatch(match) {
             <img src="${awayLogo}" alt="${awayTeamName}" loading="lazy" onerror="this.src='assets/images/default-logo.jpg';">
             <span class="team-name">${awayTeamName}</span>
           </div>
-        </div>
+        </div></a>
         ${renderLiveData(match, matchDate, isLive)}
         ${renderApiFootballMap(match, isLive, isEnded)}
       </article>
-    </a>
+    </div>
   `;
 }
 
@@ -435,7 +394,7 @@ async function openSecurePlayer(matchId) {
 
 function setupSecurePlayerLinks() {
   document.addEventListener('click', (event) => {
-    const link = event.target.closest?.('.match-card-link.clickable[data-secure-match-id]');
+    const link = event.target.closest?.('.match-watch-link[data-secure-match-id]');
     if (!link) return;
     event.preventDefault();
     const matchId = decodeURIComponent(link.dataset.secureMatchId || '');
@@ -446,10 +405,15 @@ function setupSecurePlayerLinks() {
 function activateApiMapNode(node) {
   const card = node.closest('.match-card');
   if (!card) return;
-  card.querySelectorAll('.api-map-node').forEach((item) => item.classList.toggle('is-selected', item === node));
+  card.querySelectorAll('.api-map-node').forEach((item) => {
+    item.classList.toggle('is-selected', item === node);
+    item.setAttribute('aria-selected', String(item === node));
+  });
+  card.querySelector('.teams')?.classList.toggle('is-highlighted', node.dataset.endpoint === 'teams');
   const detail = card.querySelector('.api-map-detail');
   if (!detail) return;
-  detail.innerHTML = `<strong>${escapeHtml(node.querySelector('b')?.textContent || '')}</strong><span>${escapeHtml(node.dataset.detail || '')}</span>`;
+  detail.hidden = node.dataset.endpoint === 'teams';
+  detail.textContent = node.dataset.detail || '';
 }
 
 function setupApiFootballDetails() {
@@ -462,7 +426,17 @@ function setupApiFootballDetails() {
   });
   document.addEventListener('keydown', (event) => {
     const node = event.target.closest?.('.api-map-node');
-    if (!node || !['Enter', ' '].includes(event.key)) return;
+    if (!node) return;
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault();
+      const nodes = [...node.parentElement.querySelectorAll('.api-map-node')];
+      const index = event.key === 'Home' ? 0 : event.key === 'End' ? nodes.length - 1
+        : (nodes.indexOf(node) + (event.key === 'ArrowLeft' ? 1 : -1) + nodes.length) % nodes.length;
+      nodes[index].focus();
+      activateApiMapNode(nodes[index]);
+      return;
+    }
+    if (!['Enter', ' '].includes(event.key)) return;
     event.preventDefault();
     activateApiMapNode(node);
   });

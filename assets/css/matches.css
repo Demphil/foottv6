@@ -205,7 +205,7 @@ body::before {
 }
 
 /* 5. بطاقة المباراة الموحدة */
-a.match-card-link {
+.match-card-link {
   text-decoration: none;
   color: inherit;
   perspective: 1100px;
@@ -431,7 +431,7 @@ html.crawler-view .match-card-link {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 7px;
   margin-top: 12px;
   padding: 10px;
@@ -677,7 +677,7 @@ html.crawler-view .match-card-link {
     grid-template-columns: 1fr;
   }
   .api-football-map {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .api-map-node:nth-child(3n)::after {
     display: none;
@@ -1047,4 +1047,51 @@ html.crawler-view .match-card-link {
 /* الحركات */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popUp { from { transform: scale(0.8); } to { transform: scale(1); } }
+
+/* Today/tomorrow share a bounded grid, including ultrawide screens. */
+.all-matches .tab-content.active {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(300px, calc((100% - 60px) / 4))), 1fr));
+  gap: 20px;
+}
+.match-watch-link { display: block; color: inherit; text-decoration: none; }
+.match-card, .match-card * { box-sizing: border-box; }
+.match-card { border-radius: 8px; padding-top: 36px; gap: 10px; height: 100%; }
+.match-card .teams { display: grid; grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr); gap: 8px; }
+.match-card .team { min-width: 0; }
+.match-card .team-name { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.match-card .match-info { width: 70px; align-self: start; padding-top: 10px; }
+.match-card .score { white-space: nowrap; direction: ltr; }
+.match-card .time { font-size: 12px; line-height: 1.5; white-space: nowrap; direction: ltr; }
+.match-card .teams.is-highlighted { outline: 1px solid #71d4ac; outline-offset: 4px; border-radius: 4px; }
+.match-card-counts { display: flex; gap: 16px; justify-content: center; font-size: 12px; }
+.match-card-counts > span { display: inline-flex; align-items: center; gap: 5px; }
+.match-card .match-scorers {
+  display: block; max-height: 44px; overflow-y: auto; margin: 0;
+  scrollbar-width: thin; overscroll-behavior: contain;
+}
+.match-card .match-scorers > span {
+  display: block; line-height: 22px; min-height: 22px; padding: 0;
+  border-radius: 0; background: none; font-size: 12px; overflow-wrap: anywhere;
+}
+.match-scorers i { margin-inline-end: 5px; }
+.match-card .api-football-map {
+  grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+  margin-top: auto; padding: 10px 0 0; border: 0; border-radius: 0;
+  border-top: 1px solid #ffffff24; background: none; box-shadow: none;
+}
+.match-card .api-map-node {
+  min-height: 38px; padding: 6px 2px; border-radius: 4px; color: #ecf4f0;
+  font: 700 12px/1.5 Tahoma, Arial, sans-serif;
+  white-space: nowrap; text-overflow: clip; overflow: visible;
+}
+.match-card .api-map-node::after { display: none; }
+.match-card .api-map-node.is-selected { background: #285747; outline: 1px solid #71d4ac; outline-offset: 0; }
+.match-card .api-map-detail { padding: 8px 0 0; margin: 0; max-height: 100px; overflow-y: auto; background: none; border: 0; box-shadow: none; font-size: 12px; line-height: 1.7; }
+.match-card [hidden] { display: none !important; }
+.match-card .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 360px) {
+  .matches-main { padding: 10px; }
+  .all-matches { padding: 10px; }
+  .match-card { padding-inline: 10px; }
+}
 
