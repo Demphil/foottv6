@@ -412,8 +412,68 @@ function activateApiMapNode(node) {
   card.querySelector('.teams')?.classList.toggle('is-highlighted', node.dataset.endpoint === 'teams');
   const detail = card.querySelector('.api-map-detail');
   if (!detail) return;
-  detail.hidden = node.dataset.endpoint === 'teams';
+  const scorers = card.querySelector('.match-scorers');
+  const expanded = Boolean(card.closest('.match-dialog'));
+  if (expanded && scorers) scorers.hidden = node.dataset.endpoint !== 'events';
+  detail.hidden = node.dataset.endpoint === 'teams' || (expanded && Boolean(scorers) && node.dataset.endpoint === 'events');
   detail.textContent = node.dataset.detail || '';
+}
+
+let matchDialog;
+let matchDialogTrigger;
+
+function fillMatchDialog(card, endpoint) {
+  const copy = card.cloneNode(true);
+  // The expanded card displays data only; opening a tab never allocates a stream.
+  copy.querySelectorAll('.match-watch-link').forEach((link) => {
+    const header = document.createElement('div');
+    header.className = 'match-watch-link';
+    header.append(...link.childNodes);
+    link.replaceWith(header);
+  });
+  copy.querySelector('.match-scorers')?.removeAttribute('tabindex');
+  matchDialog.querySelector('.match-dialog-content').replaceChildren(copy);
+  const selected = [...copy.querySelectorAll('.api-map-node')].find((node) => node.dataset.endpoint === endpoint);
+  if (selected) activateApiMapNode(selected);
+}
+
+function openMatchDetails(node) {
+  if (node.closest('.match-dialog')) { activateApiMapNode(node); return; }
+  const card = node.closest('.match-card');
+  if (!card) return;
+  if (!matchDialog) {
+    matchDialog = document.createElement('dialog');
+    matchDialog.className = 'match-dialog';
+    matchDialog.setAttribute('aria-label', 'تفاصيل المباراة');
+    matchDialog.innerHTML = '<button type="button" class="match-dialog-close" aria-label="إغلاق" title="إغلاق"><span aria-hidden="true">×</span></button><div class="match-dialog-content"></div>';
+    document.body.append(matchDialog);
+    matchDialog.querySelector('.match-dialog-close').addEventListener('click', () => matchDialog.close());
+    matchDialog.addEventListener('click', (event) => {
+      const bounds = matchDialog.getBoundingClientRect();
+      if (event.target === matchDialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) matchDialog.close();
+    });
+    matchDialog.addEventListener('close', () => {
+      document.body.classList.remove('match-dialog-open');
+      if (matchDialogTrigger?.isConnected) matchDialogTrigger.focus();
+      else document.querySelector(`.match-card[data-match-id="${CSS.escape(matchDialog.dataset.matchId)}"] .api-map-node`)?.focus();
+    });
+  }
+  matchDialogTrigger = node;
+  matchDialog.dataset.matchId = card.dataset.matchId;
+  fillMatchDialog(card, node.dataset.endpoint);
+  document.body.classList.add('match-dialog-open');
+  matchDialog.showModal();
+  matchDialog.querySelector('.api-map-node.is-selected')?.focus();
+}
+
+function refreshMatchDialog() {
+  if (!matchDialog?.open) return;
+  const card = [...document.querySelectorAll('.tab-content .match-card')].find((item) => item.dataset.matchId === matchDialog.dataset.matchId);
+  if (!card) { matchDialog.close(); return; }
+  const focusedTab = document.activeElement?.closest('.api-map-node')?.dataset.endpoint;
+  const selected = matchDialog.querySelector('.api-map-node.is-selected')?.dataset.endpoint || 'live';
+  fillMatchDialog(card, selected);
+  if (focusedTab) matchDialog.querySelector(`[data-endpoint="${focusedTab}"]`)?.focus({ preventScroll: true });
 }
 
 function setupApiFootballDetails() {
@@ -422,7 +482,7 @@ function setupApiFootballDetails() {
     if (!node) return;
     event.preventDefault();
     event.stopPropagation();
-    activateApiMapNode(node);
+    openMatchDetails(node);
   });
   document.addEventListener('keydown', (event) => {
     const node = event.target.closest?.('.api-map-node');
@@ -433,12 +493,12 @@ function setupApiFootballDetails() {
       const index = event.key === 'Home' ? 0 : event.key === 'End' ? nodes.length - 1
         : (nodes.indexOf(node) + (event.key === 'ArrowLeft' ? 1 : -1) + nodes.length) % nodes.length;
       nodes[index].focus();
-      activateApiMapNode(nodes[index]);
+      if (node.closest('.match-dialog')) activateApiMapNode(nodes[index]);
       return;
     }
     if (!['Enter', ' '].includes(event.key)) return;
     event.preventDefault();
-    activateApiMapNode(node);
+    openMatchDetails(node);
   });
 }
 
@@ -526,6 +586,7 @@ async function loadAndRenderMatches(options = {}) {
   renderSection(DOM.broadcastContainer, trueTodayMatches, 'لا توجد مواجهات اليوم.');
   renderSection(DOM.todayContainer, trueTodayMatches, 'لا توجد مواجهات اليوم.');
   renderSection(DOM.tomorrowContainer, trueTomorrowMatches, 'لا توجد مواجهات غداً.');
+  refreshMatchDialog();
 }
 
 window.refreshLiveMatches = () => loadAndRenderMatches({ force: true }).catch(error => {

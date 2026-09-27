@@ -24,7 +24,7 @@ const server = createServer(async (req, res) => {
   const file = resolve(root, '.' + pathname);
   if (!file.startsWith(root)) { res.writeHead(403).end(); return; }
   try {
-    const mime = { '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg' };
+    const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
     res.writeHead(200, { 'Content-Type': mime[extname(file)] || 'text/plain' }).end(await readFile(file));
   } catch { res.writeHead(404).end(); }
 });
@@ -54,8 +54,15 @@ try {
   assert.equal(await first.locator('.api-map-detail').isVisible(), false);
   for (const key of ['live', 'events', 'statistics', 'teams']) {
     await first.locator(`[data-endpoint="${key}"]`).click();
-    assert.equal(await first.locator(`[data-endpoint="${key}"]`).getAttribute('aria-selected'), 'true');
-    assert.equal(await first.locator('.api-map-detail').isVisible(), key !== 'teams');
+    const dialog = page.locator('.match-dialog');
+    assert.equal(await dialog.evaluate((el) => el.matches(':modal')), true);
+    assert.equal(await dialog.locator(`[data-endpoint="${key}"]`).getAttribute('aria-selected'), 'true');
+    assert.equal(await dialog.locator('.api-map-detail').isVisible(), key !== 'teams' && key !== 'events');
+    assert.equal(await dialog.locator('a, [data-secure-match-id]').count(), 0);
+    assert.equal(await dialog.locator('.match-scorers > span').count(), 6);
+    await page.keyboard.press('Escape');
+    assert.equal(await dialog.isVisible(), false);
+    assert.equal(await first.locator(`[data-endpoint="${key}"]`).evaluate((el) => el === document.activeElement), true);
   }
   assert.equal(streamRequests, 0, 'tabs must not open or authorize playback');
   await mkdir('dist/qa', { recursive: true });
@@ -78,10 +85,27 @@ try {
     assert.equal(layout.clippedTabs, false, `${width}: clipped tabs`);
     assert.ok(layout.scorersHeight <= 44);
     await page.screenshot({ path: join('dist/qa', `cards-${width}.png`) });
+    await first.locator('[data-endpoint="events"]').click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator('.match-dialog').evaluate((el) => el.scrollWidth > el.clientWidth), false);
+    assert.equal(await page.locator('.match-dialog .match-scorers').evaluate((el) => el.scrollHeight > el.clientHeight), false);
+    await page.screenshot({ path: join('dist/qa', `dialog-${width}.png`) });
+    await page.locator('.match-dialog-close').click();
     console.log(width, JSON.stringify(layout));
   }
   await page.locator('#tomorrow-tab').click();
   assert.equal(await page.locator('#tomorrow-matches .match-card').count(), 4);
   assert.equal(await page.locator('#today-matches').isVisible(), false);
+  await page.locator('#tomorrow-matches .api-map-node').first().click();
+  await page.evaluate(() => window.refreshLiveMatches());
+  assert.equal(await page.locator('.match-dialog').evaluate((el) => el.open), true);
+  await page.keyboard.press('Escape');
+  await page.goto(base + '/news.html');
+  for (const width of [1366, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--dark-color').trim()), '#07140f');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `news overflow at ${width}`);
+    await page.screenshot({ path: join('dist/qa', `news-${width}.png`) });
+  }
   console.log('PASS: today/tomorrow, four Arabic tabs, no duplicates, zero playback requests from tabs');
 } finally { await browser?.close(); await new Promise((done) => server.close(done)); }

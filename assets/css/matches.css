@@ -1067,7 +1067,7 @@ html.crawler-view .match-card-link {
 .match-card-counts > span { display: inline-flex; align-items: center; gap: 5px; }
 .match-card .match-scorers {
   display: block; max-height: 44px; overflow-y: auto; margin: 0;
-  scrollbar-width: thin; overscroll-behavior: contain;
+  scrollbar-width: none; overscroll-behavior: contain;
 }
 .match-card .match-scorers > span {
   display: block; line-height: 22px; min-height: 22px; padding: 0;
@@ -1089,6 +1089,48 @@ html.crawler-view .match-card-link {
 .match-card .api-map-detail { padding: 8px 0 0; margin: 0; max-height: 100px; overflow-y: auto; background: none; border: 0; box-shadow: none; font-size: 12px; line-height: 1.7; }
 .match-card [hidden] { display: none !important; }
 .match-card .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.match-card .match-scorers::-webkit-scrollbar { display: none; }
+body.match-dialog-open { overflow: hidden; }
+.match-dialog {
+  box-sizing: border-box; width: min(760px, calc(100% - 24px)); max-height: calc(100dvh - 32px);
+  padding: 48px 24px 24px; color: #f1faee; direction: rtl;
+  border: 1px solid #72c9a577; border-radius: 8px;
+  background: linear-gradient(135deg, #123c2bed, #25161eef);
+  backdrop-filter: blur(20px); box-shadow: 0 24px 80px #000b, 0 2px 0 #a2e9c544 inset;
+  overflow: auto; scrollbar-width: thin; scrollbar-color: #438c6d transparent;
+  overscroll-behavior: contain;
+}
+.match-dialog[open] { animation: match-dialog-enter 220ms ease-out; }
+.match-dialog::backdrop { background: #020b08bb; backdrop-filter: blur(5px); }
+.match-dialog-close {
+  position: absolute; top: 8px; inset-inline-end: 8px; width: 36px; height: 36px;
+  display: grid; place-items: center; border: 1px solid #ffffff30; border-radius: 4px;
+  background: #ffffff0d; color: #fff; font-size: 18px; cursor: pointer;
+}
+.match-dialog-close:hover { background: #c1272d; }
+.match-dialog :focus-visible { outline: 2px solid #71d4ac; outline-offset: 3px; }
+.match-dialog .match-card {
+  height: auto; min-height: 0; padding: 36px 0 0; transform: none;
+  border: 0; background: none; box-shadow: none; gap: 20px;
+}
+.match-dialog .match-card:hover { transform: none; box-shadow: none; }
+.match-dialog .team-name { font-size: 18px; }
+.match-dialog .team-logo { width: 72px; height: 72px; }
+.match-dialog .match-scorers, .match-dialog .api-map-detail { max-height: none; overflow: visible; }
+.match-dialog .match-scorers > span { font-size: 14px; line-height: 1.9; }
+.match-dialog .api-map-node { min-height: 44px; font-size: 14px; }
+.match-dialog .api-map-detail { font-size: 15px; line-height: 1.9; overflow-wrap: anywhere; }
+@keyframes match-dialog-enter {
+  from { opacity: 0; transform: perspective(1100px) translateY(18px) rotateX(7deg) scale(.96); }
+  to { opacity: 1; transform: perspective(1100px) translateY(0) rotateX(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .match-dialog[open] { animation: none; } }
+@media (max-width: 480px) {
+  .match-dialog { padding: 48px 14px 20px; }
+  .match-dialog .team-name { font-size: 14px; }
+  .match-dialog .team-logo { width: 56px; height: 56px; }
+  .match-dialog .api-map-node { font-size: 12px; }
+}
 @media (max-width: 360px) {
   .matches-main { padding: 10px; }
   .all-matches { padding: 10px; }

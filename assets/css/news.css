@@ -2,12 +2,12 @@
 /* 1. المتغيرات والألوان الرسمية (كما طلبت) */
 /* ========================================= */
 :root {
-  --primary-color: #e63946;  /* الأحمر الرسمي */
-  --secondary-color: #ffd166; /* الأصفر الذهبي */
-  --dark-color: #1d3557;     /* الأزرق الداكن */
+  --primary-color: #c1272d;
+  --secondary-color: #71d4ac;
+  --dark-color: #07140f;
   --light-color: #f1faee;    /* الأبيض المائل للكريمي */
-  --glass-effect: rgba(29, 53, 87, 0.7); /* تأثير الزجاج بلون الموقع */
-  --card-bg: rgba(0, 0, 0, 0.25); /* خلفية البطاقات */
+  --glass-effect: rgba(11, 31, 21, 0.7);
+  --card-bg: rgba(11, 31, 21, 0.55);
   --header-height: 70px;
 }
 
@@ -17,7 +17,8 @@
 body {
   font-family: 'Cairo', sans-serif;
   /* الخلفية المتدرجة الرسمية */
-  background: linear-gradient(135deg, var(--dark-color), var(--primary-color));
+  background: linear-gradient(135deg, #06110c 0%, #0d2418 42%, #571016 100%);
+  background-attachment: fixed;
   color: var(--light-color);
   margin: 0;
   padding-top: var(--header-height);
@@ -31,17 +32,17 @@ body {
 }
 
 .news-hero {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #71d4ac40;
   padding: clamp(18px, 4vw, 28px);
   margin-bottom: 28px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
 }
 
 .news-hero h2 {
   margin: 0 0 10px;
-  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  font-size: 1.8rem;
 }
 
 .news-hero p {
@@ -54,7 +55,7 @@ body {
 /* 3. الهيدر (نفس التصميم القديم) */
 /* ========================================= */
 .header {
-  background: rgba(29, 53, 87, 0.9);
+  background: rgba(6, 17, 12, 0.94);
   backdrop-filter: blur(10px);
   height: var(--header-height);
   padding: 0 clamp(15px, 4vw, 30px);
@@ -69,6 +70,8 @@ body {
 }
 
 .header .logo { display: flex; align-items: center; gap: 12px; }
+.header .logo { flex: 0 0 auto; }
+.header-title { margin: 0; font-size: 20px; line-height: 1.4; min-width: 0; }
 .header .logo img { height: 45px; width: auto; }
 .header .logo h1 { margin: 0; font-size: 1.4rem; font-weight: 700; color: #fff; }
 
@@ -82,7 +85,7 @@ body {
 .search-section {
   background: var(--glass-effect);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 20px;
   margin-bottom: 30px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -98,6 +101,7 @@ body {
 }
 
 .search-container input {
+  min-width: 0;
   flex-grow: 1;
   padding: 12px 20px;
   border-radius: 30px;
@@ -112,6 +116,7 @@ body {
 .search-container input::placeholder { color: rgba(255,255,255,0.6); }
 
 .search-container button {
+  flex-shrink: 0;
   background: var(--primary-color);
   color: white;
   border: none;
@@ -120,16 +125,18 @@ body {
   cursor: pointer;
   transition: 0.3s;
   font-size: 1.1rem;
-  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.4);
+  box-shadow: 0 4px 10px rgba(193, 39, 45, 0.4);
 }
-.search-container button:hover { transform: scale(1.05); background: #ff4d5a; }
+.search-container button:hover { transform: scale(1.05); background: #da3540; }
 
 .categories-tabs {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 5px;
-  justify-content: center;
+  justify-content: flex-start;
+  scrollbar-width: thin;
+  scrollbar-color: #438c6d transparent;
 }
 
 .category-btn {
@@ -146,8 +153,8 @@ body {
 }
 
 .category-btn.active, .category-btn:hover {
-  background: var(--light-color);
-  color: var(--dark-color);
+  background: #176143;
+  color: var(--light-color);
   transform: translateY(-2px);
 }
 
@@ -199,7 +206,7 @@ body {
   position: relative;
   height: 200px;
   overflow: hidden;
-  background-color: #2a3b4c;
+  background-color: #163525;
 }
 
 .news-image-wrapper img {
@@ -310,7 +317,7 @@ body {
   font-size: 1rem;
   font-weight: 700;
   transition: 0.3s;
-  box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+  box-shadow: 0 4px 15px rgba(193, 39, 45, 0.3);
 }
 
 .load-more-btn:hover {
@@ -358,6 +365,9 @@ body {
 /* 8. التجاوب والتحميل */
 /* ========================================= */
 @media (max-width: 768px) {
+  .header { gap: 12px; }
+  .header-title { font-size: 16px; }
+  .social-bar { display: none; }
   #breaking-news, #sports-news, #news-grid-container {
     grid-template-columns: 1fr;
   }
