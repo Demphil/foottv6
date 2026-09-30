@@ -1,3 +1,5 @@
+import { isAllowedMatch } from '../../shared/league-whitelist.mjs';
+
 function json(body, status, origin = '*') {
   return new Response(JSON.stringify(body), {
     status,
@@ -53,6 +55,7 @@ function toFrontendMatch(row) {
     score: payload.score || 'VS',
     league: row.league || payload.league || '',
     channel: row.channel || payload.channel || '',
+    source: row.source || '',
     commentator: payload.commentator || '',
     streams: Array.isArray(payload.streams) ? payload.streams : [],
     isLive: Boolean(payload.isLive),
@@ -82,7 +85,7 @@ export async function onRequestGet({ request, env }) {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(table)) return json({ error: 'Invalid matches table configuration' }, 500, origin);
 
   const endpoint = new URL(`${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${table}`);
-  endpoint.searchParams.set('select', 'id,match_id,home_team,away_team,league,kickoff_time,channel,payload,active,updated_at');
+  endpoint.searchParams.set('select', 'id,match_id,home_team,away_team,league,kickoff_time,channel,payload,source,active,updated_at');
   endpoint.searchParams.set('active', 'eq.true');
   endpoint.searchParams.set('order', 'kickoff_time.asc.nullslast');
   endpoint.searchParams.set('limit', '150');
@@ -104,18 +107,43 @@ export async function onRequestGet({ request, env }) {
 
   if (!response.ok) return json({ error: 'Unable to read match storage' }, 502, origin);
   const rows = await response.json();
-  const seen = new Set();
-  const matches = (Array.isArray(rows) ? rows : [])
+  const rowsForDisplay = (Array.isArray(rows) ? rows : [])
     .map(toFrontendMatch)
     .filter((match) => match.homeTeam && match.awayTeam && match.scheduledAt)
+    .filter((match) => isAllowedMatch({ league: match.league, homeTeam: match.homeTeam, awayTeam: match.awayTeam }))
     .filter((match) => String(match.homeTeam).trim() !== String(match.awayTeam).trim())
-    .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'))
-    .filter((match) => {
-      const key = `${String(match.homeTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.awayTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.scheduledAt).slice(0, 10)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'));
+  const channelPriority = (match) => {
+    if (match.channel && match.channelResolvedBy !== 'kooora-league-fallback'
+      && (match.channelSource === 'kooora-live-scores' || match.channelResolvedBy === 'kooora-fixture-match')) return 3;
+    if (match.channel && match.channelResolvedBy !== 'kooora-league-fallback') return 2;
+    return 0;
+  };
+  const dataPriority = (match) => Number(match.source === 'api-football') * 100
+    + Number(match.score && match.score !== 'VS') * 4
+    + (Array.isArray(match.goals) ? match.goals.length : 0);
+  const mergeDuplicate = (left, right) => {
+    const details = dataPriority(right) > dataPriority(left) ? right : left;
+    const broadcast = channelPriority(right) > channelPriority(left) ? right : left;
+    if (!channelPriority(broadcast)) return details;
+    return {
+      ...details,
+      channel: broadcast.channel,
+      channels: Array.isArray(broadcast.channels) ? broadcast.channels : details.channels,
+      channelSource: broadcast.channelSource,
+      channelResolvedBy: broadcast.channelResolvedBy,
+      channelMatchConfidence: broadcast.channelMatchConfidence,
+      koooraSourceMatchId: broadcast.koooraSourceMatchId,
+      koooraMatchLink: broadcast.koooraMatchLink
+    };
+  };
+  const byFixture = new Map();
+  for (const match of rowsForDisplay) {
+    const key = `${String(match.homeTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.awayTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.scheduledAt).slice(0, 10)}`;
+    const current = byFixture.get(key);
+    byFixture.set(key, current ? mergeDuplicate(current, match) : match);
+  }
+  const matches = [...byFixture.values()].sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
 
   const day = new URL(request.url).searchParams.get('day');
   const today = moroccoDate(new Date());

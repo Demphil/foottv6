@@ -44,7 +44,8 @@ test('configuration identifies the unsafe origin variable', () => {
 });
 
 test('league whitelist admits requested competitions and rejects lower divisions', () => {
-  assert.equal(isAllowedLeague('دوري أبطال أوروبا للسيدات'), true);
+  assert.equal(isAllowedLeague('دوري أبطال أوروبا للسيدات'), false);
+  assert.equal(isAllowedLeague("UEFA Women's Champions League"), false);
   assert.equal(isAllowedLeague('الدوري الإنجليزي الممتاز للسيدات'), false);
   assert.equal(isAllowedLeague('البطولة الوطنية الاحترافية المغربية'), true);
   assert.equal(isAllowedLeague('دوري أبطال أفريقيا'), true);

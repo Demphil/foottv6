@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import { fileURLToPath } from "node:url";
 import { getSupabaseAdmin } from "../src/lib/supabaseAdmin.js";
 import { isAllowedMatch, normalizeTeamName } from "../../shared/league-whitelist.mjs";
+import { mergeKoooraBroadcastChannels } from "../../shared/match-channel-link.mjs";
 
 const BASE_SITE_URL = process.env.MATCH_SOURCE_URL || "https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA-%D8%A7%D9%84%D9%8A%D9%88%D9%85";
 const FIXTURES_SITE_URL = "https://www.kooora.com/%D9%83%D8%B1%D8%A9-%D8%A7%D9%84%D9%82%D8%AF%D9%85/%D9%85%D9%88%D8%A7%D8%B9%D9%8A%D8%AF-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D8%B1%D9%8A%D8%A7%D8%AA";
@@ -502,7 +503,7 @@ async function applyKoooraChannelFallbacks(supabase, rows) {
 
   let updated = 0;
   const output = rows.map((row) => {
-    if (row.channel) return row;
+    if (row.channel || row.source === "api-football") return row;
     const league = normalizeLookup(row.league);
     const rule = KOOORA_LEAGUE_CHANNEL_FALLBACKS.find((item) => item.pattern.test(league));
     const channel = rule ? pickExistingChannel(channelNames, rule.channels) : "";
@@ -523,6 +524,28 @@ async function applyKoooraChannelFallbacks(supabase, rows) {
   });
 
   return { rows: output, updated };
+}
+
+async function collectKoooraRows() {
+  const tomorrowDate = moroccoDateParts(1);
+  const pages = [
+    { url: BASE_SITE_URL, dayOffset: 0 },
+    { url: fixturesUrlForDate(tomorrowDate), dayOffset: 1 },
+  ];
+  const rows = [];
+
+  for (const page of pages) {
+    try {
+      const html = await fetchHtml(page.url);
+      rows.push(...parseMatches(html, page.dayOffset));
+    } catch (error) {
+      console.error(`Failed Kooora source ${page.url}: ${error.message}`);
+    }
+  }
+
+  const uniqueRows = [...new Map(rows.map((row) => [`${String(row.kickoff_time || '').slice(0, 10)}:${row.match_id}`, row])).values()];
+  console.log(`Parsed ${uniqueRows.length} matches from Kooora.`);
+  return uniqueRows;
 }
 
 function parseKoooraMatches(html) {
@@ -613,7 +636,7 @@ async function mergeExistingChannels(supabase, rows) {
   const existingByMatchId = new Map((data || []).map((row) => [row.match_id, row]));
   return rows.map((row) => {
     const existing = existingByMatchId.get(row.match_id);
-    if (!existing?.channel) return row;
+    if (!existing?.channel || row.channel) return row;
     return {
       ...row,
       channel: existing.channel,
@@ -630,32 +653,24 @@ export async function collectMatchRowsFromSource() {
   if (apiFootballEnabled()) {
     try {
       const apiRows = await collectApiFootballRows();
-      if (apiRows.length) return [...new Map(apiRows.map((row) => [`${String(row.kickoff_time || '').slice(0, 10)}:${row.match_id}`, row])).values()];
+      if (apiRows.length) {
+        let koooraRows = [];
+        try {
+          koooraRows = await collectKoooraRows();
+        } catch (error) {
+          console.warn(`Kooora channel lookup failed; keeping API-Football matches without guessed channels: ${error.message}`);
+        }
+        const linked = mergeKoooraBroadcastChannels(apiRows, koooraRows);
+        console.log(`Linked ${linked.linked} API-Football matches to Kooora channels; ambiguous matches skipped=${linked.ambiguous}.`);
+        return [...new Map(linked.rows.map((row) => [`${String(row.kickoff_time || '').slice(0, 10)}:${row.match_id}`, row])).values()];
+      }
       console.warn("API-Football returned no allowed matches; falling back to Kooora source.");
     } catch (error) {
       console.error(`API-Football source failed: ${error.message}; falling back to Kooora source.`);
     }
   }
 
-  const tomorrowDate = moroccoDateParts(1);
-  const pages = [
-    { url: BASE_SITE_URL, dayOffset: 0 },
-    { url: fixturesUrlForDate(tomorrowDate), dayOffset: 1 },
-  ];
-  const rows = [];
-
-  for (const page of pages) {
-    try {
-      const html = await fetchHtml(page.url);
-      rows.push(...parseMatches(html, page.dayOffset));
-    } catch (error) {
-      console.error(`Failed source ${page.url}: ${error.message}`);
-    }
-  }
-
-  const uniqueRows = [...new Map(rows.map((row) => [`${String(row.kickoff_time || '').slice(0, 10)}:${row.match_id}`, row])).values()];
-  console.log(`Parsed ${uniqueRows.length} matches from ${pages.map((page) => page.url).join(', ')}.`);
-  return uniqueRows;
+  return collectKoooraRows();
 }
 
 export async function upsertMatchRows(rows) {
