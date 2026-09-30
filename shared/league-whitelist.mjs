@@ -42,6 +42,7 @@ const WOMEN_COMPETITION_PATTERNS = [
 ];
 
 const WOMEN_MARKERS = /سيدات|نسائي|نساء|women|women'?s|feminine|femmes/i;
+const GULF_CUP_PATTERN = /كاس الخليج(?: العربي)?|gulf cup(?: of nations)?|arabian gulf cup/i;
 
 export function normalizeLeagueName(value) {
   return String(value || '')
@@ -118,6 +119,9 @@ export function isAllowedNationalTeamException(value) {
 }
 
 export function isAllowedMatch({ league = '', country = '', leagueCountry = '', homeTeam = '', awayTeam = '' } = {}) {
+  const normalizedLeague = normalizeLeagueName(league);
+  if (GULF_CUP_PATTERN.test(normalizedLeague)
+    && [league, homeTeam, awayTeam].some((value) => WOMEN_MARKERS.test(normalizeLeagueName(value)))) return false;
   return isAllowedApiFootballLeague(league, country || leagueCountry)
     || isAllowedTeam(homeTeam)
     || isAllowedTeam(awayTeam)
