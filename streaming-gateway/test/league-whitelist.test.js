@@ -43,3 +43,9 @@ test('allows only requested women and African competition scope', () => {
     awayTeam: 'منتخب تونس للسيدات'
   }), true);
 });
+
+test('allows Gulf Cup under Arabic and English competition names', () => {
+  for (const league of ['كأس الخليج العربي', 'كأس الخليج', 'Gulf Cup', 'Arabian Gulf Cup']) {
+    assert.equal(isAllowedMatch({ league, homeTeam: 'Iraq', awayTeam: 'Oman' }), true, league);
+  }
+});
