@@ -294,6 +294,7 @@ export function createApp({ config, redis, fetchImpl = fetch }) {
       const filtered = matches.filter((match) => targetDates.has(
         moroccoPart(match.scheduledAt, { year: 'numeric', month: '2-digit', day: '2-digit' })
       ));
+      res.set('Cache-Control', 'public, max-age=15, s-maxage=30, stale-while-revalidate=120');
       res.json({ matches: filtered.filter(allowedMatch) });
     } catch {
       res.status(503).json({ error: 'Match service is unavailable' });
