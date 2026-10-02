@@ -8,7 +8,7 @@ const configuredHost = process.env.SITE_URL || (fs.existsSync(cname)
   : "koratv.click");
 const siteUrl = new URL(configuredHost.includes("://") ? configuredHost : `https://${configuredHost}`).origin;
 const hostname = new URL(siteUrl).hostname;
-const isFraja = hostname.endsWith("fraja.online") || hostname.endsWith("frajatv.fun");
+const isFraja = hostname.endsWith("fraja.online");
 const brand = isFraja ? "فرجة" : "KoraTV";
 const logoPath = isFraja && fs.existsSync(path.join(root, "assets/images/fraja-logo.svg"))
   ? "/assets/images/fraja-logo.svg"
