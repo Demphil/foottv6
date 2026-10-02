@@ -42,7 +42,8 @@ function matchSlug(match) {
 function siteConfig() {
   const configured = process.env.SITE_URL || fs.readFileSync(path.join(root, 'CNAME'), 'utf8').trim();
   const siteUrl = new URL(configured.includes('://') ? configured : `https://${configured}`).origin;
-  const isFraja = new URL(siteUrl).hostname.endsWith('frajatv.fun');
+  const hostname = new URL(siteUrl).hostname;
+  const isFraja = hostname.endsWith('fraja.online') || hostname.endsWith('frajatv.fun');
   return { siteUrl, brand: isFraja ? 'فرجة' : 'KoraTV' };
 }
 

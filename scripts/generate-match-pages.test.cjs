@@ -18,7 +18,7 @@ test('match detail path stays deterministic and includes unique fixture id', () 
 });
 
 test('generated page exposes supplied match facts and escapes text', () => {
-  const page = matchPage(sample, { siteUrl: 'https://frajatv.fun', brand: 'فرجة' });
+  const page = matchPage(sample, { siteUrl: 'https://fraja.online', brand: 'فرجة' });
   assert.ok(page);
   assert.match(page.html, /2 - 1/);
   assert.match(page.html, /الاستحواذ/);
@@ -30,7 +30,7 @@ test('generated page exposes supplied match facts and escapes text', () => {
 });
 
 test('rows without teams or a valid kickoff are not indexable', () => {
-  const config = { siteUrl: 'https://frajatv.fun', brand: 'فرجة' };
+  const config = { siteUrl: 'https://fraja.online', brand: 'فرجة' };
   assert.equal(matchPage({ ...sample, home_team: '' }, config), null);
   assert.equal(matchPage({ ...sample, kickoff_time: 'invalid' }, config), null);
 });
@@ -38,14 +38,14 @@ test('rows without teams or a valid kickoff are not indexable', () => {
 test('static build writes detail pages and keeps core sitemap URLs', async () => {
   const output = fs.mkdtempSync(path.join(os.tmpdir(), 'match-pages-'));
   try {
-    fs.writeFileSync(path.join(output, 'sitemap.xml'), '<urlset><url><loc>https://frajatv.fun/</loc></url><url><loc>https://frajatv.fun/news.html</loc></url></urlset>');
+    fs.writeFileSync(path.join(output, 'sitemap.xml'), '<urlset><url><loc>https://fraja.online/</loc></url><url><loc>https://fraja.online/news.html</loc></url></urlset>');
     const result = await generate(output, [sample]);
     const pagePath = path.join(output, 'match', matchSlug(sample), 'index.html');
     const sitemap = fs.readFileSync(result.sitemap, 'utf8');
     assert.equal(result.count, 1);
     assert.ok(fs.existsSync(pagePath));
-    assert.match(sitemap, /https:\/\/frajatv\.fun\//);
-    assert.match(sitemap, /https:\/\/frajatv\.fun\/news\.html/);
+    assert.match(sitemap, /https:\/\/fraja\.online\//);
+    assert.match(sitemap, /https:\/\/fraja\.online\/news\.html/);
     assert.match(sitemap, new RegExp(`/match/${matchSlug(sample)}/`));
   } finally {
     fs.rmSync(output, { recursive: true, force: true });

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://frajatv.fun/sitemap.xml
+Sitemap: https://fraja.online/sitemap.xml

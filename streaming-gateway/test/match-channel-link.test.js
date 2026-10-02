@@ -83,7 +83,7 @@ test('public match API prefers the API-Football row carrying the verified Kooora
   globalThis.fetch = async () => new Response(JSON.stringify(rows), { status: 200, headers: { 'content-type': 'application/json' } });
   try {
     const response = await onRequestGet({
-      request: new Request('https://frajatv.fun/api/matches'),
+      request: new Request('https://fraja.online/api/matches'),
       env: { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-key' }
     });
     const body = await response.json();
