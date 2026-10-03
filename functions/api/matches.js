@@ -1,4 +1,5 @@
 import { isAllowedMatch } from '../../shared/league-whitelist.mjs';
+import { sameFixture } from '../../shared/match-broadcasts.mjs';
 
 function json(body, status, origin = '*') {
   return new Response(JSON.stringify(body), {
@@ -55,11 +56,56 @@ function toFrontendMatch(row) {
     score: payload.score || 'VS',
     league: row.league || payload.league || '',
     channel: row.channel || payload.channel || '',
+    channelName: row.channel || payload.channel || '',
     source: row.source || '',
     commentator: payload.commentator || '',
     streams: Array.isArray(payload.streams) ? payload.streams : [],
     isLive: Boolean(payload.isLive),
+    sourceAvailable: Boolean(row.channel || payload.channel || payload.broadcast?.channels?.length),
     updatedAt: row.updated_at
+  };
+}
+
+function rowLike(match) {
+  return {
+    home_team: match.homeTeam,
+    away_team: match.awayTeam,
+    kickoff_time: match.scheduledAt,
+    league: match.league
+  };
+}
+
+function isKoooraMatch(match) {
+  return String(match.source || '').startsWith('kooora') || String(match.matchId || '').startsWith('kooora_');
+}
+
+function detailsScore(match) {
+  return Number(match.score && match.score !== 'VS') * 4
+    + (Array.isArray(match.goals) ? match.goals.length : 0)
+    + Number(match.eventDetailsLoaded === true) * 5;
+}
+
+function enrichFromDetails(base, rows) {
+  const details = rows
+    .filter((candidate) => candidate !== base && sameFixture(rowLike(base), rowLike(candidate)))
+    .sort((a, b) => detailsScore(b) - detailsScore(a))[0];
+  if (!details || detailsScore(details) <= detailsScore(base)) return base;
+  return {
+    ...base,
+    score: details.score || base.score,
+    status: details.status || base.status,
+    isLive: Boolean(base.isLive || details.isLive),
+    goals: Array.isArray(details.goals) ? details.goals : base.goals,
+    events: Array.isArray(details.events) ? details.events : base.events,
+    lineups: Array.isArray(details.lineups) ? details.lineups : base.lineups,
+    statistics: Array.isArray(details.statistics) ? details.statistics : base.statistics,
+    yellowCards: details.yellowCards || base.yellowCards,
+    redCards: details.redCards || base.redCards,
+    venue: details.venue || base.venue,
+    venueCity: details.venueCity || base.venueCity,
+    referee: details.referee || base.referee,
+    dataSource: details.source || details.dataSource || base.dataSource,
+    detailsState: details.detailsState || base.detailsState
   };
 }
 
@@ -113,37 +159,17 @@ export async function onRequestGet({ request, env }) {
     .filter((match) => isAllowedMatch({ league: match.league, homeTeam: match.homeTeam, awayTeam: match.awayTeam }))
     .filter((match) => String(match.homeTeam).trim() !== String(match.awayTeam).trim())
     .filter((match) => String(match.homeTeam).trim().toLocaleLowerCase('ar') !== String(match.awayTeam).trim().toLocaleLowerCase('ar'));
-  const channelPriority = (match) => {
-    if (match.channel && match.channelResolvedBy !== 'kooora-league-fallback'
-      && (match.channelSource === 'kooora-live-scores' || match.channelResolvedBy === 'kooora-fixture-match')) return 3;
-    if (match.channel && match.channelResolvedBy !== 'kooora-league-fallback') return 2;
-    return 0;
-  };
-  const dataPriority = (match) => Number(match.source === 'api-football') * 100
-    + Number(match.score && match.score !== 'VS') * 4
-    + (Array.isArray(match.goals) ? match.goals.length : 0);
-  const mergeDuplicate = (left, right) => {
-    const details = dataPriority(right) > dataPriority(left) ? right : left;
-    const broadcast = channelPriority(right) > channelPriority(left) ? right : left;
-    if (!channelPriority(broadcast)) return details;
-    return {
-      ...details,
-      channel: broadcast.channel,
-      channels: Array.isArray(broadcast.channels) ? broadcast.channels : details.channels,
-      channelSource: broadcast.channelSource,
-      channelResolvedBy: broadcast.channelResolvedBy,
-      channelMatchConfidence: broadcast.channelMatchConfidence,
-      koooraSourceMatchId: broadcast.koooraSourceMatchId,
-      koooraMatchLink: broadcast.koooraMatchLink
-    };
-  };
-  const byFixture = new Map();
-  for (const match of rowsForDisplay) {
-    const key = `${String(match.homeTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.awayTeam).trim().normalize('NFKC').toLocaleLowerCase('ar')}|${String(match.scheduledAt).slice(0, 10)}`;
-    const current = byFixture.get(key);
-    byFixture.set(key, current ? mergeDuplicate(current, match) : match);
+  const koooraRows = rowsForDisplay.filter(isKoooraMatch);
+  const canonicalRows = koooraRows.length
+    ? koooraRows
+    : rowsForDisplay.filter((match) => match.source !== 'api-football');
+  const bases = canonicalRows.length ? canonicalRows : rowsForDisplay;
+  const matches = [];
+  for (const base of bases) {
+    if (matches.some((current) => sameFixture(rowLike(current), rowLike(base)))) continue;
+    matches.push(enrichFromDetails(base, rowsForDisplay));
   }
-  const matches = [...byFixture.values()].sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
+  matches.sort((a, b) => Date.parse(a.scheduledAt) - Date.parse(b.scheduledAt));
 
   const day = new URL(request.url).searchParams.get('day');
   const today = moroccoDate(new Date());

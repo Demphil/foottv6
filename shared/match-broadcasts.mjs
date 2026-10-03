@@ -22,6 +22,10 @@ const aliases = [
   ['Israel', 'إسرائيل', 'الكيان العبري'],
   ['Bosnia & Herzegovina', 'Bosnia and Herzegovina', 'البوسنة والهرسك'],
   ['Central African Republic', 'أفريقيا الوسطى', 'جمهورية أفريقيا الوسطى'],
+  ['Saudi Arabia', 'السعودية', 'المملكة العربية السعودية'], ['Qatar', 'قطر'],
+  ['United Arab Emirates', 'UAE', 'الإمارات', 'الامارات', 'الإمارات العربية المتحدة'],
+  ['Oman', 'عمان', 'سلطنة عمان'], ['Kuwait', 'الكويت'], ['Bahrain', 'البحرين'],
+  ['Iraq', 'العراق'], ['Yemen', 'اليمن'],
   ['Czechia', 'Czech Republic', 'التشيك', 'تشيكيا'], ['Türkiye', 'Turkey', 'تركيا'],
   ['North Macedonia', 'FYR Macedonia', 'مقدونيا الشمالية'], ['Lithuania', 'ليتوانيا', 'لتوانيا'],
   ['St. Vincent / Grenadines', 'St Vincent / Grenadines', 'Saint Vincent and the Grenadines', 'St. Vincent and the Grenadines'],
@@ -67,7 +71,10 @@ export function sameFixture(left, right) {
 }
 
 export function normalizeBroadcastChannel(name) {
-  return String(name || '').trim().replace(/^beIN Sports Mena\s*(\d+)$/i, 'beIN SPORTS HD $1');
+  const value = String(name || '').trim();
+  if (!value || /\bbadge\b/i.test(value)) return '';
+  if (/^SNRT(?:\s+Live)?$/i.test(value)) return 'Arryadia TNT';
+  return value.replace(/^beIN Sports Mena\s*(\d+)$/i, 'beIN SPORTS HD $1');
 }
 
 export function broadcastSnapshot(row, checkedAt = new Date().toISOString()) {
@@ -127,6 +134,11 @@ export function mergeRefreshedMatch(existing, incoming, now = Date.now()) {
     && age >= 0 && age < 6 * 60 * 60_000) {
     return applyBroadcast({ ...incoming, payload }, { ...previous, stale: true });
   }
+  if (incoming.payload?.broadcast?.state === 'unassigned' && previous?.source === 'kooora'
+    && Array.isArray(previous.channels) && previous.channels.length
+    && age >= 0 && age < 24 * 60 * 60_000) {
+    return applyBroadcast({ ...incoming, payload }, { ...previous, stale: true, state: 'assigned' });
+  }
   return { ...incoming, channel: incoming.channel || null, payload: { ...payload, channel: incoming.channel || null } };
 }
 
@@ -134,7 +146,13 @@ export function broadcastChannelCandidates(row) {
   const snapshot = row.payload?.broadcast;
   if (snapshot?.source !== 'kooora') return [];
   const names = snapshot.channels;
-  return [...new Set((names || []).filter((name) => typeof name === 'string' && name.trim()).map(normalizeBroadcastChannel))];
+  const isArabicBroadcaster = (name) => /[\u0600-\u06ff]/u.test(name)
+    || (/\bbein\b/i.test(name) && !/\b(?:eng|english|fr|french|turkish)\b/i.test(name))
+    || /\b(?:arryadia|arriadia|snrt|ssc|al.?kass|abu dhabi sports|dubai sports|on time sports|nile sports|saudi sports|ksa sports|kuwait sports|oman sports|jordan sports)\b/i.test(name);
+  return [...new Set((names || []).filter((name) => typeof name === 'string' && name.trim()).map(normalizeBroadcastChannel))]
+    .map((name, index) => ({ name, index, arabic: isArabicBroadcaster(name) }))
+    .sort((left, right) => Number(right.arabic) - Number(left.arabic) || left.index - right.index)
+    .map(({ name }) => name);
 }
 
 function moroccoDateKey(value) {
