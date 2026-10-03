@@ -6,7 +6,7 @@ import {
   getCachedMatchSnapshot,
   getMoroccoWallClockNow,
   getMoroccoDay
-} from './api.js';
+} from './api.js?v=20261003-exact-clock';
 import { frontendMatchState } from '../../shared/match-lifecycle.mjs?v=20261003-source-status';
 
 const STREAM_API_ORIGIN = window.__MATCHES_API_ORIGIN__ || 'https://stream-api.koratv.click';
@@ -99,11 +99,14 @@ function cleanScore(value) {
 }
 
 function liveMinuteText(match, matchDate) {
-  const explicit = Number(match.liveMinute);
-  if (Number.isFinite(explicit) && explicit >= 0) return `${Math.round(explicit)}'`;
-  if (!matchDate || Number.isNaN(matchDate.getTime())) return 'مباشر';
-  const minutes = Math.max(0, Math.min(130, Math.floor((Date.now() - matchDate.getTime()) / 60000)));
-  return `${minutes}'`;
+  const explicit = match.liveMinute == null ? NaN : Number(match.liveMinute);
+  const extra = Math.max(0, Number(match.liveExtraMinute) || 0);
+  return Number.isFinite(explicit) && explicit >= 0 ? `${Math.round(explicit)}${extra ? `+${extra}` : ''}'` : 'مباشر';
+}
+
+function scoreMarkup(value) {
+  const parts = String(value || '').match(/^(\d+)\s*-\s*(\d+)$/);
+  return parts ? `<span class="team-score-pair"><span data-score-side="home">${parts[1]}</span><span aria-hidden="true">-</span><span data-score-side="away">${parts[2]}</span></span>` : 'VS';
 }
 
 function cardsTotal(cards) {
@@ -258,7 +261,7 @@ function renderMatch(match) {
             <span class="team-name">${homeTeamName}</span>
           </div>
           <div class="match-info">
-            <span class="score">${normalizedScore}</span>
+            <span class="score">${scoreMarkup(normalizedScore)}</span>
             <span class="time">${timeText}</span>
           </div>
           <div class="team">
