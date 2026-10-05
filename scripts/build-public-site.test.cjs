@@ -4,7 +4,7 @@ const { mkdtemp, mkdir, writeFile, readFile, access, rm } = require('node:fs/pro
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 const vm = require('node:vm');
-const { buildPublicSite } = require('./build-public-site.cjs');
+const { buildPublicSite, legacyMatchPages, legacyMatchRedirect } = require('./build-public-site.cjs');
 
 test('publication allowlist excludes backend files, maps, credentials, and docs', async () => {
   const root = await mkdtemp(join(tmpdir(), 'public-site-'));
@@ -24,6 +24,12 @@ test('publication allowlist excludes backend files, maps, credentials, and docs'
     };
     for (const [path, value] of Object.entries(files)) await writeFile(join(root, path), value);
     const output = await buildPublicSite({ root });
+    for (const page of legacyMatchPages) {
+      const redirect = await readFile(join(output, page), 'utf8');
+      assert.match(redirect, /http-equiv="refresh" content="0; url=https:\/\/example.com\/"/);
+      assert.match(redirect, /rel="canonical" href="https:\/\/example.com\/"/);
+      assert.doesNotMatch(redirect, /404|koratv\.click|noindex|site-ads|streaming-gateway/);
+    }
     for (const path of ['index.html', 'CNAME', 'sw.js', 'assets/js/main.js', 'shared/match-lifecycle.mjs']) await access(join(output, path));
     for (const path of Object.keys(files).filter(path => !['index.html', 'CNAME', 'sw.js', 'assets/js/main.js', 'shared/match-lifecycle.mjs'].includes(path))) {
       await assert.rejects(access(join(output, path)), { code: 'ENOENT' });
@@ -40,4 +46,14 @@ test('publication allowlist excludes backend files, maps, credentials, and docs'
     await writeFile(join(root, 'index.html'), '<script src="/api/operator/ui/private.js"></script>');
     await assert.rejects(buildPublicSite({ root }), /Private console route/);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('retired match pages have a single canonical destination and a no-JavaScript redirect', () => {
+  assert.ok(legacyMatchPages.includes('kora-online.html'));
+  assert.equal(new Set(legacyMatchPages).size, legacyMatchPages.length);
+  const html = legacyMatchRedirect('https://fraja.online');
+  assert.match(html, /content="0; url=https:\/\/fraja.online\/"/);
+  assert.match(html, /<a href="https:\/\/fraja.online\/">/);
+  assert.doesNotMatch(html, /<script|location|noindex/);
+  assert.throws(() => legacyMatchRedirect('javascript:alert(1)'));
 });
