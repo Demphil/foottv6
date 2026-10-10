@@ -51,3 +51,21 @@ test('static build writes detail pages and keeps core sitemap URLs', async () =>
     fs.rmSync(output, { recursive: true, force: true });
   }
 });
+
+test('homepage includes only public non-cancelled fixture links without provider data', async () => {
+  const output = fs.mkdtempSync(path.join(os.tmpdir(), 'public-schedule-'));
+  try {
+    fs.writeFileSync(path.join(output, 'index.html'), '<html><body><div id="featured-matches"></div></body></html>');
+    const kickoff = new Date().toISOString();
+    const row = { ...sample, kickoff_time: kickoff, payload: { status: 'FT', score: '2 - 1', streamUrl: 'PRIVATE_STREAM' } };
+    const hidden = { ...row, match_id: 'not-public', home_team: 'Hidden Team' };
+    const cancelled = { ...row, match_id: 'cancelled', home_team: 'Cancelled Team', payload: { status: 'CANC' } };
+    await generate(output, [row, hidden, cancelled], new Set([row.match_id, cancelled.match_id]));
+    const html = fs.readFileSync(path.join(output, 'index.html'), 'utf8');
+    assert.ok(html.includes(encodeURIComponent(matchSlug(row))));
+    assert.match(html, /النتيجة النهائية/);
+    assert.doesNotMatch(html, /Hidden Team|Cancelled Team|PRIVATE_STREAM/);
+  } finally {
+    fs.rmSync(output, { recursive: true, force: true });
+  }
+});

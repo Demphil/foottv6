@@ -9,7 +9,7 @@ const configuredHost = process.env.SITE_URL || (fs.existsSync(cname)
 const siteUrl = new URL(configuredHost.includes("://") ? configuredHost : `https://${configuredHost}`).origin;
 const hostname = new URL(siteUrl).hostname;
 const isFraja = hostname.endsWith("fraja.online");
-const brand = isFraja ? "فرجة" : "KoraTV";
+const brand = isFraja ? "Fraja | فرجة" : "KoraTV";
 const logoPath = isFraja && fs.existsSync(path.join(root, "assets/images/fraja-logo.svg"))
   ? "/assets/images/fraja-logo.svg"
   : "/assets/images/logo.png";
@@ -21,13 +21,13 @@ const pages = [
     file: "index.html",
     path: "/",
     title: isFraja
-      ? "جدول مباريات اليوم ونتائج كرة القدم | فرجة"
+      ? "Fraja | فرجة - مباريات اليوم ونتائج كرة القدم"
       : "نتائج ومواعيد مباريات كرة القدم اليوم | KoraTV",
     description: isFraja
       ? "اعرف مواعيد مباريات كرة القدم ونتائجها اليوم، مرتبة بحسب وقت البداية والبطولة وحالة المباراة، مع تحديثات للمتابعة من الهاتف."
       : "تابع نتائج وإحصاءات مباريات كرة القدم اليوم والغد، مع مواعيد البداية وحالة كل مباراة وترتيب واضح للبطولات بتوقيت المغرب.",
     h1: isFraja
-      ? "مواعيد مباريات اليوم ونتائجها"
+      ? "Fraja | فرجة - نتائج المباريات"
       : "نتائج وإحصاءات مباريات كرة القدم",
     type: "WebPage",
   },
@@ -35,12 +35,12 @@ const pages = [
     file: "news.html",
     path: "/news.html",
     title: isFraja
-      ? "مستجدات كرة القدم اليوم | أخبار فرجة"
+      ? "أخبار كرة القدم | Fraja فرجة"
       : "أخبار كرة القدم والبطولات | KoraTV",
     description: isFraja
       ? "تابع مستجدات كرة القدم والبطولات، وابحث في الأخبار حسب المسابقة أو المنتخب، مع روابط تعود إلى مصادر الخبر الأصلية."
       : "اقرأ أحدث مستجدات كرة القدم والبطولات، وابحث في الأخبار حسب المسابقة أو الفريق، مع روابط واضحة إلى المصادر الأصلية.",
-    h1: isFraja ? "مستجدات كرة القدم" : "أخبار كرة القدم والبطولات",
+    h1: isFraja ? "Fraja | أخبار فرجة" : "أخبار كرة القدم والبطولات",
     type: "CollectionPage",
   },
 ];
@@ -77,6 +77,7 @@ function pageSchema(page, url) {
         "@type": "Organization",
         "@id": orgId,
         name: brand,
+        alternateName: isFraja ? ['Fraja', 'فرجة', 'fraja.online'] : ['KoraTV'],
         url: siteUrl,
         logo: { "@type": "ImageObject", url: logoUrl },
       },
@@ -85,6 +86,7 @@ function pageSchema(page, url) {
         "@id": websiteId,
         url: siteUrl,
         name: brand,
+        alternateName: isFraja ? ['Fraja', 'فرجة', 'fraja.online'] : ['KoraTV'],
         inLanguage: "ar",
         publisher: { "@id": orgId },
       },

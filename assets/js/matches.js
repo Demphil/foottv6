@@ -638,6 +638,9 @@ function setupTabs() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    for (const container of document.querySelectorAll('[data-prerendered-day]')) {
+        if (container.dataset.prerenderedDay !== getMoroccoDateKey()) container.replaceChildren();
+    }
     setupTabs();
   setupSecurePlayerLinks();
   setupApiFootballDetails();

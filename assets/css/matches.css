@@ -44,6 +44,18 @@ body::before {
   z-index: -1;
 }
 
+.prerendered-match {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  line-height: 1.8;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.prerendered-match h3 { margin: 0 0 8px; font-size: 17px; }
+.prerendered-match p { margin: 6px 0; }
+.prerendered-match time { font-size: 13px; }
+.prerendered-match a { color: var(--secondary-color); display: inline-block; margin-top: 8px; }
+
 .matches-main {
   padding: clamp(15px, 4vw, 30px);
   max-width: 1600px;

@@ -1,5 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { prerenderHomepage } = require('./prerender-match-list.cjs');
+const { sourceMatchState } = require('../shared/match-lifecycle.mjs');
 
 const root = path.resolve(__dirname, '..');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -69,7 +71,8 @@ function matchPage(row, config) {
   const title = `${home} ضد ${away}: الموعد والنتيجة والإحصاءات | ${config.brand}`;
   const league = String(row.league || payload.league || '').trim();
   const score = String(payload.score || 'لم تبدأ المباراة').trim();
-  const status = payload.isFinished ? 'انتهت المباراة' : payload.isLive ? 'مباراة جارية' : 'موعد المباراة';
+  const state = sourceMatchState(payload);
+  const status = state === 'ended' ? 'انتهت المباراة' : state === 'live' ? 'مباراة جارية' : 'موعد المباراة';
   const description = `${status}: ${home} ضد ${away}${league ? ` ضمن ${league}` : ''}. الموعد ${dateText} الساعة ${timeText} بتوقيت المغرب. النتيجة الحالية: ${score}.`;
   const canonical = `${config.siteUrl}/match/${matchSlug(row)}/`;
   const stats = visibleStatistics(payload);
@@ -141,9 +144,20 @@ async function loadMatches() {
   }) : [];
 }
 
-async function generate(outputDir = path.join(root, '_site'), rows) {
+async function loadPublicMatchIds(siteUrl) {
+  const response = await fetch('https://stream-api.koratv.click/api/matches', {
+    headers: { Origin: siteUrl, Accept: 'application/json' }, signal: AbortSignal.timeout(30000)
+  });
+  if (!response.ok) throw new Error(`Public match fetch failed (${response.status})`);
+  const data = await response.json();
+  if (!Array.isArray(data.matches)) throw new Error('Invalid public match response');
+  return new Set(data.matches.map(row => String(row.matchId || row.match_id)));
+}
+
+async function generate(outputDir = path.join(root, '_site'), rows, publicMatchIds) {
   const config = siteConfig();
   const matches = rows || await loadMatches();
+  const visibleIds = publicMatchIds || (rows ? new Set(rows.map(row => String(row.match_id || row.id))) : await loadPublicMatchIds(config.siteUrl));
   fs.mkdirSync(outputDir, { recursive: true });
   const pages = matches.map((row) => matchPage(row, config)).filter(Boolean);
   const seen = new Set();
@@ -153,6 +167,13 @@ async function generate(outputDir = path.join(root, '_site'), rows) {
     const directory = path.join(outputDir, 'match', page.slug);
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(path.join(directory, 'index.html'), page.html);
+  }
+
+  const homepage = path.join(outputDir, 'index.html');
+  if (fs.existsSync(homepage)) {
+    const visibleRows = matches.filter(row => visibleIds.has(String(row.match_id || row.id))
+      && sourceMatchState(row.payload || {}) !== 'unavailable' && matchPage(row, config));
+    fs.writeFileSync(homepage, prerenderHomepage(fs.readFileSync(homepage, 'utf8'), visibleRows, matchSlug));
   }
 
   const sitemapPath = path.join(outputDir, 'sitemap.xml');
