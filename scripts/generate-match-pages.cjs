@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { prerenderHomepage } = require('./prerender-match-list.cjs');
 const { sourceMatchState } = require('../shared/match-lifecycle.mjs');
+const { loadArchive, restoreSlugs, writeArchive, id: archiveId } = require('./match-archive.cjs');
 
 const root = path.resolve(__dirname, '..');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -34,6 +35,7 @@ function normalizeTeam(value) {
 }
 
 function matchSlug(match) {
+  if (match.archiveSlug && /^[\p{L}\p{N}_-]{1,200}$/u.test(match.archiveSlug)) return match.archiveSlug;
   const home = normalizeTeam(match.home_team || match.homeTeam?.name || match.homeTeam);
   const away = normalizeTeam(match.away_team || match.awayTeam?.name || match.awayTeam);
   const kickoff = safeDate(match.kickoff_time || match.scheduledAt);
@@ -70,8 +72,8 @@ function matchPage(row, config) {
   const timeText = new Intl.DateTimeFormat('ar-MA', { timeZone: 'Africa/Casablanca', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(kickoff);
   const title = `${home} ضد ${away}: الموعد والنتيجة والإحصاءات | ${config.brand}`;
   const league = String(row.league || payload.league || '').trim();
-  const score = String(payload.score || 'لم تبدأ المباراة').trim();
   const state = sourceMatchState(payload);
+  const score = String(payload.score || (state === 'upcoming' ? 'لم تبدأ المباراة' : 'النتيجة غير متوفرة')).trim();
   const status = state === 'ended' ? 'انتهت المباراة' : state === 'live' ? 'مباراة جارية' : 'موعد المباراة';
   const description = `${status}: ${home} ضد ${away}${league ? ` ضمن ${league}` : ''}. الموعد ${dateText} الساعة ${timeText} بتوقيت المغرب. النتيجة الحالية: ${score}.`;
   const canonical = `${config.siteUrl}/match/${matchSlug(row)}/`;
@@ -98,6 +100,7 @@ function matchPage(row, config) {
 
   return {
     slug: matchSlug(row),
+    date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Casablanca', year: 'numeric', month: '2-digit', day: '2-digit' }).format(kickoff),
     lastmod: safeDate(row.updated_at)?.toISOString().slice(0, 10) || kickoff.toISOString().slice(0, 10),
     html: `<!doctype html>
 <html lang="ar" dir="rtl"><head>
@@ -156,10 +159,14 @@ async function loadPublicMatchIds(siteUrl) {
 
 async function generate(outputDir = path.join(root, '_site'), rows, publicMatchIds) {
   const config = siteConfig();
-  const matches = rows || await loadMatches();
+  const archive = rows ? { version: 1, pages: [], aliases: [] } : await loadArchive(config);
+  const matches = restoreSlugs(rows || await loadMatches(), archive);
   const visibleIds = publicMatchIds || (rows ? new Set(rows.map(row => String(row.match_id || row.id))) : await loadPublicMatchIds(config.siteUrl));
   fs.mkdirSync(outputDir, { recursive: true });
-  const pages = matches.map((row) => matchPage(row, config)).filter(Boolean);
+  const pages = matches.filter(row => sourceMatchState(row.payload || {}) !== 'unavailable').map((row) => {
+    const page = matchPage(row, config);
+    return page ? { ...page, identity: archiveId(row) } : null;
+  }).filter(Boolean);
   const seen = new Set();
   for (const page of pages) {
     if (seen.has(page.slug)) continue;
@@ -187,6 +194,8 @@ async function generate(outputDir = path.join(root, '_site'), rows, publicMatchI
   const entries = [...staticEntries, ...matchEntries].map((entry) => `  <url>${entry.replace(/^\s*<url>|<\/url>\s*$/g, '')}</url>`);
   fs.writeFileSync(sitemapPath, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`);
   console.log(`Generated ${seen.size} match pages for ${config.siteUrl}.`);
+  const retained = writeArchive(outputDir, config, archive, pages, matches);
+  console.log(`Retained ${retained.count} match pages and ${retained.urls} archive URLs.`);
   return { count: seen.size, sitemap: sitemapPath };
 }
 
