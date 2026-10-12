@@ -241,6 +241,7 @@ export async function getTodayMatches(options = {}) {
     return today;
   } catch (error) {
     console.error(`Today matches fetch failed: ${error.message}`);
+    if (options.throwOnError) throw error;
     return getCachedMatchSnapshot().today;
   }
 }
@@ -253,6 +254,7 @@ export async function getTomorrowMatches(options = {}) {
     return tomorrow;
   } catch (error) {
     console.error(`Tomorrow matches fetch failed: ${error.message}`);
+    if (options.throwOnError) throw error;
     return getCachedMatchSnapshot().tomorrow;
   }
 }
