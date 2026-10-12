@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { matchSlug, matchPage, generate } = require('./generate-match-pages.cjs');
+const { matchSlug, matchPage, generate, loadPublicMatchIds } = require('./generate-match-pages.cjs');
 
 const sample = {
   id: 'fixture-123', match_id: 'fixture-123', home_team: 'الرجاء <script>', away_team: 'الوداد',
@@ -15,6 +15,20 @@ test('match detail path stays deterministic and includes unique fixture id', () 
   assert.equal(matchSlug(sample), matchSlug(sample));
   assert.match(matchSlug(sample), /2026-09-29-/);
   assert.notEqual(matchSlug(sample), matchSlug({ ...sample, match_id: 'fixture-456' }));
+});
+
+test('unavailable public API uses database scope without publishing cancelled or excluded fixtures', async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async () => { throw new Error('network unavailable'); };
+  try {
+    const base = { ...sample, source: 'kooora', league: 'الدوري الإيطالي', home_team: 'Atalanta', away_team: 'Venezia', payload: { status: 'LIVE' } };
+    const ids = await loadPublicMatchIds('https://fraja.online', [base,
+      { ...base, match_id: 'cancelled', payload: { status: 'CANC' } },
+      { ...base, match_id: 'out-of-scope', league: 'Unknown League', home_team: 'Unknown', away_team: 'Other' },
+      { ...base, match_id: 'other-source', source: 'api-football' },
+      { ...base, match_id: 'inactive', active: false }]);
+    assert.deepEqual([...ids], [base.match_id]);
+  } finally { global.fetch = originalFetch; }
 });
 
 test('generated page exposes supplied match facts and escapes text', () => {

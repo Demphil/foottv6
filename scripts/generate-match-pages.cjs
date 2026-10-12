@@ -2,6 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { prerenderHomepage } = require('./prerender-match-list.cjs');
 const { sourceMatchState } = require('../shared/match-lifecycle.mjs');
+const { sameFixture, deduplicateSourceEvents } = require('../shared/match-broadcasts.mjs');
+const { isAllowedMatch, isGulfCupLeague } = require('../shared/league-whitelist.mjs');
+const { isOperatorImportedMatch } = require('../shared/operator-imported-match.mjs');
 const { loadArchive, restoreSlugs, writeArchive, id: archiveId } = require('./match-archive.cjs');
 
 const root = path.resolve(__dirname, '..');
@@ -131,7 +134,7 @@ async function loadMatches() {
   const from = new Date(now - 7 * DAY_MS).toISOString();
   const to = new Date(now + 14 * DAY_MS).toISOString();
   const url = new URL(`${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${table}`);
-  url.searchParams.set('select', 'id,match_id,home_team,away_team,league,kickoff_time,payload,active,updated_at');
+  url.searchParams.set('select', 'id,match_id,source,home_team,away_team,league,kickoff_time,payload,active,updated_at');
   url.searchParams.set('active', 'eq.true');
   url.searchParams.set('and', `(kickoff_time.gte.${from},kickoff_time.lte.${to})`);
   url.searchParams.set('order', 'kickoff_time.asc');
@@ -147,21 +150,34 @@ async function loadMatches() {
   }) : [];
 }
 
-async function loadPublicMatchIds(siteUrl) {
-  const response = await fetch('https://stream-api.koratv.click/api/matches', {
-    headers: { Origin: siteUrl, Accept: 'application/json' }, signal: AbortSignal.timeout(30000)
-  });
-  if (!response.ok) throw new Error(`Public match fetch failed (${response.status})`);
-  const data = await response.json();
-  if (!Array.isArray(data.matches)) throw new Error('Invalid public match response');
-  return new Set(data.matches.map(row => String(row.matchId || row.match_id)));
+async function loadPublicMatchIds(siteUrl, rows) {
+  try {
+    const response = await fetch('https://stream-api.koratv.click/api/matches', {
+      headers: { Origin: siteUrl, Accept: 'application/json' }, signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error(`Public match fetch failed (${response.status})`);
+    const data = await response.json();
+    if (!Array.isArray(data.matches)) throw new Error('Invalid public match response');
+    return new Set(data.matches.map(row => String(row.matchId || row.match_id)));
+  } catch {
+    // Mirror the gateway's public scope when its network route is unavailable to the build runner.
+    const allowed = deduplicateSourceEvents(rows).filter(row => row.active !== false
+      && sourceMatchState(row.payload || {}) !== 'unavailable'
+      && (isOperatorImportedMatch(row) || isAllowedMatch({ league: row.league,
+        leagueCountry: row.payload?.leagueCountry, homeTeam: row.home_team, awayTeam: row.away_team })));
+    const kooora = allowed.filter(row => row.source === 'kooora');
+    const gulf = allowed.filter(row => row.source === 'api-football' && isGulfCupLeague(row.league)
+      && !kooora.some(candidate => sameFixture(candidate, row)));
+    console.warn('[match-pages] Public feed unavailable; using verified database fixtures with the gateway visibility policy.');
+    return new Set([...kooora, ...gulf].map(row => String(row.match_id || row.id)));
+  }
 }
 
 async function generate(outputDir = path.join(root, '_site'), rows, publicMatchIds) {
   const config = siteConfig();
   const archive = rows ? { version: 1, pages: [], aliases: [] } : await loadArchive(config);
   const matches = restoreSlugs(rows || await loadMatches(), archive);
-  const visibleIds = publicMatchIds || (rows ? new Set(rows.map(row => String(row.match_id || row.id))) : await loadPublicMatchIds(config.siteUrl));
+  const visibleIds = publicMatchIds || (rows ? new Set(rows.map(row => String(row.match_id || row.id))) : await loadPublicMatchIds(config.siteUrl, matches));
   fs.mkdirSync(outputDir, { recursive: true });
   const pages = matches.filter(row => sourceMatchState(row.payload || {}) !== 'unavailable').map((row) => {
     const page = matchPage(row, config);
@@ -208,4 +224,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { escapeHtml, matchSlug, matchPage, generate };
+module.exports = { escapeHtml, matchSlug, matchPage, generate, loadPublicMatchIds };
