@@ -6,4 +6,4 @@ Retained publish-site.yml and indexnow.yml. Static publishing runs every four ho
 
 Kooora ingestion and provider catalog updates remain owned by Oracle's running central schedulers. The current match console serializes manual supplier mutations; no backend migration or DNS change is part of this cleanup.
 
-Both remaining definitions were parsed and job dependencies validated. Production run outcomes must be checked separately from syntax validation.
+Both remaining definitions were parsed and job dependencies validated. GitHub run 38470589795 successfully published the static site after this cleanup. Removed definitions no longer appeared in the active workflow inventory.
