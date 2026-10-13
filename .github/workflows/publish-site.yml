@@ -1,6 +1,8 @@
 name: Publish static SEO updates
 
 on:
+  schedule:
+    - cron: "27 */4 * * *"
   push:
     branches:
       - main
