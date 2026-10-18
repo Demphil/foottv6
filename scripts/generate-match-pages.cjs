@@ -6,6 +6,7 @@ const { sameFixture, deduplicateSourceEvents } = require('../shared/match-broadc
 const { isAllowedMatch, isGulfCupLeague } = require('../shared/league-whitelist.mjs');
 const { isOperatorImportedMatch } = require('../shared/operator-imported-match.mjs');
 const { loadArchive, restoreSlugs, writeArchive, id: archiveId } = require('./match-archive.cjs');
+const { measurementIdFromHomepage, instrumentPublicPages } = require('./public-analytics.cjs');
 
 const root = path.resolve(__dirname, '..');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -212,6 +213,9 @@ async function generate(outputDir = path.join(root, '_site'), rows, publicMatchI
   console.log(`Generated ${seen.size} match pages for ${config.siteUrl}.`);
   const retained = writeArchive(outputDir, config, archive, pages, matches);
   console.log(`Retained ${retained.count} match pages and ${retained.urls} archive URLs.`);
+  const measurementId = measurementIdFromHomepage(fs.readFileSync(path.join(root, 'index.html'), 'utf8'));
+  const measured = instrumentPublicPages(outputDir, measurementId);
+  console.log(`Instrumented ${measured} public pages without modifying the archive source.`);
   return { count: seen.size, sitemap: sitemapPath };
 }
 
