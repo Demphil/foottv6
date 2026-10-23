@@ -35,11 +35,15 @@
   }
 
   function armClickAd() {
-    document.addEventListener('click', () => {
+    document.addEventListener('click', (event) => {
+      if (!event.isTrusted || window.PublisherAdWindow?.isProtected(event)) return;
       const now = Date.now();
       if (!canOpenClickAd(now)) return;
       markClickAd(now);
-      try { window.open(CLICK_URL, '_blank', 'noopener,noreferrer'); } catch {}
+      try {
+        const open = window.PublisherAdWindow?.openDirect || window.open.bind(window);
+        open(CLICK_URL, '_blank', 'noopener,noreferrer');
+      } catch {}
     }, { capture: true });
   }
 
