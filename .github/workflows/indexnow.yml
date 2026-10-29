@@ -1,16 +1,11 @@
 name: Submit IndexNow URLs
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "**/*.html"
-      - "sitemap.xml"
-      - "robots.txt"
-      - "7fbee603f5d44620b6cf6cdff1cb2156.txt"
-      - "scripts/submit-indexnow.js"
+  # Automatic submission belongs to the successful publication workflow.
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   submit-indexnow:
@@ -27,10 +22,7 @@ jobs:
           node-version: 22
 
       - name: Install Dependencies
-        run: npm ci --omit=dev --no-audit --fund=false
-
-      - name: Wait for static hosting refresh
-        run: sleep 90
+        run: npm ci --ignore-scripts --omit=dev --no-audit --fund=false
 
       - name: Submit sitemap URLs to IndexNow
         run: npm run indexnow
