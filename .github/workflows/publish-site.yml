@@ -36,6 +36,7 @@ on:
       - "assets/js/matches.js"
       - "assets/js/api.js"
       - "scripts/match-loading.test.cjs"
+      - "scripts/public-match-feed.test.mjs"
       - "assets/js/supabase-config.js"
       - "assets/js/news.js"
       - "assets/js/news-images.js"
@@ -45,6 +46,7 @@ on:
       - "scripts/ad-window-integration.test.cjs"
       - "shared/match-lifecycle.mjs"
       - "shared/match-visibility.mjs"
+      - "shared/public-match-feed.mjs"
       - "shared/league-whitelist.mjs"
       - "assets/css/matches.css"
       - "assets/css/fonts.css"
@@ -67,9 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      SUPABASE_MATCHES_TABLE: matches
+      SITE_MATCHES_SNAPSHOT_URL: https://stream-api.koratv.click/site-metadata/matches.json
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -90,6 +90,7 @@ jobs:
           node --test scripts/news-images.test.cjs
           node --test scripts/news-pages.test.cjs
           node --test scripts/match-loading.test.cjs
+          node --test scripts/public-match-feed.test.mjs
           node --test scripts/monetag-window.test.cjs scripts/ad-window-integration.test.cjs
           node scripts/build-public-site.cjs
 
