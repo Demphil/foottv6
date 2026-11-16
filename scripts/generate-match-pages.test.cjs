@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { matchSlug, matchPage, generate, loadPublicMatchIds } = require('./generate-match-pages.cjs');
+const { matchSlug, matchPage, generate, loadMatches, loadPublicMatchIds } = require('./generate-match-pages.cjs');
 
 const sample = {
   id: 'fixture-123', match_id: 'fixture-123', home_team: 'الرجاء <script>', away_team: 'الوداد',
@@ -17,7 +17,39 @@ test('match detail path stays deterministic and includes unique fixture id', () 
   assert.notEqual(matchSlug(sample), matchSlug({ ...sample, match_id: 'fixture-456' }));
 });
 
-test('unavailable public API uses database scope without publishing cancelled or excluded fixtures', async () => {
+test('the static Kooora snapshot supplies match rows and public IDs without database secrets', async () => {
+  const originalFetch = global.fetch;
+  const originalSnapshotUrl = process.env.SITE_MATCHES_SNAPSHOT_URL;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
+  const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const snapshotUrl = 'https://raw.githubusercontent.com/Demphil/koratv-web/public-match-feed/site-metadata/matches.json';
+  const row = { id: 'static-1', match_id: 'static-1', source: 'kooora', active: true,
+    home_team: 'المغرب', away_team: 'مالي', league: 'مباريات دولية', kickoff_time: new Date(Date.now() + 3600000).toISOString(),
+    payload: { score: '2 - 1', isFinished: true, status: 'FT' } };
+  process.env.SITE_MATCHES_SNAPSHOT_URL = snapshotUrl;
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  global.fetch = async (url) => {
+    assert.equal(String(url), snapshotUrl);
+    return Response.json({ version: 1, generatedAt: new Date().toISOString(), matches: [row] });
+  };
+  try {
+    const rows = await loadMatches();
+    assert.deepEqual(rows.map(match => match.match_id), ['static-1']);
+    const ids = await loadPublicMatchIds('https://fraja.online', rows);
+    assert.deepEqual([...ids], ['static-1']);
+  } finally {
+    global.fetch = originalFetch;
+    if (originalSnapshotUrl === undefined) delete process.env.SITE_MATCHES_SNAPSHOT_URL;
+    else process.env.SITE_MATCHES_SNAPSHOT_URL = originalSnapshotUrl;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
+    if (originalServiceKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
+  }
+});
+
+test('an unavailable static feed falls back to the gateway visibility policy', async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => { throw new Error('network unavailable'); };
   try {
