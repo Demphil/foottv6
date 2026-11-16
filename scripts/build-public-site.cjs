@@ -1,4 +1,4 @@
-const { cp, mkdir, readdir, readFile, rm, writeFile } = require('node:fs/promises');
+const { access, cp, mkdir, readdir, readFile, rm, writeFile } = require('node:fs/promises');
 const { resolve, relative, join, extname } = require('node:path');
 const { minify } = require('terser');
 const { load } = require('cheerio');
@@ -92,7 +92,12 @@ async function buildPublicSite({ root = process.cwd(), output = join(root, '_sit
   await mkdir(join(output, 'shared'), { recursive: true });
   await cp(join(root, 'shared/match-lifecycle.mjs'), join(output, 'shared/match-lifecycle.mjs'));
   await cp(join(root, 'shared/match-visibility.mjs'), join(output, 'shared/match-visibility.mjs'));
-  await cp(join(root, 'shared/public-match-feed.mjs'), join(output, 'shared/public-match-feed.mjs'));
+  try {
+    await access(join(root, 'shared/public-match-feed.mjs'));
+    await cp(join(root, 'shared/public-match-feed.mjs'), join(output, 'shared/public-match-feed.mjs'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   const configuredHost = (await readFile(join(root, 'CNAME'), 'utf8')).trim();
   const siteUrl = new URL(configuredHost.includes('://') ? configuredHost : `https://${configuredHost}`).origin;
   const redirect = legacyMatchRedirect(siteUrl);
