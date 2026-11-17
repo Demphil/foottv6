@@ -9,7 +9,7 @@ import {
   getMoroccoDateKey,
   getNextMoroccoDayDelay
 } from './api.js?v=20261117-logo-feed';
-import { frontendMatchState, sourceMatchState } from '../../shared/match-lifecycle.mjs?v=20261004-day-retention';
+import { frontendMatchState, sourceMatchState } from '../../shared/match-lifecycle.mjs?v=20261117-open30';
 
 const STREAM_API_ORIGIN = window.__MATCHES_API_ORIGIN__ || 'https://stream-api.koratv.click';
 const PLAYER_ORIGIN = 'https://fabor.sbs';
@@ -359,7 +359,7 @@ function setupSecurePlayerLinks() {
     if (!link) return;
     event.preventDefault();
     const messages = {
-      upcoming: 'سيُفتح البث قبل بداية المباراة بعشرين دقيقة.',
+      upcoming: 'سيُفتح البث قبل بداية المباراة بثلاثين دقيقة.',
       ended: 'انتهت المباراة وتم إغلاق البث.',
       channel_unavailable: 'لم تُحدد القناة الناقلة بعد.',
       source_unavailable: 'القناة معروفة لكن مصدر التشغيل لم يجهز بعد. سيتم تحديثها تلقائياً.'
@@ -538,7 +538,10 @@ function compareBroadcastPriority(a, b, now = new Date()) {
   return 0;
 }
 
+let displayedMatches;
+
 function renderMatchCollections(rawTodayMatches, rawTomorrowMatches) {
+  displayedMatches = { today: rawTodayMatches, tomorrow: rawTomorrowMatches };
   hideLoading();
   const allMatches = dedupeMatches([...rawTodayMatches, ...rawTomorrowMatches]
     .filter(match => match?.homeTeam?.name && match?.awayTeam?.name && matchStartDate(match)));
@@ -622,6 +625,9 @@ function startLiveRefresh() {
     setInterval(() => {
         if (document.hidden) return;
         checkDayChange();
+        if (displayedMatches) {
+            renderMatchCollections(displayedMatches.today, displayedMatches.tomorrow);
+        }
         loadAndRenderMatches({ force: true }).catch(error => {
             console.warn('[MATCHES] live refresh failed:', error);
         });
